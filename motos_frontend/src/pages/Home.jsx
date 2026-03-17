@@ -19,16 +19,18 @@ export default function Home() {
     if (!target) return;
 
     const navbarOffset = 110;
+    const timers = [];
 
-    const scrollToSection = () => {
+    const scrollToSection = (behavior = "smooth") => {
       const top = target.getBoundingClientRect().top + window.scrollY - navbarOffset;
-      window.scrollTo({ top: Math.max(0, top), behavior: "smooth" });
+      window.scrollTo({ top: Math.max(0, top), behavior });
     };
 
-    requestAnimationFrame(scrollToSection);
-    const timer = window.setTimeout(scrollToSection, 140);
+    requestAnimationFrame(() => scrollToSection("smooth"));
+    timers.push(window.setTimeout(() => scrollToSection("auto"), 220));
+    timers.push(window.setTimeout(() => scrollToSection("auto"), 700));
 
-    return () => window.clearTimeout(timer);
+    return () => timers.forEach((timer) => window.clearTimeout(timer));
   }, [location.pathname, location.hash]);
 
   return (

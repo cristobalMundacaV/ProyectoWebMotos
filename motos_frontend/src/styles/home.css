@@ -43,7 +43,7 @@
 
 /* Destacadas */
 .destacadas {
-  padding: clamp(44px, 7vw, 80px) clamp(14px, 4vw, 60px);
+  padding: clamp(34px, 6vw, 72px) clamp(14px, 4vw, 60px);
   background: #fff;
   margin: 0 auto;
   max-width: 100%;
@@ -70,7 +70,7 @@
   position: relative;
   display: flex;
   align-items: center;
-  gap: 8px;
+  justify-content: center;
 }
 
 .carousel-track {
@@ -79,8 +79,8 @@
   overflow-x: auto;
   scroll-behavior: smooth;
   scroll-snap-type: x mandatory;
-  padding: 8px 2px 14px;
-  flex: 1;
+  padding: 8px 44px 10px;
+  flex: 1 1 auto;
   scrollbar-width: none;
 }
 
@@ -89,7 +89,7 @@
 }
 
 .carousel-item {
-  flex: 0 0 min(360px, 88vw);
+  flex: 0 0 min(348px, 86vw);
   scroll-snap-align: start;
 }
 
@@ -107,7 +107,7 @@
   overflow: hidden;
   display: flex;
   flex-direction: column;
-  min-height: 430px;
+  min-height: 390px;
 }
 
 .home-product-image {
@@ -144,9 +144,9 @@
 }
 
 .home-product-bottom-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: end;
   gap: 12px;
   margin-top: 6px;
 }
@@ -162,13 +162,21 @@
   background: #e60000;
   color: #fff;
   border-radius: 8px;
-  padding: 9px 13px;
+  min-height: 36px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 12px;
   font-size: 0.85rem;
   font-weight: 700;
   white-space: nowrap;
+  max-width: 100%;
 }
 
 .carousel-btn {
+  position: absolute;
+  top: 46%;
+  transform: translateY(-50%);
   flex-shrink: 0;
   width: 44px;
   height: 44px;
@@ -186,6 +194,14 @@
   z-index: 2;
 }
 
+.carousel-btn--prev {
+  left: 6px;
+}
+
+.carousel-btn--next {
+  right: 6px;
+}
+
 .carousel-btn__icon {
   width: 20px;
   height: 20px;
@@ -199,7 +215,7 @@
 
 .carousel-btn:hover {
   background: #b50000;
-  transform: scale(1.05);
+  transform: translateY(-50%) scale(1.05);
 }
 
 /* CTA WhatsApp */
@@ -261,13 +277,14 @@
   }
 
   .carousel-btn {
-    width: 40px;
-    height: 40px;
+    width: 36px;
+    height: 36px;
+    top: 44%;
   }
 
   .carousel-btn__icon {
-    width: 18px;
-    height: 18px;
+    width: 16px;
+    height: 16px;
   }
 }
 
@@ -282,20 +299,49 @@
   }
 
   .carousel-wrapper {
-    gap: 4px;
+    margin: 0 -4px;
   }
 
   .carousel-item {
-    flex-basis: 84vw;
+    flex-basis: 82vw;
+  }
+
+  .carousel-track {
+    padding: 6px 36px 8px;
   }
 
   .carousel-btn {
-    width: 34px;
-    height: 34px;
+    width: 32px;
+    height: 32px;
+    top: 43%;
   }
 
   .carousel-btn__icon {
-    width: 16px;
-    height: 16px;
+    width: 14px;
+    height: 14px;
+  }
+
+  .home-product-card {
+    min-height: 360px;
+  }
+
+  .home-product-image {
+    aspect-ratio: 1 / 0.86;
+  }
+
+  .home-product-bottom-row {
+    grid-template-columns: 1fr;
+    align-items: stretch;
+    gap: 8px;
+  }
+
+  .home-product-link {
+    width: 100%;
+    justify-self: stretch;
+    font-size: 0.82rem;
+  }
+
+  .home-product-bottom-row p {
+    font-size: 1.22rem;
   }
 }

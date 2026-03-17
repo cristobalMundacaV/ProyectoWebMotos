@@ -1,4 +1,4 @@
-/* ─── Página de detalle ─── */
+/* Pagina de detalle */
 .detalle-page {
   min-height: 100vh;
   background: #efefef;
@@ -7,7 +7,7 @@
 .detalle-main {
   max-width: 1320px;
   margin: 0 auto;
-  padding: 78px 24px 24px;
+  padding: 74px 20px 20px;
 }
 
 .detalle-breadcrumb {
@@ -16,12 +16,11 @@
   align-items: center;
   background: #e8e8ea;
   color: #404040;
-  padding: 9px 14px;
+  padding: 8px 12px;
   border-radius: 6px;
-  margin-top: 10px;
+  margin-top: 8px;
   margin-bottom: 10px;
-  font-size: 16px;
-  /* Barra casi full-width de página, sin mover el resto del contenido */
+  font-size: 15px;
   width: calc(100vw - 40px);
   margin-left: calc(50% - 50vw + 20px);
 }
@@ -31,23 +30,23 @@
 }
 
 .detalle-title {
-  font-size: 42px;
+  font-size: 38px;
   line-height: 1;
   margin: 0 0 10px;
 }
 
-/* ─── Layout imagen + ficha ─── */
+/* Layout imagen + ficha */
 .detalle-layout {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(0, 0.95fr);
-  gap: 16px;
+  gap: 14px;
   align-items: start;
 }
 
 .detalle-image-wrap {
   background: #efefef;
   border-radius: 8px;
-  min-height: 380px;
+  min-height: 350px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -55,11 +54,11 @@
 
 .detalle-image-wrap img {
   width: 100%;
-  max-height: 380px;
+  max-height: 350px;
   object-fit: contain;
 }
 
-/* ─── Columna lateral ─── */
+/* Columna lateral */
 .detalle-side {
   display: flex;
   flex-direction: column;
@@ -68,7 +67,7 @@
 
 .detalle-price {
   color: #b20808;
-  font-size: 48px;
+  font-size: 44px;
   line-height: 1;
   font-weight: 800;
   margin: 0;
@@ -92,7 +91,7 @@
   margin: 0;
   padding: 10px 14px;
   background: #dbdbde;
-  font-size: 21px;
+  font-size: 19px;
 }
 
 .detalle-data-row {
@@ -100,14 +99,14 @@
   grid-template-columns: 1fr auto;
   gap: 10px;
   padding: 9px 14px;
-  font-size: 21px;
+  font-size: 18px;
   border-top: 1px solid #d5d5d8;
 }
 
 .detalle-contact-card p {
   margin: 0;
   padding: 10px 14px;
-  font-size: 21px;
+  font-size: 18px;
   border-top: 1px solid #d5d5d8;
 }
 
@@ -117,31 +116,31 @@
   text-align: center;
   background: #e50914;
   color: #fff;
-  padding: 12px 18px;
+  padding: 12px 16px;
   border-radius: 12px;
-  font-size: 21px;
+  font-size: 19px;
   font-weight: 800;
   letter-spacing: 0.4px;
 }
 
-/* ─── Descripción ─── */
+/* Descripcion */
 .detalle-description {
-  margin-top: 14px;
+  margin-top: 10px;
 }
 
 .detalle-description h2 {
-  font-size: 34px;
+  font-size: 30px;
   margin: 0 0 8px;
 }
 
 .detalle-description p {
-  font-size: 21px;
-  line-height: 1.32;
+  font-size: 18px;
+  line-height: 1.42;
   max-width: 940px;
   margin: 0;
 }
 
-/* ─── Estados de carga/error ─── */
+/* Estados de carga/error */
 .detalle-empty,
 .detalle-loading {
   min-height: 100vh;
@@ -156,128 +155,235 @@
   font-weight: 700;
 }
 
-/* Ajustes visuales solo para detalle de productos */
+/* Ajustes visuales para detalle de productos */
 .detalle-producto-page .detalle-title-producto {
-  font-size: 38px;
+  font-size: 36px;
   line-height: 1.08;
-  margin-bottom: 28px;
+  margin-bottom: 18px;
 }
 
 .detalle-producto-page .detalle-breadcrumb {
-  margin-bottom: 24px;
+  margin-bottom: 16px;
 }
 
 .detalle-producto-page .detalle-layout {
-  gap: 22px;
+  gap: 18px;
 }
 
 .detalle-producto-page .detalle-price {
-  font-size: 42px;
+  font-size: 40px;
 }
 
 .detalle-producto-page .detalle-data-card h3,
 .detalle-producto-page .detalle-contact-card h3 {
-  font-size: 21px;
+  font-size: 19px;
 }
 
 .detalle-producto-page .detalle-data-row,
 .detalle-producto-page .detalle-contact-card p {
-  font-size: 21px;
+  font-size: 18px;
   padding: 9px 14px;
 }
 
 .detalle-producto-page .detalle-cta {
-  font-size: 21px;
-  padding: 12px 18px;
+  font-size: 19px;
+  padding: 12px 16px;
 }
 
 .detalle-producto-page .detalle-description {
-  margin-top: 20px;
+  margin-top: 14px;
 }
 
 .detalle-producto-page .detalle-description h2 {
-  font-size: 34px;
-  margin-bottom: 10px;
+  font-size: 30px;
+  margin-bottom: 8px;
 }
 
 .detalle-producto-page .detalle-description p {
-  font-size: 18px;
-  line-height: 1.4;
+  font-size: 17px;
+  line-height: 1.45;
 }
 
-/* ─── Responsive ─── */
 @media (max-width: 1280px) {
   .detalle-main {
-    padding: 76px 18px 24px;
+    padding: 72px 16px 20px;
   }
 
-  .detalle-title {
-    font-size: 40px;
+  .detalle-title,
+  .detalle-producto-page .detalle-title-producto {
+    font-size: 34px;
   }
 
-  .detalle-image-wrap {
-    min-height: 360px;
-  }
-
-  .detalle-image-wrap img {
-    max-height: 360px;
-  }
-
-  .detalle-price {
-    font-size: 42px;
+  .detalle-price,
+  .detalle-producto-page .detalle-price {
+    font-size: 38px;
   }
 
   .detalle-data-card h3,
-  .detalle-contact-card h3 {
-    font-size: 22px;
+  .detalle-contact-card h3,
+  .detalle-producto-page .detalle-data-card h3,
+  .detalle-producto-page .detalle-contact-card h3 {
+    font-size: 18px;
   }
 
   .detalle-data-row,
   .detalle-contact-card p,
-  .detalle-cta,
-  .detalle-description p {
-    font-size: 19px;
-  }
-
-  .detalle-description h2 {
-    font-size: 30px;
+  .detalle-producto-page .detalle-data-row,
+  .detalle-producto-page .detalle-contact-card p {
+    font-size: 17px;
   }
 }
 
 @media (max-width: 980px) {
   .detalle-main {
-    padding: 82px 14px 24px;
+    padding: 70px 12px 16px;
   }
 
   .detalle-layout {
     grid-template-columns: 1fr;
+    gap: 12px;
   }
 
   .detalle-side-cards {
     grid-template-columns: 1fr;
   }
 
-  .detalle-title {
-    font-size: 34px;
+  .detalle-title,
+  .detalle-producto-page .detalle-title-producto {
+    font-size: 30px;
+    margin-bottom: 8px;
   }
 
-  .detalle-price {
-    font-size: 36px;
+  .detalle-image-wrap {
+    min-height: 280px;
+  }
+
+  .detalle-image-wrap img {
+    max-height: 280px;
+  }
+
+  .detalle-price,
+  .detalle-producto-page .detalle-price {
+    font-size: 30px;
+    margin-bottom: 2px;
   }
 
   .detalle-data-card h3,
-  .detalle-contact-card h3 {
-    font-size: 22px;
+  .detalle-contact-card h3,
+  .detalle-producto-page .detalle-data-card h3,
+  .detalle-producto-page .detalle-contact-card h3 {
+    font-size: 17px;
   }
 
   .detalle-data-row,
   .detalle-contact-card p,
+  .detalle-producto-page .detalle-data-row,
+  .detalle-producto-page .detalle-contact-card p {
+    font-size: 15px;
+    padding: 8px 12px;
+  }
+
   .detalle-cta,
-  .detalle-description p {
+  .detalle-producto-page .detalle-cta {
+    font-size: 16px;
+    padding: 11px 14px;
+    border-radius: 10px;
+  }
+
+  .detalle-description,
+  .detalle-producto-page .detalle-description {
+    margin-top: 8px;
+  }
+
+  .detalle-description h2,
+  .detalle-producto-page .detalle-description h2 {
+    font-size: 18px;
+    margin-bottom: 6px;
+  }
+
+  .detalle-description p,
+  .detalle-producto-page .detalle-description p {
+    font-size: 15px;
+    line-height: 1.5;
+  }
+}
+
+@media (max-width: 430px) {
+  .detalle-main {
+    padding: 66px 10px 14px;
+  }
+
+  .detalle-breadcrumb,
+  .detalle-producto-page .detalle-breadcrumb {
+    font-size: 13px;
+    width: calc(100vw - 20px);
+    margin-left: calc(50% - 50vw + 10px);
+    margin-bottom: 8px;
+  }
+
+  .detalle-title,
+  .detalle-producto-page .detalle-title-producto {
+    font-size: 26px;
+    line-height: 1.05;
+    margin-bottom: 8px;
+  }
+
+  .detalle-layout {
+    gap: 10px;
+  }
+
+  .detalle-image-wrap {
+    min-height: 228px;
+    border-radius: 10px;
+  }
+
+  .detalle-image-wrap img {
+    max-height: 228px;
+  }
+
+  .detalle-price,
+  .detalle-producto-page .detalle-price {
+    font-size: 26px;
+  }
+
+  .detalle-side {
+    gap: 8px;
+  }
+
+  .detalle-data-card h3,
+  .detalle-contact-card h3,
+  .detalle-producto-page .detalle-data-card h3,
+  .detalle-producto-page .detalle-contact-card h3 {
+    font-size: 15px;
+    padding: 9px 11px;
+  }
+
+  .detalle-data-row,
+  .detalle-contact-card p,
+  .detalle-producto-page .detalle-data-row,
+  .detalle-producto-page .detalle-contact-card p {
+    font-size: 13px;
+    padding: 8px 11px;
+  }
+
+  .detalle-cta,
+  .detalle-producto-page .detalle-cta {
+    font-size: 14px;
+    letter-spacing: 0.2px;
+    padding: 10px 12px;
+    min-height: 46px;
+    display: grid;
+    place-items: center;
+  }
+
+  .detalle-description h2,
+  .detalle-producto-page .detalle-description h2 {
     font-size: 16px;
   }
 
-  .detalle-description h2 {
-    font-size: 21px;
+  .detalle-description p,
+  .detalle-producto-page .detalle-description p {
+    font-size: 13px;
+    line-height: 1.5;
   }
 }

@@ -1,7 +1,7 @@
 .equip-page {
   min-height: 85vh;
   flex: 1;
-  padding: 92px 20px 56px;
+  padding: 88px 18px 48px;
   background: #f6f6f6;
 }
 
@@ -23,7 +23,7 @@
   justify-content: space-between;
   gap: 20px;
   align-items: flex-end;
-  margin-bottom: 28px;
+  margin-bottom: 20px;
 }
 
 .equip-header h1 {
@@ -35,7 +35,7 @@
 .equip-sort-row {
   display: flex;
   align-items: center;
-  gap: 24px;
+  gap: 18px;
 }
 
 .equip-sort-row p,
@@ -135,7 +135,7 @@
 .equip-grid {
   display: grid;
   grid-template-columns: 1fr;
-  gap: 14px;
+  gap: 12px;
 }
 
 .equip-mobile-tools {
@@ -205,11 +205,11 @@
   border: 1px solid #dddddd;
   border-radius: 14px;
   overflow: hidden;
-  padding: 0 0 12px;
+  padding: 0 0 10px;
 }
 
 .equip-card-image {
-  aspect-ratio: 1 / 1;
+  aspect-ratio: 1 / 0.92;
   background: #fff;
   display: grid;
   place-items: center;
@@ -227,7 +227,7 @@
   font-size: 0.95rem;
   text-transform: uppercase;
   line-height: 1.2;
-  margin: 12px 12px 4px;
+  margin: 10px 12px 4px;
   line-clamp: 2;
   display: -webkit-box;
   -webkit-box-orient: vertical;
@@ -237,7 +237,7 @@
 
 .equip-card p {
   margin: 0 12px;
-  font-size: 1.45rem;
+  font-size: 1.3rem;
   font-weight: 700;
   color: #111;
 }
@@ -253,8 +253,15 @@
   background: #e60000;
   color: #fff;
   border-radius: 8px;
-  padding: 10px 16px;
+  min-height: 36px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 12px;
   font-weight: 700;
+  font-size: 0.84rem;
+  white-space: nowrap;
+  max-width: 100%;
 }
 
 .equip-admin-actions {
@@ -616,7 +623,7 @@
 
 @media (max-width: 960px) {
   .equip-page {
-    padding: 86px 14px 46px;
+    padding: 84px 12px 42px;
   }
 
   .equip-header {
@@ -672,6 +679,7 @@
 
   .equip-grid {
     grid-template-columns: repeat(2, minmax(160px, 1fr));
+    gap: 10px;
   }
 
   .equip-edit-form {
@@ -684,13 +692,25 @@
     grid-template-columns: 1fr;
   }
 
+  .equip-card-image {
+    aspect-ratio: 1 / 0.86;
+  }
+
   .equip-card p {
-    font-size: 1.35rem;
+    font-size: 1.2rem;
   }
 
   .equip-filter-toggle-btn {
     min-height: 38px;
     font-size: 0.9rem;
+  }
+
+  .equip-card-actions {
+    justify-content: stretch;
+  }
+
+  .equip-card-detail-btn {
+    width: 100%;
   }
 }
 
