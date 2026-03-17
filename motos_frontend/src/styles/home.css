@@ -93,6 +93,22 @@
   scroll-snap-align: start;
 }
 
+.carousel-wrapper-motos .carousel-track {
+  gap: 20px;
+}
+
+.carousel-wrapper-motos .carousel-item {
+  flex: 0 0 min(420px, 28vw);
+}
+
+.carousel-wrapper-motos .moto-card {
+  min-height: 368px;
+}
+
+.carousel-wrapper-motos .moto-card .moto-card-img-container {
+  height: 258px;
+}
+
 .home-carousel-empty {
   width: 100%;
   text-align: center;
@@ -294,6 +310,14 @@
     width: 16px;
     height: 16px;
   }
+
+  .carousel-wrapper-motos .carousel-item {
+    flex: 0 0 min(360px, 78vw);
+  }
+
+  .carousel-wrapper-motos .moto-card .moto-card-img-container {
+    height: 220px;
+  }
 }
 
 @media (max-width: 640px) {
@@ -310,12 +334,12 @@
     margin: 0 -4px;
   }
 
-  .carousel-item {
-    flex-basis: 80vw;
+  .carousel-track {
+    padding: 6px max(52px, calc((100% - 76vw) / 2)) 8px;
   }
 
-  .carousel-track {
-    padding: 6px 36px 8px;
+  .carousel-item {
+    flex-basis: 76vw;
   }
 
   .carousel-btn {
@@ -340,6 +364,14 @@
   .home-product-bottom-row p {
     font-size: 1.06rem;
   }
+
+  .carousel-wrapper-motos .carousel-item {
+    flex-basis: 76vw;
+  }
+
+  .carousel-wrapper-motos .moto-card .moto-card-img-container {
+    height: 210px;
+  }
 }
 
 @media (max-width: 430px) {
@@ -357,7 +389,7 @@
   }
 
   .carousel-item {
-    flex-basis: 79vw;
+    flex-basis: 75vw;
   }
 
   .home-product-card {
@@ -380,5 +412,16 @@
   .home-product-link {
     min-height: 32px;
     font-size: 0.76rem;
+  }
+}
+
+@media (min-width: 1200px) {
+  .carousel-wrapper-motos .carousel-track {
+    padding-left: 18px;
+    padding-right: 18px;
+  }
+
+  .carousel-wrapper-motos .carousel-item {
+    flex: 0 0 calc((100% - 60px) / 4);
   }
 }

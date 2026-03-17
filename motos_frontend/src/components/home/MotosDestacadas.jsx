@@ -54,16 +54,16 @@ export default function MotosDestacadas() {
       )}
 
       {!loading && !error && motos.length > 0 && (
-        <div className="carousel-wrapper">
+        <div className="carousel-wrapper carousel-wrapper-motos">
           <button className="carousel-btn carousel-btn--prev" onClick={() => scroll(-1)} aria-label="Anterior">
             <svg className="carousel-btn__icon" viewBox="0 0 24 24" aria-hidden="true">
               <path d="M14.5 5.5L8 12l6.5 6.5" />
             </svg>
           </button>
 
-          <div className="carousel-track" ref={trackRef}>
+          <div className="carousel-track carousel-track-motos" ref={trackRef}>
             {motos.map((moto) => (
-              <div className="carousel-item" key={moto.id}>
+              <div className="carousel-item carousel-item-motos" key={moto.id}>
                 <MotoCard
                   moto={moto}
                   isAdmin={isAdmin}

@@ -59,16 +59,16 @@ export default function IndumentariaDestacada() {
       ) : error ? (
         <p className="home-carousel-empty">{error}</p>
       ) : (
-        <div className="carousel-wrapper">
+        <div className="carousel-wrapper carousel-wrapper-rider">
           <button className="carousel-btn carousel-btn--prev" onClick={() => scroll(-1)} aria-label="Anterior">
             <svg className="carousel-btn__icon" viewBox="0 0 24 24" aria-hidden="true">
               <path d="M14.5 5.5L8 12l6.5 6.5" />
             </svg>
           </button>
 
-          <div className="carousel-track" ref={trackRef}>
+          <div className="carousel-track carousel-track-rider" ref={trackRef}>
             {destacados.map((producto) => (
-              <article className="home-product-card carousel-item" key={producto.id}>
+              <article className="home-product-card carousel-item carousel-item-rider" key={producto.id}>
                 <div className="home-product-image">
                   <img
                     src={
