@@ -1,0 +1,208 @@
+@import url("https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=Titillium+Web:wght@400;600&display=swap");
+
+.login-page {
+  min-height: 100vh;
+  padding: 32px;
+  background: radial-gradient(circle at 8% 15%, rgba(230, 0, 0, 0.22), transparent 35%),
+    radial-gradient(circle at 90% 85%, rgba(255, 136, 0, 0.2), transparent 42%),
+    #08090c;
+}
+
+.login-shell {
+  min-height: calc(100vh - 64px);
+  border-radius: 18px;
+  overflow: hidden;
+  display: grid;
+  place-items: center start;
+  padding: 48px;
+  background-image: linear-gradient(110deg, rgba(5, 7, 12, 0.82) 0%, rgba(5, 7, 12, 0.6) 42%, rgba(5, 7, 12, 0.28) 70%, rgba(5, 7, 12, 0.12) 100%),
+    url("/images/login.png");
+  background-size: cover;
+  background-position: center;
+  box-shadow: 0 30px 70px rgba(0, 0, 0, 0.45);
+}
+
+.login-card {
+  width: min(100%, 430px);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 24px;
+  background: linear-gradient(180deg, rgba(8, 10, 16, 0.9) 0%, rgba(8, 10, 16, 0.82) 100%);
+  backdrop-filter: blur(8px);
+  color: #f7f7f7;
+  padding: 32px;
+  animation: slide-in 500ms ease-out;
+}
+
+.login-logo {
+  display: block;
+  width: 220px;
+  max-width: 100%;
+  margin: 0 auto 22px;
+}
+
+.login-card h1 {
+  font-family: "Rajdhani", sans-serif;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  font-size: clamp(1.9rem, 3vw, 2.5rem);
+  margin-bottom: 2px;
+}
+
+.login-card p {
+  font-family: "Titillium Web", sans-serif;
+  color: #c5ccd8;
+  margin-bottom: 22px;
+}
+
+.login-form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  font-family: "Titillium Web", sans-serif;
+}
+
+.login-form label {
+  color: #9ea8b8;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-size: 0.8rem;
+}
+
+.login-form input {
+  width: 100%;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.04);
+  color: #f2f2f2;
+  padding: 11px 12px;
+  outline: none;
+  transition: border-color 200ms ease, box-shadow 200ms ease;
+}
+
+.login-form input:focus {
+  border-color: rgba(230, 0, 0, 0.9);
+  box-shadow: 0 0 0 3px rgba(230, 0, 0, 0.22);
+}
+
+.password-field {
+  position: relative;
+}
+
+.password-field input {
+  padding-right: 74px;
+}
+
+.toggle-password {
+  position: absolute;
+  top: 50%;
+  right: 8px;
+  transform: translateY(-50%);
+  border: 0;
+  border-radius: 7px;
+  background: transparent;
+  color: #c4c9d2;
+  padding: 6px 10px;
+  cursor: pointer;
+}
+
+.login-submit {
+  margin-top: 12px;
+  border: 0;
+  border-radius: 10px;
+  padding: 13px;
+  background: linear-gradient(90deg, #ca0000, #ff2d2d);
+  color: white;
+  font-family: "Rajdhani", sans-serif;
+  font-size: 1.07rem;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  font-weight: 700;
+  cursor: pointer;
+  transition: transform 200ms ease, box-shadow 200ms ease;
+}
+
+.login-submit:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 12px 24px rgba(202, 0, 0, 0.35);
+}
+
+.login-error {
+  font-size: 0.9rem;
+  color: #ff7979;
+}
+
+.login-meta {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 0.92rem;
+  color: #d4d8de;
+  margin-top: 2px;
+}
+
+.login-meta label {
+  display: inline-flex;
+  gap: 8px;
+  align-items: center;
+  text-transform: none;
+  font-size: 0.92rem;
+  color: #d4d8de;
+}
+
+.login-meta a,
+.login-register a {
+  color: #ff4f4f;
+  font-weight: 600;
+}
+
+.login-register {
+  text-align: center;
+  color: #d4d8de;
+  margin-top: 12px;
+}
+
+.register-link {
+  border: 0;
+  background: transparent;
+  color: #ff4f4f;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+@keyframes slide-in {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (max-width: 800px) {
+  .login-page {
+    padding: 0;
+  }
+
+  .login-shell {
+    border-radius: 0;
+    padding: 24px 16px;
+    place-items: end center;
+    min-height: 100vh;
+    background-position: 75% center;
+  }
+
+  .login-card {
+    padding: 26px 18px;
+    border-radius: 16px;
+  }
+
+  .login-logo {
+    width: 190px;
+  }
+
+  .login-meta {
+    flex-direction: column;
+  }
+}

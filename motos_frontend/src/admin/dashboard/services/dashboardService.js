@@ -1,0 +1,72 @@
+import { getMotoAdminMeta, getMotos, getCategoriasMoto, getMarcasAdmin } from "../../motos/services/motosAdminService";
+import {
+  getAccesoriosMotosAdmin,
+  getAccesoriosMotosMeta,
+  getAccesoriosRiderAdmin,
+  getAccesoriosRiderMeta,
+  getCategoriasAccesoriosMotosAdmin,
+  getCategoriasAccesoriosRiderAdmin,
+  getCategoriasProducto,
+  getProductos,
+} from "../../productos/services/productosAdminService";
+import { getContactoAdmin } from "../../configuracion/services/configuracionAdminService";
+
+export async function fetchAdminBootstrapData() {
+  const [
+    motos,
+    productosIndumentaria,
+    productosAccesorios,
+    categoriasIndumentaria,
+    categoriasAccesorios,
+    metaMotos,
+    marcasMotosList,
+    marcasAccMotosList,
+    marcasAccRiderList,
+    categoriasMotoList,
+    categoriasAccMotosData,
+    categoriasAccRiderData,
+    accesoriosMotosList,
+    accesoriosMotosMetaData,
+    accesoriosRiderList,
+    accesoriosRiderMetaData,
+    contactoAdmin,
+  ] = await Promise.all([
+    getMotos().catch(() => []),
+    getProductos({ tipo: "indumentaria" }).catch(() => []),
+    getProductos({ tipo: "accesorios" }).catch(() => []),
+    getCategoriasProducto({ tipo: "indumentaria" }).catch(() => []),
+    getCategoriasProducto({ tipo: "accesorios" }).catch(() => []),
+    getMotoAdminMeta().catch(() => ({ marcas: [], categorias: [] })),
+    getMarcasAdmin({ tipo: "moto" }).catch(() => []),
+    getMarcasAdmin({ tipo: "accesorio_moto" }).catch(() => []),
+    getMarcasAdmin({ tipo: "accesorio_rider" }).catch(() => []),
+    getCategoriasMoto().catch(() => []),
+    getCategoriasAccesoriosMotosAdmin().catch(() => ({ categorias_padre: [], subcategorias: [] })),
+    getCategoriasAccesoriosRiderAdmin().catch(() => ({ categorias_padre: [], subcategorias: [] })),
+    getAccesoriosMotosAdmin().catch(() => []),
+    getAccesoriosMotosMeta().catch(() => ({ subcategorias: [], marcas: [], motos: [] })),
+    getAccesoriosRiderAdmin().catch(() => []),
+    getAccesoriosRiderMeta().catch(() => ({ subcategorias: [], marcas: [] })),
+    getContactoAdmin().catch(() => ({ instagram: "", telefono: "", ubicacion: "" })),
+  ]);
+
+  return {
+    motos,
+    productosIndumentaria,
+    productosAccesorios,
+    categoriasIndumentaria,
+    categoriasAccesorios,
+    metaMotos,
+    marcasMotosList,
+    marcasAccMotosList,
+    marcasAccRiderList,
+    categoriasMotoList,
+    categoriasAccMotosData,
+    categoriasAccRiderData,
+    accesoriosMotosList,
+    accesoriosMotosMetaData,
+    accesoriosRiderList,
+    accesoriosRiderMetaData,
+    contactoAdmin,
+  };
+}

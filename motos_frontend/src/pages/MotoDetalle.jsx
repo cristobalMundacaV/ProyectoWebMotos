@@ -1,0 +1,139 @@
+﻿import { useParams, Link } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { getMotoBySlug } from "../services/motosService";
+import { getContactoPublico } from "../services/productosService";
+import Navbar from "../components/layout/Navbar";
+import "../styles/detalle.css";
+
+export default function MotoDetalle() {
+  const { slug } = useParams();
+  const [moto, setMoto] = useState(null);
+  const [contacto, setContacto] = useState({
+    instagram: "@motosnuevamarca",
+    telefono: "+56 9 1234 5678",
+    ubicacion: "Tu ciudad, Chile",
+  });
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    async function loadData() {
+      try {
+        const [motoData, contactoData] = await Promise.all([
+          getMotoBySlug(slug).catch(() => null),
+          getContactoPublico().catch(() => null),
+        ]);
+
+        if (!isMounted) return;
+        setMoto(motoData);
+
+        if (contactoData) {
+          setContacto({
+            instagram: contactoData.instagram || "",
+            telefono: contactoData.telefono || "",
+            ubicacion: contactoData.ubicacion || "",
+          });
+        }
+      } finally {
+        if (isMounted) setLoading(false);
+      }
+    }
+
+    loadData();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [slug]);
+
+  if (loading) {
+    return <p className="detalle-loading">Cargando detalle...</p>;
+  }
+
+  if (!moto) {
+    return (
+      <div className="detalle-empty">
+        <p>No encontramos esta moto.</p>
+        <Link to="/">Volver al inicio</Link>
+      </div>
+    );
+  }
+
+  const modelo = moto.modelo || moto.nombre;
+  const descripcionRaw = moto.descripcion?.trim();
+  const descripcion =
+    descripcionRaw && descripcionRaw !== modelo
+      ? descripcionRaw
+      : "Motocicleta ideal para ciudad y aventura, con excelente equilibrio entre potencia, comodidad y estilo.";
+
+  return (
+    <div className="detalle-page">
+      <Navbar />
+
+      <main className="detalle-main">
+        <div className="detalle-breadcrumb">
+          <Link to="/">Inicio</Link>
+          <span>/</span>
+          <span>{modelo}</span>
+        </div>
+
+        <h1 className="detalle-title">{modelo}</h1>
+
+        <section className="detalle-layout">
+          <div className="detalle-image-wrap">
+            <img
+              src={`http://127.0.0.1:8000${moto.imagen_principal}`}
+              alt={modelo}
+            />
+          </div>
+
+          <aside className="detalle-side">
+            <p className="detalle-price">
+              ${Number(moto.precio).toLocaleString("es-CL")}
+            </p>
+
+            <div className="detalle-side-cards">
+              <div className="detalle-data-card">
+                <h3>Precio</h3>
+                <div className="detalle-data-row">
+                  <span>Categoría</span>
+                  <span>{moto.categoria_nombre || "-"}</span>
+                </div>
+                <div className="detalle-data-row">
+                  <span>Cilindrada</span>
+                  <span>{moto.cilindrada}cc</span>
+                </div>
+                <div className="detalle-data-row">
+                  <span>Marca</span>
+                  <span>{moto.marca_nombre || "-"}</span>
+                </div>
+              </div>
+
+              <div className="detalle-contact-card">
+                <h3>Contáctanos</h3>
+                <p>Instagram: {contacto.instagram || "No definido"}</p>
+                <p>{contacto.telefono || "No definido"}</p>
+                <p>{contacto.ubicacion || "No definido"}</p>
+              </div>
+            </div>
+
+            <a
+              className="detalle-cta"
+              href={`https://wa.me/56912345678?text=Hola quiero cotizar la moto ${modelo}`}
+              target="_blank"
+              rel="noreferrer"
+            >
+              COTIZAR POR WHATSAPP
+            </a>
+          </aside>
+        </section>
+
+        <section className="detalle-description">
+          <h2>Descripción</h2>
+          <p>{descripcion}</p>
+        </section>
+      </main>
+    </div>
+  );
+}

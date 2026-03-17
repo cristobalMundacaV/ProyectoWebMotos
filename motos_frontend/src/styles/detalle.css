@@ -1,0 +1,283 @@
+/* ─── Página de detalle ─── */
+.detalle-page {
+  min-height: 100vh;
+  background: #efefef;
+}
+
+.detalle-main {
+  max-width: 1320px;
+  margin: 0 auto;
+  padding: 78px 24px 24px;
+}
+
+.detalle-breadcrumb {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  background: #e8e8ea;
+  color: #404040;
+  padding: 9px 14px;
+  border-radius: 6px;
+  margin-top: 10px;
+  margin-bottom: 10px;
+  font-size: 16px;
+  /* Barra casi full-width de página, sin mover el resto del contenido */
+  width: calc(100vw - 40px);
+  margin-left: calc(50% - 50vw + 20px);
+}
+
+.detalle-breadcrumb a {
+  color: #404040;
+}
+
+.detalle-title {
+  font-size: 42px;
+  line-height: 1;
+  margin: 0 0 10px;
+}
+
+/* ─── Layout imagen + ficha ─── */
+.detalle-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 0.95fr);
+  gap: 16px;
+  align-items: start;
+}
+
+.detalle-image-wrap {
+  background: #efefef;
+  border-radius: 8px;
+  min-height: 380px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.detalle-image-wrap img {
+  width: 100%;
+  max-height: 380px;
+  object-fit: contain;
+}
+
+/* ─── Columna lateral ─── */
+.detalle-side {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.detalle-price {
+  color: #b20808;
+  font-size: 48px;
+  line-height: 1;
+  font-weight: 800;
+  margin: 0;
+}
+
+.detalle-side-cards {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.detalle-data-card,
+.detalle-contact-card {
+  background: #e5e5e7;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.detalle-data-card h3,
+.detalle-contact-card h3 {
+  margin: 0;
+  padding: 10px 14px;
+  background: #dbdbde;
+  font-size: 21px;
+}
+
+.detalle-data-row {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 10px;
+  padding: 9px 14px;
+  font-size: 21px;
+  border-top: 1px solid #d5d5d8;
+}
+
+.detalle-contact-card p {
+  margin: 0;
+  padding: 10px 14px;
+  font-size: 21px;
+  border-top: 1px solid #d5d5d8;
+}
+
+.detalle-cta {
+  display: block;
+  width: 100%;
+  text-align: center;
+  background: #e50914;
+  color: #fff;
+  padding: 12px 18px;
+  border-radius: 12px;
+  font-size: 21px;
+  font-weight: 800;
+  letter-spacing: 0.4px;
+}
+
+/* ─── Descripción ─── */
+.detalle-description {
+  margin-top: 14px;
+}
+
+.detalle-description h2 {
+  font-size: 34px;
+  margin: 0 0 8px;
+}
+
+.detalle-description p {
+  font-size: 21px;
+  line-height: 1.32;
+  max-width: 940px;
+  margin: 0;
+}
+
+/* ─── Estados de carga/error ─── */
+.detalle-empty,
+.detalle-loading {
+  min-height: 100vh;
+  display: grid;
+  place-content: center;
+  gap: 10px;
+  font-size: 21px;
+}
+
+.detalle-empty a {
+  color: #d50000;
+  font-weight: 700;
+}
+
+/* Ajustes visuales solo para detalle de productos */
+.detalle-producto-page .detalle-title-producto {
+  font-size: 38px;
+  line-height: 1.08;
+  margin-bottom: 28px;
+}
+
+.detalle-producto-page .detalle-breadcrumb {
+  margin-bottom: 24px;
+}
+
+.detalle-producto-page .detalle-layout {
+  gap: 22px;
+}
+
+.detalle-producto-page .detalle-price {
+  font-size: 42px;
+}
+
+.detalle-producto-page .detalle-data-card h3,
+.detalle-producto-page .detalle-contact-card h3 {
+  font-size: 21px;
+}
+
+.detalle-producto-page .detalle-data-row,
+.detalle-producto-page .detalle-contact-card p {
+  font-size: 21px;
+  padding: 9px 14px;
+}
+
+.detalle-producto-page .detalle-cta {
+  font-size: 21px;
+  padding: 12px 18px;
+}
+
+.detalle-producto-page .detalle-description {
+  margin-top: 20px;
+}
+
+.detalle-producto-page .detalle-description h2 {
+  font-size: 34px;
+  margin-bottom: 10px;
+}
+
+.detalle-producto-page .detalle-description p {
+  font-size: 18px;
+  line-height: 1.4;
+}
+
+/* ─── Responsive ─── */
+@media (max-width: 1280px) {
+  .detalle-main {
+    padding: 76px 18px 24px;
+  }
+
+  .detalle-title {
+    font-size: 40px;
+  }
+
+  .detalle-image-wrap {
+    min-height: 360px;
+  }
+
+  .detalle-image-wrap img {
+    max-height: 360px;
+  }
+
+  .detalle-price {
+    font-size: 42px;
+  }
+
+  .detalle-data-card h3,
+  .detalle-contact-card h3 {
+    font-size: 22px;
+  }
+
+  .detalle-data-row,
+  .detalle-contact-card p,
+  .detalle-cta,
+  .detalle-description p {
+    font-size: 19px;
+  }
+
+  .detalle-description h2 {
+    font-size: 30px;
+  }
+}
+
+@media (max-width: 980px) {
+  .detalle-main {
+    padding: 82px 14px 24px;
+  }
+
+  .detalle-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .detalle-side-cards {
+    grid-template-columns: 1fr;
+  }
+
+  .detalle-title {
+    font-size: 34px;
+  }
+
+  .detalle-price {
+    font-size: 36px;
+  }
+
+  .detalle-data-card h3,
+  .detalle-contact-card h3 {
+    font-size: 22px;
+  }
+
+  .detalle-data-row,
+  .detalle-contact-card p,
+  .detalle-cta,
+  .detalle-description p {
+    font-size: 16px;
+  }
+
+  .detalle-description h2 {
+    font-size: 21px;
+  }
+}
