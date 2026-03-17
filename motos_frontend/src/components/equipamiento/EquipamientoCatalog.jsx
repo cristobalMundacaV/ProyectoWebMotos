@@ -47,6 +47,7 @@ export default function EquipamientoCatalog({ variant = "accesorios" }) {
   const [selectedMotos, setSelectedMotos] = useState([]);
   const [order, setOrder] = useState("release");
   const [currentPage, setCurrentPage] = useState(1);
+  const [isFiltersOpen, setIsFiltersOpen] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [isAdmin, setIsAdmin] = useState(false);
@@ -349,6 +350,12 @@ export default function EquipamientoCatalog({ variant = "accesorios" }) {
   const previewSrc =
     editImagePreview ||
     (editingProducto?.imagen_principal ? buildMediaUrl(editingProducto.imagen_principal) : "");
+  const activeFiltersCount = selectedCategorias.length + selectedMotos.length;
+
+  function clearFilters() {
+    setSelectedCategorias([]);
+    setSelectedMotos([]);
+  }
 
   return (
     <main className="equip-page">
@@ -375,8 +382,32 @@ export default function EquipamientoCatalog({ variant = "accesorios" }) {
         </div>
       </header>
 
+      <div className="equip-mobile-tools">
+        <button
+          type="button"
+          className="equip-filter-toggle-btn"
+          onClick={() => setIsFiltersOpen((prev) => !prev)}
+        >
+          Filtros {activeFiltersCount > 0 ? `(${activeFiltersCount})` : ""}
+        </button>
+      </div>
+
+      <button
+        type="button"
+        className={isFiltersOpen ? "equip-filters-backdrop open" : "equip-filters-backdrop"}
+        onClick={() => setIsFiltersOpen(false)}
+        aria-label="Cerrar filtros"
+      />
+
       <section className="equip-layout">
-        <aside className="equip-sidebar">
+        <aside className={isFiltersOpen ? "equip-sidebar open" : "equip-sidebar"}>
+          <div className="equip-sidebar-head">
+            <h3>Filtros</h3>
+            <button type="button" onClick={() => setIsFiltersOpen(false)}>
+              Cerrar
+            </button>
+          </div>
+
           <div className="equip-filter-block">
             <h3>Categoria</h3>
             <div className="equip-filter-list">
@@ -414,6 +445,12 @@ export default function EquipamientoCatalog({ variant = "accesorios" }) {
                 )}
               </div>
             </div>
+          )}
+
+          {activeFiltersCount > 0 && (
+            <button type="button" className="equip-clear-filters-btn" onClick={clearFilters}>
+              Limpiar filtros
+            </button>
           )}
         </aside>
 

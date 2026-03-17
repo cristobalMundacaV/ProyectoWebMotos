@@ -15,6 +15,7 @@ export default function CatalogoMotos() {
   const [selectedMarcas, setSelectedMarcas] = useState([]);
   const [selectedCategorias, setSelectedCategorias] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
+  const [isFiltersOpen, setIsFiltersOpen] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
   const [meta, setMeta] = useState({ marcas: [], categorias: [] });
   const [editingMoto, setEditingMoto] = useState(null);
@@ -320,6 +321,12 @@ export default function CatalogoMotos() {
   const previewSrc =
     editImagePreview ||
     (editingMoto?.imagen_principal ? buildMediaUrl(editingMoto.imagen_principal) : "");
+  const activeFiltersCount = selectedMarcas.length + selectedCategorias.length;
+
+  const clearFilters = () => {
+    setSelectedMarcas([]);
+    setSelectedCategorias([]);
+  };
 
   return (
     <div className="page-wrapper">
@@ -332,8 +339,34 @@ export default function CatalogoMotos() {
           ) : error ? (
             <p style={{ textAlign: "center" }}>{error}</p>
           ) : (
-            <div className="moto-catalog-layout">
-              <aside className="moto-catalog-sidebar">
+            <>
+              <div className="moto-catalog-mobile-tools">
+                <p className="moto-results-meta">{filteredMotos.length} motos</p>
+                <button
+                  type="button"
+                  className="moto-filter-toggle-btn"
+                  onClick={() => setIsFiltersOpen((prev) => !prev)}
+                >
+                  Filtros {activeFiltersCount > 0 ? `(${activeFiltersCount})` : ""}
+                </button>
+              </div>
+
+              <button
+                type="button"
+                className={isFiltersOpen ? "moto-filters-backdrop open" : "moto-filters-backdrop"}
+                onClick={() => setIsFiltersOpen(false)}
+                aria-label="Cerrar filtros"
+              />
+
+              <div className="moto-catalog-layout">
+              <aside className={isFiltersOpen ? "moto-catalog-sidebar open" : "moto-catalog-sidebar"}>
+                <div className="moto-sidebar-head">
+                  <h3>Filtros</h3>
+                  <button type="button" onClick={() => setIsFiltersOpen(false)}>
+                    Cerrar
+                  </button>
+                </div>
+
                 <div className="moto-filter-block">
                   <h3>Marcas</h3>
                   <div className="moto-filter-list">
@@ -367,6 +400,12 @@ export default function CatalogoMotos() {
                     {categorias.length === 0 && <p className="moto-filter-empty">Sin categorias</p>}
                   </div>
                 </div>
+
+                {activeFiltersCount > 0 && (
+                  <button type="button" className="moto-clear-filters-btn" onClick={clearFilters}>
+                    Limpiar filtros
+                  </button>
+                )}
               </aside>
 
               <div className="motos-grid">
@@ -409,7 +448,8 @@ export default function CatalogoMotos() {
                   </button>
                 </div>
               )}
-            </div>
+              </div>
+            </>
           )}
         </section>
       </main>

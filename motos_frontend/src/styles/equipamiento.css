@@ -1,7 +1,7 @@
 .equip-page {
   min-height: 85vh;
   flex: 1;
-  padding: 100px 50px 70px;
+  padding: 92px 20px 56px;
   background: #f6f6f6;
 }
 
@@ -28,7 +28,7 @@
 
 .equip-header h1 {
   text-transform: uppercase;
-  font-size: clamp(1.8rem, 3vw, 2.8rem);
+  font-size: clamp(1.55rem, 3vw, 2.6rem);
   letter-spacing: 0.02em;
 }
 
@@ -54,13 +54,37 @@
 
 .equip-layout {
   display: grid;
-  grid-template-columns: 260px 1fr;
-  gap: 26px;
+  grid-template-columns: 1fr;
+  gap: 18px;
 }
 
 .equip-sidebar {
-  border-right: 1px solid #d9d9d9;
-  padding-right: 18px;
+  border: 1px solid #e0e0e0;
+  border-radius: 14px;
+  background: #fff;
+  padding: 14px;
+}
+
+.equip-sidebar-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 14px;
+}
+
+.equip-sidebar-head h3 {
+  font-size: 1.05rem;
+}
+
+.equip-sidebar-head button {
+  border: 1px solid #d2d8e2;
+  background: #fff;
+  color: #1f2937;
+  border-radius: 8px;
+  min-height: 34px;
+  padding: 0 10px;
+  font-weight: 600;
+  cursor: pointer;
 }
 
 .equip-filter-block {
@@ -68,9 +92,9 @@
 }
 
 .equip-filter-block h3 {
-  font-size: 1.25rem;
+  font-size: 1rem;
   font-weight: 700;
-  margin-bottom: 16px;
+  margin-bottom: 12px;
 }
 
 .equip-filter-list {
@@ -87,7 +111,7 @@
   align-items: flex-start;
   gap: 12px;
   color: #1f1f1f;
-  font-size: 1rem;
+  font-size: 0.95rem;
   line-height: 1.3;
 }
 
@@ -100,7 +124,7 @@
 
 .equip-filter-empty {
   color: #777;
-  font-size: 0.9rem;
+  font-size: 0.88rem;
 }
 
 .equip-filter-list input {
@@ -110,8 +134,40 @@
 
 .equip-grid {
   display: grid;
-  grid-template-columns: repeat(4, minmax(180px, 1fr));
-  gap: 20px;
+  grid-template-columns: 1fr;
+  gap: 14px;
+}
+
+.equip-mobile-tools {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 14px;
+}
+
+.equip-filter-toggle-btn {
+  border: 1px solid #cfd5df;
+  background: #fff;
+  color: #1f2937;
+  border-radius: 10px;
+  min-height: 40px;
+  padding: 0 14px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.equip-clear-filters-btn {
+  width: 100%;
+  min-height: 40px;
+  border: 1px solid #d1d5db;
+  background: #f9fafb;
+  border-radius: 10px;
+  color: #111827;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.equip-filters-backdrop {
+  display: none;
 }
 
 .equip-pagination {
@@ -147,7 +203,9 @@
 .equip-card {
   background: #fff;
   border: 1px solid #dddddd;
-  padding: 0 0 14px;
+  border-radius: 14px;
+  overflow: hidden;
+  padding: 0 0 12px;
 }
 
 .equip-card-image {
@@ -166,7 +224,7 @@
 }
 
 .equip-card h3 {
-  font-size: 1.05rem;
+  font-size: 0.95rem;
   text-transform: uppercase;
   line-height: 1.2;
   margin: 12px 12px 4px;
@@ -179,7 +237,7 @@
 
 .equip-card p {
   margin: 0 12px;
-  font-size: 1.95rem;
+  font-size: 1.45rem;
   font-weight: 700;
   color: #111;
 }
@@ -187,8 +245,8 @@
 .equip-card-actions {
   display: flex;
   justify-content: flex-end;
-  padding: 0 12px 0;
-  margin-top: -44px;
+  padding: 0 12px;
+  margin-top: 10px;
 }
 
 .equip-card-detail-btn {
@@ -558,7 +616,7 @@
 
 @media (max-width: 960px) {
   .equip-page {
-    padding: 90px 20px 50px;
+    padding: 86px 14px 46px;
   }
 
   .equip-header {
@@ -577,10 +635,39 @@
   }
 
   .equip-sidebar {
-    border-right: none;
-    border-bottom: 1px solid #d9d9d9;
-    padding-right: 0;
-    padding-bottom: 20px;
+    position: fixed;
+    top: 0;
+    right: 0;
+    width: min(88vw, 340px);
+    height: 100dvh;
+    border: none;
+    border-radius: 0;
+    box-shadow: -12px 0 30px rgba(0, 0, 0, 0.2);
+    transform: translateX(110%);
+    transition: transform 0.22s ease;
+    z-index: 1200;
+    overflow-y: auto;
+    padding-top: 84px;
+  }
+
+  .equip-sidebar.open {
+    transform: translateX(0);
+  }
+
+  .equip-filters-backdrop {
+    position: fixed;
+    inset: 0;
+    border: none;
+    background: rgba(0, 0, 0, 0.44);
+    z-index: 1190;
+    opacity: 0;
+    pointer-events: none;
+    display: block;
+  }
+
+  .equip-filters-backdrop.open {
+    opacity: 1;
+    pointer-events: auto;
   }
 
   .equip-grid {
@@ -598,6 +685,66 @@
   }
 
   .equip-card p {
-    font-size: 1.65rem;
+    font-size: 1.35rem;
+  }
+
+  .equip-filter-toggle-btn {
+    min-height: 38px;
+    font-size: 0.9rem;
+  }
+}
+
+@media (min-width: 961px) {
+  .equip-page {
+    padding: 98px 44px 70px;
+  }
+
+  .equip-layout {
+    grid-template-columns: 260px 1fr;
+    gap: 24px;
+  }
+
+  .equip-sidebar {
+    position: sticky;
+    top: 95px;
+    max-height: calc(100vh - 120px);
+    overflow-y: auto;
+    border: none;
+    border-right: 1px solid #d9d9d9;
+    border-radius: 0;
+    background: transparent;
+    padding: 0 18px 0 0;
+  }
+
+  .equip-sidebar-head,
+  .equip-mobile-tools {
+    display: none;
+  }
+
+  .equip-filters-backdrop {
+    display: none;
+  }
+
+  .equip-grid {
+    grid-template-columns: repeat(3, minmax(180px, 1fr));
+    gap: 20px;
+  }
+
+  .equip-card h3 {
+    font-size: 1.02rem;
+  }
+
+  .equip-card p {
+    font-size: 1.75rem;
+  }
+
+  .equip-card-actions {
+    margin-top: -22px;
+  }
+}
+
+@media (min-width: 1280px) {
+  .equip-grid {
+    grid-template-columns: repeat(4, minmax(180px, 1fr));
   }
 }

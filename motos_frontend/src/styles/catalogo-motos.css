@@ -1,7 +1,7 @@
 .moto-catalog-page {
   min-height: 85vh;
   flex: 1;
-  padding: 100px 50px 70px;
+  padding: 92px 20px 56px;
   background: #f6f6f6;
 }
 
@@ -11,39 +11,92 @@
 
 .moto-catalog-section h2 {
   text-align: left;
-  font-size: clamp(2rem, 3vw, 2.8rem);
-  margin-bottom: 34px;
+  font-size: clamp(1.6rem, 3vw, 2.6rem);
+  margin-bottom: 18px;
   padding-left: 2px;
+}
+
+.moto-catalog-mobile-tools {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.moto-results-meta {
+  color: #5a5a5a;
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+
+.moto-filter-toggle-btn {
+  border: 1px solid #cfd5df;
+  background: #fff;
+  color: #1f2937;
+  border-radius: 10px;
+  min-height: 40px;
+  padding: 0 14px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.moto-filters-backdrop {
+  display: none;
 }
 
 .moto-catalog-layout {
   display: grid;
-  grid-template-columns: 260px 1fr;
-  gap: 26px;
+  grid-template-columns: 1fr;
+  gap: 20px;
 }
 
 .moto-catalog-sidebar {
-  border-right: 1px solid #d9d9d9;
-  padding-right: 18px;
+  border: 1px solid #e0e0e0;
+  border-radius: 14px;
+  background: #fff;
+  padding: 14px;
+}
+
+.moto-sidebar-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 14px;
+}
+
+.moto-sidebar-head h3 {
+  font-size: 1.05rem;
+}
+
+.moto-sidebar-head button {
+  border: 1px solid #d2d8e2;
+  background: #fff;
+  color: #1f2937;
+  border-radius: 8px;
+  min-height: 34px;
+  padding: 0 10px;
+  font-weight: 600;
+  cursor: pointer;
 }
 
 .moto-filter-block {
-  margin-bottom: 26px;
+  margin-bottom: 18px;
 }
 
 .moto-filter-block h3 {
-  font-size: 1.25rem;
+  font-size: 1rem;
   font-weight: 700;
-  margin-bottom: 16px;
+  margin-bottom: 12px;
 }
 
 .moto-filter-list {
   display: flex;
   flex-direction: column;
   gap: 14px;
-  max-height: 270px;
+  max-height: 240px;
   overflow: auto;
-  padding-right: 8px;
+  padding-right: 6px;
 }
 
 .moto-filter-list label {
@@ -51,7 +104,7 @@
   align-items: flex-start;
   gap: 12px;
   color: #1f1f1f;
-  font-size: 1rem;
+  font-size: 0.95rem;
   line-height: 1.3;
 }
 
@@ -65,13 +118,24 @@
 
 .moto-filter-empty {
   color: #777;
-  font-size: 0.92rem;
+  font-size: 0.88rem;
+}
+
+.moto-clear-filters-btn {
+  width: 100%;
+  min-height: 40px;
+  border: 1px solid #d1d5db;
+  background: #f9fafb;
+  border-radius: 10px;
+  color: #111827;
+  font-weight: 700;
+  cursor: pointer;
 }
 
 .motos-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-  gap: 26px;
+  grid-template-columns: 1fr;
+  gap: 18px;
   align-content: start;
 }
 
@@ -392,22 +456,52 @@
 
 @media (max-width: 960px) {
   .moto-catalog-page {
-    padding: 90px 20px 50px;
+    padding: 86px 14px 46px;
   }
 
-  .moto-catalog-layout {
-    grid-template-columns: 1fr;
+  .moto-catalog-section h2 {
+    margin-bottom: 12px;
   }
 
   .moto-catalog-sidebar {
-    border-right: none;
-    border-bottom: 1px solid #d9d9d9;
-    padding-right: 0;
-    padding-bottom: 20px;
+    position: fixed;
+    top: 0;
+    right: 0;
+    width: min(88vw, 340px);
+    height: 100dvh;
+    border: none;
+    border-radius: 0;
+    box-shadow: -12px 0 30px rgba(0, 0, 0, 0.2);
+    transform: translateX(110%);
+    transition: transform 0.22s ease;
+    z-index: 1200;
+    overflow-y: auto;
+    padding-top: 84px;
+  }
+
+  .moto-filters-backdrop {
+    position: fixed;
+    inset: 0;
+    border: none;
+    background: rgba(0, 0, 0, 0.44);
+    z-index: 1190;
+    opacity: 0;
+    pointer-events: none;
+    display: block;
+  }
+
+  .moto-filters-backdrop.open {
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  .moto-catalog-sidebar.open {
+    transform: translateX(0);
   }
 
   .motos-grid {
     grid-template-columns: repeat(2, minmax(160px, 1fr));
+    gap: 14px;
   }
 
   .moto-pagination {
@@ -422,5 +516,58 @@
 @media (max-width: 560px) {
   .motos-grid {
     grid-template-columns: 1fr;
+  }
+
+  .moto-filter-toggle-btn {
+    min-height: 38px;
+    font-size: 0.9rem;
+  }
+
+  .moto-results-meta {
+    font-size: 0.9rem;
+  }
+}
+
+@media (min-width: 961px) {
+  .moto-catalog-page {
+    padding: 98px 44px 70px;
+  }
+
+  .moto-catalog-layout {
+    grid-template-columns: 260px 1fr;
+    gap: 24px;
+  }
+
+  .moto-catalog-sidebar {
+    position: sticky;
+    top: 95px;
+    max-height: calc(100vh - 120px);
+    overflow-y: auto;
+    border: none;
+    border-right: 1px solid #d9d9d9;
+    border-radius: 0;
+    background: transparent;
+    padding: 0 18px 0 0;
+  }
+
+  .moto-filters-backdrop {
+    display: none;
+  }
+
+  .moto-sidebar-head {
+    display: none;
+  }
+
+  .moto-catalog-mobile-tools {
+    margin-bottom: 18px;
+  }
+
+  .moto-filter-toggle-btn {
+    display: none;
+  }
+
+  .motos-grid {
+    grid-template-columns: repeat(auto-fill, minmax(270px, 1fr));
+    gap: 24px;
   }
 }
