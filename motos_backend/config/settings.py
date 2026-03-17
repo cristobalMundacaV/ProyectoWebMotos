@@ -39,7 +39,7 @@ load_env_file(BASE_DIR / ".env")
 SECRET_KEY = 'django-insecure-bw4vu5rq_t$!=yyrktiz#1kj$2!^tsd!*is-=6j5^sk&u#$=e-'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
 ALLOWED_HOSTS = ["3.229.25.68"]
 
@@ -105,7 +105,7 @@ DATABASES = {
     'default': {
         'ENGINE': os.getenv('DB_ENGINE', 'django.db.backends.postgresql'),
         'NAME': os.getenv('DB_NAME', 'tiendadb'),
-        'USER': os.getenv('DB_USER', 'postgres'),
+        'USER': os.getenv('DB_USER', 'admin_motos'),
         'PASSWORD': os.getenv('DB_PASSWORD', 'oshawott5114!'),
         'HOST': os.getenv('DB_HOST', 'localhost'),
         'PORT': os.getenv('DB_PORT', '5432'),
