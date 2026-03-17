@@ -4,7 +4,12 @@ function normalizeUrl(url) {
   return String(url || "").trim().replace(/\/+$/, "");
 }
 
-const configuredApiUrl = normalizeUrl(import.meta.env.VITE_API_URL || DEFAULT_API_URL);
+const runtimeDefaultApiUrl =
+  typeof window !== "undefined" && window.location?.origin
+    ? `${window.location.origin}/api`
+    : DEFAULT_API_URL;
+
+const configuredApiUrl = normalizeUrl(import.meta.env.VITE_API_URL || runtimeDefaultApiUrl);
 
 export const API_BASE_URL = configuredApiUrl.replace(/\/api$/, "");
 
