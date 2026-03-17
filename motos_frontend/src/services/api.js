@@ -1,8 +1,8 @@
 import axios from "axios";
+import { API_BASE_URL } from "./apiConfig";
 
-// Instancia centralizada de axios — cambia solo aquí si la URL base del backend cambia
 const api = axios.create({
-  baseURL: "http://127.0.0.1:8000",
+  baseURL: API_BASE_URL,
 });
 
 const REFRESH_TOKEN_KEY = "authRefreshToken";
@@ -19,6 +19,8 @@ api.interceptors.request.use((config) => {
 api.interceptors.response.use(
   (response) => response,
   async (error) => {
+    console.error("API request failed:", error);
+
     const originalRequest = error?.config;
     const status = error?.response?.status;
 
@@ -38,11 +40,7 @@ api.interceptors.response.use(
     originalRequest._retry = true;
 
     try {
-      const refreshResponse = await axios.post(
-        "http://127.0.0.1:8000/api/clientes/token/refresh/",
-        { refresh }
-      );
-
+      const refreshResponse = await api.post("/api/clientes/token/refresh/", { refresh });
       const nextAccess = refreshResponse.data?.access;
       const nextRefresh = refreshResponse.data?.refresh;
 

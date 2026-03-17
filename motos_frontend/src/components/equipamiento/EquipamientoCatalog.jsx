@@ -1,5 +1,6 @@
 ﻿import { Link } from "react-router-dom";
 import { useEffect, useMemo, useRef, useState } from "react";
+import { buildMediaUrl } from "../../services/apiConfig";
 import {
   deleteProductoAdmin,
   getCategoriasProducto,
@@ -347,7 +348,7 @@ export default function EquipamientoCatalog({ variant = "accesorios" }) {
 
   const previewSrc =
     editImagePreview ||
-    (editingProducto?.imagen_principal ? `http://127.0.0.1:8000${editingProducto.imagen_principal}` : "");
+    (editingProducto?.imagen_principal ? buildMediaUrl(editingProducto.imagen_principal) : "");
 
   return (
     <main className="equip-page">
@@ -426,7 +427,7 @@ export default function EquipamientoCatalog({ variant = "accesorios" }) {
                 <img
                   src={
                     producto.imagen_principal
-                      ? `http://127.0.0.1:8000${producto.imagen_principal}`
+                      ? buildMediaUrl(producto.imagen_principal)
                       : "https://via.placeholder.com/600x600?text=Sin+Imagen"
                   }
                   alt={producto.nombre}

@@ -3,6 +3,7 @@ import Navbar from "../components/layout/Navbar";
 import Footer from "../components/layout/Footer";
 import { useMotos } from "../hooks/useMotos";
 import MotoCard from "../components/motos/MotoCard";
+import { buildMediaUrl } from "../services/apiConfig";
 import { deleteMoto, getMotoAdminMeta, updateMoto } from "../services/motosService";
 import { getStoredToken, getStoredUser, hasAdminAccess } from "../services/authService";
 import "../styles/catalogo-motos.css";
@@ -10,7 +11,7 @@ import "../styles/catalogo-motos.css";
 /** Catalogo completo de motos con filtros y edicion para admins */
 export default function CatalogoMotos() {
   const ITEMS_PER_PAGE = 16;
-  const { motos, setMotos, loading } = useMotos();
+  const { motos, setMotos, loading, error } = useMotos();
   const [selectedMarcas, setSelectedMarcas] = useState([]);
   const [selectedCategorias, setSelectedCategorias] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
@@ -43,7 +44,8 @@ export default function CatalogoMotos() {
           categorias: Array.isArray(response?.categorias) ? response.categorias : [],
         });
       })
-      .catch(() => {
+      .catch((metaError) => {
+        console.error("Error loading moto admin metadata:", metaError);
         if (!isMounted) return;
         setMeta({ marcas: [], categorias: [] });
       });
@@ -317,7 +319,7 @@ export default function CatalogoMotos() {
 
   const previewSrc =
     editImagePreview ||
-    (editingMoto?.imagen_principal ? `http://127.0.0.1:8000${editingMoto.imagen_principal}` : "");
+    (editingMoto?.imagen_principal ? buildMediaUrl(editingMoto.imagen_principal) : "");
 
   return (
     <div className="page-wrapper">
@@ -327,6 +329,8 @@ export default function CatalogoMotos() {
           <h2>Catalogo de Motos</h2>
           {loading ? (
             <p style={{ textAlign: "center" }}>Cargando...</p>
+          ) : error ? (
+            <p style={{ textAlign: "center" }}>{error}</p>
           ) : (
             <div className="moto-catalog-layout">
               <aside className="moto-catalog-sidebar">

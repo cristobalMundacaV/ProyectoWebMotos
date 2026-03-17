@@ -1,11 +1,13 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "react-router-dom";
+import { buildMediaUrl } from "../../services/apiConfig";
 import { getProductos } from "../../services/productosService";
 import "../../styles/home.css";
 
 export default function IndumentariaDestacada() {
   const [productos, setProductos] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
   const trackRef = useRef(null);
 
   const SCROLL_AMOUNT = 460;
@@ -15,12 +17,15 @@ export default function IndumentariaDestacada() {
 
     async function loadProductos() {
       setLoading(true);
+      setError("");
       try {
         const lista = await getProductos({ tipo: "indumentaria", order: "release" });
         if (!isMounted) return;
         setProductos(Array.isArray(lista) ? lista : []);
-      } catch {
+      } catch (err) {
+        console.error("Error loading featured apparel:", err);
         if (!isMounted) return;
+        setError("No se pudieron cargar los productos destacados.");
         setProductos([]);
       } finally {
         if (isMounted) setLoading(false);
@@ -51,6 +56,8 @@ export default function IndumentariaDestacada() {
 
       {loading ? (
         <p className="home-carousel-empty">Cargando productos...</p>
+      ) : error ? (
+        <p className="home-carousel-empty">{error}</p>
       ) : (
         <div className="carousel-wrapper">
           <button className="carousel-btn carousel-btn--prev" onClick={() => scroll(-1)} aria-label="Anterior">
@@ -66,7 +73,7 @@ export default function IndumentariaDestacada() {
                   <img
                     src={
                       producto.imagen_principal
-                        ? `http://127.0.0.1:8000${producto.imagen_principal}`
+                        ? buildMediaUrl(producto.imagen_principal)
                         : "https://via.placeholder.com/600x600?text=Sin+Imagen"
                     }
                     alt={producto.nombre}

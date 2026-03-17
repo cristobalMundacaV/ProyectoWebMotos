@@ -5,12 +5,16 @@ import { getMotos } from "../services/motosService";
 export function useMotos() {
   const [motos, setMotos] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [error, setError] = useState("");
 
   useEffect(() => {
     getMotos()
       .then(setMotos)
-      .catch(setError)
+      .catch((err) => {
+        console.error("Error loading motos catalog:", err);
+        setError("No se pudieron cargar las motos.");
+        setMotos([]);
+      })
       .finally(() => setLoading(false));
   }, []);
 

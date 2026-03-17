@@ -1,5 +1,6 @@
 import { useParams, Link } from "react-router-dom";
 import { useEffect, useState } from "react";
+import { buildMediaUrl } from "../services/apiConfig";
 import { getProductoBySlug, getContactoPublico } from "../services/productosService";
 import Navbar from "../components/layout/Navbar";
 import "../styles/detalle.css";
@@ -13,16 +14,15 @@ export default function ProductoDetalle() {
     ubicacion: "Tu ciudad, Chile",
   });
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
   useEffect(() => {
     let isMounted = true;
 
     async function loadData() {
+      setError("");
       try {
-        const [productoData, contactoData] = await Promise.all([
-          getProductoBySlug(slug).catch(() => null),
-          getContactoPublico().catch(() => null),
-        ]);
+        const [productoData, contactoData] = await Promise.all([getProductoBySlug(slug), getContactoPublico()]);
 
         if (!isMounted) return;
         setProducto(productoData);
@@ -34,6 +34,10 @@ export default function ProductoDetalle() {
             ubicacion: contactoData.ubicacion || "",
           });
         }
+      } catch (err) {
+        console.error("Error loading product detail:", err);
+        if (!isMounted) return;
+        setError("No se pudo cargar la informacion de este producto.");
       } finally {
         if (isMounted) setLoading(false);
       }
@@ -53,7 +57,7 @@ export default function ProductoDetalle() {
   if (!producto) {
     return (
       <div className="detalle-empty">
-        <p>No encontramos este producto.</p>
+        <p>{error || "No encontramos este producto."}</p>
         <Link to="/">Volver al inicio</Link>
       </div>
     );
@@ -84,7 +88,7 @@ export default function ProductoDetalle() {
             <img
               src={
                 producto.imagen_principal
-                  ? `http://127.0.0.1:8000${producto.imagen_principal}`
+                  ? buildMediaUrl(producto.imagen_principal)
                   : "https://via.placeholder.com/900x600?text=Sin+Imagen"
               }
               alt={nombre}

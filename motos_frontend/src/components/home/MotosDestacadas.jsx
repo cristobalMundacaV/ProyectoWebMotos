@@ -6,7 +6,7 @@ import { getStoredToken, getStoredUser, hasAdminAccess } from "../../services/au
 import "../../styles/home.css";
 
 export default function MotosDestacadas() {
-  const { motos, setMotos } = useMotos();
+  const { motos, setMotos, loading, error } = useMotos();
   const trackRef = useRef(null);
   const [isAdmin, setIsAdmin] = useState(false);
   const [deletingId, setDeletingId] = useState(null);
@@ -47,33 +47,41 @@ export default function MotosDestacadas() {
     <section className="destacadas" id="catalogo">
       <h2>Modelos Destacados</h2>
 
-      <div className="carousel-wrapper">
-        <button className="carousel-btn carousel-btn--prev" onClick={() => scroll(-1)} aria-label="Anterior">
-          <svg className="carousel-btn__icon" viewBox="0 0 24 24" aria-hidden="true">
-            <path d="M14.5 5.5L8 12l6.5 6.5" />
-          </svg>
-        </button>
+      {loading && <p className="home-carousel-empty">Cargando motos...</p>}
+      {!loading && error && <p className="home-carousel-empty">{error}</p>}
+      {!loading && !error && motos.length === 0 && (
+        <p className="home-carousel-empty">No hay motos disponibles por ahora.</p>
+      )}
 
-        <div className="carousel-track" ref={trackRef}>
-          {motos.map((moto) => (
-            <div className="carousel-item" key={moto.id}>
-              <MotoCard
-                moto={moto}
-                isAdmin={isAdmin}
-                onDelete={handleDeleteMoto}
-                showAdminOverlayActions={false}
-                showBottomDeleteAction
-              />
-            </div>
-          ))}
+      {!loading && !error && motos.length > 0 && (
+        <div className="carousel-wrapper">
+          <button className="carousel-btn carousel-btn--prev" onClick={() => scroll(-1)} aria-label="Anterior">
+            <svg className="carousel-btn__icon" viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M14.5 5.5L8 12l6.5 6.5" />
+            </svg>
+          </button>
+
+          <div className="carousel-track" ref={trackRef}>
+            {motos.map((moto) => (
+              <div className="carousel-item" key={moto.id}>
+                <MotoCard
+                  moto={moto}
+                  isAdmin={isAdmin}
+                  onDelete={handleDeleteMoto}
+                  showAdminOverlayActions={false}
+                  showBottomDeleteAction
+                />
+              </div>
+            ))}
+          </div>
+
+          <button className="carousel-btn carousel-btn--next" onClick={() => scroll(1)} aria-label="Siguiente">
+            <svg className="carousel-btn__icon" viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M9.5 5.5L16 12l-6.5 6.5" />
+            </svg>
+          </button>
         </div>
-
-        <button className="carousel-btn carousel-btn--next" onClick={() => scroll(1)} aria-label="Siguiente">
-          <svg className="carousel-btn__icon" viewBox="0 0 24 24" aria-hidden="true">
-            <path d="M9.5 5.5L16 12l-6.5 6.5" />
-          </svg>
-        </button>
-      </div>
+      )}
     </section>
   );
 }

@@ -1,5 +1,6 @@
 ﻿import { useParams, Link } from "react-router-dom";
 import { useEffect, useState } from "react";
+import { buildMediaUrl } from "../services/apiConfig";
 import { getMotoBySlug } from "../services/motosService";
 import { getContactoPublico } from "../services/productosService";
 import Navbar from "../components/layout/Navbar";
@@ -14,16 +15,15 @@ export default function MotoDetalle() {
     ubicacion: "Tu ciudad, Chile",
   });
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
   useEffect(() => {
     let isMounted = true;
 
     async function loadData() {
+      setError("");
       try {
-        const [motoData, contactoData] = await Promise.all([
-          getMotoBySlug(slug).catch(() => null),
-          getContactoPublico().catch(() => null),
-        ]);
+        const [motoData, contactoData] = await Promise.all([getMotoBySlug(slug), getContactoPublico()]);
 
         if (!isMounted) return;
         setMoto(motoData);
@@ -35,6 +35,10 @@ export default function MotoDetalle() {
             ubicacion: contactoData.ubicacion || "",
           });
         }
+      } catch (err) {
+        console.error("Error loading moto detail:", err);
+        if (!isMounted) return;
+        setError("No se pudo cargar la informacion de esta moto.");
       } finally {
         if (isMounted) setLoading(false);
       }
@@ -54,7 +58,7 @@ export default function MotoDetalle() {
   if (!moto) {
     return (
       <div className="detalle-empty">
-        <p>No encontramos esta moto.</p>
+        <p>{error || "No encontramos esta moto."}</p>
         <Link to="/">Volver al inicio</Link>
       </div>
     );
@@ -83,7 +87,7 @@ export default function MotoDetalle() {
         <section className="detalle-layout">
           <div className="detalle-image-wrap">
             <img
-              src={`http://127.0.0.1:8000${moto.imagen_principal}`}
+              src={buildMediaUrl(moto.imagen_principal)}
               alt={modelo}
             />
           </div>

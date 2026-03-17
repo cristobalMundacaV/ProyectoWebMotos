@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import { buildMediaUrl } from "../../services/apiConfig";
 import "../../styles/motos.css";
 
 /** Tarjeta reutilizable que muestra el resumen de una moto en el catalogo */
@@ -17,7 +18,7 @@ export default function MotoCard({
   return (
     <div className="moto-card">
       <div className="moto-card-img-container">
-        <img src={`http://127.0.0.1:8000${moto.imagen_principal}`} alt={modelo} />
+        <img src={buildMediaUrl(moto.imagen_principal)} alt={modelo} />
 
         {canShowOverlayActions && (
           <div className="moto-card-admin-actions">
