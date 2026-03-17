@@ -1,6 +1,4 @@
-import { useState } from "react";
 import { Link } from "react-router-dom";
-import AdminPagination, { paginateItems } from "../../shared/components/AdminPagination";
 
 export default function ResumenPage({
   loading,
@@ -9,8 +7,7 @@ export default function ResumenPage({
   marcasAccRiderAdmin,
   marcasAccMotosAdmin,
 }) {
-  const [motosPage, setMotosPage] = useState(1);
-  const paginatedMotos = paginateItems(dashboard.motos, motosPage, 10);
+  const recentMotos = dashboard.motos.slice(0, 6);
 
   return (
     <div className="admin-dashboard-stack">
@@ -51,7 +48,7 @@ export default function ResumenPage({
             <Link to="/catalogo">Ir al catalogo</Link>
           </div>
           <div className="admin-table">
-            {paginatedMotos.items.map((moto) => (
+            {recentMotos.map((moto) => (
               <div key={moto.id} className="admin-table-row admin-moto-table-row">
                 <div className="admin-moto-table-cell">
                   <strong>{moto.modelo}</strong>
@@ -65,7 +62,6 @@ export default function ResumenPage({
             ))}
             {!loading && dashboard.motos.length === 0 && <p className="admin-empty">No hay motos registradas en el sistema.</p>}
           </div>
-          <AdminPagination pagination={paginatedMotos} onPageChange={setMotosPage} />
         </article>
 
         <div className="admin-kpi-side-stack">
