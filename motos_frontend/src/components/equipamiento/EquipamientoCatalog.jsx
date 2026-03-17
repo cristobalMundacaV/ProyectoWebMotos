@@ -379,6 +379,13 @@ export default function EquipamientoCatalog({ variant = "accesorios" }) {
             <option value="precio-asc">Menor precio</option>
             <option value="precio-desc">Mayor precio</option>
           </select>
+          <button
+            type="button"
+            className="equip-filter-toggle-btn equip-filter-toggle-inline"
+            onClick={() => setIsFiltersOpen((prev) => !prev)}
+          >
+            Filtros {activeFiltersCount > 0 ? `(${activeFiltersCount})` : ""}
+          </button>
         </div>
       </header>
 

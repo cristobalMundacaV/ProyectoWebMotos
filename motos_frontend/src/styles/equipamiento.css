@@ -155,6 +155,10 @@
   cursor: pointer;
 }
 
+.equip-filter-toggle-inline {
+  display: none;
+}
+
 .equip-clear-filters-btn {
   width: 100%;
   min-height: 40px;
@@ -633,8 +637,27 @@
 
   .equip-sort-row {
     width: 100%;
-    gap: 12px;
+    gap: 10px;
     flex-wrap: wrap;
+    align-items: center;
+  }
+
+  .equip-sort-row label {
+    margin-left: auto;
+  }
+
+  .equip-sort-row select {
+    flex: 1 1 180px;
+    min-width: 0;
+  }
+
+  .equip-filter-toggle-inline {
+    display: inline-flex;
+    margin-left: auto;
+  }
+
+  .equip-mobile-tools {
+    display: none;
   }
 
   .equip-layout {
@@ -737,7 +760,8 @@
   }
 
   .equip-sidebar-head,
-  .equip-mobile-tools {
+  .equip-mobile-tools,
+  .equip-filter-toggle-inline {
     display: none;
   }
 

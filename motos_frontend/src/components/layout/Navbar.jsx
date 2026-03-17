@@ -38,7 +38,13 @@ export default function Navbar() {
         </Link>
 
         <nav className={isMenuOpen ? "open" : ""} aria-label="Navegacion principal">
-          <Link to={{ pathname: "/", hash: "#inicio" }} onClick={() => setIsMenuOpen(false)}>
+          <Link
+            to={{ pathname: "/", hash: "#inicio" }}
+            onClick={() => {
+              sessionStorage.setItem("homeScrollTarget", "inicio");
+              setIsMenuOpen(false);
+            }}
+          >
             Inicio
           </Link>
           <Link to="/catalogo" onClick={() => setIsMenuOpen(false)}>
@@ -50,7 +56,13 @@ export default function Navbar() {
           <Link to="/equipamiento/accesorios" onClick={() => setIsMenuOpen(false)}>
             Accesorios Motos
           </Link>
-          <Link to={{ pathname: "/", hash: "#contacto" }} onClick={() => setIsMenuOpen(false)}>
+          <Link
+            to={{ pathname: "/", hash: "#contacto" }}
+            onClick={() => {
+              sessionStorage.setItem("homeScrollTarget", "contacto");
+              setIsMenuOpen(false);
+            }}
+          >
             Contacto
           </Link>
           {canAccessAdminPanel && (
