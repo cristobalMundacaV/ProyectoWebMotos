@@ -335,13 +335,13 @@
   }
 
   .carousel-track {
-    padding: 6px max(66px, calc((100% - 74vw) / 2)) 8px;
-    scroll-padding-left: max(66px, calc((100% - 74vw) / 2));
-    scroll-padding-right: max(66px, calc((100% - 74vw) / 2));
+    padding: 6px max(58px, calc((100% - 75vw) / 2)) 8px;
+    scroll-padding-left: max(58px, calc((100% - 75vw) / 2));
+    scroll-padding-right: max(58px, calc((100% - 75vw) / 2));
   }
 
   .carousel-item {
-    flex-basis: 74vw;
+    flex-basis: 75vw;
   }
 
   .carousel-btn {
@@ -368,7 +368,7 @@
   }
 
   .carousel-wrapper-motos .carousel-item {
-    flex-basis: 74vw;
+    flex-basis: 75vw;
   }
 
   .carousel-wrapper-motos .moto-card .moto-card-img-container {
