@@ -335,9 +335,9 @@
   }
 
   .carousel-track {
-    padding: 6px max(48px, calc((100% - 76vw) / 2)) 8px;
-    scroll-padding-left: max(48px, calc((100% - 76vw) / 2));
-    scroll-padding-right: max(48px, calc((100% - 76vw) / 2));
+    padding: 6px max(42px, calc((100% - 76vw) / 2)) 8px;
+    scroll-padding-left: max(42px, calc((100% - 76vw) / 2));
+    scroll-padding-right: max(42px, calc((100% - 76vw) / 2));
   }
 
   .carousel-item {
