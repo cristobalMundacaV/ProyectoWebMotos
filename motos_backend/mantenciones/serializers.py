@@ -1,9 +1,9 @@
 from django.contrib.auth import get_user_model
-from django.utils import timezone
 from rest_framework import serializers
 
 from clientes.models import PerfilUsuario
-from .models import Mantencion, VehiculoCliente
+from .availability import slot_disponible
+from .models import HorarioMantencion, Mantencion, VehiculoCliente
 
 
 class VehiculoClienteNestedSerializer(serializers.ModelSerializer):
@@ -51,6 +51,33 @@ class VehiculoClienteSerializer(serializers.ModelSerializer):
         return full_name or getattr(obj.cliente, "username", "")
 
 
+class HorarioMantencionSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = HorarioMantencion
+        fields = (
+            "id",
+            "dia_semana",
+            "hora_inicio",
+            "hora_fin",
+            "intervalo_minutos",
+            "cupos_por_bloque",
+            "activo",
+            "created_at",
+            "updated_at",
+        )
+        read_only_fields = ("created_at", "updated_at")
+
+    def validate(self, attrs):
+        hora_inicio = attrs.get("hora_inicio", getattr(self.instance, "hora_inicio", None))
+        hora_fin = attrs.get("hora_fin", getattr(self.instance, "hora_fin", None))
+        intervalo = attrs.get("intervalo_minutos", getattr(self.instance, "intervalo_minutos", 0))
+        if hora_inicio and hora_fin and hora_fin <= hora_inicio:
+            raise serializers.ValidationError({"hora_fin": "La hora fin debe ser mayor a la hora inicio."})
+        if intervalo is not None and int(intervalo) <= 0:
+            raise serializers.ValidationError({"intervalo_minutos": "El intervalo debe ser mayor que cero."})
+        return attrs
+
+
 class MantencionSerializer(serializers.ModelSerializer):
     moto_cliente_detalle = VehiculoClienteNestedSerializer(source="moto_cliente", read_only=True)
 
@@ -61,6 +88,7 @@ class MantencionSerializer(serializers.ModelSerializer):
             "moto_cliente",
             "moto_cliente_detalle",
             "fecha_ingreso",
+            "hora_ingreso",
             "kilometraje_ingreso",
             "tipo_mantencion",
             "motivo",
@@ -79,19 +107,31 @@ class MantencionSerializer(serializers.ModelSerializer):
 class AgendarMantencionSerializer(serializers.Serializer):
     nombre_completo = serializers.CharField(max_length=150)
     telefono = serializers.CharField(max_length=30)
-    email = serializers.EmailField(required=False, allow_blank=True)
+    email = serializers.EmailField(required=True)
 
-    matricula = serializers.CharField(max_length=20)
+    matricula = serializers.RegexField(
+        regex=r"^[A-Za-z]{3}\d{2}$",
+        max_length=5,
+        error_messages={"invalid": "La matricula debe tener formato AAA99 (ejemplo: TKG30)."},
+    )
     marca = serializers.CharField(max_length=80)
     modelo = serializers.CharField(max_length=120)
     anio = serializers.IntegerField(required=True)
     kilometraje_actual = serializers.IntegerField(min_value=0)
 
-    fecha_ingreso = serializers.DateField(required=False)
-    kilometraje_ingreso = serializers.IntegerField(min_value=0)
+    fecha_agendada = serializers.DateField()
+    hora_agendada = serializers.TimeField(input_formats=["%H:%M", "%H:%M:%S"])
     tipo_mantencion = serializers.ChoiceField(choices=Mantencion.TIPO_MANTENCION_CHOICES)
     motivo = serializers.CharField()
-    observaciones = serializers.CharField(required=False, allow_blank=True)
+
+    def validate(self, attrs):
+        fecha = attrs.get("fecha_agendada")
+        hora = attrs.get("hora_agendada")
+        if fecha and hora and not slot_disponible(fecha, hora):
+            raise serializers.ValidationError(
+                {"hora_agendada": "La hora seleccionada ya no esta disponible. Elige otra opcion."}
+            )
+        return attrs
 
     def _generate_username(self, nombre_completo: str, telefono: str, email: str) -> str:
         User = get_user_model()
@@ -171,11 +211,12 @@ class AgendarMantencionSerializer(serializers.Serializer):
 
         mantencion = Mantencion.objects.create(
             moto_cliente=vehiculo,
-            fecha_ingreso=validated_data.get("fecha_ingreso") or timezone.localdate(),
-            kilometraje_ingreso=validated_data["kilometraje_ingreso"],
+            fecha_ingreso=validated_data["fecha_agendada"],
+            hora_ingreso=validated_data["hora_agendada"],
+            kilometraje_ingreso=None,
             tipo_mantencion=validated_data["tipo_mantencion"],
             motivo=validated_data["motivo"].strip(),
-            observaciones=(validated_data.get("observaciones") or "").strip(),
+            observaciones="",
             estado=Mantencion.ESTADO_INGRESADA,
             costo_total=0,
         )

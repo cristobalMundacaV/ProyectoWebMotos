@@ -11,7 +11,26 @@ async function postWithFallback(primaryUrl, fallbackUrl, payload) {
   }
 }
 
+async function getWithFallback(primaryUrl, fallbackUrl) {
+  try {
+    return await api.get(primaryUrl);
+  } catch (error) {
+    if (error?.response?.status !== 404 || !fallbackUrl) {
+      throw error;
+    }
+    return api.get(fallbackUrl);
+  }
+}
+
 export async function agendarMantencion(payload) {
   const response = await postWithFallback("/api/mantenciones/agendar/", "/mantenciones/agendar/", payload);
+  return response.data;
+}
+
+export async function getDisponibilidadMantenciones(days = 21) {
+  const response = await getWithFallback(
+    `/api/mantenciones/disponibilidad/?days=${days}`,
+    `/mantenciones/disponibilidad/?days=${days}`
+  );
   return response.data;
 }

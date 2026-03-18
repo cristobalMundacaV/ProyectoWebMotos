@@ -32,3 +32,27 @@ export async function updateMantencionAdmin(id, payload) {
   );
   return response.data;
 }
+
+export async function getHorariosMantencionAdmin() {
+  const response = await requestWithFallback("get", "/api/mantenciones/horarios/", "/mantenciones/horarios/");
+  return normalizeList(response.data);
+}
+
+export async function createHorarioMantencionAdmin(payload) {
+  const response = await requestWithFallback("post", "/api/mantenciones/horarios/", "/mantenciones/horarios/", payload);
+  return response.data;
+}
+
+export async function updateHorarioMantencionAdmin(id, payload) {
+  const response = await requestWithFallback(
+    "patch",
+    `/api/mantenciones/horarios/${id}/`,
+    `/mantenciones/horarios/${id}/`,
+    payload
+  );
+  return response.data;
+}
+
+export async function deleteHorarioMantencionAdmin(id) {
+  await requestWithFallback("delete", `/api/mantenciones/horarios/${id}/`, `/mantenciones/horarios/${id}/`);
+}

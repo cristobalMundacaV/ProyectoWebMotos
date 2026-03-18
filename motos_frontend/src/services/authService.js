@@ -66,6 +66,15 @@ export async function listAdminUsers() {
   return response.data;
 }
 
+export async function updateAdminUser(userId, payload) {
+  const response = await api.patch(`/api/clientes/admin/users/${userId}/`, payload);
+  return response.data;
+}
+
+export async function deleteAdminUser(userId) {
+  await api.delete(`/api/clientes/admin/users/${userId}/`);
+}
+
 export async function loginUser(payload) {
   const response = await api.post("/api/clientes/login/", payload);
   return response.data;

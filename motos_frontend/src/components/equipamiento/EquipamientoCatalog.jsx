@@ -465,43 +465,65 @@ export default function EquipamientoCatalog({ variant = "accesorios" }) {
           {loading && <div className="equip-empty">Cargando productos...</div>}
           {error && <div className="equip-empty">{error}</div>}
 
-          {productosPaginados.map((producto) => (
-            <article key={producto.id} className="equip-card">
-              <div className="equip-card-image">
-                <img
-                  src={
-                    producto.imagen_principal
-                      ? buildMediaUrl(producto.imagen_principal)
-                      : "https://via.placeholder.com/600x600?text=Sin+Imagen"
-                  }
-                  alt={producto.nombre}
-                  loading="lazy"
-                />
-                {isAdmin && (
-                  <div className="equip-admin-actions">
-                    <button type="button" className="equip-admin-btn edit" title="Editar" onClick={() => openEditModal(producto)}>
-                      <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
-                    </button>
-                    <button
-                      type="button"
-                      className="equip-admin-btn delete"
-                      title="Eliminar"
-                      onClick={() => openDeleteModal(producto)}
-                    >
-                      <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
-                    </button>
-                  </div>
-                )}
-              </div>
-              <h3>{producto.nombre}</h3>
-              <p>${Number(producto.precio).toLocaleString("es-CL")}</p>
-              <div className="equip-card-actions">
-                <Link className="equip-card-detail-btn" to={`/producto/${producto.slug}`}>
-                  Ver detalles
-                </Link>
-              </div>
-            </article>
-          ))}
+          {productosPaginados.map((producto) => {
+            const detailPath = `/producto/${producto.slug}`;
+            const cardContent = (
+              <>
+                <div className="equip-card-image">
+                  <img
+                    src={
+                      producto.imagen_principal
+                        ? buildMediaUrl(producto.imagen_principal)
+                        : "https://via.placeholder.com/600x600?text=Sin+Imagen"
+                    }
+                    alt={producto.nombre}
+                    loading="lazy"
+                  />
+                  {isAdmin && (
+                    <div className="equip-admin-actions">
+                      <button type="button" className="equip-admin-btn edit" title="Editar" onClick={() => openEditModal(producto)}>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                      </button>
+                      <button
+                        type="button"
+                        className="equip-admin-btn delete"
+                        title="Eliminar"
+                        onClick={() => openDeleteModal(producto)}
+                      >
+                        <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+                      </button>
+                    </div>
+                  )}
+                </div>
+                <h3>{producto.nombre}</h3>
+                <p>${Number(producto.precio).toLocaleString("es-CL")}</p>
+                <div className="equip-card-actions">
+                  {isAdmin ? (
+                    <Link className="equip-card-detail-btn" to={detailPath}>
+                      Ver detalles
+                    </Link>
+                  ) : (
+                    <span className="equip-card-detail-btn">Ver detalles</span>
+                  )}
+                </div>
+              </>
+            );
+
+            return isAdmin ? (
+              <article key={producto.id} className="equip-card">
+                {cardContent}
+              </article>
+            ) : (
+              <Link
+                key={producto.id}
+                className="equip-card equip-card-clickable equip-card-link"
+                to={detailPath}
+                aria-label={`Ver detalles de ${producto.nombre}`}
+              >
+                {cardContent}
+              </Link>
+            );
+          })}
 
           {!loading && !error && productosFiltrados.length === 0 && (
             <div className="equip-empty">No hay productos</div>

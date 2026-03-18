@@ -1,7 +1,4 @@
-﻿import { useMemo, useState } from "react";
-import AdminPagination, { paginateItems } from "../../shared/components/AdminPagination";
-
-const EN_CURSO_STATES = ["en_revision", "en_proceso", "esperando_repuestos", "finalizada", "entregada"];
+import { useMemo, useState } from "react";
 
 const ESTADO_OPTIONS = [
   { value: "en_revision", label: "En revision" },
@@ -21,6 +18,7 @@ function formatDate(value) {
 
 function statusLabel(value) {
   const option = ESTADO_OPTIONS.find((item) => item.value === value);
+  if (value === "ingresada") return "Ingresada";
   return option?.label || value || "-";
 }
 
@@ -40,6 +38,10 @@ function getEstadoClass(value) {
   return "";
 }
 
+function formatMoney(value) {
+  return `$${Number(value || 0).toLocaleString("es-CL", { maximumFractionDigits: 0 })}`;
+}
+
 export default function MantencionesPage({
   activeSection,
   loading,
@@ -48,24 +50,50 @@ export default function MantencionesPage({
   onRefresh,
   onAcceptSolicitud,
   onUpdateMantencion,
+  horarios = [],
+  horariosLoading = false,
+  horarioForm,
+  horarioSaving = false,
+  onRefreshHorarios,
+  onHorarioInputChange,
+  onHorarioSubmit,
+  onHorarioDelete,
 }) {
-  const PAGE_SIZE = 8;
   const [editsById, setEditsById] = useState({});
+  const [selectedSolicitudId, setSelectedSolicitudId] = useState(null);
   const [selectedFichaId, setSelectedFichaId] = useState(null);
-  const [solicitudesPage, setSolicitudesPage] = useState(1);
-  const [enCursoPage, setEnCursoPage] = useState(1);
-  const [fichasPage, setFichasPage] = useState(1);
+
+  const DIAS_LABEL = {
+    0: "Lunes",
+    1: "Martes",
+    2: "Miercoles",
+    3: "Jueves",
+    4: "Viernes",
+    5: "Sabado",
+    6: "Domingo",
+  };
 
   const solicitudes = useMemo(() => mantenciones.filter((item) => item.estado === "ingresada"), [mantenciones]);
-  const enCurso = useMemo(() => mantenciones.filter((item) => EN_CURSO_STATES.includes(item.estado)), [mantenciones]);
-  const fichas = useMemo(() => mantenciones, [mantenciones]);
+  const fichasMantencion = useMemo(() => mantenciones.filter((item) => item.estado !== "ingresada"), [mantenciones]);
 
-  const paginatedSolicitudes = paginateItems(solicitudes, solicitudesPage, PAGE_SIZE);
-  const paginatedEnCurso = paginateItems(enCurso, enCursoPage, PAGE_SIZE);
-  const paginatedFichas = paginateItems(fichas, fichasPage, PAGE_SIZE);
+  const selectedSolicitud = useMemo(() => {
+    const byId = solicitudes.find((item) => item.id === selectedSolicitudId);
+    return byId || solicitudes[0] || null;
+  }, [solicitudes, selectedSolicitudId]);
+
+  const selectedFicha = useMemo(() => {
+    const byId = fichasMantencion.find((item) => item.id === selectedFichaId);
+    return byId || fichasMantencion[0] || null;
+  }, [fichasMantencion, selectedFichaId]);
 
   function getDraft(item) {
-    return editsById[item.id] || { estado: item.estado, costo_total: item.costo_total || 0 };
+    return (
+      editsById[item.id] || {
+        estado: item.estado,
+        costo_total: item.costo_total || 0,
+        kilometraje_ingreso: item.kilometraje_ingreso ?? "",
+      }
+    );
   }
 
   function setDraft(id, field, value) {
@@ -75,9 +103,183 @@ export default function MantencionesPage({
     }));
   }
 
+  function renderFichaList(items, selectedId, onSelect, emptyText) {
+    return (
+      <aside className="admin-mantencion-fichas-list">
+        {items.map((item) => {
+          const moto = item?.moto_cliente_detalle || {};
+          const isActive = selectedId === item.id;
+          return (
+            <button
+              key={item.id}
+              type="button"
+              className={isActive ? "admin-mantencion-ficha-item active" : "admin-mantencion-ficha-item"}
+              onClick={() => onSelect(item.id)}
+            >
+              <strong>{`${moto.marca || "-"} ${moto.modelo || "-"}`}</strong>
+              <span>{moto.cliente_nombre || "Cliente"}</span>
+              <small>{formatDate(item.fecha_ingreso)}</small>
+            </button>
+          );
+        })}
+
+        {!loading && items.length === 0 && <p className="admin-empty">{emptyText}</p>}
+        {loading && <p className="admin-empty">Cargando fichas...</p>}
+      </aside>
+    );
+  }
+
+  function renderFichaDetail(item, mode) {
+    if (!item) {
+      return <p className="admin-empty">Selecciona una ficha para ver el detalle.</p>;
+    }
+
+    const moto = item?.moto_cliente_detalle || {};
+    const draft = getDraft(item);
+    const saving = Boolean(savingById[item.id]);
+    const estadoActual = draft.estado || item.estado;
+
+    return (
+      <>
+        <div className="admin-mantencion-ficha-head">
+          <h3>{`${moto.marca || "-"} ${moto.modelo || "-"}`}</h3>
+          <span className="admin-status-pill">{statusLabel(item.estado)}</span>
+        </div>
+
+        <div className="admin-mantencion-ficha-grid">
+          <div>
+            <span>Cliente</span>
+            <strong>{moto.cliente_nombre || "-"}</strong>
+          </div>
+          <div>
+            <span>Matricula</span>
+            <strong>{moto.matricula || "-"}</strong>
+          </div>
+          <div>
+            <span>A\u00f1o</span>
+            <strong>{moto.anio || "-"}</strong>
+          </div>
+          <div>
+            <span>Fecha ingreso</span>
+            <strong>{formatDate(item.fecha_ingreso)}</strong>
+          </div>
+          <div>
+            <span>Hora ingreso</span>
+            <strong>{item.hora_ingreso ? String(item.hora_ingreso).slice(0, 5) : "-"}</strong>
+          </div>
+          <div>
+            <span>Tipo mantencion</span>
+            <strong>{formatReason(item.tipo_mantencion)}</strong>
+          </div>
+        </div>
+
+        {mode === "solicitudes" ? (
+          <div className="admin-mantencion-ficha-actions admin-mantencion-ficha-actions-solicitud">
+            <button
+              type="button"
+              className="admin-primary-action admin-mantencion-action-btn admin-mantencion-accept-btn"
+              disabled={saving}
+              onClick={() => onAcceptSolicitud(item.id)}
+            >
+              {saving ? "Aceptando..." : "Aceptar ingreso a taller"}
+            </button>
+          </div>
+        ) : (
+          <div className="admin-mantencion-ficha-controls">
+            <label>
+              Estado
+              <select
+                className={`admin-mantencion-estado-select ${getEstadoClass(estadoActual)}`}
+                value={estadoActual}
+                onChange={(event) => setDraft(item.id, "estado", event.target.value)}
+                disabled={saving}
+              >
+                {ESTADO_OPTIONS.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
+            </label>
+
+            <label>
+              Km ingreso
+              <input
+                type="number"
+                min="0"
+                step="1"
+                value={draft.kilometraje_ingreso ?? ""}
+                onChange={(event) => setDraft(item.id, "kilometraje_ingreso", event.target.value)}
+                disabled={saving}
+              />
+            </label>
+
+            <label>
+              Valor cobrado
+              <input
+                type="number"
+                min="0"
+                step="1"
+                value={draft.costo_total ?? item.costo_total ?? 0}
+                onChange={(event) => setDraft(item.id, "costo_total", event.target.value)}
+                disabled={saving}
+              />
+            </label>
+
+            <div className="admin-mantencion-ficha-actions">
+              <button
+                type="button"
+                className="admin-primary-action admin-mantencion-action-btn admin-mantencion-save-btn"
+                disabled={saving}
+                onClick={() =>
+                  onUpdateMantencion(item.id, {
+                    estado: estadoActual,
+                    kilometraje_ingreso:
+                      draft.kilometraje_ingreso === "" || draft.kilometraje_ingreso === null
+                        ? null
+                        : Number.parseInt(draft.kilometraje_ingreso, 10),
+                    costo_total: Number.parseInt(draft.costo_total ?? item.costo_total ?? 0, 10) || 0,
+                  })
+                }
+              >
+                {saving ? "Guardando..." : "Guardar cambios"}
+              </button>
+            </div>
+          </div>
+        )}
+
+        <div className="admin-mantencion-ficha-grid" style={{ marginBottom: 12 }}>
+          <div>
+            <span>Valor cobrado</span>
+            <strong>{formatMoney(mode === "fichas" ? draft.costo_total ?? item.costo_total : item.costo_total)}</strong>
+          </div>
+        </div>
+
+        <div className="admin-mantencion-ficha-blocks">
+          <article>
+            <h4>Motivo de ingreso</h4>
+            <p>{item.motivo || "-"}</p>
+          </article>
+          <article>
+            <h4>Diagnostico</h4>
+            <p>{item.diagnostico || "-"}</p>
+          </article>
+          <article>
+            <h4>Trabajo realizado</h4>
+            <p>{item.trabajo_realizado || "-"}</p>
+          </article>
+          <article>
+            <h4>Comentarios / Observaciones</h4>
+            <p>{item.observaciones || "-"}</p>
+          </article>
+        </div>
+      </>
+    );
+  }
+
   if (activeSection === "mantenciones_solicitudes") {
     return (
-      <section className="admin-content-grid admin-content-grid-mantenciones">
+      <section className="admin-content-grid admin-content-grid-mantenciones admin-content-grid-mantenciones-fichas">
         <article className="admin-panel-card">
           <div className="admin-card-header">
             <h2>Solicitudes de mantencion</h2>
@@ -86,145 +288,16 @@ export default function MantencionesPage({
             </button>
           </div>
 
-          <div className="admin-table">
-            {paginatedSolicitudes.items.map((item) => {
-              const moto = item?.moto_cliente_detalle || {};
-              const saving = Boolean(savingById[item.id]);
-              return (
-                <div key={item.id} className="admin-table-row admin-moto-table-row admin-mantencion-row admin-mantencion-solicitud-row">
-                  <div className="admin-moto-table-cell">
-                    <span className="admin-mantencion-cliente">{moto.cliente_nombre || "Cliente"}</span>
-                    <strong>{`${moto.marca || "-"} ${moto.modelo || "-"}${moto.anio ? ` ${moto.anio}` : ""}`}</strong>
-                  </div>
-                  <div className="admin-moto-table-cell admin-mantencion-ingreso">
-                    <strong>Ingreso</strong>
-                    <span>{formatDate(item.fecha_ingreso)}</span>
-                  </div>
-                  <div className="admin-moto-table-cell">
-                    <strong>{formatReason(item.motivo || item.tipo_mantencion)}</strong>
-                  </div>
-                  <div className="admin-moto-table-cell admin-mantencion-status-col">
-                    <span className="admin-status-pill status-ingresada">Ingresada</span>
-                  </div>
-                  <div className="admin-moto-table-cell admin-mantencion-actions">
-                    <button
-                      type="button"
-                      className="admin-primary-action admin-mantencion-action-btn admin-mantencion-accept-btn"
-                      disabled={saving}
-                      onClick={() => onAcceptSolicitud(item.id)}
-                    >
-                      {saving ? "Aceptando..." : "Aceptar"}
-                    </button>
-                  </div>
-                </div>
-              );
-            })}
-
-            {!loading && solicitudes.length === 0 && <p className="admin-empty">No hay solicitudes de mantencion pendientes.</p>}
-            {loading && <p className="admin-empty">Cargando solicitudes...</p>}
+          <div className="admin-mantencion-fichas-layout">
+            {renderFichaList(solicitudes, selectedSolicitud?.id, setSelectedSolicitudId, "No hay solicitudes pendientes.")}
+            <div className="admin-mantencion-ficha-detail">{renderFichaDetail(selectedSolicitud, "solicitudes")}</div>
           </div>
-
-          <AdminPagination pagination={paginatedSolicitudes} onPageChange={setSolicitudesPage} />
-        </article>
-      </section>
-    );
-  }
-
-  if (activeSection === "mantenciones_en_curso") {
-    return (
-      <section className="admin-content-grid admin-content-grid-mantenciones">
-        <article className="admin-panel-card">
-          <div className="admin-card-header">
-            <h2>Mantenciones en curso</h2>
-            <button type="button" className="admin-primary-action" onClick={onRefresh}>
-              Actualizar
-            </button>
-          </div>
-
-          <div className="admin-table">
-            {paginatedEnCurso.items.map((item) => {
-              const moto = item?.moto_cliente_detalle || {};
-              const draft = getDraft(item);
-              const saving = Boolean(savingById[item.id]);
-              const estadoActual = draft.estado || item.estado;
-
-              return (
-                <div key={item.id} className="admin-table-row admin-moto-table-row admin-mantencion-row">
-                  <div className="admin-moto-table-cell">
-                    <span className="admin-mantencion-year">{moto.anio || "-"}</span>
-                    <strong>{`${moto.marca || "-"} ${moto.modelo || "-"}`}</strong>
-                  </div>
-                  <div className="admin-moto-table-cell admin-mantencion-persona">
-                    <span className="admin-mantencion-top-muted">{moto.cliente_nombre || "Cliente"}</span>
-                    <strong className="admin-mantencion-bottom-strong">{`Matricula: ${moto.matricula || "-"}`}</strong>
-                  </div>
-                  <div className="admin-moto-table-cell admin-mantencion-controls admin-mantencion-control-cell">
-                    <label>
-                      Estado
-                      <select
-                        className={`admin-mantencion-estado-select ${getEstadoClass(estadoActual)}`}
-                        value={estadoActual}
-                        onChange={(event) => setDraft(item.id, "estado", event.target.value)}
-                        disabled={saving}
-                      >
-                        {ESTADO_OPTIONS.map((option) => (
-                          <option key={option.value} value={option.value}>
-                            {option.label}
-                          </option>
-                        ))}
-                      </select>
-                    </label>
-                  </div>
-                  <div className="admin-moto-table-cell admin-mantencion-controls admin-mantencion-control-cell">
-                    <label>
-                      Valor
-                      <input
-                        type="number"
-                        min="0"
-                        step="0.01"
-                        value={draft.costo_total ?? item.costo_total ?? 0}
-                        onChange={(event) => setDraft(item.id, "costo_total", event.target.value)}
-                        disabled={saving}
-                      />
-                    </label>
-                  </div>
-                  <div className="admin-moto-table-cell admin-mantencion-actions">
-                    <button
-                      type="button"
-                      className="admin-primary-action admin-mantencion-action-btn admin-mantencion-save-btn"
-                      disabled={saving}
-                      onClick={() =>
-                        onUpdateMantencion(item.id, {
-                          estado: estadoActual,
-                          costo_total: Number(draft.costo_total ?? item.costo_total ?? 0),
-                        })
-                      }
-                    >
-                      {saving ? "Guardando..." : "Guardar"}
-                    </button>
-                  </div>
-                </div>
-              );
-            })}
-
-            {!loading && enCurso.length === 0 && <p className="admin-empty">No hay mantenciones en curso.</p>}
-            {loading && <p className="admin-empty">Cargando mantenciones...</p>}
-          </div>
-
-          <AdminPagination pagination={paginatedEnCurso} onPageChange={setEnCursoPage} />
         </article>
       </section>
     );
   }
 
   if (activeSection === "mantenciones_fichas") {
-    const selectedFicha =
-      paginatedFichas.items.find((item) => item.id === selectedFichaId) ||
-      paginatedFichas.items[0] ||
-      null;
-
-    const fichaMoto = selectedFicha?.moto_cliente_detalle || {};
-
     return (
       <section className="admin-content-grid admin-content-grid-mantenciones admin-content-grid-mantenciones-fichas">
         <article className="admin-panel-card">
@@ -236,95 +309,107 @@ export default function MantencionesPage({
           </div>
 
           <div className="admin-mantencion-fichas-layout">
-            <aside className="admin-mantencion-fichas-list">
-              {paginatedFichas.items.map((item) => {
-                const moto = item?.moto_cliente_detalle || {};
-                const isActive = selectedFicha?.id === item.id;
-                return (
-                  <button
-                    key={item.id}
-                    type="button"
-                    className={isActive ? "admin-mantencion-ficha-item active" : "admin-mantencion-ficha-item"}
-                    onClick={() => setSelectedFichaId(item.id)}
-                  >
-                    <strong>{`${moto.marca || "-"} ${moto.modelo || "-"}`}</strong>
-                    <span>{moto.cliente_nombre || "Cliente"}</span>
-                    <small>{formatDate(item.fecha_ingreso)}</small>
-                  </button>
-                );
-              })}
+            {renderFichaList(fichasMantencion, selectedFicha?.id, setSelectedFichaId, "No hay fichas de mantencion disponibles.")}
+            <div className="admin-mantencion-ficha-detail">{renderFichaDetail(selectedFicha, "fichas")}</div>
+          </div>
+        </article>
+      </section>
+    );
+  }
 
-              {!loading && fichas.length === 0 && <p className="admin-empty">No hay fichas de mantencion disponibles.</p>}
-              {loading && <p className="admin-empty">Cargando fichas...</p>}
-            </aside>
-
-            <div className="admin-mantencion-ficha-detail">
-              {!selectedFicha && !loading && <p className="admin-empty">Selecciona una ficha para ver el detalle.</p>}
-
-              {selectedFicha && (
-                <>
-                  <div className="admin-mantencion-ficha-head">
-                    <h3>{`${fichaMoto.marca || "-"} ${fichaMoto.modelo || "-"}`}</h3>
-                    <span className="admin-status-pill">{statusLabel(selectedFicha.estado)}</span>
-                  </div>
-
-                  <div className="admin-mantencion-ficha-grid">
-                    <div>
-                      <span>Cliente</span>
-                      <strong>{fichaMoto.cliente_nombre || "-"}</strong>
-                    </div>
-                    <div>
-                      <span>Matricula</span>
-                      <strong>{fichaMoto.matricula || "-"}</strong>
-                    </div>
-                    <div>
-                      <span>Año</span>
-                      <strong>{fichaMoto.anio || "-"}</strong>
-                    </div>
-                    <div>
-                      <span>Fecha ingreso</span>
-                      <strong>{formatDate(selectedFicha.fecha_ingreso)}</strong>
-                    </div>
-                    <div>
-                      <span>Tipo mantencion</span>
-                      <strong>{formatReason(selectedFicha.tipo_mantencion)}</strong>
-                    </div>
-                    <div>
-                      <span>Valor cobrado</span>
-                      <strong>{`$${Number(selectedFicha.costo_total || 0).toLocaleString("es-CL")}`}</strong>
-                    </div>
-                  </div>
-
-                  <div className="admin-mantencion-ficha-blocks">
-                    <article>
-                      <h4>Motivo de ingreso</h4>
-                      <p>{selectedFicha.motivo || "-"}</p>
-                    </article>
-                    <article>
-                      <h4>Diagnostico</h4>
-                      <p>{selectedFicha.diagnostico || "-"}</p>
-                    </article>
-                    <article>
-                      <h4>Trabajo realizado</h4>
-                      <p>{selectedFicha.trabajo_realizado || "-"}</p>
-                    </article>
-                    <article>
-                      <h4>Comentarios / Observaciones</h4>
-                      <p>{selectedFicha.observaciones || "-"}</p>
-                    </article>
-                  </div>
-                </>
-              )}
-            </div>
+  if (activeSection === "mantenciones_horarios") {
+    return (
+      <section className="admin-content-grid admin-content-grid-mantenciones">
+        <article className="admin-panel-card">
+          <div className="admin-card-header">
+            <h2>Horarios operativos</h2>
+            <button type="button" className="admin-primary-action" onClick={onRefreshHorarios}>
+              Actualizar
+            </button>
           </div>
 
-          <AdminPagination
-            pagination={paginatedFichas}
-            onPageChange={(page) => {
-              setFichasPage(page);
-              setSelectedFichaId(null);
-            }}
-          />
+          <form className="admin-moto-form" onSubmit={onHorarioSubmit} noValidate>
+            <label>
+              Dia
+              <select name="dia_semana" value={horarioForm?.dia_semana ?? "0"} onChange={onHorarioInputChange} required>
+                {Object.entries(DIAS_LABEL).map(([value, label]) => (
+                  <option key={value} value={value}>
+                    {label}
+                  </option>
+                ))}
+              </select>
+            </label>
+
+            <label>
+              Hora inicio
+              <input type="time" name="hora_inicio" value={horarioForm?.hora_inicio ?? ""} onChange={onHorarioInputChange} required />
+            </label>
+
+            <label>
+              Hora fin
+              <input type="time" name="hora_fin" value={horarioForm?.hora_fin ?? ""} onChange={onHorarioInputChange} required />
+            </label>
+
+            <label>
+              Intervalo (minutos)
+              <input
+                type="number"
+                min="15"
+                step="15"
+                name="intervalo_minutos"
+                value={horarioForm?.intervalo_minutos ?? "60"}
+                onChange={onHorarioInputChange}
+                required
+              />
+            </label>
+
+            <label>
+              Cupos por bloque
+              <input
+                type="number"
+                min="1"
+                name="cupos_por_bloque"
+                value={horarioForm?.cupos_por_bloque ?? "1"}
+                onChange={onHorarioInputChange}
+                required
+              />
+            </label>
+
+            <button type="submit" className="admin-primary-action" disabled={horarioSaving}>
+              {horarioSaving ? "Guardando..." : "Agregar horario"}
+            </button>
+          </form>
+
+          <div className="admin-table">
+            {horarios.map((item) => (
+              <div key={item.id} className="admin-table-row admin-moto-table-row admin-mantencion-row">
+                <div className="admin-moto-table-cell">
+                  <strong>{DIAS_LABEL[item.dia_semana] || item.dia_semana}</strong>
+                  <span>{`${item.hora_inicio?.slice(0, 5) || "--:--"} - ${item.hora_fin?.slice(0, 5) || "--:--"}`}</span>
+                </div>
+                <div className="admin-moto-table-cell">
+                  <strong>Intervalo</strong>
+                  <span>{`${item.intervalo_minutos} min`}</span>
+                </div>
+                <div className="admin-moto-table-cell">
+                  <strong>Cupos</strong>
+                  <span>{item.cupos_por_bloque}</span>
+                </div>
+                <div className="admin-moto-table-cell admin-mantencion-actions">
+                  <button
+                    type="button"
+                    className="admin-danger-action admin-mantencion-action-btn"
+                    onClick={() => onHorarioDelete(item.id)}
+                  >
+                    Eliminar
+                  </button>
+                </div>
+              </div>
+            ))}
+
+            {!horariosLoading && horarios.length === 0 && <p className="admin-empty">No hay horarios operativos configurados.</p>}
+            {horariosLoading && <p className="admin-empty">Cargando horarios...</p>}
+          </div>
         </article>
       </section>
     );

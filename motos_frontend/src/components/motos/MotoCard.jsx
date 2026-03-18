@@ -1,4 +1,4 @@
-import { Link } from "react-router-dom";
+﻿import { Link, useNavigate } from "react-router-dom";
 import { buildMediaUrl } from "../../services/apiConfig";
 import "../../styles/motos.css";
 
@@ -11,17 +11,25 @@ export default function MotoCard({
   showAdminOverlayActions = true,
   showBottomDeleteAction = false,
 }) {
+  const navigate = useNavigate();
+  const formatUppercase = (value) => String(value || "-").toUpperCase();
   const modelo = moto.modelo || moto.nombre;
   const canShowOverlayActions = isAdmin && showAdminOverlayActions && (onEdit || onDelete);
   const canShowBottomDelete = isAdmin && showBottomDeleteAction && onDelete;
+  const detailPath = `/moto/${moto.slug}`;
+  const useLinkCard = !canShowOverlayActions && !canShowBottomDelete;
 
-  return (
-    <div className="moto-card">
+  function goToDetail() {
+    navigate(detailPath);
+  }
+
+  const cardBody = (
+    <>
       <div className="moto-card-img-container">
         <img src={buildMediaUrl(moto.imagen_principal)} alt={modelo} />
 
         {canShowOverlayActions && (
-          <div className="moto-card-admin-actions">
+          <div className="moto-card-admin-actions" onClick={(event) => event.stopPropagation()}>
             {onEdit && (
               <button type="button" className="moto-card-admin-btn edit" title="Editar" onClick={() => onEdit?.(moto)}>
                 <svg
@@ -72,30 +80,72 @@ export default function MotoCard({
       </div>
 
       <div className="moto-card-body">
-        <p className="marca-nombre">{moto.marca_nombre}</p>
+        <p className="marca-nombre">{formatUppercase(moto.marca_nombre)}</p>
         <h3>{modelo}</h3>
-        <p className="categoria">{moto.categoria_nombre || "-"}</p>
+        <p className="categoria">{formatUppercase(moto.categoria_nombre)}</p>
         <p className="precio">${Number(moto.precio).toLocaleString("es-CL")}</p>
 
         <div className="moto-card-bottom-row">
           <div className="moto-card-info">
             <p>Cilindrada: {moto.cilindrada}cc</p>
-            <p>Anio: {moto.anio}</p>
+            <p>Año: {moto.anio}</p>
           </div>
 
           <div className="moto-card-actions">
-            <Link to={`/moto/${moto.slug}`}>
-              <button>Detalles</button>
-            </Link>
+            {useLinkCard ? (
+              <span className="moto-card-detail-pill">Detalles</span>
+            ) : (
+              <button
+                type="button"
+                onClick={(event) => {
+                  event.stopPropagation();
+                  goToDetail();
+                }}
+              >
+                Detalles
+              </button>
+            )}
 
             {canShowBottomDelete && (
-              <button type="button" className="moto-card-delete-btn" onClick={() => onDelete?.(moto)}>
+              <button
+                type="button"
+                className="moto-card-delete-btn"
+                onClick={(event) => {
+                  event.stopPropagation();
+                  onDelete?.(moto);
+                }}
+              >
                 Eliminar
               </button>
             )}
           </div>
         </div>
       </div>
+    </>
+  );
+
+  if (useLinkCard) {
+    return (
+      <Link to={detailPath} className="moto-card moto-card-clickable moto-card-link" aria-label={`Ver detalles de ${modelo}`}>
+        {cardBody}
+      </Link>
+    );
+  }
+
+  return (
+    <div
+      className="moto-card moto-card-clickable"
+      role="link"
+      tabIndex={0}
+      onClick={goToDetail}
+      onKeyDown={(event) => {
+        if (event.key === "Enter" || event.key === " ") {
+          event.preventDefault();
+          goToDetail();
+        }
+      }}
+    >
+      {cardBody}
     </div>
   );
 }

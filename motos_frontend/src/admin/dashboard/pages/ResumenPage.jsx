@@ -13,8 +13,7 @@ export default function ResumenPage({
     <div className="admin-dashboard-stack">
       <section className="admin-hero-card">
         <div>
-          <h1>Bienvenido al Panel de Administracion</h1>
-          <p className="admin-hero-copy">Aqui puedes ingresar motos, indumentaria, accesorios y demas.</p>
+          <h1>Bienvenido al Panel de Administración</h1>
         </div>
       </section>
 

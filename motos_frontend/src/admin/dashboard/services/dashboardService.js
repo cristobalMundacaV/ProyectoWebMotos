@@ -1,4 +1,4 @@
-import { getMotoAdminMeta, getMotos, getCategoriasMoto, getMarcasAdmin } from "../../motos/services/motosAdminService";
+import { getMotoAdminMeta, getMotos, getCategoriasMoto, getMarcasAdmin, getModelosMoto } from "../../motos/services/motosAdminService";
 import {
   getAccesoriosMotosAdmin,
   getAccesoriosMotosMeta,
@@ -22,6 +22,7 @@ export async function fetchAdminBootstrapData() {
     marcasMotosList,
     marcasAccMotosList,
     marcasAccRiderList,
+    modelosMotoList,
     categoriasMotoList,
     categoriasAccMotosData,
     categoriasAccRiderData,
@@ -36,10 +37,11 @@ export async function fetchAdminBootstrapData() {
     getProductos({ tipo: "accesorios" }).catch(() => []),
     getCategoriasProducto({ tipo: "indumentaria" }).catch(() => []),
     getCategoriasProducto({ tipo: "accesorios" }).catch(() => []),
-    getMotoAdminMeta().catch(() => ({ marcas: [], categorias: [] })),
+    getMotoAdminMeta().catch(() => ({ marcas: [], categorias: [], modelos: [] })),
     getMarcasAdmin({ tipo: "moto" }).catch(() => []),
     getMarcasAdmin({ tipo: "accesorio_moto" }).catch(() => []),
     getMarcasAdmin({ tipo: "accesorio_rider" }).catch(() => []),
+    getModelosMoto().catch(() => []),
     getCategoriasMoto().catch(() => []),
     getCategoriasAccesoriosMotosAdmin().catch(() => ({ categorias_padre: [], subcategorias: [] })),
     getCategoriasAccesoriosRiderAdmin().catch(() => ({ categorias_padre: [], subcategorias: [] })),
@@ -60,6 +62,7 @@ export async function fetchAdminBootstrapData() {
     marcasMotosList,
     marcasAccMotosList,
     marcasAccRiderList,
+    modelosMotoList,
     categoriasMotoList,
     categoriasAccMotosData,
     categoriasAccRiderData,

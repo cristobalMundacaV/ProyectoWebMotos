@@ -11,6 +11,20 @@
   min-height: 100%;
 }
 
+.moto-card-clickable {
+  cursor: pointer;
+}
+
+.moto-card-link {
+  text-decoration: none;
+  color: inherit;
+}
+
+.moto-card-clickable:focus-visible {
+  outline: 2px solid #e60000;
+  outline-offset: 2px;
+}
+
 .moto-card:hover {
   transform: translateY(-4px);
   box-shadow: 0 16px 38px rgba(0, 0, 0, 0.16);
@@ -165,6 +179,21 @@
   background: #2d2d2d;
 }
 
+.moto-card-detail-pill {
+  background: #e60000;
+  color: #fff;
+  border: none;
+  min-height: 40px;
+  padding: 0 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 700;
+  white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
 @media (max-width: 760px) {
   .moto-card-img-container {
     height: 192px;
@@ -187,7 +216,8 @@
   }
 
   .moto-card-actions button,
-  .moto-card-delete-btn {
+  .moto-card-delete-btn,
+  .moto-card-detail-pill {
     min-height: 36px;
     font-size: 0.82rem;
     padding: 0 10px;
@@ -211,12 +241,14 @@
 
   .moto-card-actions > a,
   .moto-card-delete-btn,
-  .moto-card-actions button {
+  .moto-card-actions button,
+  .moto-card-detail-pill {
     width: 100%;
   }
 
   .moto-card-actions button,
-  .moto-card-delete-btn {
+  .moto-card-delete-btn,
+  .moto-card-detail-pill {
     min-height: 34px;
     font-size: 0.8rem;
   }

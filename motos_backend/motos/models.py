@@ -1,8 +1,27 @@
 from django.db import models
 
+
+class ModeloMoto(models.Model):
+    marca = models.ForeignKey("catalogo.Marca", on_delete=models.PROTECT, related_name="modelos_moto")
+    nombre = models.CharField(max_length=150)
+    slug = models.SlugField(unique=True)
+    descripcion = models.TextField(blank=True)
+    activo = models.BooleanField(default=True)
+
+    class Meta:
+        ordering = ["nombre"]
+        constraints = [
+            models.UniqueConstraint(fields=["marca", "nombre"], name="uq_modelomoto_marca_nombre"),
+        ]
+
+    def __str__(self):
+        return f"{self.marca.nombre} {self.nombre}"
+
+
 class Moto(models.Model):
     marca = models.ForeignKey('catalogo.Marca', on_delete=models.CASCADE)
     categoria = models.ForeignKey('catalogo.CategoriaMoto', on_delete=models.PROTECT)
+    modelo_ref = models.ForeignKey("motos.ModeloMoto", on_delete=models.PROTECT, related_name="motos", null=True, blank=True)
 
     modelo = models.CharField(max_length=150)
     slug = models.SlugField(unique=True)

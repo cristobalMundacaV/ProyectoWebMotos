@@ -7,6 +7,7 @@ const api = axios.create({
 
 const REFRESH_TOKEN_KEY = "authRefreshToken";
 const ACCESS_TOKEN_KEY = "authToken";
+const USER_KEY = "authUser";
 
 api.interceptors.request.use((config) => {
   const token = localStorage.getItem(ACCESS_TOKEN_KEY);
@@ -34,6 +35,15 @@ api.interceptors.response.use(
 
     const refresh = localStorage.getItem(REFRESH_TOKEN_KEY);
     if (!refresh) {
+      localStorage.removeItem(ACCESS_TOKEN_KEY);
+      localStorage.removeItem(REFRESH_TOKEN_KEY);
+      localStorage.removeItem(USER_KEY);
+      if (typeof window !== "undefined") {
+        const currentPath = window.location?.pathname || "";
+        if (currentPath.startsWith("/admin-panel")) {
+          window.location.replace("/login");
+        }
+      }
       return Promise.reject(error);
     }
 
@@ -59,7 +69,15 @@ api.interceptors.response.use(
     } catch (refreshError) {
       localStorage.removeItem(ACCESS_TOKEN_KEY);
       localStorage.removeItem(REFRESH_TOKEN_KEY);
-      localStorage.removeItem("authUser");
+      localStorage.removeItem(USER_KEY);
+
+      if (typeof window !== "undefined") {
+        const currentPath = window.location?.pathname || "";
+        if (currentPath.startsWith("/admin-panel")) {
+          window.location.replace("/login");
+        }
+      }
+
       return Promise.reject(refreshError);
     }
   }

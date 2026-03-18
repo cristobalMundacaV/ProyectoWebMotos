@@ -20,6 +20,14 @@ function SidebarIcon({ kind }) {
     );
   }
 
+  if (kind === "modelos") {
+    return (
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M4 7h16M4 12h16M4 17h16" />
+      </svg>
+    );
+  }
+
   if (kind === "categorias") {
     return (
       <svg viewBox="0 0 24 24" aria-hidden="true">
@@ -85,25 +93,30 @@ const navigationGroups = [
     label: "Motos",
     icon: "motos",
     items: [
-      { label: "Marcas", value: "marcas_motos" },
-      { label: "Categorias", value: "categoria_motos" },
-      { label: "Motos", value: "motos" },
+      { label: "Crear motos", value: "motos" },
     ],
+  },
+  {
+    label: "Modelos",
+    icon: "modelos",
+    items: [{ label: "Motos", value: "modelos_motos" }],
   },
   {
     label: "Categorias",
     icon: "categorias",
     items: [
-      { label: "Cat. Accesorios de Moto", value: "categorias_acc_motos" },
-      { label: "Cat. Indumentaria Rider", value: "categorias_acc_rider" },
+      { label: "Motos", value: "categoria_motos" },
+      { label: "Accesorios de moto", value: "categorias_acc_motos" },
+      { label: "Indumentaria rider", value: "categorias_acc_rider" },
     ],
   },
   {
     label: "Marcas",
     icon: "marcas",
     items: [
-      { label: "Marcas Acc. Motos", value: "marcas_acc_motos" },
-      { label: "Marcas Indumentaria", value: "marcas_acc_rider" },
+      { label: "Motos", value: "marcas_motos" },
+      { label: "Acc. Motos", value: "marcas_acc_motos" },
+      { label: "Indumentaria", value: "marcas_acc_rider" },
     ],
   },
   {
@@ -118,7 +131,6 @@ const navigationGroups = [
     label: "Usuarios",
     icon: "usuarios",
     items: [
-      { label: "Lista de Usuarios", value: "lista_usuarios" },
       { label: "Crear Usuario", value: "crear_usuario" },
     ],
   },
@@ -126,9 +138,9 @@ const navigationGroups = [
     label: "Mantenimiento",
     icon: "mantenciones",
     items: [
-      { label: "Solicitudes", value: "mantenciones_solicitudes" },
-      { label: "En curso", value: "mantenciones_en_curso" },
-      { label: "Fichas", value: "mantenciones_fichas" },
+      { label: "Solicitudes de Mantencion", value: "mantenciones_solicitudes" },
+      { label: "Fichas de Mantencion", value: "mantenciones_fichas" },
+      { label: "Horarios", value: "mantenciones_horarios" },
     ],
   },
   {

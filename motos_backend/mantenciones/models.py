@@ -30,6 +30,36 @@ class VehiculoCliente(models.Model):
         return f"{self.matricula} - {self.marca} {self.modelo} ({cliente_nombre})"
 
 
+class HorarioMantencion(models.Model):
+    DIA_SEMANA_CHOICES = [
+        (0, "Lunes"),
+        (1, "Martes"),
+        (2, "Miercoles"),
+        (3, "Jueves"),
+        (4, "Viernes"),
+        (5, "Sabado"),
+        (6, "Domingo"),
+    ]
+
+    dia_semana = models.PositiveSmallIntegerField(choices=DIA_SEMANA_CHOICES, verbose_name="dia de semana")
+    hora_inicio = models.TimeField(verbose_name="hora inicio")
+    hora_fin = models.TimeField(verbose_name="hora fin")
+    intervalo_minutos = models.PositiveSmallIntegerField(default=60, verbose_name="intervalo (minutos)")
+    cupos_por_bloque = models.PositiveSmallIntegerField(default=1, verbose_name="cupos por bloque")
+    activo = models.BooleanField(default=True, verbose_name="activo")
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name="creado")
+    updated_at = models.DateTimeField(auto_now=True, verbose_name="actualizado")
+
+    class Meta:
+        verbose_name = "horario operativo de mantencion"
+        verbose_name_plural = "horarios operativos de mantencion"
+        ordering = ["dia_semana", "hora_inicio"]
+
+    def __str__(self) -> str:
+        dia = dict(self.DIA_SEMANA_CHOICES).get(self.dia_semana, str(self.dia_semana))
+        return f"{dia}: {self.hora_inicio.strftime('%H:%M')} - {self.hora_fin.strftime('%H:%M')}"
+
+
 class Mantencion(models.Model):
     TIPO_PREVENTIVA = "preventiva"
     TIPO_CORRECTIVA = "correctiva"
@@ -78,7 +108,8 @@ class Mantencion(models.Model):
         verbose_name="moto cliente",
     )
     fecha_ingreso = models.DateField(verbose_name="fecha de ingreso")
-    kilometraje_ingreso = models.IntegerField(verbose_name="kilometraje de ingreso")
+    hora_ingreso = models.TimeField(null=True, blank=True, verbose_name="hora de ingreso")
+    kilometraje_ingreso = models.IntegerField(null=True, blank=True, verbose_name="kilometraje de ingreso")
     tipo_mantencion = models.CharField(
         max_length=30,
         choices=TIPO_MANTENCION_CHOICES,

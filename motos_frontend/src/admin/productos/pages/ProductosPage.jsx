@@ -22,19 +22,27 @@ export default function ProductosPage({
   accesoriosMotosAdmin,
   accesorioMotoForm,
   accesorioMotoImageInputKey,
+  accesorioMotoImageUrl,
   accesorioMotoSaving,
+  editingAccesorioMotoId,
   onAccesorioMotoInputChange,
   onAccesorioMotoPrecioInputChange,
   onAccesorioMotoSubmit,
+  onAccesorioMotoEdit,
+  onAccesorioMotoDelete,
+  onCancelAccesorioMotoEdit,
   onToggleCompatibilidad,
   accesoriosRiderMeta,
   accesoriosRiderAdmin,
   accesorioRiderForm,
   accesorioRiderImageInputKey,
+  accesorioRiderImageUrl,
   accesorioRiderSaving,
   onAccesorioRiderInputChange,
   onAccesorioRiderPrecioInputChange,
   onAccesorioRiderSubmit,
+  onAccesorioRiderEdit,
+  onAccesorioRiderDelete,
 }) {
   const PAGE_SIZE = 10;
   const [tablePages, setTablePages] = useState({
@@ -55,13 +63,33 @@ export default function ProductosPage({
 
   function formatPrecio(value) {
     if (value === null || value === undefined || value === "") return "";
-
-    const texto = String(value);
-    const [entero = "", decimal = ""] = texto.split(".");
-    const enteroConPuntos = entero.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
-
-    return decimal ? `${enteroConPuntos},${decimal}` : enteroConPuntos;
+    const digits = String(value).replace(/\D/g, "");
+    if (!digits) return "";
+    return digits.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
   }
+
+  const [accesorioMotoLocalPreview, setAccesorioMotoLocalPreview] = useState("");
+  const [accesorioRiderLocalPreview, setAccesorioRiderLocalPreview] = useState("");
+
+  useEffect(() => {
+    if (!(accesorioMotoForm.imagen_principal instanceof File)) {
+      setAccesorioMotoLocalPreview("");
+      return;
+    }
+    const objectUrl = URL.createObjectURL(accesorioMotoForm.imagen_principal);
+    setAccesorioMotoLocalPreview(objectUrl);
+    return () => URL.revokeObjectURL(objectUrl);
+  }, [accesorioMotoForm.imagen_principal]);
+
+  useEffect(() => {
+    if (!(accesorioRiderForm.imagen_principal instanceof File)) {
+      setAccesorioRiderLocalPreview("");
+      return;
+    }
+    const objectUrl = URL.createObjectURL(accesorioRiderForm.imagen_principal);
+    setAccesorioRiderLocalPreview(objectUrl);
+    return () => URL.revokeObjectURL(objectUrl);
+  }, [accesorioRiderForm.imagen_principal]);
 
   if (activeSection === "categorias_acc_rider") {
     const paginatedCategoriasAccRider = paginateItems(
@@ -88,11 +116,6 @@ export default function ProductosPage({
                 maxLength={100}
                 required
               />
-            </label>
-
-            <label>
-              Slug (solo lectura)
-              <input name="slug" value={categoriaAccRiderForm.slug} onChange={onCategoriaAccRiderInputChange} readOnly required />
             </label>
 
             <label className="admin-form-span-2">
@@ -130,7 +153,7 @@ export default function ProductosPage({
           <div className="admin-table">
             {paginatedCategoriasAccRider.items.map((categoria) => (
               <div key={categoria.id} className="admin-table-row admin-table-row-two-cols">
-                <div className="admin-entity-name-cell">
+                <div className="admin-entity-name-cell admin-category-name-cell">
                   <strong>{categoria.nombre}</strong>
                 </div>
                 <div className="admin-row-actions">
@@ -183,11 +206,6 @@ export default function ProductosPage({
               />
             </label>
 
-            <label>
-              Slug (solo lectura)
-              <input name="slug" value={categoriaAccMotosForm.slug} onChange={onCategoriaAccMotosInputChange} readOnly required />
-            </label>
-
             <label className="admin-form-span-2">
               Descripcion (opcional)
               <textarea
@@ -223,7 +241,7 @@ export default function ProductosPage({
           <div className="admin-table">
             {paginatedCategoriasAccMotos.items.map((categoria) => (
               <div key={categoria.id} className="admin-table-row admin-table-row-two-cols">
-                <div className="admin-entity-name-cell">
+                <div className="admin-entity-name-cell admin-category-name-cell">
                   <strong>{categoria.nombre}</strong>
                 </div>
                 <div className="admin-row-actions">
@@ -256,7 +274,7 @@ export default function ProductosPage({
       <section className="admin-content-grid lower">
         <article className="admin-panel-card">
           <div className="admin-card-header">
-            <h2>Agregar accesorio moto</h2>
+            <h2>{editingAccesorioMotoId ? "Editar accesorio moto" : "Agregar accesorio moto"}</h2>
             <span>Gestion de accesorios moto con o sin vinculo a modelos especificos.</span>
           </div>
 
@@ -301,11 +319,6 @@ export default function ProductosPage({
               />
             </label>
 
-            <label>
-              Slug (solo lectura)
-              <input name="slug" value={accesorioMotoForm.slug} onChange={onAccesorioMotoInputChange} readOnly required />
-            </label>
-
             <label className="admin-form-span-2">
               Descripcion (opcional)
               <textarea
@@ -323,8 +336,8 @@ export default function ProductosPage({
                 name="precio"
                 value={formatPrecio(accesorioMotoForm.precio)}
                 onChange={onAccesorioMotoPrecioInputChange}
-                inputMode="decimal"
-                placeholder="Ej: 150.000"
+                inputMode="numeric"
+                placeholder="Ej: 150000"
                 required
               />
             </label>
@@ -350,6 +363,15 @@ export default function ProductosPage({
                 accept="image/*"
                 onChange={onAccesorioMotoInputChange}
               />
+              {(accesorioMotoLocalPreview || accesorioMotoImageUrl) && (
+                <div className="admin-image-preview-box">
+                  <img
+                    src={accesorioMotoLocalPreview || accesorioMotoImageUrl}
+                    alt="Vista previa accesorio moto"
+                    className="admin-image-preview"
+                  />
+                </div>
+              )}
             </label>
 
             <div className="admin-form-footer">
@@ -376,8 +398,13 @@ export default function ProductosPage({
               </div>
 
               <button type="submit" className="admin-primary-action admin-form-footer-submit" disabled={accesorioMotoSaving}>
-                {accesorioMotoSaving ? "Guardando..." : "Guardar"}
+                {accesorioMotoSaving ? "Guardando..." : editingAccesorioMotoId ? "Actualizar" : "Guardar"}
               </button>
+              {editingAccesorioMotoId && (
+                <button type="button" className="admin-page-btn ghost" onClick={onCancelAccesorioMotoEdit}>
+                  Cancelar edicion
+                </button>
+              )}
             </div>
 
             {accesorioMotoForm.requiere_compatibilidad && (
@@ -406,16 +433,24 @@ export default function ProductosPage({
 
           <div className="admin-table">
             {paginatedAccesoriosMotos.items.map((producto) => (
-              <div key={producto.id} className="admin-table-row">
+              <div key={producto.id} className="admin-table-row admin-table-row-product-actions">
                 <div>
                   <strong>{producto.nombre}</strong>
                   <span>{producto.subcategoria_nombre || "Sin subcategoria"}</span>
                 </div>
-                <div>
+                <div className="admin-product-price-cell">
                   <strong>
                     {producto.precio ? `$${Number(producto.precio).toLocaleString("es-CL")}` : "Sin precio"}
                   </strong>
                   <span>{producto.activo ? "Activo" : "Inactivo"}</span>
+                </div>
+                <div className="admin-row-actions">
+                  <button type="button" className="admin-row-action-btn edit" title="Editar" onClick={() => onAccesorioMotoEdit?.(producto)}>
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                  </button>
+                  <button type="button" className="admin-row-action-btn delete" title="Eliminar" onClick={() => onAccesorioMotoDelete?.(producto)}>
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+                  </button>
                 </div>
               </div>
             ))}
@@ -484,11 +519,6 @@ export default function ProductosPage({
               />
             </label>
 
-            <label>
-              Slug (solo lectura)
-              <input name="slug" value={accesorioRiderForm.slug} onChange={onAccesorioRiderInputChange} readOnly required />
-            </label>
-
             <label className="admin-form-span-2">
               Descripcion (opcional)
               <textarea
@@ -506,8 +536,8 @@ export default function ProductosPage({
                 name="precio"
                 value={formatPrecio(accesorioRiderForm.precio)}
                 onChange={onAccesorioRiderPrecioInputChange}
-                inputMode="decimal"
-                placeholder="Ej: 150.000"
+                inputMode="numeric"
+                placeholder="Ej: 150000"
                 required
               />
             </label>
@@ -533,6 +563,15 @@ export default function ProductosPage({
                 accept="image/*"
                 onChange={onAccesorioRiderInputChange}
               />
+              {(accesorioRiderLocalPreview || accesorioRiderImageUrl) && (
+                <div className="admin-image-preview-box">
+                  <img
+                    src={accesorioRiderLocalPreview || accesorioRiderImageUrl}
+                    alt="Vista previa accesorio rider"
+                    className="admin-image-preview"
+                  />
+                </div>
+              )}
             </label>
 
             <div className="admin-form-footer">
@@ -563,16 +602,24 @@ export default function ProductosPage({
 
           <div className="admin-table">
             {paginatedAccesoriosRider.items.map((producto) => (
-              <div key={producto.id} className="admin-table-row">
+              <div key={producto.id} className="admin-table-row admin-table-row-product-actions">
                 <div>
                   <strong>{producto.nombre}</strong>
                   <span>{producto.subcategoria_nombre || "Sin subcategoria"}</span>
                 </div>
-                <div>
+                <div className="admin-product-price-cell">
                   <strong>
                     {producto.precio ? `$${Number(producto.precio).toLocaleString("es-CL")}` : "Sin precio"}
                   </strong>
                   <span>{producto.activo ? "Activo" : "Inactivo"}</span>
+                </div>
+                <div className="admin-row-actions">
+                  <button type="button" className="admin-row-action-btn edit" title="Editar" onClick={() => onAccesorioRiderEdit?.(producto)}>
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                  </button>
+                  <button type="button" className="admin-row-action-btn delete" title="Eliminar" onClick={() => onAccesorioRiderDelete?.(producto)}>
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+                  </button>
                 </div>
               </div>
             ))}

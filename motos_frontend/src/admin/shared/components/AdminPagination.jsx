@@ -45,10 +45,8 @@ function buildVisiblePages(currentPage, totalPages) {
 export default function AdminPagination({ pagination, onPageChange }) {
   if (!pagination || pagination.totalItems <= 0) return null;
 
-  const { currentPage, totalPages, totalItems, startIndex, endIndex } = pagination;
+  const { currentPage, totalPages } = pagination;
   const visiblePages = buildVisiblePages(currentPage, totalPages);
-  const startLabel = startIndex + 1;
-  const endLabel = endIndex;
 
   return (
     <div className="admin-pagination" role="navigation" aria-label="Paginacion de tabla">
@@ -106,12 +104,6 @@ export default function AdminPagination({ pagination, onPageChange }) {
             »
           </button>
         </div>
-      )}
-
-      {totalPages > 1 && (
-        <p className="admin-pagination-summary">
-          Mostrando <strong>{startLabel}</strong> a <strong>{endLabel}</strong> de <strong>{totalItems}</strong> registros
-        </p>
       )}
     </div>
   );

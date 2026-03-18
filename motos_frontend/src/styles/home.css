@@ -126,6 +126,20 @@
   min-height: 350px;
 }
 
+.home-product-card-clickable {
+  cursor: pointer;
+}
+
+.home-product-card-link {
+  text-decoration: none;
+  color: inherit;
+}
+
+.home-product-card-clickable:focus-visible {
+  outline: 2px solid #e60000;
+  outline-offset: 2px;
+}
+
 .home-product-image {
   aspect-ratio: 1 / 0.82;
   border-bottom: 1px solid #ececec;
@@ -184,6 +198,7 @@
   justify-self: stretch;
   background: #e60000;
   color: #fff;
+  border: none;
   border-radius: 8px;
   min-height: 34px;
   display: inline-flex;
@@ -195,6 +210,7 @@
   font-weight: 700;
   white-space: nowrap;
   max-width: 100%;
+  cursor: pointer;
 }
 
 .carousel-btn {
@@ -294,6 +310,20 @@
   color: #424242;
 }
 
+.contacto-map {
+  margin-top: 18px;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+}
+
+.contacto-map iframe {
+  width: 100%;
+  height: 320px;
+  border: 0;
+  display: block;
+}
+
 @media (max-width: 980px) {
   .motos-grid,
   .contacto-box {
@@ -317,6 +347,10 @@
 
   .carousel-wrapper-motos .moto-card .moto-card-img-container {
     height: 220px;
+  }
+
+  .contacto-map iframe {
+    height: 280px;
   }
 }
 

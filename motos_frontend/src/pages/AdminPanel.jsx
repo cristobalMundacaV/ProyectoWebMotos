@@ -1,14 +1,26 @@
 ﻿import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { clearAuthSession, createAdminUser, listAdminUsers, logoutUser } from "../services/authService";
+import {
+  clearAuthSession,
+  createAdminUser,
+  deleteAdminUser,
+  listAdminUsers,
+  logoutUser,
+  updateAdminUser,
+} from "../services/authService";
 import { fetchAdminBootstrapData } from "../admin/dashboard/services/dashboardService";
 import {
   createCategoriaMoto,
+  createModeloMoto,
   createMarca,
   createMoto,
+  deleteMoto,
   deleteCategoriaMoto,
   deleteMarca,
+  deleteModeloMoto,
   updateCategoriaMoto,
+  updateModeloMoto,
+  updateMoto,
   updateMarca,
 } from "../admin/motos/services/motosAdminService";
 import {
@@ -16,8 +28,10 @@ import {
   createAccesorioRider,
   createCategoriaAccesoriosMotos,
   createCategoriaAccesoriosRider,
+  deleteProductoAdmin,
   deleteCategoriaAccesoriosMotos,
   deleteCategoriaAccesoriosRider,
+  updateProductoAdmin,
   updateCategoriaAccesoriosMotos,
   updateCategoriaAccesoriosRider,
 } from "../admin/productos/services/productosAdminService";
@@ -31,7 +45,14 @@ import MotosPage from "../admin/motos/pages/MotosPage";
 import ProductosPage from "../admin/productos/pages/ProductosPage";
 import ConfiguracionPage from "../admin/configuracion/pages/ConfiguracionPage";
 import MantencionesPage from "../admin/mantenciones/pages/MantencionesPage";
-import { getMantencionesAdmin, updateMantencionAdmin } from "../admin/mantenciones/services/mantencionesAdminService";
+import {
+  createHorarioMantencionAdmin,
+  deleteHorarioMantencionAdmin,
+  getHorariosMantencionAdmin,
+  getMantencionesAdmin,
+  updateMantencionAdmin,
+} from "../admin/mantenciones/services/mantencionesAdminService";
+import { buildMediaUrl } from "../services/apiConfig";
 import "../styles/admin.css";
 
 const initialMotoForm = {
@@ -47,6 +68,14 @@ const initialMotoForm = {
   es_destacada: false,
   activa: true,
   imagen_principal: null,
+};
+
+const initialModeloMotoForm = {
+  marca: "",
+  nombre: "",
+  slug: "",
+  descripcion: "",
+  activo: true,
 };
 
 const initialCategoriaMotoForm = {
@@ -122,6 +151,14 @@ const initialCreateUserForm = {
   confirm_password: "",
 };
 
+const initialHorarioMantencionForm = {
+  dia_semana: "0",
+  hora_inicio: "09:00",
+  hora_fin: "18:00",
+  intervalo_minutos: "60",
+  cupos_por_bloque: "1",
+};
+
 function buildSlug(value) {
   return (value || "")
     .toString()
@@ -137,6 +174,13 @@ function limitSlug(value, maxLength = 50) {
   if (!value) return "";
   const safe = String(value).slice(0, maxLength);
   return safe.replace(/(^-|-$)+/g, "");
+}
+
+function normalizeUppercaseLabel(value) {
+  return String(value || "")
+    .trim()
+    .replace(/\s+/g, " ")
+    .toUpperCase();
 }
 
 function normalizeAdminUsersResponse(payload) {
@@ -178,16 +222,22 @@ export default function AdminPanel() {
     categoriasAccesorios: [],
   });
   const [loading, setLoading] = useState(true);
-  const [motoMeta, setMotoMeta] = useState({ marcas: [], categorias: [] });
+  const [motoMeta, setMotoMeta] = useState({ marcas: [], categorias: [], modelos: [] });
   const [marcasMotosAdmin, setMarcasMotosAdmin] = useState([]);
   const [marcasAccMotosAdmin, setMarcasAccMotosAdmin] = useState([]);
   const [marcasAccRiderAdmin, setMarcasAccRiderAdmin] = useState([]);
   const [marcaForm, setMarcaForm] = useState(initialMarcaForm);
   const [marcaSaving, setMarcaSaving] = useState(false);
+  const [modelosMotosAdmin, setModelosMotosAdmin] = useState([]);
+  const [modeloMotoForm, setModeloMotoForm] = useState(initialModeloMotoForm);
+  const [modeloMotoSaving, setModeloMotoSaving] = useState(false);
   const [categoriasMoto, setCategoriasMoto] = useState([]);
   const [motoForm, setMotoForm] = useState(initialMotoForm);
   const [motoImageInputKey, setMotoImageInputKey] = useState(0);
   const [motoSaving, setMotoSaving] = useState(false);
+  const [motoEditModal, setMotoEditModal] = useState(null);
+  const [motoEditSaving, setMotoEditSaving] = useState(false);
+  const [motoEditError, setMotoEditError] = useState("");
   const [categoriaMotoForm, setCategoriaMotoForm] = useState(initialCategoriaMotoForm);
   const [categoriaMotoSaving, setCategoriaMotoSaving] = useState(false);
   const [categoriasAccMotosMeta, setCategoriasAccMotosMeta] = useState({
@@ -200,7 +250,9 @@ export default function AdminPanel() {
   const [accesoriosMotosMeta, setAccesoriosMotosMeta] = useState({ subcategorias: [], marcas: [], motos: [] });
   const [accesorioMotoForm, setAccesorioMotoForm] = useState(initialAccesorioMotoForm);
   const [accesorioMotoImageInputKey, setAccesorioMotoImageInputKey] = useState(0);
+  const [accesorioMotoImageUrl, setAccesorioMotoImageUrl] = useState("");
   const [accesorioMotoSaving, setAccesorioMotoSaving] = useState(false);
+  const [editingAccesorioMotoId, setEditingAccesorioMotoId] = useState(null);
   const [categoriasAccRiderMeta, setCategoriasAccRiderMeta] = useState({
     categorias_padre: [],
     subcategorias: [],
@@ -211,17 +263,29 @@ export default function AdminPanel() {
   const [accesoriosRiderMeta, setAccesoriosRiderMeta] = useState({ subcategorias: [], marcas: [] });
   const [accesorioRiderForm, setAccesorioRiderForm] = useState(initialAccesorioRiderForm);
   const [accesorioRiderImageInputKey, setAccesorioRiderImageInputKey] = useState(0);
+  const [accesorioRiderImageUrl, setAccesorioRiderImageUrl] = useState("");
   const [accesorioRiderSaving, setAccesorioRiderSaving] = useState(false);
+  const [accesorioRiderEditModal, setAccesorioRiderEditModal] = useState(null);
+  const [accesorioRiderEditSaving, setAccesorioRiderEditSaving] = useState(false);
+  const [accesorioRiderEditError, setAccesorioRiderEditError] = useState("");
   const [contactoForm, setContactoForm] = useState(initialContactoForm);
   const [contactoSaving, setContactoSaving] = useState(false);
   const [mantenciones, setMantenciones] = useState([]);
   const [mantencionesLoading, setMantencionesLoading] = useState(true);
   const [mantencionSavingById, setMantencionSavingById] = useState({});
+  const [horariosMantencion, setHorariosMantencion] = useState([]);
+  const [horariosMantencionLoading, setHorariosMantencionLoading] = useState(false);
+  const [horarioMantencionSaving, setHorarioMantencionSaving] = useState(false);
+  const [horarioMantencionForm, setHorarioMantencionForm] = useState(initialHorarioMantencionForm);
   const [createUserForm, setCreateUserForm] = useState(initialCreateUserForm);
   const [createUserSaving, setCreateUserSaving] = useState(false);
   const [adminUsers, setAdminUsers] = useState([]);
   const [adminUsersLoading, setAdminUsersLoading] = useState(true);
   const [adminUsersPage, setAdminUsersPage] = useState(1);
+  const [adminUserEditModal, setAdminUserEditModal] = useState(null);
+  const [adminUserDeleteModal, setAdminUserDeleteModal] = useState(null);
+  const [adminUserModalSaving, setAdminUserModalSaving] = useState(false);
+  const [adminUserModalError, setAdminUserModalError] = useState("");
   const [toasts, setToasts] = useState([]);
   const [entityEditModal, setEntityEditModal] = useState(null);
   const [entityDeleteModal, setEntityDeleteModal] = useState(null);
@@ -259,6 +323,11 @@ export default function AdminPanel() {
     setMantenciones(rows);
   }
 
+  async function fetchHorariosMantencionList() {
+    const rows = await getHorariosMantencionAdmin();
+    setHorariosMantencion(rows);
+  }
+
   useEffect(() => {
     let isMounted = true;
 
@@ -279,6 +348,7 @@ export default function AdminPanel() {
         setMarcasMotosAdmin(data.marcasMotosList);
         setMarcasAccMotosAdmin(data.marcasAccMotosList);
         setMarcasAccRiderAdmin(data.marcasAccRiderList);
+        setModelosMotosAdmin(data.modelosMotoList);
         setCategoriasMoto(data.categoriasMotoList);
         setCategoriasAccMotosMeta(data.categoriasAccMotosData);
         setCategoriasAccRiderMeta(data.categoriasAccRiderData);
@@ -335,7 +405,6 @@ export default function AdminPanel() {
   useEffect(() => {
     if (
       activeSection !== "mantenciones_solicitudes" &&
-      activeSection !== "mantenciones_en_curso" &&
       activeSection !== "mantenciones_fichas"
     ) return;
     let isMounted = true;
@@ -361,17 +430,65 @@ export default function AdminPanel() {
   }, [activeSection]);
 
   useEffect(() => {
-    if (!entityEditModal && !entityDeleteModal) return undefined;
+    if (activeSection !== "mantenciones_horarios") return;
+    let isMounted = true;
+    setHorariosMantencionLoading(true);
+
+    getHorariosMantencionAdmin()
+      .then((rows) => {
+        if (!isMounted) return;
+        setHorariosMantencion(rows);
+      })
+      .catch((error) => {
+        if (!isMounted) return;
+        setHorariosMantencion([]);
+        pushToast(getErrorText(error, "No se pudo cargar la configuracion de horarios."), "error");
+      })
+      .finally(() => {
+        if (isMounted) setHorariosMantencionLoading(false);
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, [activeSection]);
+
+  useEffect(() => {
+    if (
+      !entityEditModal &&
+      !entityDeleteModal &&
+      !motoEditModal &&
+      !accesorioRiderEditModal &&
+      !adminUserEditModal &&
+      !adminUserDeleteModal
+    ) {
+      return undefined;
+    }
 
     const onEsc = (event) => {
       if (event.key !== "Escape") return;
       if (entityEditModal && !entityModalSaving) closeEntityEditModal();
       if (entityDeleteModal && !entityModalSaving) closeEntityDeleteModal();
+      if (motoEditModal && !motoEditSaving) closeMotoEditModal();
+      if (accesorioRiderEditModal && !accesorioRiderEditSaving) closeAccesorioRiderEditModal();
+      if (adminUserEditModal && !adminUserModalSaving) closeAdminUserEditModal();
+      if (adminUserDeleteModal && !adminUserModalSaving) closeAdminUserDeleteModal();
     };
 
     window.addEventListener("keydown", onEsc);
     return () => window.removeEventListener("keydown", onEsc);
-  }, [entityEditModal, entityDeleteModal, entityModalSaving]);
+  }, [
+    entityEditModal,
+    entityDeleteModal,
+    entityModalSaving,
+    motoEditModal,
+    motoEditSaving,
+    accesorioRiderEditModal,
+    accesorioRiderEditSaving,
+    adminUserEditModal,
+    adminUserDeleteModal,
+    adminUserModalSaving,
+  ]);
 
   async function handleLogout() {
     try {
@@ -429,20 +546,33 @@ export default function AdminPanel() {
   function handleMarcaInputChange(event) {
     clearInvalidFieldStyle(event.target);
     const { name, type, value, checked } = event.target;
+    const normalizedValue = name === "nombre" ? normalizeUppercaseLabel(value) : value;
     setMarcaForm((prev) => ({
       ...prev,
-      [name]: type === "checkbox" ? checked : value,
-      ...(name === "nombre" ? { slug: buildSlug(value) } : {}),
+      [name]: type === "checkbox" ? checked : normalizedValue,
+      ...(name === "nombre" ? { slug: buildSlug(normalizedValue) } : {}),
+    }));
+  }
+
+  function handleModeloMotoInputChange(event) {
+    clearInvalidFieldStyle(event.target);
+    const { name, type, value, checked } = event.target;
+    const normalizedValue = name === "nombre" ? normalizeUppercaseLabel(value) : value;
+    setModeloMotoForm((prev) => ({
+      ...prev,
+      [name]: type === "checkbox" ? checked : normalizedValue,
+      ...(name === "nombre" ? { slug: limitSlug(buildSlug(normalizedValue), 50) } : {}),
     }));
   }
 
   function handleCategoriaMotoInputChange(event) {
     clearInvalidFieldStyle(event.target);
     const { name, type, value, checked } = event.target;
+    const normalizedValue = name === "nombre" ? normalizeUppercaseLabel(value) : value;
     setCategoriaMotoForm((prev) => ({
       ...prev,
-      [name]: type === "checkbox" ? checked : value,
-      ...(name === "nombre" ? { slug: buildSlug(value) } : {}),
+      [name]: type === "checkbox" ? checked : normalizedValue,
+      ...(name === "nombre" ? { slug: buildSlug(normalizedValue) } : {}),
     }));
   }
 
@@ -472,21 +602,23 @@ export default function AdminPanel() {
     setMotoForm((prev) => ({
       ...prev,
       [name]: type === "checkbox" ? checked : type === "file" ? files?.[0] || null : value,
-      ...(name === "modelo" ? { slug: limitSlug(buildSlug(value), 50) } : {}),
+      ...(name === "marca" ? { modelo: "", slug: "" } : {}),
+      ...(name === "modelo"
+        ? {
+            slug: limitSlug(
+              buildSlug(
+                motoMeta.modelos.find((item) => String(item.id) === String(value))?.nombre || ""
+              ),
+              50
+            ),
+          }
+        : {}),
     }));
   }
 
   function handleMotoPrecioInputChange(event) {
     clearInvalidFieldStyle(event.target);
-    const raw = event.target.value || "";
-    const normalized = raw
-      .replace(/\s/g, "")
-      .replace(/\./g, "")
-      .replace(/,/g, ".")
-      .replace(/[^0-9.]/g, "");
-
-    const [entero = "", ...decimales] = normalized.split(".");
-    const precioNormalizado = decimales.length > 0 ? `${entero}.${decimales.join("")}` : entero;
+    const precioNormalizado = normalizePrecioInput(event.target.value);
 
     setMotoForm((prev) => ({
       ...prev,
@@ -494,15 +626,141 @@ export default function AdminPanel() {
     }));
   }
 
-  function normalizePrecioInput(rawValue) {
-    const normalized = (rawValue || "")
-      .replace(/\s/g, "")
-      .replace(/\./g, "")
-      .replace(/,/g, ".")
-      .replace(/[^0-9.]/g, "");
+  function handleMotoEditInputChange(event) {
+    clearInvalidFieldStyle(event.target);
+    const { name, type, value, checked, files } = event.target;
 
-    const [entero = "", ...decimales] = normalized.split(".");
-    return decimales.length > 0 ? `${entero}.${decimales.join("")}` : entero;
+    setMotoEditModal((prev) => {
+      if (!prev) return prev;
+      let nextImagePreviewUrl = prev.imagePreviewUrl;
+      let nextPreviewIsObjectUrl = prev.previewIsObjectUrl;
+      let nextImageFileName = prev.imageFileName;
+      const nextValue = type === "checkbox" ? checked : type === "file" ? files?.[0] || null : value;
+
+      if (type === "file") {
+        if (prev.previewIsObjectUrl && prev.imagePreviewUrl) {
+          URL.revokeObjectURL(prev.imagePreviewUrl);
+        }
+        if (nextValue) {
+          nextImagePreviewUrl = URL.createObjectURL(nextValue);
+          nextPreviewIsObjectUrl = true;
+          nextImageFileName = nextValue.name;
+        } else {
+          nextImagePreviewUrl = prev.originalImageUrl || "";
+          nextPreviewIsObjectUrl = false;
+          nextImageFileName = prev.originalImageName || "";
+        }
+      }
+
+      const nextForm = {
+        ...prev.form,
+        [name]: nextValue,
+        ...(name === "marca" ? { modelo: "", slug: "" } : {}),
+        ...(name === "modelo"
+          ? {
+              slug: limitSlug(
+                buildSlug(motoMeta.modelos.find((item) => String(item.id) === String(value))?.nombre || ""),
+                50
+              ),
+            }
+          : {}),
+      };
+
+      return {
+        ...prev,
+        form: nextForm,
+        imagePreviewUrl: nextImagePreviewUrl,
+        previewIsObjectUrl: nextPreviewIsObjectUrl,
+        imageFileName: nextImageFileName,
+      };
+    });
+  }
+
+  function handleMotoEditPrecioInputChange(event) {
+    clearInvalidFieldStyle(event.target);
+    const precioNormalizado = normalizePrecioInput(event.target.value);
+    setMotoEditModal((prev) => {
+      if (!prev) return prev;
+      return {
+        ...prev,
+        form: {
+          ...prev.form,
+          precio: precioNormalizado,
+        },
+      };
+    });
+  }
+
+  function normalizePrecioInput(rawValue) {
+    return String(rawValue || "").replace(/\D/g, "");
+  }
+
+  function normalizePrecioFromApi(value) {
+    if (value === null || value === undefined || value === "") return "";
+    if (typeof value === "number") return String(Math.trunc(value));
+    const text = String(value).trim();
+    if (/^\d+[.,]\d{1,2}$/.test(text)) {
+      const normalized = Number(text.replace(",", "."));
+      if (Number.isFinite(normalized)) return String(Math.trunc(normalized));
+    }
+    return normalizePrecioInput(text);
+  }
+
+  function formatPrecioDisplay(value) {
+    if (value === null || value === undefined || value === "") return "";
+    const digits = String(value).replace(/\D/g, "");
+    return digits.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+  }
+
+  function getFileNameFromPath(pathValue) {
+    const raw = String(pathValue || "").trim();
+    if (!raw) return "";
+    const noQuery = raw.split("?")[0];
+    const lastSegment = noQuery.split("/").pop()?.split("\\").pop() || "";
+    try {
+      return decodeURIComponent(lastSegment);
+    } catch {
+      return lastSegment;
+    }
+  }
+
+  function buildMotoPayload(form) {
+    const payload = new FormData();
+    const selectedModelo = motoMeta.modelos.find((item) => String(item.id) === String(form.modelo));
+    payload.append("marca", form.marca);
+    payload.append("categoria", form.categoria);
+    payload.append("modelo_id", form.modelo);
+    payload.append("modelo", selectedModelo?.nombre || "");
+    payload.append("slug", selectedModelo?.slug || form.slug);
+    payload.append("descripcion", form.descripcion);
+    payload.append("precio", form.precio);
+    payload.append("cilindrada", form.cilindrada);
+    payload.append("anio", form.anio);
+    payload.append("stock", form.stock);
+    payload.append("es_destacada", String(form.es_destacada));
+    payload.append("activa", String(form.activa));
+    if (form.imagen_principal) {
+      payload.append("imagen_principal", form.imagen_principal);
+    }
+    return payload;
+  }
+
+  function normalizeCompareLabel(value) {
+    return String(value || "")
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .trim()
+      .toLowerCase();
+  }
+
+  function resolveOptionIdByNombre(options, explicitId, explicitNombre) {
+    if (explicitId !== undefined && explicitId !== null && explicitId !== "") {
+      return String(explicitId);
+    }
+    const target = normalizeCompareLabel(explicitNombre);
+    if (!target) return "";
+    const match = options.find((item) => normalizeCompareLabel(item.nombre) === target);
+    return match ? String(match.id) : "";
   }
 
   function handleAccesorioMotoPrecioInputChange(event) {
@@ -556,6 +814,60 @@ export default function AdminPanel() {
     }));
   }
 
+  function handleAccesorioRiderEditInputChange(event) {
+    clearInvalidFieldStyle(event.target);
+    const { name, type, value, checked, files } = event.target;
+    setAccesorioRiderEditModal((prev) => {
+      if (!prev) return prev;
+      let nextImagePreviewUrl = prev.imagePreviewUrl;
+      let nextPreviewIsObjectUrl = prev.previewIsObjectUrl;
+      let nextImageFileName = prev.imageFileName;
+      const nextValue = type === "checkbox" ? checked : type === "file" ? files?.[0] || null : value;
+
+      if (type === "file") {
+        if (prev.previewIsObjectUrl && prev.imagePreviewUrl) {
+          URL.revokeObjectURL(prev.imagePreviewUrl);
+        }
+        if (nextValue) {
+          nextImagePreviewUrl = URL.createObjectURL(nextValue);
+          nextPreviewIsObjectUrl = true;
+          nextImageFileName = nextValue.name;
+        } else {
+          nextImagePreviewUrl = prev.originalImageUrl || "";
+          nextPreviewIsObjectUrl = false;
+          nextImageFileName = prev.originalImageName || "";
+        }
+      }
+
+      return {
+        ...prev,
+        form: {
+          ...prev.form,
+          [name]: nextValue,
+          ...(name === "nombre" ? { slug: limitSlug(buildSlug(value), 50) } : {}),
+        },
+        imagePreviewUrl: nextImagePreviewUrl,
+        previewIsObjectUrl: nextPreviewIsObjectUrl,
+        imageFileName: nextImageFileName,
+      };
+    });
+  }
+
+  function handleAccesorioRiderEditPrecioInputChange(event) {
+    clearInvalidFieldStyle(event.target);
+    const precioNormalizado = normalizePrecioInput(event.target.value);
+    setAccesorioRiderEditModal((prev) => {
+      if (!prev) return prev;
+      return {
+        ...prev,
+        form: {
+          ...prev.form,
+          precio: precioNormalizado,
+        },
+      };
+    });
+  }
+
   function handleContactoInputChange(event) {
     clearInvalidFieldStyle(event.target);
     const { name, value } = event.target;
@@ -604,8 +916,16 @@ export default function AdminPanel() {
     const { name, value } = event.target;
     setEntityEditModal((prev) => {
       if (!prev) return prev;
-      const next = { ...prev, [name]: value };
-      if (name === "nombre") next.slug = buildSlug(value);
+      const shouldUppercaseNombre =
+        prev.kind === "marca_motos" ||
+        prev.kind === "marca_acc_motos" ||
+        prev.kind === "marca_acc_rider" ||
+        prev.kind === "categoria_moto" ||
+        prev.kind === "modelo_moto";
+      const normalizedValue =
+        name === "nombre" && shouldUppercaseNombre ? normalizeUppercaseLabel(value) : value;
+      const next = { ...prev, [name]: normalizedValue };
+      if (name === "nombre") next.slug = buildSlug(normalizedValue);
       return next;
     });
   }
@@ -615,6 +935,7 @@ export default function AdminPanel() {
     if (kind === "marca_acc_motos") return "marca de accesorios moto";
     if (kind === "marca_acc_rider") return "marca de indumentaria";
     if (kind === "categoria_moto") return "categoria de motos";
+    if (kind === "modelo_moto") return "modelo de motos";
     if (kind === "categoria_acc_motos") return "categoria de accesorios moto";
     if (kind === "categoria_acc_rider") return "categoria de indumentaria rider";
     return "elemento";
@@ -625,10 +946,18 @@ export default function AdminPanel() {
     if (!entityEditModal) return;
     if (!validateFormWithToast(event.currentTarget)) return;
 
-    const nombre = (entityEditModal.nombre || "").trim();
+    const shouldUppercaseNombre =
+      entityEditModal.kind === "marca_motos" ||
+      entityEditModal.kind === "marca_acc_motos" ||
+      entityEditModal.kind === "marca_acc_rider" ||
+      entityEditModal.kind === "categoria_moto" ||
+      entityEditModal.kind === "modelo_moto";
+    const nombre = shouldUppercaseNombre
+      ? normalizeUppercaseLabel(entityEditModal.nombre)
+      : (entityEditModal.nombre || "").trim();
     const slug = (entityEditModal.slug || "").trim();
-    if (!nombre || !slug) {
-      setEntityModalError("Nombre y slug son obligatorios.");
+    if (!nombre) {
+      setEntityModalError("El nombre es obligatorio.");
       return;
     }
 
@@ -688,6 +1017,14 @@ export default function AdminPanel() {
           subcategorias: prev.subcategorias.map((item) => (item.id === entityEditModal.id ? updated : item)),
         }));
         pushToast("Categoria actualizada correctamente.", "success");
+      } else if (entityEditModal.kind === "modelo_moto") {
+        const updated = await updateModeloMoto(entityEditModal.id, { nombre, slug });
+        setModelosMotosAdmin((prev) => prev.map((item) => (item.id === entityEditModal.id ? updated : item)));
+        setMotoMeta((prev) => ({
+          ...prev,
+          modelos: prev.modelos.map((item) => (item.id === entityEditModal.id ? updated : item)),
+        }));
+        pushToast("Modelo actualizado correctamente.", "success");
       }
 
       setEntityEditModal(null);
@@ -744,11 +1081,19 @@ export default function AdminPanel() {
           subcategorias: prev.subcategorias.filter((item) => item.id !== entityDeleteModal.id),
         }));
         pushToast("Categoria eliminada correctamente.", "success");
+      } else if (entityDeleteModal.kind === "modelo_moto") {
+        await deleteModeloMoto(entityDeleteModal.id);
+        setModelosMotosAdmin((prev) => prev.filter((item) => item.id !== entityDeleteModal.id));
+        setMotoMeta((prev) => ({
+          ...prev,
+          modelos: prev.modelos.filter((item) => item.id !== entityDeleteModal.id),
+        }));
+        pushToast("Modelo eliminado correctamente.", "success");
       }
 
       setEntityDeleteModal(null);
     } catch (error) {
-      setEntityModalError(getErrorText(error, "No se pudo eliminar el elemento."));
+      pushToast(getErrorText(error, "No se pudo eliminar el elemento."), "error");
     } finally {
       setEntityModalSaving(false);
     }
@@ -780,6 +1125,14 @@ export default function AdminPanel() {
 
   function handleCategoriaMotoDelete(categoria) {
     openEntityDeleteModal({ kind: "categoria_moto", item: categoria });
+  }
+
+  function handleModeloMotoEdit(modelo) {
+    openEntityEditModal({ kind: "modelo_moto", item: modelo });
+  }
+
+  function handleModeloMotoDelete(modelo) {
+    openEntityDeleteModal({ kind: "modelo_moto", item: modelo });
   }
 
   function handleCategoriaAccMotosEdit(categoria) {
@@ -820,6 +1173,55 @@ export default function AdminPanel() {
     }
   }
 
+  async function handleRefreshHorariosMantencion() {
+    setHorariosMantencionLoading(true);
+    try {
+      await fetchHorariosMantencionList();
+    } catch (error) {
+      pushToast(getErrorText(error, "No se pudo cargar la configuracion de horarios."), "error");
+    } finally {
+      setHorariosMantencionLoading(false);
+    }
+  }
+
+  function handleHorarioMantencionInputChange(event) {
+    const { name, value, type, checked } = event.target;
+    setHorarioMantencionForm((prev) => ({ ...prev, [name]: type === "checkbox" ? checked : value }));
+  }
+
+  async function handleHorarioMantencionSubmit(event) {
+    event.preventDefault();
+    if (horarioMantencionSaving) return;
+    setHorarioMantencionSaving(true);
+    try {
+      await createHorarioMantencionAdmin({
+        dia_semana: Number(horarioMantencionForm.dia_semana),
+        hora_inicio: horarioMantencionForm.hora_inicio,
+        hora_fin: horarioMantencionForm.hora_fin,
+        intervalo_minutos: Number(horarioMantencionForm.intervalo_minutos),
+        cupos_por_bloque: Number(horarioMantencionForm.cupos_por_bloque),
+        activo: true,
+      });
+      setHorarioMantencionForm(initialHorarioMantencionForm);
+      await fetchHorariosMantencionList();
+      pushToast("Horario operativo creado correctamente.", "success");
+    } catch (error) {
+      pushToast(getErrorText(error, "No se pudo crear el horario operativo."), "error");
+    } finally {
+      setHorarioMantencionSaving(false);
+    }
+  }
+
+  async function handleDeleteHorarioMantencion(horarioId) {
+    try {
+      await deleteHorarioMantencionAdmin(horarioId);
+      setHorariosMantencion((prev) => prev.filter((item) => item.id !== horarioId));
+      pushToast("Horario eliminado correctamente.", "success");
+    } catch (error) {
+      pushToast(getErrorText(error, "No se pudo eliminar el horario."), "error");
+    }
+  }
+
   async function handleAcceptMantencionSolicitud(mantencionId) {
     setMantencionSavingById((prev) => ({ ...prev, [mantencionId]: true }));
     try {
@@ -850,33 +1252,134 @@ export default function AdminPanel() {
     event.preventDefault();
     if (!validateFormWithToast(event.currentTarget)) return;
     setMotoSaving(true);
-
-    const payload = new FormData();
-    payload.append("marca", motoForm.marca);
-    payload.append("categoria", motoForm.categoria);
-    payload.append("modelo", motoForm.modelo);
-    payload.append("slug", motoForm.slug);
-    payload.append("descripcion", motoForm.descripcion);
-    payload.append("precio", motoForm.precio);
-    payload.append("cilindrada", motoForm.cilindrada);
-    payload.append("anio", motoForm.anio);
-    payload.append("stock", motoForm.stock);
-    payload.append("es_destacada", String(motoForm.es_destacada));
-    payload.append("activa", String(motoForm.activa));
-    if (motoForm.imagen_principal) {
-      payload.append("imagen_principal", motoForm.imagen_principal);
-    }
+    const payload = buildMotoPayload(motoForm);
 
     try {
       const nuevaMoto = await createMoto(payload);
       setDashboard((prev) => ({ ...prev, motos: [nuevaMoto, ...prev.motos] }));
+      pushToast("Moto agregada correctamente.", "success");
       setMotoForm(initialMotoForm);
       setMotoImageInputKey((prev) => prev + 1);
-      pushToast("Moto agregada correctamente.", "success");
     } catch (error) {
       pushToast(getErrorText(error, "No se pudo guardar la moto."), "error");
     } finally {
       setMotoSaving(false);
+    }
+  }
+
+  function handleMotoEdit(moto) {
+    const resolvedModeloId =
+      moto.modelo_ref ??
+      moto.modelo_id ??
+      motoMeta.modelos.find(
+        (item) =>
+          String(item.marca) === String(moto.marca) &&
+          String(item.nombre || "").trim().toUpperCase() === String(moto.modelo || "").trim().toUpperCase()
+      )?.id ??
+      "";
+
+    setMotoEditError("");
+    setMotoEditModal({
+      id: moto.id,
+      modelName: moto.modelo || "",
+      originalImageUrl: buildMediaUrl(moto.imagen_principal),
+      originalImageName: getFileNameFromPath(moto.imagen_principal),
+      imagePreviewUrl: buildMediaUrl(moto.imagen_principal),
+      imageFileName: getFileNameFromPath(moto.imagen_principal),
+      previewIsObjectUrl: false,
+      imageInputKey: Date.now(),
+      form: {
+        marca: String(moto.marca ?? ""),
+        categoria: String(moto.categoria ?? ""),
+        modelo: String(resolvedModeloId ?? ""),
+        slug: moto.slug || "",
+        descripcion: moto.descripcion || "",
+        precio: normalizePrecioFromApi(moto.precio),
+        cilindrada: String(moto.cilindrada ?? ""),
+        anio: String(moto.anio ?? ""),
+        stock: String(moto.stock ?? "0"),
+        es_destacada: Boolean(moto.es_destacada),
+        activa: moto.activa !== false,
+        imagen_principal: null,
+      },
+    });
+  }
+
+  function closeMotoEditModal(forceClose = false) {
+    if (motoEditSaving && !forceClose) return;
+    setMotoEditModal((prev) => {
+      if (prev?.previewIsObjectUrl && prev.imagePreviewUrl) {
+        URL.revokeObjectURL(prev.imagePreviewUrl);
+      }
+      return null;
+    });
+    setMotoEditError("");
+  }
+
+  async function submitMotoEditModal(event) {
+    event.preventDefault();
+    if (!motoEditModal) return;
+    if (!validateFormWithToast(event.currentTarget)) return;
+    setMotoEditSaving(true);
+    setMotoEditError("");
+
+    const payload = buildMotoPayload(motoEditModal.form);
+
+    try {
+      const updatedMoto = await updateMoto(motoEditModal.id, payload);
+      setDashboard((prev) => ({
+        ...prev,
+        motos: prev.motos.map((item) => (item.id === motoEditModal.id ? updatedMoto : item)),
+      }));
+      pushToast("Moto actualizada correctamente.", "success");
+      closeMotoEditModal(true);
+    } catch (error) {
+      const message = getErrorText(error, "No se pudo actualizar la moto.");
+      setMotoEditError(message);
+      pushToast(message, "error");
+    } finally {
+      setMotoEditSaving(false);
+    }
+  }
+
+  async function handleMotoDelete(moto) {
+    try {
+      await deleteMoto(moto.id);
+      setDashboard((prev) => ({
+        ...prev,
+        motos: prev.motos.filter((item) => item.id !== moto.id),
+      }));
+      if (motoEditModal?.id === moto.id) closeMotoEditModal();
+      pushToast("Moto eliminada correctamente.", "success");
+    } catch (error) {
+      pushToast(getErrorText(error, "No se pudo eliminar la moto."), "error");
+    }
+  }
+
+  async function handleModeloMotoSubmit(event) {
+    event.preventDefault();
+    if (!validateFormWithToast(event.currentTarget)) return;
+    setModeloMotoSaving(true);
+
+    try {
+      const normalizedNombre = normalizeUppercaseLabel(modeloMotoForm.nombre);
+      const payload = {
+        ...modeloMotoForm,
+        nombre: normalizedNombre,
+        slug: limitSlug(buildSlug(normalizedNombre), 50),
+      };
+      const nuevoModelo = await createModeloMoto(payload);
+      setModelosMotosAdmin((prev) => [nuevoModelo, ...prev]);
+      setMotoMeta((prev) => ({
+        ...prev,
+        modelos: [nuevoModelo, ...prev.modelos],
+      }));
+      setModeloMotoForm(initialModeloMotoForm);
+      pushToast("Modelo creado correctamente.", "success");
+    } catch (error) {
+      pushToast(getErrorText(error, "No se pudo crear el modelo."), "error");
+    } finally {
+      setModeloMotoSaving(false);
     }
   }
 
@@ -886,7 +1389,13 @@ export default function AdminPanel() {
     setCategoriaMotoSaving(true);
 
     try {
-      const nuevaCategoria = await createCategoriaMoto(categoriaMotoForm);
+      const normalizedNombre = normalizeUppercaseLabel(categoriaMotoForm.nombre);
+      const payload = {
+        ...categoriaMotoForm,
+        nombre: normalizedNombre,
+        slug: buildSlug(normalizedNombre),
+      };
+      const nuevaCategoria = await createCategoriaMoto(payload);
       setCategoriasMoto((prev) => [nuevaCategoria, ...prev]);
       setMotoMeta((prev) => ({
         ...prev,
@@ -907,7 +1416,13 @@ export default function AdminPanel() {
     setMarcaSaving(true);
 
     try {
-      const nuevaMarca = await createMarca(marcaForm, { tipo: activeMarcaConfig.tipo });
+      const normalizedNombre = normalizeUppercaseLabel(marcaForm.nombre);
+      const payload = {
+        ...marcaForm,
+        nombre: normalizedNombre,
+        slug: buildSlug(normalizedNombre),
+      };
+      const nuevaMarca = await createMarca(payload, { tipo: activeMarcaConfig.tipo });
 
       if (activeSection === "marcas_motos") {
         setMarcasMotosAdmin((prev) => [nuevaMarca, ...prev]);
@@ -1011,12 +1526,28 @@ export default function AdminPanel() {
     }
 
     try {
-      const nuevoAccesorio = await createAccesorioMoto(payload);
-      setAccesoriosMotosAdmin((prev) => [nuevoAccesorio, ...prev]);
-      setDashboard((prev) => ({ ...prev, productosAccesorios: [nuevoAccesorio, ...prev.productosAccesorios] }));
+      if (editingAccesorioMotoId) {
+        const updatedAccesorio = await updateProductoAdmin(editingAccesorioMotoId, payload);
+        setAccesoriosMotosAdmin((prev) =>
+          prev.map((item) => (item.id === editingAccesorioMotoId ? updatedAccesorio : item))
+        );
+        setDashboard((prev) => ({
+          ...prev,
+          productosAccesorios: prev.productosAccesorios.map((item) =>
+            item.id === editingAccesorioMotoId ? updatedAccesorio : item
+          ),
+        }));
+        pushToast("Accesorio de moto actualizado correctamente.", "success");
+      } else {
+        const nuevoAccesorio = await createAccesorioMoto(payload);
+        setAccesoriosMotosAdmin((prev) => [nuevoAccesorio, ...prev]);
+        setDashboard((prev) => ({ ...prev, productosAccesorios: [nuevoAccesorio, ...prev.productosAccesorios] }));
+        pushToast("Accesorio de moto creado correctamente.", "success");
+      }
       setAccesorioMotoForm(initialAccesorioMotoForm);
       setAccesorioMotoImageInputKey((prev) => prev + 1);
-      pushToast("Accesorio de moto creado correctamente.", "success");
+      setAccesorioMotoImageUrl("");
+      setEditingAccesorioMotoId(null);
     } catch (error) {
       pushToast(getErrorText(error, "No se pudo guardar el accesorio de moto."), "error");
     } finally {
@@ -1045,14 +1576,179 @@ export default function AdminPanel() {
       const nuevoAccesorio = await createAccesorioRider(payload);
       setAccesoriosRiderAdmin((prev) => [nuevoAccesorio, ...prev]);
       setDashboard((prev) => ({ ...prev, productosIndumentaria: [nuevoAccesorio, ...prev.productosIndumentaria] }));
+      pushToast("Accesorio rider creado correctamente.", "success");
       setAccesorioRiderForm(initialAccesorioRiderForm);
       setAccesorioRiderImageInputKey((prev) => prev + 1);
-      pushToast("Accesorio rider creado correctamente.", "success");
+      setAccesorioRiderImageUrl("");
     } catch (error) {
       pushToast(getErrorText(error, "No se pudo guardar el accesorio rider."), "error");
     } finally {
       setAccesorioRiderSaving(false);
     }
+  }
+
+  function handleAccesorioMotoEdit(producto) {
+    const subcategoriaId = resolveOptionIdByNombre(
+      categoriasAccMotosMeta.subcategorias,
+      producto.subcategoria,
+      producto.subcategoria_nombre
+    );
+    const marcaId = resolveOptionIdByNombre(
+      accesoriosMotosMeta.marcas,
+      producto.marca,
+      producto.marca_nombre
+    );
+    setEditingAccesorioMotoId(producto.id);
+    setAccesorioMotoForm((prev) => ({
+      ...prev,
+      subcategoria: subcategoriaId,
+      marca: marcaId,
+      nombre: producto.nombre || "",
+      slug: producto.slug || "",
+      descripcion: producto.descripcion || "",
+      precio: normalizePrecioFromApi(producto.precio),
+      stock: String(producto.stock ?? "0"),
+      es_destacado: Boolean(producto.es_destacado),
+      activo: producto.activo !== false,
+      requiere_compatibilidad: Boolean(producto.requiere_compatibilidad),
+      compatibilidad_motos: Array.isArray(producto.compatibilidad_motos) ? producto.compatibilidad_motos : [],
+      imagen_principal: null,
+    }));
+    setAccesorioMotoImageUrl(buildMediaUrl(producto.imagen_principal));
+  }
+
+  function handleAccesorioRiderEdit(producto) {
+    const subcategoriaId = resolveOptionIdByNombre(
+      accesoriosRiderMeta.subcategorias,
+      producto.subcategoria,
+      producto.subcategoria_nombre
+    );
+    const marcaId = resolveOptionIdByNombre(
+      accesoriosRiderMeta.marcas,
+      producto.marca,
+      producto.marca_nombre
+    );
+    setAccesorioRiderEditError("");
+    setAccesorioRiderEditModal({
+      id: producto.id,
+      title: producto.nombre || "Editar accesorio rider",
+      originalImageUrl: buildMediaUrl(producto.imagen_principal),
+      originalImageName: getFileNameFromPath(producto.imagen_principal),
+      imagePreviewUrl: buildMediaUrl(producto.imagen_principal),
+      imageFileName: getFileNameFromPath(producto.imagen_principal),
+      previewIsObjectUrl: false,
+      imageInputKey: Date.now(),
+      form: {
+        subcategoria: subcategoriaId,
+        marca: marcaId,
+        nombre: producto.nombre || "",
+        slug: producto.slug || "",
+        descripcion: producto.descripcion || "",
+        precio: normalizePrecioFromApi(producto.precio),
+        stock: String(producto.stock ?? "0"),
+        es_destacado: Boolean(producto.es_destacado),
+        activo: producto.activo !== false,
+        imagen_principal: null,
+      },
+    });
+  }
+
+  function closeAccesorioRiderEditModal(forceClose = false) {
+    if (accesorioRiderEditSaving && !forceClose) return;
+    setAccesorioRiderEditModal((prev) => {
+      if (prev?.previewIsObjectUrl && prev.imagePreviewUrl) {
+        URL.revokeObjectURL(prev.imagePreviewUrl);
+      }
+      return null;
+    });
+    setAccesorioRiderEditError("");
+  }
+
+  async function submitAccesorioRiderEditModal(event) {
+    event.preventDefault();
+    if (!accesorioRiderEditModal) return;
+    if (!validateFormWithToast(event.currentTarget)) return;
+    setAccesorioRiderEditSaving(true);
+    setAccesorioRiderEditError("");
+
+    const payload = new FormData();
+    payload.append("subcategoria", accesorioRiderEditModal.form.subcategoria);
+    payload.append("marca", accesorioRiderEditModal.form.marca);
+    payload.append("nombre", accesorioRiderEditModal.form.nombre);
+    payload.append("slug", accesorioRiderEditModal.form.slug);
+    payload.append("descripcion", accesorioRiderEditModal.form.descripcion);
+    payload.append("precio", accesorioRiderEditModal.form.precio);
+    payload.append("stock", accesorioRiderEditModal.form.stock);
+    payload.append("es_destacado", String(accesorioRiderEditModal.form.es_destacado));
+    payload.append("activo", String(accesorioRiderEditModal.form.activo));
+    if (accesorioRiderEditModal.form.imagen_principal) {
+      payload.append("imagen_principal", accesorioRiderEditModal.form.imagen_principal);
+    }
+
+    try {
+      const updatedAccesorio = await updateProductoAdmin(accesorioRiderEditModal.id, payload);
+      setAccesoriosRiderAdmin((prev) =>
+        prev.map((item) => (item.id === accesorioRiderEditModal.id ? updatedAccesorio : item))
+      );
+      setDashboard((prev) => ({
+        ...prev,
+        productosIndumentaria: prev.productosIndumentaria.map((item) =>
+          item.id === accesorioRiderEditModal.id ? updatedAccesorio : item
+        ),
+      }));
+      pushToast("Accesorio rider actualizado correctamente.", "success");
+      closeAccesorioRiderEditModal(true);
+    } catch (error) {
+      const message = getErrorText(error, "No se pudo actualizar el accesorio rider.");
+      setAccesorioRiderEditError(message);
+      pushToast(message, "error");
+    } finally {
+      setAccesorioRiderEditSaving(false);
+    }
+  }
+
+  async function handleAccesorioMotoDelete(producto) {
+    try {
+      await deleteProductoAdmin(producto.id);
+      setAccesoriosMotosAdmin((prev) => prev.filter((item) => item.id !== producto.id));
+      setDashboard((prev) => ({
+        ...prev,
+        productosAccesorios: prev.productosAccesorios.filter((item) => item.id !== producto.id),
+      }));
+      if (editingAccesorioMotoId === producto.id) {
+        setEditingAccesorioMotoId(null);
+        setAccesorioMotoForm(initialAccesorioMotoForm);
+        setAccesorioMotoImageInputKey((prev) => prev + 1);
+        setAccesorioMotoImageUrl("");
+      }
+      pushToast("Accesorio de moto eliminado correctamente.", "success");
+    } catch (error) {
+      pushToast(getErrorText(error, "No se pudo eliminar el accesorio de moto."), "error");
+    }
+  }
+
+  async function handleAccesorioRiderDelete(producto) {
+    try {
+      await deleteProductoAdmin(producto.id);
+      setAccesoriosRiderAdmin((prev) => prev.filter((item) => item.id !== producto.id));
+      setDashboard((prev) => ({
+        ...prev,
+        productosIndumentaria: prev.productosIndumentaria.filter((item) => item.id !== producto.id),
+      }));
+      if (accesorioRiderEditModal?.id === producto.id) {
+        closeAccesorioRiderEditModal();
+      }
+      pushToast("Accesorio rider eliminado correctamente.", "success");
+    } catch (error) {
+      pushToast(getErrorText(error, "No se pudo eliminar el accesorio rider."), "error");
+    }
+  }
+
+  function handleCancelAccesorioMotoEdit() {
+    setEditingAccesorioMotoId(null);
+    setAccesorioMotoForm(initialAccesorioMotoForm);
+    setAccesorioMotoImageInputKey((prev) => prev + 1);
+    setAccesorioMotoImageUrl("");
   }
 
   async function handleContactoSubmit(event) {
@@ -1109,7 +1805,97 @@ export default function AdminPanel() {
     }
   }
 
+  function openAdminUserEditModal(user) {
+    setAdminUserModalError("");
+    setAdminUserEditModal({
+      id: user?.id,
+      first_name: user?.first_name || "",
+      last_name: user?.last_name || "",
+      username: user?.username || "",
+      email: user?.email || "",
+      telefono: user?.telefono || "",
+      rol: user?.rol || "",
+    });
+  }
+
+  function closeAdminUserEditModal(forceClose = false) {
+    if (adminUserModalSaving && !forceClose) return;
+    setAdminUserEditModal(null);
+    setAdminUserModalError("");
+  }
+
+  function openAdminUserDeleteModal(user) {
+    setAdminUserModalError("");
+    const fullName = `${user?.first_name || ""} ${user?.last_name || ""}`.trim();
+    setAdminUserDeleteModal({
+      id: user?.id,
+      name: fullName || user?.username || "este usuario",
+    });
+  }
+
+  function closeAdminUserDeleteModal(forceClose = false) {
+    if (adminUserModalSaving && !forceClose) return;
+    setAdminUserDeleteModal(null);
+    setAdminUserModalError("");
+  }
+
+  function handleAdminUserEditInputChange(event) {
+    clearInvalidFieldStyle(event.target);
+    const { name, value } = event.target;
+    setAdminUserEditModal((prev) => (prev ? { ...prev, [name]: value } : prev));
+  }
+
+  async function submitAdminUserEdit(event) {
+    event.preventDefault();
+    if (!adminUserEditModal) return;
+    if (!validateFormWithToast(event.currentTarget)) return;
+    setAdminUserModalSaving(true);
+    setAdminUserModalError("");
+
+    try {
+      const updated = await updateAdminUser(adminUserEditModal.id, {
+        first_name: adminUserEditModal.first_name,
+        last_name: adminUserEditModal.last_name,
+        username: adminUserEditModal.username,
+        email: adminUserEditModal.email,
+        telefono: adminUserEditModal.telefono,
+        rol: adminUserEditModal.rol,
+      });
+      setAdminUsers((prev) => prev.map((item) => (item.id === adminUserEditModal.id ? { ...item, ...updated } : item)));
+      pushToast("Usuario actualizado correctamente.", "success");
+      closeAdminUserEditModal(true);
+    } catch (error) {
+      const message = getErrorText(error, "No se pudo actualizar el usuario.");
+      setAdminUserModalError(message);
+      pushToast(message, "error");
+    } finally {
+      setAdminUserModalSaving(false);
+    }
+  }
+
+  async function submitAdminUserDelete() {
+    if (!adminUserDeleteModal) return;
+    setAdminUserModalSaving(true);
+    setAdminUserModalError("");
+
+    try {
+      await deleteAdminUser(adminUserDeleteModal.id);
+      setAdminUsers((prev) => prev.filter((item) => item.id !== adminUserDeleteModal.id));
+      pushToast("Usuario eliminado correctamente.", "success");
+      closeAdminUserDeleteModal(true);
+    } catch (error) {
+      const message = getErrorText(error, "No se pudo eliminar el usuario.");
+      setAdminUserModalError(message);
+      pushToast(message, "error");
+    } finally {
+      setAdminUserModalSaving(false);
+    }
+  }
+
   const paginatedAdminUsers = paginateItems(adminUsers, adminUsersPage, 10);
+  const motoEditModelosFiltrados = motoEditModal
+    ? motoMeta.modelos.filter((modelo) => !motoEditModal.form.marca || String(modelo.marca) === String(motoEditModal.form.marca))
+    : [];
 
   function renderAdminUsersTable() {
     if (adminUsersLoading) {
@@ -1128,7 +1914,7 @@ export default function AdminPanel() {
             return (
               <div
                 key={user?.id || user?.username || `user-row-${index}`}
-                className="admin-table-row admin-moto-table-row"
+                className="admin-table-row admin-moto-table-row admin-moto-table-row-actions"
               >
                 <div className="admin-moto-table-cell">
                   <strong>{fullName || user?.username || "Sin nombre"}</strong>
@@ -1137,6 +1923,14 @@ export default function AdminPanel() {
                 <div className="admin-moto-table-cell">
                   <strong>{user?.rol || "-"}</strong>
                   <span>{user?.email || user?.telefono || "Sin contacto"}</span>
+                </div>
+                <div className="admin-row-actions">
+                  <button type="button" className="admin-row-action-btn edit" title="Editar" onClick={() => openAdminUserEditModal(user)}>
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                  </button>
+                  <button type="button" className="admin-row-action-btn delete" title="Eliminar" onClick={() => openAdminUserDeleteModal(user)}>
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+                  </button>
                 </div>
               </div>
             );
@@ -1199,6 +1993,13 @@ export default function AdminPanel() {
             onMarcaSubmit={handleMarcaSubmit}
             onMarcaEdit={handleMarcaEdit}
             onMarcaDelete={handleMarcaDelete}
+            modelosMotosAdmin={modelosMotosAdmin}
+            modeloMotoForm={modeloMotoForm}
+            modeloMotoSaving={modeloMotoSaving}
+            onModeloMotoInputChange={handleModeloMotoInputChange}
+            onModeloMotoSubmit={handleModeloMotoSubmit}
+            onModeloMotoEdit={handleModeloMotoEdit}
+            onModeloMotoDelete={handleModeloMotoDelete}
             motoForm={motoForm}
             motoSaving={motoSaving}
             motoMeta={motoMeta}
@@ -1206,6 +2007,8 @@ export default function AdminPanel() {
             onMotoInputChange={handleMotoInputChange}
             onMotoPrecioInputChange={handleMotoPrecioInputChange}
             onMotoSubmit={handleMotoSubmit}
+            onMotoEdit={handleMotoEdit}
+            onMotoDelete={handleMotoDelete}
             categoriasMoto={categoriasMoto}
             categoriaMotoForm={categoriaMotoForm}
             categoriaMotoSaving={categoriaMotoSaving}
@@ -1237,20 +2040,28 @@ export default function AdminPanel() {
             accesoriosMotosAdmin={accesoriosMotosAdmin}
             accesorioMotoForm={accesorioMotoForm}
             accesorioMotoImageInputKey={accesorioMotoImageInputKey}
+            accesorioMotoImageUrl={accesorioMotoImageUrl}
             accesorioMotoSaving={accesorioMotoSaving}
+            editingAccesorioMotoId={editingAccesorioMotoId}
             onAccesorioMotoInputChange={handleAccesorioMotoInputChange}
             onAccesorioMotoPrecioInputChange={handleAccesorioMotoPrecioInputChange}
             onAccesorioMotoSubmit={handleAccesorioMotoSubmit}
+            onAccesorioMotoEdit={handleAccesorioMotoEdit}
+            onAccesorioMotoDelete={handleAccesorioMotoDelete}
+            onCancelAccesorioMotoEdit={handleCancelAccesorioMotoEdit}
             onToggleCompatibilidad={toggleAccesorioCompatibilidadMoto}
             motoMeta={motoMeta}
             accesoriosRiderMeta={accesoriosRiderMeta}
             accesoriosRiderAdmin={accesoriosRiderAdmin}
             accesorioRiderForm={accesorioRiderForm}
             accesorioRiderImageInputKey={accesorioRiderImageInputKey}
+            accesorioRiderImageUrl={accesorioRiderImageUrl}
             accesorioRiderSaving={accesorioRiderSaving}
             onAccesorioRiderInputChange={handleAccesorioRiderInputChange}
             onAccesorioRiderPrecioInputChange={handleAccesorioRiderPrecioInputChange}
             onAccesorioRiderSubmit={handleAccesorioRiderSubmit}
+            onAccesorioRiderEdit={handleAccesorioRiderEdit}
+            onAccesorioRiderDelete={handleAccesorioRiderDelete}
           />
 
           <ConfiguracionPage
@@ -1269,21 +2080,15 @@ export default function AdminPanel() {
             onRefresh={handleRefreshMantenciones}
             onAcceptSolicitud={handleAcceptMantencionSolicitud}
             onUpdateMantencion={handleUpdateMantencion}
+            horarios={horariosMantencion}
+            horariosLoading={horariosMantencionLoading}
+            horarioForm={horarioMantencionForm}
+            horarioSaving={horarioMantencionSaving}
+            onRefreshHorarios={handleRefreshHorariosMantencion}
+            onHorarioInputChange={handleHorarioMantencionInputChange}
+            onHorarioSubmit={handleHorarioMantencionSubmit}
+            onHorarioDelete={handleDeleteHorarioMantencion}
           />
-
-          {activeSection === "lista_usuarios" && (
-            <section className="admin-content-grid">
-              <article className="admin-panel-card">
-                <div className="admin-card-header">
-                  <h2>Lista de usuarios</h2>
-                  <button type="button" className="admin-primary-action" onClick={handleRefreshUsers}>
-                    Actualizar
-                  </button>
-                </div>
-                {renderAdminUsersTable()}
-              </article>
-            </section>
-          )}
 
           {activeSection === "crear_usuario" && (
             <section className="admin-content-grid lower">
@@ -1405,9 +2210,459 @@ export default function AdminPanel() {
             </section>
           )}
 
+          {motoEditModal && (
+            <div className="admin-entity-modal-overlay" onClick={closeMotoEditModal}>
+              <section className="admin-entity-modal admin-moto-edit-modal" onClick={(event) => event.stopPropagation()}>
+                <div className="admin-entity-modal-header">
+                  <div>
+                    <p className="admin-entity-modal-kicker">Edicion de moto</p>
+                    <h3>{motoEditModal.modelName || "Editar moto"}</h3>
+                  </div>
+                  <button type="button" onClick={closeMotoEditModal} disabled={motoEditSaving}>
+                    Cerrar
+                  </button>
+                </div>
+
+                <form className="admin-moto-form admin-moto-edit-modal-form" onSubmit={submitMotoEditModal} noValidate>
+                  <label>
+                    Marca *
+                    <select
+                      name="marca"
+                      value={motoEditModal.form.marca}
+                      onChange={handleMotoEditInputChange}
+                      required
+                    >
+                      <option value="">Selecciona una marca</option>
+                      {motoMeta.marcas.map((marca) => (
+                        <option key={marca.id} value={marca.id}>
+                          {marca.nombre}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+
+                  <label>
+                    Categoria *
+                    <select
+                      name="categoria"
+                      value={motoEditModal.form.categoria}
+                      onChange={handleMotoEditInputChange}
+                      required
+                    >
+                      <option value="">Selecciona una categoria</option>
+                      {motoMeta.categorias.map((categoria) => (
+                        <option key={categoria.id} value={categoria.id}>
+                          {categoria.nombre}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+
+                  <label>
+                    Modelo *
+                    <select
+                      name="modelo"
+                      value={motoEditModal.form.modelo}
+                      onChange={handleMotoEditInputChange}
+                      required
+                    >
+                      <option value="">Selecciona un modelo</option>
+                      {motoEditModelosFiltrados.map((modelo) => (
+                        <option key={modelo.id} value={modelo.id}>
+                          {modelo.nombre} {modelo.marca_nombre ? `(${modelo.marca_nombre})` : ""}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+
+                  <label className="admin-form-span-2">
+                    Descripcion (opcional)
+                    <textarea
+                      name="descripcion"
+                      value={motoEditModal.form.descripcion}
+                      onChange={handleMotoEditInputChange}
+                      rows={4}
+                    />
+                  </label>
+
+                  <label>
+                    Precio *
+                    <input
+                      type="text"
+                      name="precio"
+                      value={formatPrecioDisplay(motoEditModal.form.precio)}
+                      onChange={handleMotoEditPrecioInputChange}
+                      inputMode="decimal"
+                      required
+                    />
+                  </label>
+
+                  <label>
+                    Cilindrada *
+                    <input
+                      type="number"
+                      name="cilindrada"
+                      value={motoEditModal.form.cilindrada}
+                      onChange={handleMotoEditInputChange}
+                      min="1"
+                      required
+                    />
+                  </label>
+
+                  <label>
+                    Año *
+                    <input
+                      type="number"
+                      name="anio"
+                      value={motoEditModal.form.anio}
+                      onChange={handleMotoEditInputChange}
+                      min="1900"
+                      required
+                    />
+                  </label>
+
+                  <label>
+                    Stock *
+                    <input
+                      type="number"
+                      name="stock"
+                      value={motoEditModal.form.stock}
+                      onChange={handleMotoEditInputChange}
+                      min="0"
+                      required
+                    />
+                  </label>
+
+                  <label className="admin-form-span-2">
+                    Imagen principal (opcional)
+                    <input
+                      key={`moto-edit-image-${motoEditModal.imageInputKey}`}
+                      type="file"
+                      name="imagen_principal"
+                      accept="image/*"
+                      onChange={handleMotoEditInputChange}
+                    />
+                    {motoEditModal.imageFileName && (
+                      <span className="admin-selected-file-name">{motoEditModal.imageFileName}</span>
+                    )}
+                  </label>
+
+                  {motoEditModal.imagePreviewUrl && (
+                    <div className="admin-form-span-2 admin-image-preview-box admin-moto-edit-preview">
+                      <img src={motoEditModal.imagePreviewUrl} alt={motoEditModal.modelName || "Moto"} className="admin-image-preview" />
+                    </div>
+                  )}
+
+                  {motoEditError && <p className="admin-entity-modal-error">{motoEditError}</p>}
+
+                  <div className="admin-form-footer">
+                    <div className="admin-form-footer-checks">
+                      <label className="admin-form-check admin-form-check-compact">
+                        <input
+                          type="checkbox"
+                          name="es_destacada"
+                          checked={motoEditModal.form.es_destacada}
+                          onChange={handleMotoEditInputChange}
+                        />
+                        Marcar como destacada
+                      </label>
+
+                      <label className="admin-form-check admin-form-check-compact">
+                        <input
+                          type="checkbox"
+                          name="activa"
+                          checked={motoEditModal.form.activa}
+                          onChange={handleMotoEditInputChange}
+                        />
+                        Publicar como activa
+                      </label>
+                    </div>
+
+                    <div className="admin-moto-edit-modal-actions">
+                      <button type="button" className="btn-back" onClick={closeMotoEditModal} disabled={motoEditSaving}>
+                        Cancelar
+                      </button>
+                      <button type="submit" className="btn-save" disabled={motoEditSaving}>
+                        {motoEditSaving ? "Guardando..." : "Guardar cambios"}
+                      </button>
+                    </div>
+                  </div>
+                </form>
+              </section>
+            </div>
+          )}
+
+          {accesorioRiderEditModal && (
+            <div className="admin-entity-modal-overlay" onClick={closeAccesorioRiderEditModal}>
+              <section className="admin-entity-modal admin-moto-edit-modal" onClick={(event) => event.stopPropagation()}>
+                <div className="admin-entity-modal-header">
+                  <div>
+                    <p className="admin-entity-modal-kicker">Edicion de producto</p>
+                    <h3>{accesorioRiderEditModal.title}</h3>
+                  </div>
+                  <button type="button" onClick={closeAccesorioRiderEditModal} disabled={accesorioRiderEditSaving}>
+                    Cerrar
+                  </button>
+                </div>
+
+                <form className="admin-moto-form admin-moto-edit-modal-form" onSubmit={submitAccesorioRiderEditModal} noValidate>
+                  <label>
+                    Categoria *
+                    <select
+                      name="subcategoria"
+                      value={accesorioRiderEditModal.form.subcategoria}
+                      onChange={handleAccesorioRiderEditInputChange}
+                      required
+                    >
+                      <option value="">Selecciona una categoria</option>
+                      {accesoriosRiderMeta.subcategorias.map((subcategoria) => (
+                        <option key={subcategoria.id} value={subcategoria.id}>
+                          {subcategoria.nombre}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+
+                  <label>
+                    Marca *
+                    <select
+                      name="marca"
+                      value={accesorioRiderEditModal.form.marca}
+                      onChange={handleAccesorioRiderEditInputChange}
+                      required
+                    >
+                      <option value="">Selecciona una marca</option>
+                      {accesoriosRiderMeta.marcas.map((marca) => (
+                        <option key={marca.id} value={marca.id}>
+                          {marca.nombre}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+
+                  <label>
+                    Nombre *
+                    <input
+                      name="nombre"
+                      value={accesorioRiderEditModal.form.nombre}
+                      onChange={handleAccesorioRiderEditInputChange}
+                      maxLength={150}
+                      required
+                    />
+                  </label>
+
+                  <label className="admin-form-span-2">
+                    Descripcion (opcional)
+                    <textarea
+                      name="descripcion"
+                      value={accesorioRiderEditModal.form.descripcion}
+                      onChange={handleAccesorioRiderEditInputChange}
+                      rows={4}
+                    />
+                  </label>
+
+                  <label>
+                    Precio *
+                    <input
+                      type="text"
+                      name="precio"
+                      value={formatPrecioDisplay(accesorioRiderEditModal.form.precio)}
+                      onChange={handleAccesorioRiderEditPrecioInputChange}
+                      inputMode="numeric"
+                      required
+                    />
+                  </label>
+
+                  <label>
+                    Stock *
+                    <input
+                      type="number"
+                      name="stock"
+                      value={accesorioRiderEditModal.form.stock}
+                      onChange={handleAccesorioRiderEditInputChange}
+                      min="0"
+                      required
+                    />
+                  </label>
+
+                  <label className="admin-form-span-2">
+                    Imagen principal (opcional)
+                    <input
+                      key={`acc-rider-edit-image-${accesorioRiderEditModal.imageInputKey}`}
+                      type="file"
+                      name="imagen_principal"
+                      accept="image/*"
+                      onChange={handleAccesorioRiderEditInputChange}
+                    />
+                    {accesorioRiderEditModal.imageFileName && (
+                      <span className="admin-selected-file-name">{accesorioRiderEditModal.imageFileName}</span>
+                    )}
+                  </label>
+
+                  {accesorioRiderEditModal.imagePreviewUrl && (
+                    <div className="admin-form-span-2 admin-image-preview-box admin-moto-edit-preview">
+                      <img
+                        src={accesorioRiderEditModal.imagePreviewUrl}
+                        alt={accesorioRiderEditModal.title || "Accesorio rider"}
+                        className="admin-image-preview"
+                      />
+                    </div>
+                  )}
+
+                  {accesorioRiderEditError && <p className="admin-entity-modal-error">{accesorioRiderEditError}</p>}
+
+                  <div className="admin-form-footer">
+                    <div className="admin-form-footer-checks">
+                      <label className="admin-form-check admin-form-check-compact">
+                        <input
+                          type="checkbox"
+                          name="es_destacado"
+                          checked={accesorioRiderEditModal.form.es_destacado}
+                          onChange={handleAccesorioRiderEditInputChange}
+                        />
+                        Destacado
+                      </label>
+                      <label className="admin-form-check admin-form-check-compact">
+                        <input
+                          type="checkbox"
+                          name="activo"
+                          checked={accesorioRiderEditModal.form.activo}
+                          onChange={handleAccesorioRiderEditInputChange}
+                        />
+                        Activo
+                      </label>
+                    </div>
+                    <div className="admin-moto-edit-modal-actions">
+                      <button type="button" className="btn-back" onClick={closeAccesorioRiderEditModal} disabled={accesorioRiderEditSaving}>
+                        Cancelar
+                      </button>
+                      <button type="submit" className="btn-save" disabled={accesorioRiderEditSaving}>
+                        {accesorioRiderEditSaving ? "Guardando..." : "Guardar cambios"}
+                      </button>
+                    </div>
+                  </div>
+                </form>
+              </section>
+            </div>
+          )}
+
+          {adminUserEditModal && (
+            <div className="admin-entity-modal-overlay" onClick={closeAdminUserEditModal}>
+              <section className="admin-entity-modal" onClick={(event) => event.stopPropagation()}>
+                <div className="admin-entity-modal-header">
+                  <div>
+                    <p className="admin-entity-modal-kicker">Edicion de usuario</p>
+                    <h3>Editar usuario</h3>
+                  </div>
+                  <button type="button" onClick={closeAdminUserEditModal} disabled={adminUserModalSaving}>
+                    Cerrar
+                  </button>
+                </div>
+
+                <form className="admin-entity-modal-form" onSubmit={submitAdminUserEdit} noValidate>
+                  <label>
+                    Nombres *
+                    <input
+                      name="first_name"
+                      value={adminUserEditModal.first_name}
+                      onChange={handleAdminUserEditInputChange}
+                      maxLength={150}
+                      required
+                    />
+                  </label>
+
+                  <label>
+                    Apellidos *
+                    <input
+                      name="last_name"
+                      value={adminUserEditModal.last_name}
+                      onChange={handleAdminUserEditInputChange}
+                      maxLength={150}
+                      required
+                    />
+                  </label>
+
+                  <label>
+                    Username *
+                    <input
+                      name="username"
+                      value={adminUserEditModal.username}
+                      onChange={handleAdminUserEditInputChange}
+                      maxLength={150}
+                      required
+                    />
+                  </label>
+
+                  <label>
+                    Correo (opcional)
+                    <input
+                      type="email"
+                      name="email"
+                      value={adminUserEditModal.email}
+                      onChange={handleAdminUserEditInputChange}
+                      maxLength={254}
+                    />
+                  </label>
+
+                  <label>
+                    Telefono *
+                    <input
+                      name="telefono"
+                      value={adminUserEditModal.telefono}
+                      onChange={handleAdminUserEditInputChange}
+                      maxLength={30}
+                      required
+                    />
+                  </label>
+
+                  <label>
+                    Rol *
+                    <select name="rol" value={adminUserEditModal.rol} onChange={handleAdminUserEditInputChange} required>
+                      <option value="">Selecciona un rol</option>
+                      <option value="admin">Administrador</option>
+                      <option value="encargado">Encargado</option>
+                      <option value="superadmin">Superadmin</option>
+                    </select>
+                  </label>
+
+                  {adminUserModalError && <p className="admin-entity-modal-error">{adminUserModalError}</p>}
+
+                  <div className="admin-entity-modal-actions">
+                    <button type="button" className="btn-back" onClick={closeAdminUserEditModal} disabled={adminUserModalSaving}>
+                      Cancelar
+                    </button>
+                    <button type="submit" className="btn-save" disabled={adminUserModalSaving}>
+                      {adminUserModalSaving ? "Guardando..." : "Guardar cambios"}
+                    </button>
+                  </div>
+                </form>
+              </section>
+            </div>
+          )}
+
+          {adminUserDeleteModal && (
+            <div className="admin-entity-modal-overlay" onClick={closeAdminUserDeleteModal}>
+              <section className="admin-entity-delete-modal" onClick={(event) => event.stopPropagation()}>
+                <img src="/images/informacion.png" alt="Informacion" className="admin-entity-delete-image" />
+                <p className="admin-entity-delete-text">
+                  Estas seguro que quieres eliminar a {adminUserDeleteModal.name}?
+                </p>
+                {adminUserModalError && <p className="admin-entity-modal-error">{adminUserModalError}</p>}
+                <div className="admin-entity-delete-actions">
+                  <button type="button" className="btn-back" onClick={closeAdminUserDeleteModal} disabled={adminUserModalSaving}>
+                    Volver
+                  </button>
+                  <button type="button" className="btn-delete" onClick={submitAdminUserDelete} disabled={adminUserModalSaving}>
+                    {adminUserModalSaving ? "Eliminando..." : "Eliminar"}
+                  </button>
+                </div>
+              </section>
+            </div>
+          )}
+
           {entityEditModal && (
             <div className="admin-entity-modal-overlay" onClick={closeEntityEditModal}>
-              <section className="admin-entity-modal" onClick={(event) => event.stopPropagation()}>
+              <section className="admin-entity-modal admin-entity-modal-compact" onClick={(event) => event.stopPropagation()}>
                 <div className="admin-entity-modal-header">
                   <div>
                     <p className="admin-entity-modal-kicker">Edicion administrativa</p>
@@ -1424,7 +2679,7 @@ export default function AdminPanel() {
                   </button>
                 </div>
 
-                <form className="admin-entity-modal-form" onSubmit={submitEntityEdit} noValidate>
+                <form className="admin-entity-modal-form admin-entity-modal-form-single" onSubmit={submitEntityEdit} noValidate>
                   <label>
                     Nombre *
                     <input
@@ -1432,17 +2687,6 @@ export default function AdminPanel() {
                       value={entityEditModal.nombre}
                       onChange={handleEntityEditInputChange}
                       maxLength={100}
-                      required
-                    />
-                  </label>
-
-                  <label>
-                    Slug (solo lectura) *
-                    <input
-                      name="slug"
-                      value={entityEditModal.slug}
-                      readOnly
-                      maxLength={140}
                       required
                     />
                   </label>
@@ -1469,7 +2713,6 @@ export default function AdminPanel() {
                 <p className="admin-entity-delete-text">
                   Estas seguro que quieres eliminar {entityDeleteModal.nombre}?
                 </p>
-                {entityModalError && <p className="admin-entity-modal-error">{entityModalError}</p>}
                 <div className="admin-entity-delete-actions">
                   <button type="button" className="btn-back" onClick={closeEntityDeleteModal} disabled={entityModalSaving}>
                     Volver

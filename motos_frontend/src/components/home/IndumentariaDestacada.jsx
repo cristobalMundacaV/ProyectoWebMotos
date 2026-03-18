@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+﻿import { useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { buildMediaUrl } from "../../services/apiConfig";
 import { getProductos } from "../../services/productosService";
@@ -68,7 +68,12 @@ export default function IndumentariaDestacada() {
 
           <div className="carousel-track carousel-track-rider" ref={trackRef}>
             {destacados.map((producto) => (
-              <article className="home-product-card carousel-item carousel-item-rider" key={producto.id}>
+              <Link
+                className="home-product-card home-product-card-clickable home-product-card-link carousel-item carousel-item-rider"
+                key={producto.id}
+                to={`/producto/${producto.slug}`}
+                aria-label={`Ver detalles de ${producto.nombre}`}
+              >
                 <div className="home-product-image">
                   <img
                     src={
@@ -87,12 +92,10 @@ export default function IndumentariaDestacada() {
                   <h3>{producto.nombre}</h3>
                   <div className="home-product-bottom-row">
                     <p>${Number(producto.precio || 0).toLocaleString("es-CL")}</p>
-                    <Link className="home-product-link" to={`/producto/${producto.slug}`}>
-                      Detalles
-                    </Link>
+                    <span className="home-product-link">Detalles</span>
                   </div>
                 </div>
-              </article>
+              </Link>
             ))}
 
             {destacados.length === 0 && (

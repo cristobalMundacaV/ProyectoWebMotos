@@ -132,6 +132,164 @@
   opacity: 0.62;
 }
 
+.mantencion-calendar-wrap {
+  display: grid;
+  gap: 10px;
+  border: 1px solid #d1d5db;
+  border-radius: 12px;
+  padding: 12px;
+  background: #fafafa;
+}
+
+.mantencion-calendar-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.mantencion-calendar-head strong {
+  text-transform: capitalize;
+  font-size: 0.98rem;
+}
+
+.mantencion-calendar-nav {
+  display: flex;
+  gap: 6px;
+}
+
+.mantencion-calendar-nav button {
+  border: 1px solid #cfd4dc;
+  background: #fff;
+  border-radius: 8px;
+  width: 30px;
+  height: 30px;
+  cursor: pointer;
+}
+
+.mantencion-calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 6px;
+}
+
+.mantencion-calendar-weekdays span {
+  text-align: center;
+  font-size: 0.78rem;
+  color: #4b5563;
+  font-weight: 700;
+}
+
+.mantencion-day-btn {
+  border: 1px solid transparent;
+  border-radius: 8px;
+  min-height: 34px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.mantencion-day-btn.available {
+  background: #eafaf0;
+  color: #0f5132;
+}
+
+.mantencion-day-btn.occupied {
+  background: #e5e7eb;
+  color: #6b7280;
+}
+
+.mantencion-day-btn.selected {
+  border-color: #0f172a;
+}
+
+.mantencion-day-btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+.mantencion-calendar-empty {
+  min-height: 34px;
+}
+
+.mantencion-calendar-legend {
+  display: flex;
+  gap: 16px;
+  font-size: 0.8rem;
+  color: #4b5563;
+}
+
+.mantencion-calendar-legend span {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 999px;
+  display: inline-block;
+}
+
+.dot-available {
+  background: #16a34a;
+}
+
+.dot-occupied {
+  background: #9ca3af;
+}
+
+.mantencion-slots {
+  display: grid;
+  gap: 8px;
+}
+
+.mantencion-slots-title {
+  margin: 0;
+  font-size: 0.86rem;
+  color: #374151;
+  text-transform: capitalize;
+}
+
+.mantencion-slot-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.mantencion-slot-btn {
+  border: 1px solid transparent;
+  border-radius: 8px;
+  min-height: 34px;
+  min-width: 72px;
+  padding: 0 10px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.mantencion-slot-btn.available {
+  background: #dcfce7;
+  color: #14532d;
+}
+
+.mantencion-slot-btn.occupied {
+  background: #e5e7eb;
+  color: #6b7280;
+}
+
+.mantencion-slot-btn.selected {
+  border-color: #111827;
+}
+
+.mantencion-slot-btn:disabled {
+  cursor: not-allowed;
+}
+
+.mantencion-slot-empty {
+  font-size: 0.86rem;
+  color: #6b7280;
+}
+
 @media (min-width: 760px) {
   .mantencion-page {
     padding-top: 106px;

@@ -217,6 +217,20 @@
   padding: 0 0 10px;
 }
 
+.equip-card-clickable {
+  cursor: pointer;
+}
+
+.equip-card-link {
+  text-decoration: none;
+  color: inherit;
+}
+
+.equip-card-clickable:focus-visible {
+  outline: 2px solid #e60000;
+  outline-offset: 2px;
+}
+
 .equip-card-image {
   aspect-ratio: 1 / 0.92;
   background: #fff;

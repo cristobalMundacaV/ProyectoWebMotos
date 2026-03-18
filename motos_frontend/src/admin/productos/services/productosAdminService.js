@@ -13,6 +13,8 @@ import {
   getCategoriasAccesoriosRiderAdmin,
   getCategoriasProducto,
   getProductos,
+  updateProductoAdmin,
+  deleteProductoAdmin,
   updateCategoriaAccesoriosMotos,
   updateCategoriaAccesoriosRider,
 } from "../../../services/productosService";
@@ -32,6 +34,8 @@ export {
   getCategoriasAccesoriosRiderAdmin,
   getCategoriasProducto,
   getProductos,
+  updateProductoAdmin,
+  deleteProductoAdmin,
   updateCategoriaAccesoriosMotos,
   updateCategoriaAccesoriosRider,
 };

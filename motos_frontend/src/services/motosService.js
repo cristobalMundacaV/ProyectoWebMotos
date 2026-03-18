@@ -11,7 +11,17 @@ export async function getMotos() {
 
 export async function getMotoAdminMeta() {
   const res = await api.get("/api/motos/meta/");
-  return res.data;
+  const payload = res.data || {};
+  const modelosRaw = Array.isArray(payload.modelos) ? payload.modelos : [];
+  const modelos = modelosRaw.map((item) => ({
+    ...item,
+    marca_nombre: item.marca_nombre || item["marca__nombre"] || "",
+  }));
+
+  return {
+    ...payload,
+    modelos,
+  };
 }
 
 export async function createMoto(payload) {
@@ -74,6 +84,25 @@ export async function updateMarca(id, payload) {
 
 export async function deleteMarca(id) {
   await api.delete(`/api/motos/marcas/${id}/`);
+}
+
+export async function getModelosMoto() {
+  const res = await api.get("/api/motos/modelos/");
+  return res.data;
+}
+
+export async function createModeloMoto(payload) {
+  const res = await api.post("/api/motos/modelos/", payload);
+  return res.data;
+}
+
+export async function updateModeloMoto(id, payload) {
+  const res = await api.patch(`/api/motos/modelos/${id}/`, payload);
+  return res.data;
+}
+
+export async function deleteModeloMoto(id) {
+  await api.delete(`/api/motos/modelos/${id}/`);
 }
 
 /**

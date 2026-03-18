@@ -151,3 +151,68 @@ def admin_create_user(request):
 		},
 		status=status.HTTP_201_CREATED,
 	)
+
+
+@api_view(["PATCH", "DELETE"])
+@authentication_classes([JWTAuthentication])
+@permission_classes([IsAuthenticated])
+def admin_manage_user(request, user_id: int):
+	if not has_admin_access(request.user):
+		return Response(
+			{"detail": "Solo administradores pueden gestionar usuarios."},
+			status=status.HTTP_403_FORBIDDEN,
+		)
+
+	try:
+		target_user = User.objects.select_related("perfil_usuario").get(id=user_id)
+	except User.DoesNotExist:
+		return Response({"detail": "Usuario no encontrado."}, status=status.HTTP_404_NOT_FOUND)
+
+	if request.method == "DELETE":
+		if request.user.id == target_user.id:
+			return Response(
+				{"detail": "No puedes eliminar tu propio usuario."},
+				status=status.HTTP_400_BAD_REQUEST,
+			)
+		target_user.delete()
+		return Response(status=status.HTTP_204_NO_CONTENT)
+
+	data = request.data
+
+	first_name = (data.get("first_name") or "").strip()
+	last_name = (data.get("last_name") or "").strip()
+	username = (data.get("username") or "").strip()
+	email = (data.get("email") or "").strip()
+	telefono = (data.get("telefono") or "").strip()
+	rol = (data.get("rol") or "").strip().lower()
+
+	if not first_name or not last_name or not username or not telefono or not rol:
+		return Response(
+			{"detail": "Nombres, apellidos, username, telefono y rol son obligatorios."},
+			status=status.HTTP_400_BAD_REQUEST,
+		)
+
+	if rol not in ADMIN_ALLOWED_ROLES:
+		return Response({"detail": "Rol invalido."}, status=status.HTTP_400_BAD_REQUEST)
+
+	if User.objects.filter(username__iexact=username).exclude(id=target_user.id).exists():
+		return Response({"detail": "El username ya esta en uso."}, status=status.HTTP_400_BAD_REQUEST)
+
+	if email and User.objects.filter(email__iexact=email).exclude(id=target_user.id).exists():
+		return Response({"detail": "El correo ya esta en uso."}, status=status.HTTP_400_BAD_REQUEST)
+
+	target_user.first_name = first_name
+	target_user.last_name = last_name
+	target_user.username = username
+	target_user.email = email
+	target_user.is_staff = rol in {PerfilUsuario.ROL_ADMIN, PerfilUsuario.ROL_SUPERADMIN}
+	target_user.is_superuser = rol == PerfilUsuario.ROL_SUPERADMIN
+	target_user.save()
+
+	PerfilUsuario.objects.update_or_create(
+		user=target_user,
+		defaults={"rol": rol, "telefono": telefono},
+	)
+
+	target_user.refresh_from_db()
+	return Response({"detail": "Usuario actualizado correctamente.", "user": _serialize_user(target_user)})

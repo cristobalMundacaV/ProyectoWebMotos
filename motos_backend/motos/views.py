@@ -1,14 +1,15 @@
-﻿from rest_framework import status
+﻿from django.db.models import Q
+from django.db.models.deletion import ProtectedError
+from rest_framework import status
 from rest_framework.decorators import api_view, authentication_classes, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework_simplejwt.authentication import JWTAuthentication
-from django.db.models import Q
 
 from catalogo.models import CategoriaMoto, Marca
 from clientes.permissions import has_admin_access
-from .models import Moto
-from .serializers import CategoriaMotoSerializer, MarcaSerializer, MotoSerializer
+from .models import ModeloMoto, Moto
+from .serializers import CategoriaMotoSerializer, MarcaSerializer, ModeloMotoSerializer, MotoSerializer
 
 
 ACCESORIOS_CATEGORY_SLUGS = ["accesorios-para-la-moto", "accesorios"]
@@ -47,7 +48,7 @@ def _filter_marcas_por_tipo(queryset, tipo):
 @api_view(["GET", "POST"])
 def lista_motos(request):
     if request.method == "GET":
-        motos = Moto.objects.filter(activa=True).select_related("marca", "categoria")
+        motos = Moto.objects.filter(activa=True).select_related("marca", "categoria", "modelo_ref")
         serializer = MotoSerializer(motos, many=True)
         return Response(serializer.data)
 
@@ -99,8 +100,75 @@ def meta_motos(request):
         .order_by("nombre")
         .values("id", "nombre")
     )
+    modelos_raw = list(
+        ModeloMoto.objects.filter(activo=True)
+        .select_related("marca")
+        .order_by("nombre")
+        .values("id", "nombre", "slug", "marca", "marca__nombre")
+    )
+    modelos = [
+        {
+            "id": item["id"],
+            "nombre": item["nombre"],
+            "slug": item["slug"],
+            "marca": item["marca"],
+            "marca_nombre": item["marca__nombre"],
+        }
+        for item in modelos_raw
+    ]
 
-    return Response({"marcas": marcas, "categorias": categorias})
+    return Response({"marcas": marcas, "categorias": categorias, "modelos": modelos})
+
+
+@api_view(["GET", "POST"])
+def modelos_moto(request):
+    if request.method == "GET":
+        marca_id = request.GET.get("marca")
+        queryset = ModeloMoto.objects.select_related("marca").order_by("nombre")
+        if marca_id:
+            queryset = queryset.filter(marca_id=marca_id)
+        serializer = ModeloMotoSerializer(queryset, many=True)
+        return Response(serializer.data)
+
+    if not has_admin_access(request.user):
+        return Response(
+            {"detail": "Solo administradores pueden crear modelos."},
+            status=status.HTTP_403_FORBIDDEN,
+        )
+
+    serializer = ModeloMotoSerializer(data=request.data)
+    serializer.is_valid(raise_exception=True)
+    serializer.save()
+    return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+
+@api_view(["PATCH", "DELETE"])
+def modelos_moto_detalle(request, modelo_id):
+    if not has_admin_access(request.user):
+        return Response(
+            {"detail": "Solo administradores pueden gestionar modelos."},
+            status=status.HTTP_403_FORBIDDEN,
+        )
+
+    modelo = ModeloMoto.objects.filter(id=modelo_id).first()
+    if not modelo:
+        return Response({"detail": "Modelo no encontrado."}, status=status.HTTP_404_NOT_FOUND)
+
+    if request.method == "DELETE":
+        try:
+            modelo.delete()
+        except ProtectedError:
+            return Response(
+                {"detail": "No se puede eliminar el modelo porque tiene motos asociadas."},
+                status=status.HTTP_409_CONFLICT,
+            )
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+    serializer = ModeloMotoSerializer(modelo, data=request.data, partial=True)
+    serializer.is_valid(raise_exception=True)
+    updated_modelo = serializer.save()
+    Moto.objects.filter(modelo_ref=updated_modelo).update(modelo=updated_modelo.nombre)
+    return Response(ModeloMotoSerializer(updated_modelo).data)
 
 
 @api_view(["GET", "POST"])
@@ -112,7 +180,7 @@ def categorias_moto(request):
 
     if not has_admin_access(request.user):
         return Response(
-            {"detail": "Solo administradores pueden crear categorías."},
+            {"detail": "Solo administradores pueden crear categorias."},
             status=status.HTTP_403_FORBIDDEN,
         )
 
@@ -135,7 +203,13 @@ def categorias_moto_detalle(request, categoria_id):
         return Response({"detail": "Categoria no encontrada."}, status=status.HTTP_404_NOT_FOUND)
 
     if request.method == "DELETE":
-        categoria.delete()
+        try:
+            categoria.delete()
+        except ProtectedError:
+            return Response(
+                {"detail": "No se puede eliminar la categoria porque tiene motos asociadas."},
+                status=status.HTTP_409_CONFLICT,
+            )
         return Response(status=status.HTTP_204_NO_CONTENT)
 
     serializer = CategoriaMotoSerializer(categoria, data=request.data, partial=True)
@@ -186,7 +260,13 @@ def marcas_moto_detalle(request, marca_id):
         return Response({"detail": "Marca no encontrada."}, status=status.HTTP_404_NOT_FOUND)
 
     if request.method == "DELETE":
-        marca.delete()
+        try:
+            marca.delete()
+        except ProtectedError:
+            return Response(
+                {"detail": "No se puede eliminar la marca porque tiene motos o productos asociados."},
+                status=status.HTTP_409_CONFLICT,
+            )
         return Response(status=status.HTTP_204_NO_CONTENT)
 
     serializer = MarcaSerializer(marca, data=request.data, partial=True)

@@ -26,6 +26,7 @@ export default function CatalogoMotos() {
   const [deleteCandidate, setDeleteCandidate] = useState(null);
   const [deletingMoto, setDeletingMoto] = useState(false);
   const editFileInputRef = useRef(null);
+  const formatUppercase = (value) => String(value || "-").toUpperCase();
 
   useEffect(() => {
     const token = getStoredToken();
@@ -377,7 +378,7 @@ export default function CatalogoMotos() {
                           checked={selectedMarcas.includes(marca)}
                           onChange={() => toggleMarca(marca)}
                         />
-                        <span>{marca}</span>
+                        <span>{formatUppercase(marca)}</span>
                       </label>
                     ))}
                     {marcas.length === 0 && <p className="moto-filter-empty">Sin marcas</p>}
@@ -394,7 +395,7 @@ export default function CatalogoMotos() {
                           checked={selectedCategorias.includes(categoria)}
                           onChange={() => toggleCategoria(categoria)}
                         />
-                        <span>{categoria}</span>
+                        <span>{formatUppercase(categoria)}</span>
                       </label>
                     ))}
                     {categorias.length === 0 && <p className="moto-filter-empty">Sin categorias</p>}
@@ -504,17 +505,6 @@ export default function CatalogoMotos() {
                   value={editForm.modelo}
                   onChange={handleEditInputChange}
                   maxLength={150}
-                  required
-                />
-              </label>
-
-              <label>
-                Slug (Solo lectura)
-                <input
-                  name="slug"
-                  value={editForm.slug}
-                  readOnly
-                  maxLength={170}
                   required
                 />
               </label>

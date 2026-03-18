@@ -15,6 +15,13 @@ export default function MotosPage({
   onMarcaSubmit,
   onMarcaEdit,
   onMarcaDelete,
+  modelosMotosAdmin,
+  modeloMotoForm,
+  modeloMotoSaving,
+  onModeloMotoInputChange,
+  onModeloMotoSubmit,
+  onModeloMotoEdit,
+  onModeloMotoDelete,
   motoForm,
   motoSaving,
   motoMeta,
@@ -22,6 +29,8 @@ export default function MotosPage({
   onMotoInputChange,
   onMotoPrecioInputChange,
   onMotoSubmit,
+  onMotoEdit,
+  onMotoDelete,
   categoriasMoto,
   categoriaMotoForm,
   categoriaMotoSaving,
@@ -31,8 +40,10 @@ export default function MotosPage({
   onCategoriaMotoDelete,
 }) {
   const PAGE_SIZE = 10;
+  const RECENT_MOTOS_PAGE_SIZE = 8;
   const [tablePages, setTablePages] = useState({
     marcas: 1,
+    modelosMoto: 1,
     categoriasMoto: 1,
     motos: 1,
   });
@@ -40,6 +51,7 @@ export default function MotosPage({
   useEffect(() => {
     setTablePages({
       marcas: 1,
+      modelosMoto: 1,
       categoriasMoto: 1,
       motos: 1,
     });
@@ -79,11 +91,6 @@ export default function MotosPage({
               <input name="nombre" value={marcaForm.nombre} onChange={onMarcaInputChange} maxLength={100} required />
             </label>
 
-            <label>
-              Slug (solo lectura)
-              <input name="slug" value={marcaForm.slug} onChange={onMarcaInputChange} readOnly required />
-            </label>
-
             <label className="admin-form-span-2">
               Descripcion (opcional)
               <textarea name="descripcion" value={marcaForm.descripcion} onChange={onMarcaInputChange} rows={4} />
@@ -109,7 +116,7 @@ export default function MotosPage({
           <div className="admin-table">
             {paginatedMarcas.items.map((marca) => (
               <div key={marca.id} className="admin-table-row admin-table-row-two-cols">
-                <div className="admin-entity-name-cell">
+                <div className="admin-entity-name-cell admin-category-name-cell">
                   <strong>{marca.nombre}</strong>
                 </div>
                 <div className="admin-row-actions">
@@ -156,11 +163,6 @@ export default function MotosPage({
               />
             </label>
 
-            <label>
-              Slug (solo lectura)
-              <input name="slug" value={categoriaMotoForm.slug} onChange={onCategoriaMotoInputChange} readOnly required />
-            </label>
-
             <label className="admin-form-span-2">
               Descripcion (opcional)
               <textarea
@@ -196,7 +198,7 @@ export default function MotosPage({
           <div className="admin-table">
             {paginatedCategoriasMoto.items.map((categoria) => (
               <div key={categoria.id} className="admin-table-row admin-table-row-two-cols">
-                <div className="admin-entity-name-cell">
+                <div className="admin-entity-name-cell admin-category-name-cell">
                   <strong>{categoria.nombre}</strong>
                 </div>
                 <div className="admin-row-actions">
@@ -222,8 +224,104 @@ export default function MotosPage({
     );
   }
 
+  if (activeSection === "modelos_motos") {
+    const paginatedModelosMoto = paginateItems(modelosMotosAdmin, tablePages.modelosMoto, PAGE_SIZE);
+
+    return (
+      <section className="admin-content-grid lower">
+        <article className="admin-panel-card">
+          <div className="admin-card-header">
+            <h2>Crear modelo de moto</h2>
+            <span>Gestion de modelos asociados a marcas</span>
+          </div>
+
+          <form className="admin-moto-form admin-inline-submit-form" onSubmit={onModeloMotoSubmit} noValidate>
+            <label>
+              Marca *
+              <select name="marca" value={modeloMotoForm.marca} onChange={onModeloMotoInputChange} required>
+                <option value="">Selecciona una marca</option>
+                {motoMeta.marcas.map((marca) => (
+                  <option key={marca.id} value={marca.id}>
+                    {marca.nombre}
+                  </option>
+                ))}
+              </select>
+            </label>
+
+            <label>
+              Nombre del modelo *
+              <input
+                name="nombre"
+                value={modeloMotoForm.nombre}
+                onChange={onModeloMotoInputChange}
+                maxLength={150}
+                required
+              />
+            </label>
+
+            <label className="admin-form-span-2">
+              Descripcion (opcional)
+              <textarea
+                name="descripcion"
+                value={modeloMotoForm.descripcion}
+                onChange={onModeloMotoInputChange}
+                rows={4}
+              />
+            </label>
+
+            <label className="admin-form-check">
+              <input type="checkbox" name="activo" checked={modeloMotoForm.activo} onChange={onModeloMotoInputChange} />
+              Activo (opcional)
+            </label>
+
+            <button type="submit" className="admin-primary-action" disabled={modeloMotoSaving}>
+              {modeloMotoSaving ? "Guardando..." : "Guardar modelo"}
+            </button>
+          </form>
+        </article>
+
+        <article className="admin-panel-card">
+          <div className="admin-card-header">
+            <h2>Modelos creados</h2>
+            <span>{modelosMotosAdmin.length} registrados</span>
+          </div>
+
+          <div className="admin-table">
+            {paginatedModelosMoto.items.map((modelo) => (
+              <div key={modelo.id} className="admin-table-row admin-table-row-two-cols">
+                <div className="admin-entity-name-cell admin-model-name-cell">
+                  <span className="admin-row-label">Nombre Modelo</span>
+                  <strong>{modelo.nombre}</strong>
+                  <span>{modelo.marca_nombre || "-"}</span>
+                </div>
+                <div className="admin-row-actions">
+                  <button type="button" className="admin-row-action-btn edit" title="Editar" onClick={() => onModeloMotoEdit?.(modelo)}>
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                  </button>
+                  <button type="button" className="admin-row-action-btn delete" title="Eliminar" onClick={() => onModeloMotoDelete?.(modelo)}>
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+                  </button>
+                </div>
+              </div>
+            ))}
+            {!loading && modelosMotosAdmin.length === 0 && (
+              <p className="admin-empty">No hay modelos de motos cargados.</p>
+            )}
+          </div>
+          <AdminPagination
+            pagination={paginatedModelosMoto}
+            onPageChange={(page) => setTablePages((prev) => ({ ...prev, modelosMoto: page }))}
+          />
+        </article>
+      </section>
+    );
+  }
+
   if (activeSection === "motos") {
-    const paginatedMotos = paginateItems(dashboard.motos, tablePages.motos, PAGE_SIZE);
+    const paginatedMotos = paginateItems(dashboard.motos, tablePages.motos, RECENT_MOTOS_PAGE_SIZE);
+    const modelosFiltrados = motoMeta.modelos.filter(
+      (modelo) => !motoForm.marca || String(modelo.marca) === String(motoForm.marca)
+    );
 
     return (
       <section className="admin-content-grid lower">
@@ -260,12 +358,14 @@ export default function MotosPage({
 
             <label>
               Modelo *
-              <input name="modelo" value={motoForm.modelo} onChange={onMotoInputChange} maxLength={150} required />
-            </label>
-
-            <label>
-              Slug (solo lectura)
-              <input name="slug" value={motoForm.slug} onChange={onMotoInputChange} readOnly required />
+              <select name="modelo" value={motoForm.modelo} onChange={onMotoInputChange} required>
+                <option value="">Selecciona un modelo</option>
+                {modelosFiltrados.map((modelo) => (
+                  <option key={modelo.id} value={modelo.id}>
+                    {modelo.nombre} {modelo.marca_nombre ? `(${modelo.marca_nombre})` : ""}
+                  </option>
+                ))}
+              </select>
             </label>
 
             <label className="admin-form-span-2">
@@ -339,14 +439,24 @@ export default function MotosPage({
           </div>
           <div className="admin-table">
             {paginatedMotos.items.map((moto) => (
-              <div key={moto.id} className="admin-table-row admin-moto-table-row">
+              <div key={moto.id} className="admin-table-row admin-moto-table-row admin-moto-table-row-actions">
                 <div className="admin-moto-table-cell">
+                  <span className="admin-row-label">Nombre Modelo</span>
                   <strong>{moto.modelo}</strong>
                   <span>{moto.marca_nombre || "Sin marca"}</span>
                 </div>
                 <div className="admin-moto-table-cell">
+                  <span className="admin-row-label">Tipo</span>
                   <strong>{moto.categoria_nombre || "-"}</strong>
                   <span>{moto.anio}</span>
+                </div>
+                <div className="admin-row-actions">
+                  <button type="button" className="admin-row-action-btn edit" title="Editar" onClick={() => onMotoEdit?.(moto)}>
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                  </button>
+                  <button type="button" className="admin-row-action-btn delete" title="Eliminar" onClick={() => onMotoDelete?.(moto)}>
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+                  </button>
                 </div>
               </div>
             ))}
