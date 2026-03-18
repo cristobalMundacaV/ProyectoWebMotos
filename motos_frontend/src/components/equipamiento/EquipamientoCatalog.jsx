@@ -36,6 +36,13 @@ function getImageFileName(path) {
   return segments[segments.length - 1] || "";
 }
 
+function formatTitleCase(value) {
+  return String(value || "")
+    .trim()
+    .toLocaleLowerCase("es-CL")
+    .replace(/\b([a-záéíóúñü])/g, (match) => match.toLocaleUpperCase("es-CL"));
+}
+
 export default function EquipamientoCatalog({ variant = "accesorios" }) {
   const ITEMS_PER_PAGE = 16;
   const { title, breadcrumb, tipoApi, showModeloCompatible } = getConfig(variant);
@@ -362,11 +369,11 @@ export default function EquipamientoCatalog({ variant = "accesorios" }) {
       <div className="equip-breadcrumb">
         <Link to="/">Home</Link>
         <span>/</span>
-        <span>{breadcrumb}</span>
+        <span>{formatTitleCase(breadcrumb)}</span>
       </div>
 
       <header className="equip-header">
-        <h1>{title}</h1>
+        <h1>{formatTitleCase(title)}</h1>
         <div className="equip-sort-row">
           <p>{productosFiltrados.length} articulos</p>
           <label htmlFor="equip-order">Ordenar por</label>
@@ -495,7 +502,7 @@ export default function EquipamientoCatalog({ variant = "accesorios" }) {
                     </div>
                   )}
                 </div>
-                <h3>{producto.nombre}</h3>
+                <h3>{formatTitleCase(producto.nombre)}</h3>
                 <p>${Number(producto.precio).toLocaleString("es-CL")}</p>
                 <div className="equip-card-actions">
                   {isAdmin ? (
@@ -518,7 +525,7 @@ export default function EquipamientoCatalog({ variant = "accesorios" }) {
                 key={producto.id}
                 className="equip-card equip-card-clickable equip-card-link"
                 to={detailPath}
-                aria-label={`Ver detalles de ${producto.nombre}`}
+                aria-label={`Ver detalles de ${formatTitleCase(producto.nombre)}`}
               >
                 {cardContent}
               </Link>

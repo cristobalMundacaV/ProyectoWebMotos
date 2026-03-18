@@ -45,6 +45,7 @@ export default function ProductosPage({
   onAccesorioRiderDelete,
 }) {
   const PAGE_SIZE = 10;
+  const ACCESORIOS_RIDER_PAGE_SIZE = 7;
   const [tablePages, setTablePages] = useState({
     categoriasAccRider: 1,
     categoriasAccMotos: 1,
@@ -468,7 +469,11 @@ export default function ProductosPage({
   }
 
   if (activeSection === "accesorios_rider") {
-    const paginatedAccesoriosRider = paginateItems(accesoriosRiderAdmin, tablePages.accesoriosRider, PAGE_SIZE);
+    const paginatedAccesoriosRider = paginateItems(
+      accesoriosRiderAdmin,
+      tablePages.accesoriosRider,
+      ACCESORIOS_RIDER_PAGE_SIZE
+    );
 
     return (
       <section className="admin-content-grid lower">

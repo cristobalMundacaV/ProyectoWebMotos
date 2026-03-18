@@ -14,6 +14,9 @@ export default function CatalogoMotos() {
   const { motos, setMotos, loading, error } = useMotos();
   const [selectedMarcas, setSelectedMarcas] = useState([]);
   const [selectedCategorias, setSelectedCategorias] = useState([]);
+  const [cilindradaMin, setCilindradaMin] = useState("");
+  const [cilindradaMax, setCilindradaMax] = useState("");
+  const [order, setOrder] = useState("default");
   const [currentPage, setCurrentPage] = useState(1);
   const [isFiltersOpen, setIsFiltersOpen] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
@@ -151,6 +154,11 @@ export default function CatalogoMotos() {
     return match ? String(match.id) : "";
   }
 
+  function parseNumber(value) {
+    const parsed = Number(value);
+    return Number.isFinite(parsed) ? parsed : 0;
+  }
+
   function openEditModal(moto) {
     setEditError("");
     setEditImagePreview("");
@@ -284,13 +292,35 @@ export default function CatalogoMotos() {
   }, [motos]);
 
   const filteredMotos = useMemo(() => {
-    return motos.filter((moto) => {
+    let items = motos.filter((moto) => {
       const marcaMatch = selectedMarcas.length === 0 || selectedMarcas.includes(moto.marca_nombre || "");
       const categoriaMatch =
         selectedCategorias.length === 0 || selectedCategorias.includes(moto.categoria_nombre || "");
-      return marcaMatch && categoriaMatch;
+      const cilindrada = parseNumber(moto.cilindrada);
+      const minMatch = cilindradaMin === "" || cilindrada >= parseNumber(cilindradaMin);
+      const maxMatch = cilindradaMax === "" || cilindrada <= parseNumber(cilindradaMax);
+
+      return marcaMatch && categoriaMatch && minMatch && maxMatch;
     });
-  }, [motos, selectedMarcas, selectedCategorias]);
+
+    if (order === "precio-asc") {
+      items = [...items].sort((a, b) => parsePrecioEntero(a.precio) - parsePrecioEntero(b.precio));
+    }
+    if (order === "precio-desc") {
+      items = [...items].sort((a, b) => parsePrecioEntero(b.precio) - parsePrecioEntero(a.precio));
+    }
+    if (order === "cilindrada-asc") {
+      items = [...items].sort((a, b) => parseNumber(a.cilindrada) - parseNumber(b.cilindrada));
+    }
+    if (order === "cilindrada-desc") {
+      items = [...items].sort((a, b) => parseNumber(b.cilindrada) - parseNumber(a.cilindrada));
+    }
+    if (order === "anio-desc") {
+      items = [...items].sort((a, b) => parseNumber(b.anio) - parseNumber(a.anio));
+    }
+
+    return items;
+  }, [motos, selectedMarcas, selectedCategorias, cilindradaMin, cilindradaMax, order]);
 
   const totalPages = Math.max(1, Math.ceil(filteredMotos.length / ITEMS_PER_PAGE));
   const safePage = Math.min(currentPage, totalPages);
@@ -301,7 +331,7 @@ export default function CatalogoMotos() {
 
   useEffect(() => {
     setCurrentPage(1);
-  }, [selectedMarcas, selectedCategorias]);
+  }, [selectedMarcas, selectedCategorias, cilindradaMin, cilindradaMax, order]);
 
   useEffect(() => {
     if (currentPage > totalPages) setCurrentPage(totalPages);
@@ -322,11 +352,17 @@ export default function CatalogoMotos() {
   const previewSrc =
     editImagePreview ||
     (editingMoto?.imagen_principal ? buildMediaUrl(editingMoto.imagen_principal) : "");
-  const activeFiltersCount = selectedMarcas.length + selectedCategorias.length;
+  const activeFiltersCount =
+    selectedMarcas.length +
+    selectedCategorias.length +
+    (cilindradaMin !== "" ? 1 : 0) +
+    (cilindradaMax !== "" ? 1 : 0);
 
   const clearFilters = () => {
     setSelectedMarcas([]);
     setSelectedCategorias([]);
+    setCilindradaMin("");
+    setCilindradaMax("");
   };
 
   return (
@@ -341,15 +377,30 @@ export default function CatalogoMotos() {
             <p style={{ textAlign: "center" }}>{error}</p>
           ) : (
             <>
-              <div className="moto-catalog-mobile-tools">
+              <div className="moto-catalog-toolbar">
                 <p className="moto-results-meta">{filteredMotos.length} motos</p>
-                <button
-                  type="button"
-                  className="moto-filter-toggle-btn"
-                  onClick={() => setIsFiltersOpen((prev) => !prev)}
-                >
-                  Filtros {activeFiltersCount > 0 ? `(${activeFiltersCount})` : ""}
-                </button>
+
+                <div className="moto-catalog-toolbar-actions">
+                  <label className="moto-sort-label">
+                    <span>Ordenar por</span>
+                    <select value={order} onChange={(event) => setOrder(event.target.value)}>
+                      <option value="default">Destacados primero</option>
+                      <option value="precio-asc">Precio: menor a mayor</option>
+                      <option value="precio-desc">Precio: mayor a menor</option>
+                      <option value="cilindrada-asc">Cilindrada: menor a mayor</option>
+                      <option value="cilindrada-desc">Cilindrada: mayor a menor</option>
+                      <option value="anio-desc">Mas reciente</option>
+                    </select>
+                  </label>
+
+                  <button
+                    type="button"
+                    className="moto-filter-toggle-btn"
+                    onClick={() => setIsFiltersOpen((prev) => !prev)}
+                  >
+                    Filtros {activeFiltersCount > 0 ? `(${activeFiltersCount})` : ""}
+                  </button>
+                </div>
               </div>
 
               <button
@@ -399,6 +450,32 @@ export default function CatalogoMotos() {
                       </label>
                     ))}
                     {categorias.length === 0 && <p className="moto-filter-empty">Sin categorias</p>}
+                  </div>
+                </div>
+
+                <div className="moto-filter-block">
+                  <h3>Cilindrada</h3>
+                  <div className="moto-range-fields">
+                    <label>
+                      <span>Min cc</span>
+                      <input
+                        type="number"
+                        min="0"
+                        value={cilindradaMin}
+                        onChange={(event) => setCilindradaMin(event.target.value)}
+                        placeholder="Ej: 250"
+                      />
+                    </label>
+                    <label>
+                      <span>Max cc</span>
+                      <input
+                        type="number"
+                        min="0"
+                        value={cilindradaMax}
+                        onChange={(event) => setCilindradaMax(event.target.value)}
+                        placeholder="Ej: 650"
+                      />
+                    </label>
                   </div>
                 </div>
 

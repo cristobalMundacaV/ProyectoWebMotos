@@ -27,7 +27,6 @@
 }
 
 .equip-header h1 {
-  text-transform: uppercase;
   font-size: clamp(1.55rem, 3vw, 2.6rem);
   letter-spacing: 0.02em;
 }
@@ -248,7 +247,6 @@
 
 .equip-card h3 {
   font-size: 0.95rem;
-  text-transform: uppercase;
   line-height: 1.2;
   margin: 10px 12px 4px;
   line-clamp: 2;

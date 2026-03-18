@@ -185,7 +185,7 @@ export default function Mantenimiento() {
       ["matricula", "Matricula"],
       ["marca", "Marca"],
       ["modelo", "Modelo"],
-      ["anio", "A\u00f1o"],
+      ["anio", "Años"],
       ["kilometraje_actual", "Kilometraje actual"],
       ["fecha_agendada", "Dia de mantencion"],
       ["hora_agendada", "Hora de mantencion"],
@@ -260,7 +260,7 @@ export default function Mantenimiento() {
           <div className="mantencion-head">
             <p className="mantencion-kicker">Servicio Tecnico Delanoe Motos</p>
             <h1>Agenda tu mantenimiento</h1>
-            <p>Selecciona en el calendario un dia y hora. Verde disponible, gris ocupado.</p>
+            <p>Selecciona en el calendario un dia y hora.</p>
           </div>
 
           {toast.message && (
@@ -315,9 +315,9 @@ export default function Mantenimiento() {
               </label>
 
               <label>
-                A\u00f1o
+                Años
                 <select name="anio" value={form.anio} onChange={handleChange} required>
-                  <option value="">Selecciona un a\u00f1o</option>
+                  <option value="">Selecciona años</option>
                   {YEAR_OPTIONS.map((year) => (
                     <option key={year} value={year}>
                       {year}

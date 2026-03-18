@@ -40,7 +40,8 @@ export default function MotosPage({
   onCategoriaMotoDelete,
 }) {
   const PAGE_SIZE = 10;
-  const RECENT_MOTOS_PAGE_SIZE = 8;
+  const MODELOS_PAGE_SIZE = 8;
+  const RECENT_MOTOS_PAGE_SIZE = 7;
   const [tablePages, setTablePages] = useState({
     marcas: 1,
     modelosMoto: 1,
@@ -225,7 +226,7 @@ export default function MotosPage({
   }
 
   if (activeSection === "modelos_motos") {
-    const paginatedModelosMoto = paginateItems(modelosMotosAdmin, tablePages.modelosMoto, PAGE_SIZE);
+    const paginatedModelosMoto = paginateItems(modelosMotosAdmin, tablePages.modelosMoto, MODELOS_PAGE_SIZE);
 
     return (
       <section className="admin-content-grid lower">
