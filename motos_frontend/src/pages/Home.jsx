@@ -12,10 +12,25 @@ export default function Home() {
   const location = useLocation();
 
   useEffect(() => {
-    const hashId = location.hash ? location.hash.replace("#", "") : "";
-    const storedId = sessionStorage.getItem("homeScrollTarget") || "";
-    const id = hashId || storedId;
-    if (!id) return;
+    const raw = sessionStorage.getItem("homeScrollTarget");
+    if (!raw) return;
+
+    let payload = null;
+    try {
+      payload = JSON.parse(raw);
+    } catch {
+      sessionStorage.removeItem("homeScrollTarget");
+      return;
+    }
+
+    const id = payload?.id;
+    const ts = Number(payload?.ts || 0);
+    const isFresh = Date.now() - ts < 7000;
+    const isValidTarget = id === "inicio" || id === "contacto";
+    if (!isFresh || !isValidTarget) {
+      sessionStorage.removeItem("homeScrollTarget");
+      return;
+    }
 
     const timers = [];
     let attempts = 0;
@@ -44,10 +59,7 @@ export default function Home() {
     };
 
     requestAnimationFrame(tick);
-
-    if (storedId) {
-      sessionStorage.removeItem("homeScrollTarget");
-    }
+    sessionStorage.removeItem("homeScrollTarget");
 
     return () => timers.forEach((timer) => window.clearTimeout(timer));
   }, [location.pathname, location.hash]);

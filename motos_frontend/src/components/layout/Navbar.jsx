@@ -30,6 +30,10 @@ export default function Navbar() {
     navigate("/");
   }
 
+  function rememberHomeScrollTarget(target) {
+    sessionStorage.setItem("homeScrollTarget", JSON.stringify({ id: target, ts: Date.now() }));
+  }
+
   return (
     <header className="navbar">
       <div className="navbar-inner">
@@ -41,7 +45,7 @@ export default function Navbar() {
           <Link
             to={{ pathname: "/", hash: "#inicio" }}
             onClick={() => {
-              sessionStorage.setItem("homeScrollTarget", "inicio");
+              rememberHomeScrollTarget("inicio");
               setIsMenuOpen(false);
             }}
           >
@@ -59,7 +63,7 @@ export default function Navbar() {
           <Link
             to={{ pathname: "/", hash: "#contacto" }}
             onClick={() => {
-              sessionStorage.setItem("homeScrollTarget", "contacto");
+              rememberHomeScrollTarget("contacto");
               setIsMenuOpen(false);
             }}
           >
