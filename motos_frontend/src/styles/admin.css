@@ -6,6 +6,7 @@
     linear-gradient(180deg, #f4f4f4 0%, #ececec 100%);
   color: #101010;
   font-family: "Segoe UI", "Inter", system-ui, -apple-system, sans-serif;
+  overflow-x: clip;
 }
 
 @media (min-width: 1024px) {
@@ -27,6 +28,27 @@
   background: rgba(15, 15, 15, 0.94);
   backdrop-filter: blur(10px);
   border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.admin-mobile-menu-btn {
+  display: none;
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.26);
+  background: rgba(255, 255, 255, 0.06);
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 5px;
+  cursor: pointer;
+}
+
+.admin-mobile-menu-btn span {
+  width: 20px;
+  height: 2px;
+  background: #fff;
+  border-radius: 4px;
 }
 
 .admin-brand {
@@ -78,6 +100,7 @@
   grid-template-columns: 340px minmax(0, 1fr);
   gap: 22px;
   padding: 24px;
+  position: relative;
 }
 
 .admin-toast-stack {
@@ -166,6 +189,15 @@
   display: flex;
   flex-direction: column;
   gap: 18px;
+  min-width: 0;
+}
+
+.admin-sidebar-drawer {
+  min-width: 0;
+}
+
+.admin-sidebar-backdrop {
+  display: none;
 }
 
 .admin-sidebar-card,
@@ -332,6 +364,7 @@
 .admin-main {
   display: grid;
   gap: 14px;
+  min-width: 0;
 }
 
 .admin-dashboard-stack {
@@ -487,6 +520,10 @@
   grid-template-columns: minmax(0, 1.3fr) minmax(320px, 0.8fr);
 }
 
+.admin-content-grid.admin-content-grid-mantenciones {
+  grid-template-columns: minmax(0, 1fr);
+}
+
 .admin-panel-card {
   padding: 24px;
   height: fit-content;
@@ -521,6 +558,7 @@
 
 .admin-table {
   display: grid;
+  min-width: 0;
 }
 
 .admin-table-row {
@@ -1025,6 +1063,323 @@
   gap: 10px;
 }
 
+.admin-mantencion-row {
+  grid-template-columns: minmax(165px, 1fr) minmax(165px, 1fr) minmax(220px, 1.15fr) minmax(220px, 1.15fr) minmax(170px, 0.9fr);
+  gap: 28px;
+  align-items: center;
+}
+
+.admin-mantencion-solicitud-row {
+  grid-template-columns: minmax(220px, 1.2fr) minmax(120px, 0.65fr) minmax(240px, 1.3fr) minmax(120px, 0.65fr) minmax(130px, 0.7fr);
+}
+
+.admin-mantencion-solicitud-row .admin-moto-table-cell {
+  justify-items: center;
+  text-align: center;
+}
+
+.admin-mantencion-controls {
+  display: grid;
+  gap: 14px;
+}
+
+.admin-mantencion-controls label {
+  display: grid;
+  gap: 6px;
+  font-size: 0.83rem;
+  font-weight: 700;
+  color: #4b5563;
+}
+
+.admin-mantencion-controls select,
+.admin-mantencion-controls input {
+  min-height: 36px;
+  border-radius: 8px;
+  border: 1px solid #d1d5db;
+  padding: 7px 10px;
+  font: inherit;
+}
+
+.admin-mantencion-year {
+  color: #6b7280 !important;
+  font-size: 0.86rem !important;
+  font-weight: 700;
+}
+
+.admin-mantencion-persona .admin-mantencion-top-muted {
+  color: #6b7280 !important;
+  font-size: 0.84rem !important;
+  font-weight: 600;
+}
+
+.admin-mantencion-persona .admin-mantencion-bottom-strong {
+  font-size: 1.03rem;
+  font-weight: 800;
+  color: #0f172a;
+}
+
+.admin-mantencion-control-cell {
+  min-width: 0;
+}
+
+.admin-mantencion-estado-select {
+  font-weight: 700;
+}
+
+.admin-mantencion-estado-select option {
+  background: #ffffff;
+  color: #111827;
+}
+
+.admin-mantencion-estado-select.estado-en-revision {
+  background: #eaf2ff;
+  border-color: #8fb5ff;
+  color: #1d4ed8;
+}
+
+.admin-mantencion-estado-select.estado-en-proceso {
+  background: #fff4db;
+  border-color: #f0bf67;
+  color: #9a6700;
+}
+
+.admin-mantencion-estado-select.estado-esperando-repuestos {
+  background: #fef3c7;
+  border-color: #f59e0b;
+  color: #92400e;
+}
+
+.admin-mantencion-estado-select.estado-finalizada {
+  background: #dcfce7;
+  border-color: #4ade80;
+  color: #166534;
+}
+
+.admin-mantencion-estado-select.estado-entregada {
+  background: #d1fae5;
+  border-color: #10b981;
+  color: #065f46;
+}
+
+.admin-mantencion-estado-select.estado-cancelada {
+  background: #fee2e2;
+  border-color: #f87171;
+  color: #991b1b;
+}
+
+.admin-mantencion-actions {
+  display: grid;
+  justify-items: stretch;
+  align-content: start;
+  gap: 10px;
+  padding-top: 14px;
+}
+
+.admin-mantencion-status-col {
+  align-content: center;
+  justify-items: stretch;
+}
+
+.admin-mantencion-ingreso strong {
+  color: #6b7280;
+  font-size: 0.82rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+.admin-mantencion-ingreso span {
+  color: #111827;
+  font-size: 1.1rem;
+  font-weight: 800;
+}
+
+.admin-mantencion-cliente {
+  color: #6b7280 !important;
+  font-size: 0.88rem !important;
+  font-weight: 600;
+}
+
+.admin-status-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: #334155;
+  background: #e5e7eb;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+.admin-status-pill.status-ingresada {
+  background: #fff2cc;
+  color: #854d0e;
+}
+
+.admin-mantencion-value {
+  font-size: 0.92rem;
+  font-weight: 700;
+  color: #0f172a;
+  text-align: right;
+}
+
+.admin-mantencion-action-btn {
+  width: 100%;
+  min-height: 38px;
+  padding: 8px 14px;
+  min-width: 140px;
+}
+
+.admin-mantencion-accept-btn {
+  background: #16a34a;
+}
+
+.admin-mantencion-accept-btn:hover {
+  background: #15803d;
+}
+
+.admin-mantencion-save-btn {
+  background: #16a34a;
+  border: 1px solid #15803d;
+  box-shadow: 0 6px 16px rgba(22, 163, 74, 0.24);
+}
+
+.admin-mantencion-save-btn:hover {
+  background: #15803d;
+  border-color: #166534;
+}
+
+.admin-mantencion-save-btn:disabled {
+  background: #86efac;
+  border-color: #4ade80;
+  box-shadow: none;
+}
+
+.admin-content-grid.admin-content-grid-mantenciones-fichas .admin-panel-card {
+  width: 100%;
+  min-height: calc(100vh - 170px);
+  min-width: 0;
+}
+
+.admin-mantencion-fichas-layout {
+  display: grid;
+  grid-template-columns: minmax(260px, 0.8fr) minmax(0, 1.6fr);
+  gap: 18px;
+  min-height: calc(100vh - 250px);
+  align-items: stretch;
+  min-width: 0;
+}
+
+.admin-mantencion-fichas-list {
+  display: grid;
+  gap: 10px;
+  align-content: start;
+  max-height: 68vh;
+  overflow: auto;
+  padding-right: 4px;
+}
+
+.admin-mantencion-ficha-item {
+  border: 1px solid #d7dce3;
+  border-radius: 12px;
+  background: #fff;
+  padding: 10px 12px;
+  display: grid;
+  gap: 4px;
+  text-align: left;
+  cursor: pointer;
+}
+
+.admin-mantencion-ficha-item strong {
+  font-size: 0.97rem;
+}
+
+.admin-mantencion-ficha-item span,
+.admin-mantencion-ficha-item small {
+  color: #677183;
+}
+
+.admin-mantencion-ficha-item.active {
+  border-color: #0f6e6e;
+  box-shadow: 0 0 0 2px rgba(15, 110, 110, 0.15);
+}
+
+.admin-mantencion-ficha-detail {
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  background: #fff;
+  padding: 16px;
+  min-height: 100%;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.admin-mantencion-ficha-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  margin-bottom: 14px;
+}
+
+.admin-mantencion-ficha-head h3 {
+  margin: 0;
+  font-size: 1.28rem;
+}
+
+.admin-mantencion-ficha-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.admin-mantencion-ficha-grid div {
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  background: #f9fafb;
+  padding: 10px;
+  display: grid;
+  gap: 5px;
+}
+
+.admin-mantencion-ficha-grid span {
+  color: #64748b;
+  font-size: 0.8rem;
+}
+
+.admin-mantencion-ficha-grid strong {
+  font-size: 1rem;
+  color: #111827;
+}
+
+.admin-mantencion-ficha-blocks {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.admin-mantencion-ficha-blocks article {
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  background: #fff;
+  padding: 10px 12px;
+}
+
+.admin-mantencion-ficha-blocks h4 {
+  margin: 0 0 8px;
+  font-size: 0.95rem;
+}
+
+.admin-mantencion-ficha-blocks p {
+  margin: 0;
+  color: #4b5563;
+  line-height: 1.45;
+}
+
 @media (max-width: 1180px) {
   .admin-summary-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -1048,16 +1403,128 @@
   .admin-content-grid.lower {
     grid-template-columns: 1fr;
   }
+
+  .admin-mantencion-row {
+    grid-template-columns:
+      minmax(170px, 1fr)
+      minmax(180px, 1fr)
+      minmax(210px, 1fr)
+      minmax(210px, 1fr);
+    gap: 14px 20px;
+  }
+
+  .admin-mantencion-row .admin-mantencion-actions {
+    grid-column: 1 / -1;
+    padding-top: 6px;
+    justify-items: flex-end;
+  }
+
+  .admin-mantencion-row .admin-mantencion-action-btn {
+    width: min(220px, 100%);
+  }
+
+  .admin-mantencion-solicitud-row {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px 18px;
+  }
+
+  .admin-mantencion-solicitud-row .admin-mantencion-actions {
+    grid-column: 1 / -1;
+    justify-items: stretch;
+  }
 }
 
 @media (max-width: 860px) {
-  .admin-topbar,
-  .admin-layout {
-    padding: 18px;
+  .admin-topbar {
+    padding: 14px 16px;
+    display: grid;
+    grid-template-columns: auto 1fr;
+    align-items: center;
+    gap: 10px 12px;
   }
 
   .admin-layout {
+    padding: 14px;
     grid-template-columns: 1fr;
+  }
+
+  .admin-mobile-menu-btn {
+    display: inline-flex;
+    order: 1;
+  }
+
+  .admin-brand {
+    order: 2;
+    min-width: 0;
+    gap: 10px;
+  }
+
+  .admin-brand-logo {
+    height: 30px;
+  }
+
+  .admin-brand p {
+    font-size: 0.92rem;
+  }
+
+  .admin-brand span {
+    font-size: 0.75rem;
+  }
+
+  .admin-topbar-actions {
+    order: 3;
+    grid-column: 1 / -1;
+    width: 100%;
+    justify-content: space-between;
+    gap: 10px;
+  }
+
+  .admin-topbar-link {
+    font-size: 0.9rem;
+  }
+
+  .admin-topbar-actions .admin-primary-action {
+    padding: 9px 14px;
+    font-size: 0.88rem;
+  }
+
+  .admin-sidebar-drawer {
+    position: fixed;
+    inset: 0 auto 0 0;
+    width: min(86vw, 320px);
+    z-index: 70;
+    transform: translateX(-105%);
+    transition: transform 220ms ease;
+    padding: 14px 10px 14px 14px;
+    pointer-events: none;
+  }
+
+  .admin-sidebar-drawer.open {
+    transform: translateX(0);
+    pointer-events: auto;
+  }
+
+  .admin-sidebar-drawer .admin-sidebar {
+    height: calc(100vh - 12px);
+    overflow: auto;
+  }
+
+  .admin-sidebar-drawer .admin-sidebar-card {
+    padding: 16px;
+    border-radius: 18px;
+  }
+
+  .admin-sidebar-backdrop {
+    display: block;
+    position: fixed;
+    inset: 0;
+    z-index: 60;
+    border: 0;
+    background: rgba(15, 23, 42, 0.42);
+  }
+
+  .admin-main {
+    gap: 12px;
   }
 
   .admin-hero-card {
@@ -1067,17 +1534,80 @@
   .admin-actions-grid {
     grid-template-columns: 1fr;
   }
+
+  .admin-panel-card {
+    padding: 16px;
+    border-radius: 18px;
+  }
+
+  .admin-card-header {
+    align-items: flex-start;
+    gap: 12px;
+    margin-bottom: 14px;
+    flex-wrap: wrap;
+  }
+
+  .admin-card-header h2 {
+    font-size: 1.18rem;
+  }
+
+  .admin-mantencion-row {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+    padding: 12px 0;
+  }
+
+  .admin-mantencion-row .admin-moto-table-cell {
+    width: 100%;
+  }
+
+  .admin-mantencion-control-cell label,
+  .admin-mantencion-control-cell input,
+  .admin-mantencion-control-cell select {
+    width: 100%;
+  }
+
+  .admin-mantencion-row .admin-mantencion-actions {
+    grid-column: 1 / -1;
+    justify-items: stretch;
+  }
+
+  .admin-mantencion-row .admin-mantencion-action-btn {
+    width: 100%;
+  }
+
+  .admin-mantencion-solicitud-row {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-mantencion-solicitud-row .admin-moto-table-cell {
+    justify-items: start;
+    text-align: left;
+  }
+
+  .admin-content-grid.admin-content-grid-mantenciones-fichas .admin-panel-card,
+  .admin-mantencion-fichas-layout {
+    min-height: auto;
+  }
+
+  .admin-mantencion-fichas-layout {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .admin-mantencion-fichas-list {
+    max-height: 220px;
+  }
 }
 
 @media (max-width: 640px) {
   .admin-topbar {
-    flex-direction: column;
-    align-items: flex-start;
+    grid-template-columns: auto 1fr;
+    gap: 10px;
   }
 
   .admin-topbar-actions {
-    width: 100%;
-    justify-content: space-between;
+    flex-wrap: wrap;
   }
 
   .admin-summary-grid {
@@ -1086,6 +1616,36 @@
 
   .admin-moto-table-row {
     grid-template-columns: 1fr;
+  }
+
+  .admin-mantencion-row {
+    grid-template-columns: 1fr;
+    align-items: stretch;
+    gap: 10px;
+  }
+
+  .admin-mantencion-solicitud-row {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-mantencion-actions {
+    justify-items: stretch;
+    padding-top: 0;
+  }
+
+  .admin-mantencion-value {
+    text-align: left;
+  }
+
+  .admin-mantencion-fichas-layout,
+  .admin-mantencion-ficha-grid,
+  .admin-mantencion-ficha-blocks {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-content-grid.admin-content-grid-mantenciones-fichas .admin-panel-card,
+  .admin-mantencion-fichas-layout {
+    min-height: auto;
   }
 
   .admin-moto-form {

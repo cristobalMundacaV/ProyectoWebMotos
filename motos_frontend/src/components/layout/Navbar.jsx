@@ -60,6 +60,9 @@ export default function Navbar() {
           <Link to="/equipamiento/accesorios" onClick={() => setIsMenuOpen(false)}>
             Accesorios Motos
           </Link>
+          <Link to="/mantenimiento" onClick={() => setIsMenuOpen(false)}>
+            Mantenimiento
+          </Link>
           <Link
             to={{ pathname: "/", hash: "#contacto" }}
             onClick={() => {

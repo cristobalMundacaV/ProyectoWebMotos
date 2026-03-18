@@ -60,6 +60,14 @@ function SidebarIcon({ kind }) {
     );
   }
 
+  if (kind === "mantenciones") {
+    return (
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M14.7 6.3a4.2 4.2 0 0 0 3.5 5.9l-7.6 7.6a2.2 2.2 0 0 1-3.1 0l-.3-.3a2.2 2.2 0 0 1 0-3.1l7.6-7.6a4.2 4.2 0 0 0-.1-5.8z" />
+      </svg>
+    );
+  }
+
   return (
     <svg viewBox="0 0 24 24" aria-hidden="true">
       <path d="M3 5h18v4H3zM3 10h18v4H3zM3 15h18v4H3z" />
@@ -115,6 +123,15 @@ const navigationGroups = [
     ],
   },
   {
+    label: "Mantenimiento",
+    icon: "mantenciones",
+    items: [
+      { label: "Solicitudes", value: "mantenciones_solicitudes" },
+      { label: "En curso", value: "mantenciones_en_curso" },
+      { label: "Fichas", value: "mantenciones_fichas" },
+    ],
+  },
+  {
     label: "Configuracion",
     icon: "categorias",
     items: [{ label: "Contacto y datos del sitio", value: "contacto" }],
@@ -126,7 +143,7 @@ function getGroupLabelBySection(section) {
   return group?.label || navigationGroups[0].label;
 }
 
-export default function AdminSidebar({ activeSection, onChangeSection }) {
+export default function AdminSidebar({ activeSection, onChangeSection, className = "", onNavigate }) {
   const activeGroupLabel = useMemo(() => getGroupLabelBySection(activeSection), [activeSection]);
   const [expandedGroup, setExpandedGroup] = useState(activeGroupLabel);
 
@@ -141,10 +158,11 @@ export default function AdminSidebar({ activeSection, onChangeSection }) {
   function handleSelectSection(groupLabel, sectionValue) {
     setExpandedGroup(groupLabel);
     onChangeSection(sectionValue);
+    onNavigate?.();
   }
 
   return (
-    <aside className="admin-sidebar">
+    <aside className={`admin-sidebar ${className}`.trim()}>
       <div className="admin-sidebar-card">
         <p className="admin-sidebar-eyebrow">Navegacion</p>
         <nav className="admin-sidebar-nav">

@@ -4,6 +4,7 @@ import MotoDetalle from "../pages/MotoDetalle";
 import CatalogoMotos from "../pages/CatalogoMotos";
 import CatalogoIndumentaria from "../pages/CatalogoIndumentaria";
 import CatalogoAccesorios from "../pages/CatalogoAccesorios";
+import Mantenimiento from "../pages/Mantenimiento";
 import AdminPanel from "../pages/AdminPanel";
 import ProductoDetalle from "../pages/ProductoDetalle";
 import Login from "../pages/Login";
@@ -51,6 +52,7 @@ export default function AppRouter() {
           element={<CatalogoIndumentaria />}
         />
         <Route path="/equipamiento/accesorios" element={<CatalogoAccesorios />} />
+        <Route path="/mantenimiento" element={<Mantenimiento />} />
         <Route path="/producto/:slug" element={<ProductoDetalle />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>

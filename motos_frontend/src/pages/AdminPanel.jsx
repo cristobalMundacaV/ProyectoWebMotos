@@ -30,6 +30,8 @@ import ResumenPage from "../admin/dashboard/pages/ResumenPage";
 import MotosPage from "../admin/motos/pages/MotosPage";
 import ProductosPage from "../admin/productos/pages/ProductosPage";
 import ConfiguracionPage from "../admin/configuracion/pages/ConfiguracionPage";
+import MantencionesPage from "../admin/mantenciones/pages/MantencionesPage";
+import { getMantencionesAdmin, updateMantencionAdmin } from "../admin/mantenciones/services/mantencionesAdminService";
 import "../styles/admin.css";
 
 const initialMotoForm = {
@@ -167,6 +169,7 @@ function translateBackendMessage(message) {
 export default function AdminPanel() {
   const navigate = useNavigate();
   const [activeSection, setActiveSection] = useState("resumen");
+  const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
   const [dashboard, setDashboard] = useState({
     motos: [],
     productosIndumentaria: [],
@@ -211,6 +214,9 @@ export default function AdminPanel() {
   const [accesorioRiderSaving, setAccesorioRiderSaving] = useState(false);
   const [contactoForm, setContactoForm] = useState(initialContactoForm);
   const [contactoSaving, setContactoSaving] = useState(false);
+  const [mantenciones, setMantenciones] = useState([]);
+  const [mantencionesLoading, setMantencionesLoading] = useState(true);
+  const [mantencionSavingById, setMantencionSavingById] = useState({});
   const [createUserForm, setCreateUserForm] = useState(initialCreateUserForm);
   const [createUserSaving, setCreateUserSaving] = useState(false);
   const [adminUsers, setAdminUsers] = useState([]);
@@ -248,6 +254,11 @@ export default function AdminPanel() {
     setAdminUsers(users);
   }
 
+  async function fetchMantencionesList() {
+    const rows = await getMantencionesAdmin();
+    setMantenciones(rows);
+  }
+
   useEffect(() => {
     let isMounted = true;
 
@@ -283,9 +294,13 @@ export default function AdminPanel() {
         await fetchUsersList().catch(() => {
           setAdminUsers([]);
         });
+        await fetchMantencionesList().catch(() => {
+          setMantenciones([]);
+        });
       } finally {
         if (isMounted) setLoading(false);
         if (isMounted) setAdminUsersLoading(false);
+        if (isMounted) setMantencionesLoading(false);
       }
     }
 
@@ -300,6 +315,49 @@ export default function AdminPanel() {
     if (activeSection === "lista_usuarios" || activeSection === "crear_usuario") {
       setAdminUsersPage(1);
     }
+  }, [activeSection]);
+
+  useEffect(() => {
+    setIsMobileSidebarOpen(false);
+  }, [activeSection]);
+
+  useEffect(() => {
+    function handleResize() {
+      if (window.innerWidth > 860) {
+        setIsMobileSidebarOpen(false);
+      }
+    }
+
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
+  useEffect(() => {
+    if (
+      activeSection !== "mantenciones_solicitudes" &&
+      activeSection !== "mantenciones_en_curso" &&
+      activeSection !== "mantenciones_fichas"
+    ) return;
+    let isMounted = true;
+    setMantencionesLoading(true);
+
+    getMantencionesAdmin()
+      .then((rows) => {
+        if (!isMounted) return;
+        setMantenciones(rows);
+      })
+      .catch((error) => {
+        if (!isMounted) return;
+        setMantenciones([]);
+        pushToast(getErrorText(error, "No se pudo cargar la lista de mantenciones."), "error");
+      })
+      .finally(() => {
+        if (isMounted) setMantencionesLoading(false);
+      });
+
+    return () => {
+      isMounted = false;
+    };
   }, [activeSection]);
 
   useEffect(() => {
@@ -751,6 +809,43 @@ export default function AdminPanel() {
     }
   }
 
+  async function handleRefreshMantenciones() {
+    setMantencionesLoading(true);
+    try {
+      await fetchMantencionesList();
+    } catch (error) {
+      pushToast(getErrorText(error, "No se pudo cargar la lista de mantenciones."), "error");
+    } finally {
+      setMantencionesLoading(false);
+    }
+  }
+
+  async function handleAcceptMantencionSolicitud(mantencionId) {
+    setMantencionSavingById((prev) => ({ ...prev, [mantencionId]: true }));
+    try {
+      const updated = await updateMantencionAdmin(mantencionId, { estado: "en_revision" });
+      setMantenciones((prev) => prev.map((item) => (item.id === mantencionId ? updated : item)));
+      pushToast("Solicitud aceptada. La mantencion paso a en revision.", "success");
+    } catch (error) {
+      pushToast(getErrorText(error, "No se pudo aceptar la solicitud de mantencion."), "error");
+    } finally {
+      setMantencionSavingById((prev) => ({ ...prev, [mantencionId]: false }));
+    }
+  }
+
+  async function handleUpdateMantencion(mantencionId, payload) {
+    setMantencionSavingById((prev) => ({ ...prev, [mantencionId]: true }));
+    try {
+      const updated = await updateMantencionAdmin(mantencionId, payload);
+      setMantenciones((prev) => prev.map((item) => (item.id === mantencionId ? updated : item)));
+      pushToast("Mantencion actualizada correctamente.", "success");
+    } catch (error) {
+      pushToast(getErrorText(error, "No se pudo actualizar la mantencion."), "error");
+    } finally {
+      setMantencionSavingById((prev) => ({ ...prev, [mantencionId]: false }));
+    }
+  }
+
   async function handleMotoSubmit(event) {
     event.preventDefault();
     if (!validateFormWithToast(event.currentTarget)) return;
@@ -1055,10 +1150,29 @@ export default function AdminPanel() {
   return (
     <div className="admin-shell">
       <AdminToastStack toasts={toasts} onDismiss={dismissToast} />
-      <AdminTopbar onLogout={handleLogout} />
+      <AdminTopbar
+        onLogout={handleLogout}
+        onToggleSidebar={() => setIsMobileSidebarOpen((prev) => !prev)}
+        isSidebarOpen={isMobileSidebarOpen}
+      />
 
       <div className="admin-layout">
-        <AdminSidebar activeSection={activeSection} onChangeSection={setActiveSection} />
+        <div className={isMobileSidebarOpen ? "admin-sidebar-drawer open" : "admin-sidebar-drawer"}>
+          <AdminSidebar
+            activeSection={activeSection}
+            onChangeSection={setActiveSection}
+            onNavigate={() => setIsMobileSidebarOpen(false)}
+          />
+        </div>
+
+        {isMobileSidebarOpen && (
+          <button
+            type="button"
+            className="admin-sidebar-backdrop"
+            aria-label="Cerrar menu"
+            onClick={() => setIsMobileSidebarOpen(false)}
+          />
+        )}
 
         <main className="admin-main">
           {activeSection === "resumen" && (
@@ -1145,6 +1259,16 @@ export default function AdminPanel() {
             contactoSaving={contactoSaving}
             onContactoInputChange={handleContactoInputChange}
             onContactoSubmit={handleContactoSubmit}
+          />
+
+          <MantencionesPage
+            activeSection={activeSection}
+            loading={mantencionesLoading}
+            mantenciones={mantenciones}
+            savingById={mantencionSavingById}
+            onRefresh={handleRefreshMantenciones}
+            onAcceptSolicitud={handleAcceptMantencionSolicitud}
+            onUpdateMantencion={handleUpdateMantencion}
           />
 
           {activeSection === "lista_usuarios" && (
@@ -1362,6 +1486,3 @@ export default function AdminPanel() {
     </div>
   );
 }
-
-
-

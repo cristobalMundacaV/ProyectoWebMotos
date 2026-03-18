@@ -1,0 +1,164 @@
+.mantencion-page {
+  min-height: 86vh;
+  padding: 96px 16px 56px;
+  background: #f6f6f6;
+}
+
+.mantencion-container {
+  width: min(980px, 100%);
+  margin: 0 auto;
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 16px;
+  padding: 22px;
+  box-shadow: 0 12px 35px rgba(0, 0, 0, 0.08);
+}
+
+.mantencion-head {
+  margin-bottom: 20px;
+}
+
+.mantencion-kicker {
+  color: #c10a0a;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-size: 0.78rem;
+  font-weight: 700;
+  margin: 0 0 8px;
+}
+
+.mantencion-head h1 {
+  margin: 0;
+  font-size: clamp(1.65rem, 3.4vw, 2.45rem);
+  line-height: 1.1;
+}
+
+.mantencion-head p {
+  margin: 10px 0 0;
+  color: #4b5563;
+  line-height: 1.5;
+}
+
+.mantencion-toast {
+  position: fixed;
+  top: 88px;
+  right: 16px;
+  z-index: 1300;
+  width: min(420px, calc(100vw - 32px));
+  border-radius: 10px;
+  padding: 12px 14px;
+  font-weight: 700;
+  font-size: 0.95rem;
+  box-shadow: 0 14px 30px rgba(0, 0, 0, 0.2);
+}
+
+.mantencion-toast-success {
+  background: #eafaf0;
+  color: #166534;
+  border: 1px solid #9ad6b0;
+}
+
+.mantencion-toast-error {
+  background: #feecec;
+  color: #9f1239;
+  border: 1px solid #f0a6af;
+}
+
+.mantencion-form {
+  display: grid;
+  gap: 14px;
+}
+
+.mantencion-form h2 {
+  margin: 8px 0 0;
+  font-size: 1.18rem;
+  line-height: 1.2;
+}
+
+.mantencion-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12px;
+}
+
+.mantencion-form label {
+  display: grid;
+  gap: 7px;
+  color: #111827;
+  font-size: 0.92rem;
+  font-weight: 600;
+}
+
+.mantencion-form input,
+.mantencion-form select,
+.mantencion-form textarea {
+  width: 100%;
+  border: 1px solid #d1d5db;
+  border-radius: 10px;
+  min-height: 42px;
+  padding: 10px 12px;
+  font: inherit;
+  color: #0f172a;
+  background: #fff;
+}
+
+.mantencion-form textarea {
+  min-height: 104px;
+  resize: vertical;
+}
+
+.mantencion-form input:focus,
+.mantencion-form select:focus,
+.mantencion-form textarea:focus {
+  border-color: #e60000;
+  outline: 2px solid rgba(230, 0, 0, 0.15);
+  outline-offset: 0;
+}
+
+.mantencion-submit-btn {
+  border: none;
+  border-radius: 10px;
+  min-height: 46px;
+  padding: 0 18px;
+  font-size: 1rem;
+  font-weight: 800;
+  color: #fff;
+  background: #e60000;
+  cursor: pointer;
+}
+
+.mantencion-submit-btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.62;
+}
+
+@media (min-width: 760px) {
+  .mantencion-page {
+    padding-top: 106px;
+  }
+
+  .mantencion-container {
+    padding: 28px;
+  }
+
+  .mantencion-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .mantencion-field-full {
+    grid-column: 1 / -1;
+  }
+
+  .mantencion-submit-btn {
+    justify-self: flex-start;
+    min-width: 260px;
+  }
+}
+
+@media (max-width: 759px) {
+  .mantencion-toast {
+    top: 78px;
+    right: 10px;
+    width: calc(100vw - 20px);
+  }
+}

@@ -1,7 +1,10 @@
-from rest_framework import viewsets
+from rest_framework import status, viewsets
+from rest_framework.permissions import AllowAny
+from rest_framework.response import Response
+from rest_framework.views import APIView
 
 from .models import Mantencion, VehiculoCliente
-from .serializers import MantencionSerializer, VehiculoClienteSerializer
+from .serializers import AgendarMantencionSerializer, MantencionSerializer, VehiculoClienteSerializer
 
 
 class VehiculoClienteViewSet(viewsets.ModelViewSet):
@@ -18,3 +21,15 @@ class MantencionViewSet(viewsets.ModelViewSet):
             .all()
             .order_by("-fecha_ingreso", "-created_at")
         )
+
+
+class AgendarMantencionAPIView(APIView):
+    authentication_classes = []
+    permission_classes = [AllowAny]
+
+    def post(self, request):
+        serializer = AgendarMantencionSerializer(data=request.data, context={"request": request})
+        serializer.is_valid(raise_exception=True)
+        mantencion = serializer.save()
+        response_serializer = MantencionSerializer(mantencion, context={"request": request})
+        return Response(response_serializer.data, status=status.HTTP_201_CREATED)
