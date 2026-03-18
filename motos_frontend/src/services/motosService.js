@@ -3,7 +3,10 @@ import api from "./api";
 /** Retorna el listado completo de motos desde el backend */
 export async function getMotos() {
   const res = await api.get("/api/motos/");
-  return res.data;
+  const payload = res.data;
+  if (Array.isArray(payload)) return payload;
+  if (Array.isArray(payload?.results)) return payload.results;
+  return [];
 }
 
 export async function getMotoAdminMeta() {
@@ -80,5 +83,6 @@ export async function deleteMarca(id) {
  */
 export async function getMotoBySlug(slug) {
   const motos = await getMotos();
-  return motos.find((m) => m.slug === slug) || null;
+  const listado = Array.isArray(motos) ? motos : [];
+  return listado.find((m) => m.slug === slug) || null;
 }
