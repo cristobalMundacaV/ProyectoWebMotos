@@ -64,6 +64,12 @@ function sanitizeIntegerInput(value) {
   return String(value ?? "").replace(/[^\d]/g, "");
 }
 
+function toPositiveInteger(value, fallback) {
+  const parsed = Number.parseInt(String(value ?? "").trim(), 10);
+  if (!Number.isFinite(parsed) || parsed <= 0) return fallback;
+  return parsed;
+}
+
 function parseDateTimestamp(value) {
   if (!value) return 0;
   const parsed = Date.parse(value);
@@ -354,6 +360,7 @@ export default function MantencionesPage({
         hora_fin: item.hora_fin?.slice(0, 5) || "",
         intervalo_minutos: String(item.intervalo_minutos ?? "60"),
         cupos_por_bloque: String(item.cupos_por_bloque ?? "1"),
+        activo: item.activo !== false,
       }
     );
   }
@@ -768,17 +775,29 @@ export default function MantencionesPage({
                         onChange={(event) => setHorarioDraft(item.id, "cupos_por_bloque", event.target.value)}
                       />
                     </div>
+                    <div className="admin-horario-edit-field admin-horario-edit-field-checkbox">
+                      <span>{"\u00BFDisponible?"}</span>
+                      <label className="admin-inline-checkbox">
+                        <input
+                          type="checkbox"
+                          checked={Boolean(draft.activo)}
+                          onChange={(event) => setHorarioDraft(item.id, "activo", event.target.checked)}
+                        />
+                        <span>{draft.activo ? "Si" : "No"}</span>
+                      </label>
+                    </div>
                     <div className="admin-horario-edit-actions">
                       <button
                         type="button"
                         className="admin-primary-action admin-mantencion-action-btn admin-mantencion-save-btn"
                         onClick={() =>
                           onHorarioUpdate(item.id, {
-                            dia_semana: Number(item.dia_semana),
+                            dia_semana: Number(item.dia_semana ?? 0),
                             hora_inicio: draft.hora_inicio,
                             hora_fin: draft.hora_fin,
-                            intervalo_minutos: Number(item.intervalo_minutos),
-                            cupos_por_bloque: Number(draft.cupos_por_bloque),
+                            intervalo_minutos: toPositiveInteger(draft.intervalo_minutos, Number(item.intervalo_minutos ?? 60) || 60),
+                            cupos_por_bloque: toPositiveInteger(draft.cupos_por_bloque, Number(item.cupos_por_bloque ?? 1) || 1),
+                            activo: Boolean(draft.activo),
                           })
                         }
                       >

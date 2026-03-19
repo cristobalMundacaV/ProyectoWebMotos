@@ -1758,7 +1758,7 @@
 
 .admin-horario-edit-grid {
   display: grid;
-  grid-template-columns: minmax(90px, max-content) minmax(150px, 1fr) minmax(150px, 1fr) minmax(130px, 0.8fr) auto;
+  grid-template-columns: minmax(90px, max-content) minmax(140px, 1fr) minmax(140px, 1fr) minmax(120px, 0.8fr) minmax(120px, 0.7fr) auto;
   gap: 14px;
   align-items: end;
 }
@@ -1810,6 +1810,14 @@
   gap: 10px;
   align-self: end;
   white-space: nowrap;
+}
+
+.admin-horario-edit-field-checkbox .admin-inline-checkbox {
+  min-height: 40px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 2px;
 }
 
 .admin-horarios-calendar-layout {

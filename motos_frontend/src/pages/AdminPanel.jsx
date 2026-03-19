@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   clearAuthSession,
@@ -325,6 +325,7 @@ export default function AdminPanel() {
   const [adminUserModalSaving, setAdminUserModalSaving] = useState(false);
   const [adminUserModalError, setAdminUserModalError] = useState("");
   const [toasts, setToasts] = useState([]);
+  const toastTimersRef = useRef(new Map());
   const [entityEditModal, setEntityEditModal] = useState(null);
   const [entityDeleteModal, setEntityDeleteModal] = useState(null);
   const [entityModalSaving, setEntityModalSaving] = useState(false);
@@ -416,6 +417,13 @@ export default function AdminPanel() {
 
     return () => {
       isMounted = false;
+    };
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      toastTimersRef.current.forEach((timerId) => window.clearTimeout(timerId));
+      toastTimersRef.current.clear();
     };
   }, []);
 
@@ -550,14 +558,38 @@ export default function AdminPanel() {
   }
 
   function pushToast(message, variant = "success") {
-    const id = `${Date.now()}-${Math.random()}`;
-    setToasts((prev) => [...prev, { id, message, variant }]);
-    window.setTimeout(() => {
-      setToasts((prev) => prev.filter((toast) => toast.id !== id));
-    }, 3500);
+    const normalizedMessage = String(message || "").trim();
+    if (!normalizedMessage) return;
+
+    setToasts((prev) => {
+      const duplicate = prev.find((toast) => toast.message === normalizedMessage && toast.variant === variant);
+      const id = duplicate?.id || `${Date.now()}-${Math.random()}`;
+      const next = duplicate
+        ? prev.map((toast) => (toast.id === id ? { ...toast, message: normalizedMessage, variant } : toast))
+        : [...prev, { id, message: normalizedMessage, variant }];
+
+      // Limita visibles para que no se apilen muchos toasts.
+      const limited = next.slice(-4);
+
+      const existingTimer = toastTimersRef.current.get(id);
+      if (existingTimer) window.clearTimeout(existingTimer);
+
+      const timerId = window.setTimeout(() => {
+        setToasts((current) => current.filter((toast) => toast.id !== id));
+        toastTimersRef.current.delete(id);
+      }, 3500);
+      toastTimersRef.current.set(id, timerId);
+
+      return limited;
+    });
   }
 
   function dismissToast(id) {
+    const timerId = toastTimersRef.current.get(id);
+    if (timerId) {
+      window.clearTimeout(timerId);
+      toastTimersRef.current.delete(id);
+    }
     setToasts((prev) => prev.filter((toast) => toast.id !== id));
   }
 
