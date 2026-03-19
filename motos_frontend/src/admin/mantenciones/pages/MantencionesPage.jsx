@@ -130,6 +130,7 @@ export default function MantencionesPage({
   onRefreshHorarios,
   onHorarioInputChange,
   onHorarioSubmit,
+  onHorarioUpdate,
   onHorarioDelete,
 }) {
   const [editsById, setEditsById] = useState({});
@@ -143,6 +144,7 @@ export default function MantencionesPage({
     const now = new Date();
     return new Date(now.getFullYear(), now.getMonth(), 1);
   });
+  const [horarioEditsById, setHorarioEditsById] = useState({});
 
   const DIAS_LABEL = {
     0: "Lunes",
@@ -321,6 +323,25 @@ export default function MantencionesPage({
 
   function setDraft(id, field, value) {
     setEditsById((prev) => ({
+      ...prev,
+      [id]: { ...(prev[id] || {}), [field]: value },
+    }));
+  }
+
+  function getHorarioDraft(item) {
+    return (
+      horarioEditsById[item.id] || {
+        dia_semana: String(item.dia_semana ?? "0"),
+        hora_inicio: item.hora_inicio?.slice(0, 5) || "",
+        hora_fin: item.hora_fin?.slice(0, 5) || "",
+        intervalo_minutos: String(item.intervalo_minutos ?? "60"),
+        cupos_por_bloque: String(item.cupos_por_bloque ?? "1"),
+      }
+    );
+  }
+
+  function setHorarioDraft(id, field, value) {
+    setHorarioEditsById((prev) => ({
       ...prev,
       [id]: { ...(prev[id] || {}), [field]: value },
     }));
@@ -633,8 +654,19 @@ export default function MantencionesPage({
 
           <form className="admin-moto-form" onSubmit={onHorarioSubmit} noValidate>
             <label>
-              Dia
-              <select name="dia_semana" value={horarioForm?.dia_semana ?? "0"} onChange={onHorarioInputChange} required>
+              Dia inicio
+              <select name="dia_inicio" value={horarioForm?.dia_inicio ?? "0"} onChange={onHorarioInputChange} required>
+                {Object.entries(DIAS_LABEL).map(([value, label]) => (
+                  <option key={value} value={value}>
+                    {label}
+                  </option>
+                ))}
+              </select>
+            </label>
+
+            <label>
+              Dia fin
+              <select name="dia_fin" value={horarioForm?.dia_fin ?? "0"} onChange={onHorarioInputChange} required>
                 {Object.entries(DIAS_LABEL).map(([value, label]) => (
                   <option key={value} value={value}>
                     {label}
@@ -684,31 +716,82 @@ export default function MantencionesPage({
           </form>
 
           <div className="admin-table">
-            {horarios.map((item) => (
-              <div key={item.id} className="admin-table-row admin-moto-table-row admin-mantencion-row">
-                <div className="admin-moto-table-cell">
-                  <strong>{DIAS_LABEL[item.dia_semana] || item.dia_semana}</strong>
-                  <span>{`${item.hora_inicio?.slice(0, 5) || "--:--"} - ${item.hora_fin?.slice(0, 5) || "--:--"}`}</span>
+            {horarios.map((item) => {
+              const draft = getHorarioDraft(item);
+              return (
+                <div key={item.id} className="admin-table-row admin-moto-table-row admin-mantencion-row">
+                  <div className="admin-moto-table-cell">
+                    <strong>Dia</strong>
+                    <select value={draft.dia_semana} onChange={(event) => setHorarioDraft(item.id, "dia_semana", event.target.value)}>
+                      {Object.entries(DIAS_LABEL).map(([value, label]) => (
+                        <option key={value} value={value}>
+                          {label}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <div className="admin-moto-table-cell">
+                    <strong>Hora inicio</strong>
+                    <input
+                      type="time"
+                      value={draft.hora_inicio}
+                      onChange={(event) => setHorarioDraft(item.id, "hora_inicio", event.target.value)}
+                    />
+                  </div>
+                  <div className="admin-moto-table-cell">
+                    <strong>Hora fin</strong>
+                    <input
+                      type="time"
+                      value={draft.hora_fin}
+                      onChange={(event) => setHorarioDraft(item.id, "hora_fin", event.target.value)}
+                    />
+                  </div>
+                  <div className="admin-moto-table-cell">
+                    <strong>Intervalo</strong>
+                    <input
+                      type="number"
+                      min="15"
+                      step="15"
+                      value={draft.intervalo_minutos}
+                      onChange={(event) => setHorarioDraft(item.id, "intervalo_minutos", event.target.value)}
+                    />
+                  </div>
+                  <div className="admin-moto-table-cell">
+                    <strong>Cupos por bloque</strong>
+                    <input
+                      type="number"
+                      min="1"
+                      value={draft.cupos_por_bloque}
+                      onChange={(event) => setHorarioDraft(item.id, "cupos_por_bloque", event.target.value)}
+                    />
+                  </div>
+                  <div className="admin-moto-table-cell admin-mantencion-actions">
+                    <button
+                      type="button"
+                      className="admin-primary-action admin-mantencion-action-btn admin-mantencion-save-btn"
+                      onClick={() =>
+                        onHorarioUpdate(item.id, {
+                          dia_semana: Number(draft.dia_semana),
+                          hora_inicio: draft.hora_inicio,
+                          hora_fin: draft.hora_fin,
+                          intervalo_minutos: Number(draft.intervalo_minutos),
+                          cupos_por_bloque: Number(draft.cupos_por_bloque),
+                        })
+                      }
+                    >
+                      Guardar
+                    </button>
+                    <button
+                      type="button"
+                      className="admin-danger-action admin-mantencion-action-btn"
+                      onClick={() => onHorarioDelete(item.id)}
+                    >
+                      Eliminar
+                    </button>
+                  </div>
                 </div>
-                <div className="admin-moto-table-cell">
-                  <strong>Intervalo</strong>
-                  <span>{`${item.intervalo_minutos} min`}</span>
-                </div>
-                <div className="admin-moto-table-cell">
-                  <strong>Cupos</strong>
-                  <span>{item.cupos_por_bloque}</span>
-                </div>
-                <div className="admin-moto-table-cell admin-mantencion-actions">
-                  <button
-                    type="button"
-                    className="admin-danger-action admin-mantencion-action-btn"
-                    onClick={() => onHorarioDelete(item.id)}
-                  >
-                    Eliminar
-                  </button>
-                </div>
-              </div>
-            ))}
+              );
+            })}
 
             {!horariosLoading && horarios.length === 0 && <p className="admin-empty">No hay horarios operativos configurados.</p>}
             {horariosLoading && <p className="admin-empty">Cargando horarios...</p>}

@@ -51,6 +51,7 @@ import {
   getHorariosMantencionAdmin,
   getMantencionesAdmin,
   updateMantencionAdmin,
+  updateHorarioMantencionAdmin,
 } from "../admin/mantenciones/services/mantencionesAdminService";
 import { buildMediaUrl } from "../services/apiConfig";
 import "../styles/admin.css";
@@ -154,7 +155,8 @@ const initialCreateUserForm = {
 };
 
 const initialHorarioMantencionForm = {
-  dia_semana: "0",
+  dia_inicio: "0",
+  dia_fin: "0",
   hora_inicio: "09:00",
   hora_fin: "18:00",
   intervalo_minutos: "60",
@@ -1258,14 +1260,28 @@ export default function AdminPanel() {
     if (horarioMantencionSaving) return;
     setHorarioMantencionSaving(true);
     try {
-      await createHorarioMantencionAdmin({
-        dia_semana: Number(horarioMantencionForm.dia_semana),
+      const diaInicio = Number(horarioMantencionForm.dia_inicio);
+      const diaFin = Number(horarioMantencionForm.dia_fin);
+      if (diaFin < diaInicio) {
+        throw new Error("El dia fin no puede ser menor al dia inicio.");
+      }
+
+      const payloadBase = {
         hora_inicio: horarioMantencionForm.hora_inicio,
         hora_fin: horarioMantencionForm.hora_fin,
         intervalo_minutos: Number(horarioMantencionForm.intervalo_minutos),
         cupos_por_bloque: Number(horarioMantencionForm.cupos_por_bloque),
         activo: true,
-      });
+      };
+
+      await Promise.all(
+        Array.from({ length: diaFin - diaInicio + 1 }, (_, index) =>
+          createHorarioMantencionAdmin({
+            ...payloadBase,
+            dia_semana: diaInicio + index,
+          })
+        )
+      );
       setHorarioMantencionForm(initialHorarioMantencionForm);
       await fetchHorariosMantencionList();
       pushToast("Horario operativo creado correctamente.", "success");
@@ -1283,6 +1299,16 @@ export default function AdminPanel() {
       pushToast("Horario eliminado correctamente.", "success");
     } catch (error) {
       pushToast(getErrorText(error, "No se pudo eliminar el horario."), "error");
+    }
+  }
+
+  async function handleUpdateHorarioMantencion(horarioId, payload) {
+    try {
+      const updated = await updateHorarioMantencionAdmin(horarioId, payload);
+      setHorariosMantencion((prev) => prev.map((item) => (item.id === horarioId ? updated : item)));
+      pushToast("Horario actualizado correctamente.", "success");
+    } catch (error) {
+      pushToast(getErrorText(error, "No se pudo actualizar el horario."), "error");
     }
   }
 
@@ -2168,6 +2194,7 @@ export default function AdminPanel() {
             onRefreshHorarios={handleRefreshHorariosMantencion}
             onHorarioInputChange={handleHorarioMantencionInputChange}
             onHorarioSubmit={handleHorarioMantencionSubmit}
+            onHorarioUpdate={handleUpdateHorarioMantencion}
             onHorarioDelete={handleDeleteHorarioMantencion}
           />
 
