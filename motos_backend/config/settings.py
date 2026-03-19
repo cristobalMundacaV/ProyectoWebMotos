@@ -131,3 +131,18 @@ SIMPLE_JWT = {
     'ROTATE_REFRESH_TOKENS': True,
     'BLACKLIST_AFTER_ROTATION': True,
 }
+
+EMAIL_BACKEND = os.getenv('EMAIL_BACKEND', 'config.email_backend.EmailBackend')
+EMAIL_HOST = os.getenv('EMAIL_HOST', '')
+EMAIL_PORT = int(os.getenv('EMAIL_PORT', '587'))
+EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER', '')
+EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD', '')
+EMAIL_USE_TLS = os.getenv('EMAIL_USE_TLS', 'True') == 'True'
+EMAIL_USE_SSL = os.getenv('EMAIL_USE_SSL', 'False') == 'True'
+EMAIL_TIMEOUT = int(os.getenv('EMAIL_TIMEOUT', '20'))
+DEFAULT_FROM_EMAIL = os.getenv('DEFAULT_FROM_EMAIL', EMAIL_HOST_USER or 'no-reply@delanoemotos.cl')
+
+COMPANY_NAME = os.getenv('COMPANY_NAME', 'Delanoe Motos')
+COMPANY_SUPPORT_EMAIL = os.getenv('COMPANY_SUPPORT_EMAIL', DEFAULT_FROM_EMAIL)
+COMPANY_SUPPORT_PHONE = os.getenv('COMPANY_SUPPORT_PHONE', '')
+EMAIL_HELO_NAME = os.getenv('EMAIL_HELO_NAME', 'delanoemotos.cl')

@@ -18,8 +18,21 @@ function formatDate(value) {
 
 function statusLabel(value) {
   const option = ESTADO_OPTIONS.find((item) => item.value === value);
-  if (value === "ingresada") return "Ingresada";
+  if (value === "ingresada") return "Por aceptar";
+  if (value === "aceptada") return "Aceptada";
   return option?.label || value || "-";
+}
+
+function getStatusPillClass(value) {
+  if (value === "ingresada") return "status-ingresada";
+  if (value === "aceptada") return "status-aceptada";
+  if (value === "en_revision") return "status-en-revision";
+  if (value === "en_proceso") return "status-en-proceso";
+  if (value === "esperando_repuestos") return "status-esperando-repuestos";
+  if (value === "finalizada") return "status-finalizada";
+  if (value === "entregada") return "status-entregada";
+  if (value === "cancelada") return "status-cancelada";
+  return "";
 }
 
 function formatReason(value) {
@@ -38,10 +51,6 @@ function getEstadoClass(value) {
   return "";
 }
 
-function formatMoney(value) {
-  return `$${Number(value || 0).toLocaleString("es-CL", { maximumFractionDigits: 0 })}`;
-}
-
 function toWholeNumber(value) {
   const parsed = Number(value || 0);
   if (!Number.isFinite(parsed)) return 0;
@@ -54,6 +63,32 @@ function sanitizeIntegerInput(value) {
   const parsed = Number(raw.replace(",", "."));
   if (!Number.isFinite(parsed)) return "";
   return String(Math.trunc(parsed));
+}
+
+function parseDateTimestamp(value) {
+  if (!value) return 0;
+  const parsed = Date.parse(value);
+  if (Number.isFinite(parsed)) return parsed;
+
+  const match = String(value).match(/^(\d{2})[-/](\d{2})[-/](\d{4})$/);
+  if (!match) return 0;
+  const [, day, month, year] = match;
+  return new Date(Number(year), Number(month) - 1, Number(day)).getTime();
+}
+
+function getMantencionSortTimestamp(item) {
+  const fechaTs = parseDateTimestamp(item?.fecha_ingreso);
+  const horaRaw = item?.hora_ingreso ? String(item.hora_ingreso).slice(0, 5) : "";
+  if (!horaRaw || !Number.isFinite(fechaTs)) return fechaTs || 0;
+  const [hours, minutes] = horaRaw.split(":").map((part) => Number(part));
+  if (!Number.isFinite(hours) || !Number.isFinite(minutes)) return fechaTs || 0;
+  return fechaTs + (hours * 60 + minutes) * 60 * 1000;
+}
+
+function getCreatedAtTimestamp(item) {
+  if (!item?.created_at) return 0;
+  const parsed = Date.parse(item.created_at);
+  return Number.isFinite(parsed) ? parsed : 0;
 }
 
 export default function MantencionesPage({
@@ -87,8 +122,31 @@ export default function MantencionesPage({
     6: "Domingo",
   };
 
-  const solicitudes = useMemo(() => mantenciones.filter((item) => item.estado === "ingresada"), [mantenciones]);
-  const fichasMantencion = useMemo(() => mantenciones.filter((item) => item.estado !== "ingresada"), [mantenciones]);
+  const solicitudes = useMemo(
+    () =>
+      mantenciones
+        .filter((item) => item.estado === "ingresada" || item.estado === "aceptada")
+        .sort(
+          (a, b) =>
+            getMantencionSortTimestamp(b) - getMantencionSortTimestamp(a) ||
+            getCreatedAtTimestamp(b) - getCreatedAtTimestamp(a) ||
+            Number(b.id || 0) - Number(a.id || 0)
+        ),
+    [mantenciones]
+  );
+
+  const fichasMantencion = useMemo(
+    () =>
+      mantenciones
+        .filter((item) => item.estado !== "ingresada" && item.estado !== "aceptada")
+        .sort(
+          (a, b) =>
+            getMantencionSortTimestamp(b) - getMantencionSortTimestamp(a) ||
+            getCreatedAtTimestamp(b) - getCreatedAtTimestamp(a) ||
+            Number(b.id || 0) - Number(a.id || 0)
+        ),
+    [mantenciones]
+  );
 
   const selectedSolicitud = useMemo(() => {
     const byId = solicitudes.find((item) => item.id === selectedSolicitudId);
@@ -106,6 +164,9 @@ export default function MantencionesPage({
         estado: item.estado,
         costo_total: toWholeNumber(item.costo_total),
         kilometraje_ingreso: item.kilometraje_ingreso ?? "",
+        diagnostico: item.diagnostico ?? "",
+        trabajo_realizado: item.trabajo_realizado ?? "",
+        observaciones: item.observaciones ?? "",
       }
     );
   }
@@ -130,7 +191,10 @@ export default function MantencionesPage({
               className={isActive ? "admin-mantencion-ficha-item active" : "admin-mantencion-ficha-item"}
               onClick={() => onSelect(item.id)}
             >
-              <strong>{`${moto.marca || "-"} ${moto.modelo || "-"}`}</strong>
+              <div className="admin-mantencion-ficha-item-top">
+                <strong>{`${moto.marca || "-"} ${moto.modelo || "-"}`}</strong>
+                <span className={`admin-status-pill ${getStatusPillClass(item.estado)}`}>{statusLabel(item.estado)}</span>
+              </div>
               <span>{moto.cliente_nombre || "Cliente"}</span>
               <small>{formatDate(item.fecha_ingreso)}</small>
             </button>
@@ -152,52 +216,89 @@ export default function MantencionesPage({
     const draft = getDraft(item);
     const saving = Boolean(savingById[item.id]);
     const estadoActual = draft.estado || item.estado;
+    const solicitudAceptada = item.estado === "aceptada";
 
     return (
       <>
         <div className="admin-mantencion-ficha-head">
           <h3>{`${moto.marca || "-"} ${moto.modelo || "-"}`}</h3>
-          <span className="admin-status-pill">{statusLabel(item.estado)}</span>
-        </div>
-
-        <div className="admin-mantencion-ficha-grid">
-          <div>
-            <span>Cliente</span>
-            <strong>{moto.cliente_nombre || "-"}</strong>
-          </div>
-          <div>
-            <span>Matricula</span>
-            <strong>{moto.matricula || "-"}</strong>
-          </div>
-          <div>
-            <span>{"A\u00F1o"}</span>
-            <strong>{moto.anio || "-"}</strong>
-          </div>
-          <div>
-            <span>Fecha ingreso</span>
-            <strong>{formatDate(item.fecha_ingreso)}</strong>
-          </div>
-          <div>
-            <span>Hora ingreso</span>
-            <strong>{item.hora_ingreso ? String(item.hora_ingreso).slice(0, 5) : "-"}</strong>
-          </div>
-          <div>
-            <span>Tipo mantencion</span>
-            <strong>{formatReason(item.tipo_mantencion)}</strong>
-          </div>
+          <span className={`admin-status-pill ${getStatusPillClass(item.estado)}`}>{statusLabel(item.estado)}</span>
         </div>
 
         {mode === "solicitudes" ? (
-          <div className="admin-mantencion-ficha-actions admin-mantencion-ficha-actions-solicitud">
-            <button
-              type="button"
-              className="admin-primary-action admin-mantencion-action-btn admin-mantencion-accept-btn"
-              disabled={saving}
-              onClick={() => onAcceptSolicitud(item.id)}
-            >
-              {saving ? "Aceptando..." : "Aceptar ingreso a taller"}
-            </button>
+          <div className="admin-mantencion-ficha-grid">
+            <div>
+              <span>Marca</span>
+              <strong>{moto.marca || "-"}</strong>
+            </div>
+            <div>
+              <span>Modelo</span>
+              <strong>{moto.modelo || "-"}</strong>
+            </div>
+            <div>
+              <span>{"A\u00F1o"}</span>
+              <strong>{moto.anio || "-"}</strong>
+            </div>
+            <div>
+              <span>Matricula</span>
+              <strong>{moto.matricula || "-"}</strong>
+            </div>
+            <div>
+              <span>Cliente</span>
+              <strong>{moto.cliente_nombre || "-"}</strong>
+            </div>
+            <div>
+              <span>Tipo mantencion</span>
+              <strong>{formatReason(item.tipo_mantencion)}</strong>
+            </div>
+            <div>
+              <span>Fecha ingreso solicitud</span>
+              <strong>{formatDate(item.fecha_ingreso)}</strong>
+            </div>
+            <div>
+              <span>Hora ingreso solicitud</span>
+              <strong>{item.hora_ingreso ? String(item.hora_ingreso).slice(0, 5) : "-"}</strong>
+            </div>
           </div>
+        ) : (
+          <div className="admin-mantencion-ficha-grid">
+            <div>
+              <span>Cliente</span>
+              <strong>{moto.cliente_nombre || "-"}</strong>
+            </div>
+            <div>
+              <span>Marca</span>
+              <strong>{moto.marca || "-"}</strong>
+            </div>
+            <div>
+              <span>Modelo</span>
+              <strong>{moto.modelo || "-"}</strong>
+            </div>
+            <div>
+              <span>Matricula</span>
+              <strong>{moto.matricula || "-"}</strong>
+            </div>
+            <div>
+              <span>{"A\u00F1o"}</span>
+              <strong>{moto.anio || "-"}</strong>
+            </div>
+            <div>
+              <span>Fecha ingreso</span>
+              <strong>{formatDate(item.fecha_ingreso)}</strong>
+            </div>
+            <div>
+              <span>Hora ingreso</span>
+              <strong>{item.hora_ingreso ? String(item.hora_ingreso).slice(0, 5) : "-"}</strong>
+            </div>
+            <div>
+              <span>Tipo mantencion</span>
+              <strong>{formatReason(item.tipo_mantencion)}</strong>
+            </div>
+          </div>
+        )}
+
+        {mode === "solicitudes" ? (
+          <></>
         ) : (
           <div className="admin-mantencion-ficha-controls">
             <label>
@@ -240,53 +341,93 @@ export default function MantencionesPage({
               />
             </label>
 
-            <div className="admin-mantencion-ficha-actions">
-              <button
-                type="button"
-                className="admin-primary-action admin-mantencion-action-btn admin-mantencion-save-btn"
-                disabled={saving}
-                onClick={() =>
-                  onUpdateMantencion(item.id, {
-                    estado: estadoActual,
-                    kilometraje_ingreso:
-                      draft.kilometraje_ingreso === "" || draft.kilometraje_ingreso === null
-                        ? null
-                        : Number.parseInt(draft.kilometraje_ingreso, 10),
-                    costo_total: Number.parseInt(draft.costo_total ?? item.costo_total ?? 0, 10) || 0,
-                  })
-                }
-              >
-                {saving ? "Guardando..." : "Guardar cambios"}
-              </button>
-            </div>
           </div>
         )}
 
-        <div className="admin-mantencion-ficha-grid" style={{ marginBottom: 12 }}>
-          <div>
-            <span>Valor cobrado</span>
-            <strong>{formatMoney(mode === "fichas" ? draft.costo_total ?? item.costo_total : item.costo_total)}</strong>
+        {mode === "solicitudes" ? (
+          <div className="admin-mantencion-ficha-blocks admin-mantencion-ficha-blocks-solicitud">
+            <article>
+              <h4>Motivo de la solicitud</h4>
+              <p>{item.motivo || "-"}</p>
+            </article>
+            <div className="admin-mantencion-ficha-actions admin-mantencion-ficha-actions-solicitud">
+              <button
+                type="button"
+                className="admin-primary-action admin-mantencion-action-btn admin-mantencion-accept-btn"
+                disabled={saving}
+                onClick={() =>
+                  solicitudAceptada
+                    ? onUpdateMantencion(item.id, { estado: "en_revision" })
+                    : onAcceptSolicitud(item.id)
+                }
+              >
+                {saving ? (solicitudAceptada ? "Ingresando..." : "Aceptando...") : solicitudAceptada ? "Ingresar a taller" : "Aceptar hora"}
+              </button>
+            </div>
           </div>
-        </div>
+        ) : (
+          <div className="admin-mantencion-ficha-blocks">
+            <article>
+              <h4>Motivo de ingreso</h4>
+              <p>{item.motivo || "-"}</p>
+            </article>
+            <article>
+              <h4>Diagnostico</h4>
+              <textarea
+                className="admin-mantencion-ficha-textarea"
+                value={draft.diagnostico ?? ""}
+                onChange={(event) => setDraft(item.id, "diagnostico", event.target.value)}
+                disabled={saving}
+                rows={4}
+              />
+            </article>
+            <article>
+              <h4>Trabajo realizado</h4>
+              <textarea
+                className="admin-mantencion-ficha-textarea"
+                value={draft.trabajo_realizado ?? ""}
+                onChange={(event) => setDraft(item.id, "trabajo_realizado", event.target.value)}
+                disabled={saving}
+                rows={4}
+              />
+            </article>
+            <article>
+              <h4>Comentarios / Observaciones</h4>
+              <textarea
+                className="admin-mantencion-ficha-textarea"
+                value={draft.observaciones ?? ""}
+                onChange={(event) => setDraft(item.id, "observaciones", event.target.value)}
+                disabled={saving}
+                rows={4}
+              />
+            </article>
+          </div>
+        )}
 
-        <div className="admin-mantencion-ficha-blocks">
-          <article>
-            <h4>Motivo de ingreso</h4>
-            <p>{item.motivo || "-"}</p>
-          </article>
-          <article>
-            <h4>Diagnostico</h4>
-            <p>{item.diagnostico || "-"}</p>
-          </article>
-          <article>
-            <h4>Trabajo realizado</h4>
-            <p>{item.trabajo_realizado || "-"}</p>
-          </article>
-          <article>
-            <h4>Comentarios / Observaciones</h4>
-            <p>{item.observaciones || "-"}</p>
-          </article>
-        </div>
+        {mode === "fichas" && (
+          <div className="admin-mantencion-ficha-actions admin-mantencion-ficha-actions-bottom">
+            <button
+              type="button"
+              className="admin-primary-action admin-mantencion-action-btn admin-mantencion-save-btn"
+              disabled={saving}
+              onClick={() =>
+                onUpdateMantencion(item.id, {
+                  estado: estadoActual,
+                  kilometraje_ingreso:
+                    draft.kilometraje_ingreso === "" || draft.kilometraje_ingreso === null
+                      ? null
+                      : Number.parseInt(draft.kilometraje_ingreso, 10),
+                  costo_total: Number.parseInt(draft.costo_total ?? item.costo_total ?? 0, 10) || 0,
+                  diagnostico: draft.diagnostico ?? item.diagnostico ?? "",
+                  trabajo_realizado: draft.trabajo_realizado ?? item.trabajo_realizado ?? "",
+                  observaciones: draft.observaciones ?? item.observaciones ?? "",
+                })
+              }
+            >
+              {saving ? "Guardando..." : "Guardar cambios"}
+            </button>
+          </div>
+        )}
       </>
     );
   }

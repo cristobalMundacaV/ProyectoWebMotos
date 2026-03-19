@@ -155,6 +155,28 @@ export default function Mantenimiento() {
     };
   }, []);
 
+  useEffect(() => {
+    const intervalId = window.setInterval(async () => {
+      try {
+        const data = await getDisponibilidadMantenciones(30);
+        const slots = Array.isArray(data?.slots) ? data.slots : [];
+        setSlotsByDate(slots);
+        setForm((prev) => {
+          if (!prev.fecha_agendada || !prev.hora_agendada) return prev;
+          const day = slots.find((item) => item.fecha === prev.fecha_agendada);
+          const horaSigueDisponible = Boolean(
+            day?.horas?.some((slot) => slot.hora === prev.hora_agendada && slot.disponible)
+          );
+          return horaSigueDisponible ? prev : { ...prev, hora_agendada: "" };
+        });
+      } catch {
+        // No bloqueamos la UI por errores temporales en el refresco.
+      }
+    }, 20000);
+
+    return () => window.clearInterval(intervalId);
+  }, []);
+
   function handleChange(event) {
     const { name, value } = event.target;
     setForm((prev) => ({ ...prev, [name]: value }));
@@ -217,6 +239,21 @@ export default function Mantenimiento() {
     setToast({ type: "", message: "" });
 
     try {
+      const disponibilidadActual = await getDisponibilidadMantenciones(30);
+      const slotsActualizados = Array.isArray(disponibilidadActual?.slots) ? disponibilidadActual.slots : [];
+      setSlotsByDate(slotsActualizados);
+
+      const diaSeleccionado = slotsActualizados.find((day) => day.fecha === form.fecha_agendada);
+      const horaDisponible = Boolean(
+        diaSeleccionado?.horas?.some((slot) => slot.hora === form.hora_agendada && slot.disponible)
+      );
+
+      if (!horaDisponible) {
+        setForm((prev) => ({ ...prev, hora_agendada: "" }));
+        setToast({ type: "error", message: "La hora seleccionada ya no esta disponible. Elige otra opcion." });
+        return;
+      }
+
       await agendarMantencion({
         ...form,
         matricula: normalizedMatricula,
@@ -233,7 +270,7 @@ export default function Mantenimiento() {
         hora_agendada: form.hora_agendada,
       });
 
-      setToast({ type: "success", message: "Solicitud enviada con exito. Te contactaremos para confirmar tu hora." });
+      setToast({ type: "success", message: "Solicitud enviada con exito. Te enviamos un correo con la confirmacion de tu hora." });
       setForm((prev) => ({
         ...getInitialForm(),
         nombres: prev.nombres,
@@ -247,6 +284,14 @@ export default function Mantenimiento() {
       if (typeof apiErrors === "string") {
         setToast({ type: "error", message: apiErrors });
       } else if (apiErrors && typeof apiErrors === "object") {
+        if (apiErrors.hora_agendada) {
+          const disponibilidadActual = await getDisponibilidadMantenciones(30).catch(() => null);
+          const slotsActualizados = Array.isArray(disponibilidadActual?.slots) ? disponibilidadActual.slots : null;
+          if (slotsActualizados) {
+            setSlotsByDate(slotsActualizados);
+          }
+          setForm((prev) => ({ ...prev, hora_agendada: "" }));
+        }
         const firstMessage = Object.values(apiErrors).flat().find(Boolean);
         setToast({ type: "error", message: firstMessage || "No pudimos registrar la solicitud. Intenta nuevamente." });
       } else {

@@ -1430,6 +1430,41 @@
   color: #854d0e;
 }
 
+.admin-status-pill.status-aceptada {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.admin-status-pill.status-en-revision {
+  background: #dbeafe;
+  color: #1d4ed8;
+}
+
+.admin-status-pill.status-en-proceso {
+  background: #ede9fe;
+  color: #6d28d9;
+}
+
+.admin-status-pill.status-esperando-repuestos {
+  background: #ffedd5;
+  color: #c2410c;
+}
+
+.admin-status-pill.status-finalizada {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.admin-status-pill.status-entregada {
+  background: #ccfbf1;
+  color: #0f766e;
+}
+
+.admin-status-pill.status-cancelada {
+  background: #fee2e2;
+  color: #b91c1c;
+}
+
 .admin-mantencion-value {
   font-size: 0.92rem;
   font-weight: 700;
@@ -1539,7 +1574,7 @@
   border: 1px solid #d7dce3;
   border-radius: 12px;
   background: #fff;
-  padding: 10px 12px;
+  padding: 10px 16px 10px 20px;
   display: grid;
   gap: 4px;
   text-align: left;
@@ -1548,6 +1583,22 @@
 
 .admin-mantencion-ficha-item strong {
   font-size: 0.97rem;
+}
+
+.admin-mantencion-ficha-item-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.admin-mantencion-ficha-item-top .admin-status-pill {
+  flex-shrink: 0;
+}
+
+.admin-mantencion-ficha-item > span,
+.admin-mantencion-ficha-item > small {
+  padding-left: 6px;
 }
 
 .admin-mantencion-ficha-item span,
@@ -1615,6 +1666,10 @@
   gap: 12px;
 }
 
+.admin-mantencion-ficha-blocks-solicitud {
+  grid-template-columns: 1fr;
+}
+
 .admin-mantencion-ficha-blocks article {
   border: 1px solid #e5e7eb;
   border-radius: 10px;
@@ -1666,8 +1721,34 @@
   margin-bottom: 14px;
 }
 
+.admin-mantencion-ficha-actions-bottom {
+  margin-top: 14px;
+  margin-bottom: 0;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 12px;
+}
+
 .admin-mantencion-ficha-actions-solicitud {
   margin-bottom: 24px;
+}
+
+.admin-mantencion-ficha-textarea {
+  width: 100%;
+  min-height: 96px;
+  resize: vertical;
+  border-radius: 10px;
+  border: 1px solid #d7dce3;
+  padding: 8px 10px;
+  font: inherit;
+  color: #111827;
+  background: #fff;
+}
+
+.admin-mantencion-ficha-textarea:focus {
+  outline: 2px solid #93c5fd;
+  outline-offset: 1px;
+  border-color: #93c5fd;
 }
 
 @media (max-width: 1180px) {
@@ -1959,6 +2040,11 @@
   .admin-mantencion-ficha-blocks,
   .admin-mantencion-ficha-controls {
     grid-template-columns: 1fr;
+  }
+
+  .admin-mantencion-ficha-actions-bottom {
+    flex-direction: column;
+    align-items: stretch;
   }
 
   .admin-content-grid.admin-content-grid-mantenciones-fichas .admin-panel-card,

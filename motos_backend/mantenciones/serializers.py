@@ -1,9 +1,11 @@
 from django.contrib.auth import get_user_model
+from django.db import transaction
 from rest_framework import serializers
 
 from clientes.models import PerfilUsuario
 from .availability import slot_disponible
 from .models import HorarioMantencion, Mantencion, VehiculoCliente
+from .notifications import send_mantencion_confirmation_email
 
 
 class VehiculoClienteNestedSerializer(serializers.ModelSerializer):
@@ -128,10 +130,13 @@ class AgendarMantencionSerializer(serializers.Serializer):
     def validate(self, attrs):
         nombres = (attrs.get("nombres") or "").strip()
         apellidos = (attrs.get("apellidos") or "").strip()
+        email = (attrs.get("email") or "").strip().lower()
         if not nombres:
             raise serializers.ValidationError({"nombres": "Los nombres son obligatorios."})
         if not apellidos:
             raise serializers.ValidationError({"apellidos": "Los apellidos son obligatorios."})
+        if not email:
+            raise serializers.ValidationError({"email": "El email es obligatorio para enviar la confirmacion."})
 
         fecha = attrs.get("fecha_agendada")
         hora = attrs.get("hora_agendada")
@@ -141,6 +146,7 @@ class AgendarMantencionSerializer(serializers.Serializer):
             )
         attrs["nombres"] = nombres
         attrs["apellidos"] = apellidos
+        attrs["email"] = email
         return attrs
 
     def _generate_username(self, nombres: str, apellidos: str, telefono: str, email: str) -> str:
@@ -197,38 +203,52 @@ class AgendarMantencionSerializer(serializers.Serializer):
         return user
 
     def create(self, validated_data):
-        cliente = self._resolve_or_create_cliente()
-        matricula = validated_data["matricula"].strip().upper()
+        with transaction.atomic():
+            cliente = self._resolve_or_create_cliente()
+            matricula = validated_data["matricula"].strip().upper()
 
-        vehiculo, created = VehiculoCliente.objects.get_or_create(
-            matricula=matricula,
-            defaults={
-                "cliente": cliente,
-                "marca": validated_data["marca"].strip(),
-                "modelo": validated_data["modelo"].strip(),
-                "anio": validated_data.get("anio"),
-                "kilometraje_actual": validated_data["kilometraje_actual"],
-            },
-        )
+            vehiculo, created = VehiculoCliente.objects.get_or_create(
+                matricula=matricula,
+                defaults={
+                    "cliente": cliente,
+                    "marca": validated_data["marca"].strip(),
+                    "modelo": validated_data["modelo"].strip(),
+                    "anio": validated_data.get("anio"),
+                    "kilometraje_actual": validated_data["kilometraje_actual"],
+                },
+            )
 
-        if not created and vehiculo.cliente_id != cliente.id:
-            raise serializers.ValidationError({"matricula": "Esta matricula ya esta asociada a otro cliente."})
+            if not created and vehiculo.cliente_id != cliente.id:
+                raise serializers.ValidationError({"matricula": "Esta matricula ya esta asociada a otro cliente."})
 
-        vehiculo.marca = validated_data["marca"].strip()
-        vehiculo.modelo = validated_data["modelo"].strip()
-        vehiculo.anio = validated_data.get("anio")
-        vehiculo.kilometraje_actual = validated_data["kilometraje_actual"]
-        vehiculo.save()
+            vehiculo.marca = validated_data["marca"].strip()
+            vehiculo.modelo = validated_data["modelo"].strip()
+            vehiculo.anio = validated_data.get("anio")
+            vehiculo.kilometraje_actual = validated_data["kilometraje_actual"]
+            vehiculo.save()
 
-        mantencion = Mantencion.objects.create(
-            moto_cliente=vehiculo,
-            fecha_ingreso=validated_data["fecha_agendada"],
-            hora_ingreso=validated_data["hora_agendada"],
-            kilometraje_ingreso=None,
-            tipo_mantencion=validated_data["tipo_mantencion"],
-            motivo=validated_data["motivo"].strip(),
-            observaciones="",
-            estado=Mantencion.ESTADO_INGRESADA,
-            costo_total=0,
-        )
-        return mantencion
+            mantencion = Mantencion.objects.create(
+                moto_cliente=vehiculo,
+                fecha_ingreso=validated_data["fecha_agendada"],
+                hora_ingreso=validated_data["hora_agendada"],
+                kilometraje_ingreso=None,
+                tipo_mantencion=validated_data["tipo_mantencion"],
+                motivo=validated_data["motivo"].strip(),
+                observaciones="",
+                estado=Mantencion.ESTADO_INGRESADA,
+                costo_total=0,
+            )
+
+            cliente_nombre = f"{validated_data['nombres']} {validated_data['apellidos']}".strip()
+            try:
+                send_mantencion_confirmation_email(
+                    mantencion=mantencion,
+                    recipient_email=validated_data["email"],
+                    cliente_nombre=cliente_nombre or "cliente",
+                )
+            except Exception:
+                raise serializers.ValidationError(
+                    {"email": "No fue posible enviar el correo de confirmacion. Intenta nuevamente en unos minutos."}
+                )
+
+            return mantencion

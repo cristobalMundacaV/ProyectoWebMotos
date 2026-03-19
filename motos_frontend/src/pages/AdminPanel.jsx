@@ -1289,9 +1289,9 @@ export default function AdminPanel() {
   async function handleAcceptMantencionSolicitud(mantencionId) {
     setMantencionSavingById((prev) => ({ ...prev, [mantencionId]: true }));
     try {
-      const updated = await updateMantencionAdmin(mantencionId, { estado: "en_revision" });
+      const updated = await updateMantencionAdmin(mantencionId, { estado: "aceptada" });
       setMantenciones((prev) => prev.map((item) => (item.id === mantencionId ? updated : item)));
-      pushToast("Solicitud aceptada. La mantencion paso a en revision.", "success");
+      pushToast("Hora aceptada. La solicitud quedo en estado aceptada.", "success");
     } catch (error) {
       pushToast(getErrorText(error, "No se pudo aceptar la solicitud de mantencion."), "error");
     } finally {

@@ -84,6 +84,7 @@ class Mantencion(models.Model):
     ]
 
     ESTADO_INGRESADA = "ingresada"
+    ESTADO_ACEPTADA = "aceptada"
     ESTADO_EN_REVISION = "en_revision"
     ESTADO_EN_PROCESO = "en_proceso"
     ESTADO_ESPERANDO_REPUESTOS = "esperando_repuestos"
@@ -93,6 +94,7 @@ class Mantencion(models.Model):
 
     ESTADO_CHOICES = [
         (ESTADO_INGRESADA, "Ingresada"),
+        (ESTADO_ACEPTADA, "Aceptada"),
         (ESTADO_EN_REVISION, "En revision"),
         (ESTADO_EN_PROCESO, "En proceso"),
         (ESTADO_ESPERANDO_REPUESTOS, "Esperando repuestos"),

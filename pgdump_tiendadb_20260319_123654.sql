@@ -2,7 +2,7 @@
 -- PostgreSQL database dump
 --
 
-\restrict bSyUi7kQV7xoBzXVkjODXvgJEkvbyb7xkXlTh0k3Xzejn2ZX5Vc5i7FOYctv9gs
+\restrict 1msqWk6X83T8MgDSeHtQwqVoLVgc6Fjed2yA1z0UjfolDL8MOfzkNQ9YyYC94wu
 
 -- Dumped from database version 18.1
 -- Dumped by pg_dump version 18.1
@@ -1093,6 +1093,10 @@ COPY public.auth_user (id, password, last_login, is_superuser, username, first_n
 4	!vmQNLjKrvve4F0VcqJWMnozajfabNslMGxhhLma5	\N	f	cristobalmundaca759625	Cristobal	Mundaca		f	t	2026-03-17 22:18:58.269228-03
 5	!MSm3hSvEKjrZguyl6ZdQQFC0G5nRAPIzxajiQ9pD	\N	f	mundaca759625	mundaca			f	t	2026-03-17 22:38:24.902456-03
 6	!4XjXCkdTttd8jWu0XvzqIWa23MSKal6ni7DXKkR0	\N	f	mundaca7596252	mundaca			f	t	2026-03-17 23:24:24.228007-03
+7	!KfEhRg4q9kte0skB20ggReFMQcf72zDk1r0llPnE	\N	f	cristobalmundacavergara123	Cristobal	Mundaca	cristobalmundacavergara123@gmail.com	f	t	2026-03-19 10:30:42.690906-03
+8	!AJvummH3avbfXNTPfikTOgBScyvBJoqtcTtBmaE2	\N	f	cdelanoe2	Claudio	Delanoe	cdelanoe@gmail.com	f	t	2026-03-19 10:55:04.635182-03
+9	!XqZMhfRXteqZqv9l7QL4w6wxgkqi35YR2O9D3F9Z	\N	f	msalvo	Morelia	Salvo	msalvo@gmail.com	f	t	2026-03-19 11:00:57.148036-03
+16	!6umPieoSeC6ZBiZ6XRYP4W6OxYg9IAKJcBQb4Xko	\N	f	cristobalmundacavergara	Cristobal	Mundaca	cristobalmundacavergara@gmail.com	f	t	2026-03-19 11:53:27.014547-03
 \.
 
 
@@ -1201,6 +1205,10 @@ COPY public.clientes_perfilusuario (id, telefono, rol, user_id) FROM stdin;
 2	+569 4875 9625	cliente	4
 3	+569 4875 9625	cliente	5
 4	+569 4875 9625	cliente	6
+5	+569 4875 9625	cliente	7
+6	+56978451296	cliente	8
+7	+56978451296	cliente	9
+14	+56966635509	cliente	16
 \.
 
 
@@ -1310,6 +1318,7 @@ COPY public.django_migrations (id, app, name, applied) FROM stdin;
 46	mantenciones	0002_horariomantencion_mantencion_hora_ingreso_and_more	2026-03-18 18:27:19.930431-03
 47	clientes	0003_split_nombre_completo_contactocliente	2026-03-18 22:20:56.491186-03
 48	motos	0004_refactor_modelo_tecnico_moto_unidad	2026-03-18 22:57:31.189315-03
+49	mantenciones	0003_alter_mantencion_estado	2026-03-19 11:49:12.424577-03
 \.
 
 
@@ -1340,9 +1349,9 @@ COPY public.mantenciones_horariomantencion (id, dia_semana, hora_inicio, hora_fi
 --
 
 COPY public.mantenciones_mantencion (id, fecha_ingreso, kilometraje_ingreso, tipo_mantencion, motivo, diagnostico, trabajo_realizado, costo_total, estado, fecha_entrega, observaciones, created_at, updated_at, moto_cliente_id, hora_ingreso) FROM stdin;
-1	2026-03-24	1010	preventiva	Mantencion preventiva a moto nueva.			0.00	cancelada	\N		2026-03-17 22:18:58.295862-03	2026-03-17 23:13:25.307302-03	1	\N
-2	2026-03-17	1001	preventiva	Preventiva			0.00	en_revision	\N		2026-03-17 22:38:24.916452-03	2026-03-17 23:23:33.371798-03	2	\N
-3	2026-03-20	101	preventiva	Prevencion			0.00	ingresada	\N		2026-03-17 23:24:24.241555-03	2026-03-17 23:24:24.241565-03	3	\N
+5	2026-03-19	\N	preventiva	Mantencion preventiva sin detalles en especial			0.00	ingresada	\N		2026-03-19 10:55:04.657428-03	2026-03-19 10:55:04.657438-03	5	14:00:00
+6	2026-03-19	\N	preventiva	Mantencion preventiva			0.00	ingresada	\N		2026-03-19 11:00:57.163439-03	2026-03-19 11:00:57.16345-03	6	15:00:00
+13	2026-03-19	\N	preventiva	ajustes			0.00	ingresada	\N		2026-03-19 11:53:27.026628-03	2026-03-19 11:53:27.026636-03	13	16:00:00
 \.
 
 
@@ -1354,6 +1363,10 @@ COPY public.mantenciones_vehiculocliente (id, matricula, marca, modelo, anio, ki
 1	TKG30	VOGE	R625	2025	1000	2026-03-17 22:18:58.29046-03	2026-03-17 22:18:58.293726-03	4
 2	TKG31	VOGE	250RR	2025	1000	2026-03-17 22:38:24.913795-03	2026-03-17 22:38:24.915177-03	5
 3	TKG32	VOGE	300DS	2026	100	2026-03-17 23:24:24.238283-03	2026-03-17 23:24:24.240228-03	6
+4	TKG20	Voge	R625	2026	2540	2026-03-19 10:30:42.701451-03	2026-03-19 10:30:42.703441-03	7
+5	TXG50	Voge	250RR	2026	750	2026-03-19 10:55:04.654731-03	2026-03-19 10:55:04.65613-03	8
+6	TKG78	Voge	RR660S	2026	2520	2026-03-19 11:00:57.160341-03	2026-03-19 11:00:57.161749-03	9
+13	TKG22	Voge	DS800X-RALLY	2026	1000	2026-03-19 11:53:27.024078-03	2026-03-19 11:53:27.025395-03	16
 \.
 
 
@@ -1522,6 +1535,8 @@ COPY public.token_blacklist_blacklistedtoken (id, blacklisted_at, token_id) FROM
 38	2026-03-18 22:41:07.458793-03	69
 40	2026-03-18 23:28:05.409101-03	72
 42	2026-03-18 23:59:28.888119-03	75
+43	2026-03-19 10:01:03.913599-03	77
+45	2026-03-19 10:35:59.86707-03	80
 \.
 
 
@@ -1607,6 +1622,10 @@ COPY public.token_blacklist_outstandingtoken (id, token, created_at, expires_at,
 75	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc3NDQ5MjExNywiaWF0IjoxNzczODg3MzE3LCJqdGkiOiI0YzZkNTYyOTE4ZmU0YzU2OWJiYzQyMjJlZDgyOTI1MyIsInVzZXJfaWQiOiIyIn0.Qjvhm61usyA1XZppzDyVL-nxg7CCtOmK3EqHjadNCes	2026-03-18 23:28:37.519497-03	2026-03-25 23:28:37-03	2	4c6d562918fe4c569bbc4222ed829253
 76	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc3NDQ5Mzk2OCwiaWF0IjoxNzczODg5MTY4LCJqdGkiOiJiNGRhMWFlMTYzMjY0NGE1YmMyZGUzZDVhY2RiNWNiNSIsInVzZXJfaWQiOiIyIn0.PQyt-Gar_EGMTytWc9w8IzJsYjY3xsMwNmNIvOu41-g	2026-03-18 23:59:28.649484-03	2026-03-25 23:59:28-03	2	b4da1ae1632644a5bc2de3d5acdb5cb5
 77	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc3NDQ5NDA2MywiaWF0IjoxNzczODg5MjYzLCJqdGkiOiJmNzcwNGVkYTZlOTc0MjdhYTg5MGNhZGNjYTBhMjcyYyIsInVzZXJfaWQiOiIyIn0.xMC_Gl3RGiDaP1xEClmcYJqLYTEPt-ZrOwWQnseHuAk	2026-03-19 00:01:03.161793-03	2026-03-26 00:01:03-03	2	f7704eda6e97427aa890cadcca0a272c
+78	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc3NDUzMDA2MywiaWF0IjoxNzczOTI1MjYzLCJqdGkiOiIwZjE1Mjc0ZDI4NTI0MzM1ODAyNDdlMjgyNTIyODUwNiIsInVzZXJfaWQiOiIyIn0.ZO8lTDHeLsKKRiEFrLaQD25XJwh4RDCWtXd_LsjgKPs	2026-03-19 10:01:03.747632-03	2026-03-26 10:01:03-03	2	0f15274d2852433580247e2825228506
+79	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc3NDUzMDA2MywiaWF0IjoxNzczOTI1MjYzLCJqdGkiOiIxYTkyOWQyYmQ0NDg0MDBmODcyM2U5ZWNkNzQ1MmNlZSIsInVzZXJfaWQiOiIyIn0.vhUGEb8O0TkXjKKyM-sdviVDlHMfDF8hfmqfEvrcn4Y	2026-03-19 10:01:03.771876-03	2026-03-26 10:01:03-03	2	1a929d2bd448400f8723e9ecd7452cee
+80	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc3NDUzMDA3MywiaWF0IjoxNzczOTI1MjczLCJqdGkiOiIxNzUyZGNjYzZhMjE0MWViODUxNTg4YWQ0OTYwOTIwZCIsInVzZXJfaWQiOiIyIn0.dRykQfDcYnhTsL1FvlBAjIMUiC87dim8DHRwP23MQuQ	2026-03-19 10:01:13.40001-03	2026-03-26 10:01:13-03	2	1752dccc6a2141eb851588ad4960920d
+81	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc3NDUzMjE1OSwiaWF0IjoxNzczOTI3MzU5LCJqdGkiOiJiOTc0Njk1MjRiODc0NmFlOGJjNzQyY2FiNzVhZDYyNCIsInVzZXJfaWQiOiIyIn0.qwhkg_xqqAimkZ2XncxqBq8jASkVoiQk2I6aiclga-Y	2026-03-19 10:35:59.812565-03	2026-03-26 10:35:59-03	2	b97469524b8746ae8bc742cab75ad624
 \.
 
 
@@ -1642,7 +1661,7 @@ SELECT pg_catalog.setval('public.auth_user_groups_id_seq', 1, false);
 -- Name: auth_user_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public.auth_user_id_seq', 6, true);
+SELECT pg_catalog.setval('public.auth_user_id_seq', 16, true);
 
 
 --
@@ -1691,7 +1710,7 @@ SELECT pg_catalog.setval('public.clientes_contactocliente_id_seq', 1, false);
 -- Name: clientes_perfilusuario_id_seq; Type: SEQUENCE SET; Schema: public; Owner: admin_motos
 --
 
-SELECT pg_catalog.setval('public.clientes_perfilusuario_id_seq', 4, true);
+SELECT pg_catalog.setval('public.clientes_perfilusuario_id_seq', 14, true);
 
 
 --
@@ -1719,7 +1738,7 @@ SELECT pg_catalog.setval('public.django_content_type_id_seq', 28, true);
 -- Name: django_migrations_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public.django_migrations_id_seq', 48, true);
+SELECT pg_catalog.setval('public.django_migrations_id_seq', 49, true);
 
 
 --
@@ -1733,14 +1752,14 @@ SELECT pg_catalog.setval('public.mantenciones_horariomantencion_id_seq', 6, true
 -- Name: mantenciones_mantencion_id_seq; Type: SEQUENCE SET; Schema: public; Owner: admin_motos
 --
 
-SELECT pg_catalog.setval('public.mantenciones_mantencion_id_seq', 3, true);
+SELECT pg_catalog.setval('public.mantenciones_mantencion_id_seq', 13, true);
 
 
 --
 -- Name: mantenciones_vehiculocliente_id_seq; Type: SEQUENCE SET; Schema: public; Owner: admin_motos
 --
 
-SELECT pg_catalog.setval('public.mantenciones_vehiculocliente_id_seq', 3, true);
+SELECT pg_catalog.setval('public.mantenciones_vehiculocliente_id_seq', 13, true);
 
 
 --
@@ -1803,14 +1822,14 @@ SELECT pg_catalog.setval('public.productos_producto_id_seq', 39, true);
 -- Name: token_blacklist_blacklistedtoken_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public.token_blacklist_blacklistedtoken_id_seq', 42, true);
+SELECT pg_catalog.setval('public.token_blacklist_blacklistedtoken_id_seq', 45, true);
 
 
 --
 -- Name: token_blacklist_outstandingtoken_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public.token_blacklist_outstandingtoken_id_seq', 77, true);
+SELECT pg_catalog.setval('public.token_blacklist_outstandingtoken_id_seq', 81, true);
 
 
 --
@@ -2963,5 +2982,5 @@ ALTER DEFAULT PRIVILEGES FOR ROLE postgres IN SCHEMA public GRANT ALL ON TABLES 
 -- PostgreSQL database dump complete
 --
 
-\unrestrict bSyUi7kQV7xoBzXVkjODXvgJEkvbyb7xkXlTh0k3Xzejn2ZX5Vc5i7FOYctv9gs
+\unrestrict 1msqWk6X83T8MgDSeHtQwqVoLVgc6Fjed2yA1z0UjfolDL8MOfzkNQ9YyYC94wu
 
