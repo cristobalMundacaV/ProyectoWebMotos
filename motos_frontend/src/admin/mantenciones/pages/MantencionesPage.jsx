@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { getDisponibilidadMantenciones } from "../../../services/mantencionesService";
 
 const ESTADO_OPTIONS = [
@@ -152,6 +152,7 @@ export default function MantencionesPage({
   });
   const [horarioEditsById, setHorarioEditsById] = useState({});
   const [showHorarioForm, setShowHorarioForm] = useState(false);
+  const horarioCreateFormRef = useRef(null);
 
   const DIAS_LABEL = {
     0: "Lunes",
@@ -324,9 +325,7 @@ export default function MantencionesPage({
           agrupados.set(Number(item.dia_semana ?? 0), item);
         });
 
-      return [...agrupados.values()]
-        .filter((item) => Number(item.dia_semana ?? 0) >= 0 && Number(item.dia_semana ?? 0) <= 4)
-        .sort(
+      return [...agrupados.values()].sort(
         (a, b) =>
           Number(a.dia_semana ?? 0) - Number(b.dia_semana ?? 0) ||
           String(a.hora_inicio || "").localeCompare(String(b.hora_inicio || ""))
@@ -675,13 +674,26 @@ export default function MantencionesPage({
         <article className="admin-panel-card">
           <div className="admin-card-header">
             <h2>Horarios operativos</h2>
-            <button type="button" className="admin-primary-action" onClick={() => setShowHorarioForm((prev) => !prev)}>
-              {showHorarioForm ? "Ocultar formulario" : "Agregar horario"}
+            <button
+              type="button"
+              className="admin-primary-action"
+              onClick={() => {
+                if (!showHorarioForm) {
+                  setShowHorarioForm(true);
+                  return;
+                }
+                if (horarioCreateFormRef.current) {
+                  horarioCreateFormRef.current.requestSubmit();
+                }
+              }}
+              disabled={horarioSaving}
+            >
+              {showHorarioForm ? (horarioSaving ? "Guardando..." : "Guardar horario") : "Agregar horario"}
             </button>
           </div>
 
           {showHorarioForm && (
-            <form className="admin-moto-form admin-horario-create-form" onSubmit={onHorarioSubmit} noValidate>
+            <form ref={horarioCreateFormRef} className="admin-moto-form admin-horario-create-form" onSubmit={onHorarioSubmit} noValidate>
               <label>
                 Dia inicio
                 <select name="dia_inicio" value={horarioForm?.dia_inicio ?? "0"} onChange={onHorarioInputChange} required>
@@ -738,10 +750,6 @@ export default function MantencionesPage({
                   required
                 />
               </label>
-
-              <button type="submit" className="admin-primary-action" disabled={horarioSaving}>
-                {horarioSaving ? "Guardando..." : "Agregar horario"}
-              </button>
             </form>
           )}
 

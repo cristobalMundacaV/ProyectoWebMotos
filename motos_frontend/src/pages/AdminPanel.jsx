@@ -1347,7 +1347,6 @@ export default function AdminPanel() {
           });
         })
       );
-      setHorarioMantencionForm(initialHorarioMantencionForm);
       await fetchHorariosMantencionList();
       pushToast("Horario operativo creado correctamente.", "success");
     } catch (error) {
