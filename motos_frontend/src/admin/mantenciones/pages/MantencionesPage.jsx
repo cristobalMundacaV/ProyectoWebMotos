@@ -681,7 +681,7 @@ export default function MantencionesPage({
           </div>
 
           {showHorarioForm && (
-            <form className="admin-moto-form" onSubmit={onHorarioSubmit} noValidate>
+            <form className="admin-moto-form admin-horario-create-form" onSubmit={onHorarioSubmit} noValidate>
               <label>
                 Dia inicio
                 <select name="dia_inicio" value={horarioForm?.dia_inicio ?? "0"} onChange={onHorarioInputChange} required>
