@@ -105,7 +105,8 @@ class MantencionSerializer(serializers.ModelSerializer):
 
 
 class AgendarMantencionSerializer(serializers.Serializer):
-    nombre_completo = serializers.CharField(max_length=150)
+    nombres = serializers.CharField(max_length=120)
+    apellidos = serializers.CharField(max_length=120)
     telefono = serializers.CharField(max_length=30)
     email = serializers.EmailField(required=True)
 
@@ -125,20 +126,30 @@ class AgendarMantencionSerializer(serializers.Serializer):
     motivo = serializers.CharField()
 
     def validate(self, attrs):
+        nombres = (attrs.get("nombres") or "").strip()
+        apellidos = (attrs.get("apellidos") or "").strip()
+        if not nombres:
+            raise serializers.ValidationError({"nombres": "Los nombres son obligatorios."})
+        if not apellidos:
+            raise serializers.ValidationError({"apellidos": "Los apellidos son obligatorios."})
+
         fecha = attrs.get("fecha_agendada")
         hora = attrs.get("hora_agendada")
         if fecha and hora and not slot_disponible(fecha, hora):
             raise serializers.ValidationError(
                 {"hora_agendada": "La hora seleccionada ya no esta disponible. Elige otra opcion."}
             )
+        attrs["nombres"] = nombres
+        attrs["apellidos"] = apellidos
         return attrs
 
-    def _generate_username(self, nombre_completo: str, telefono: str, email: str) -> str:
+    def _generate_username(self, nombres: str, apellidos: str, telefono: str, email: str) -> str:
         User = get_user_model()
         if email:
             base = email.split("@", 1)[0].strip().lower()
         else:
-            slug_name = "".join(ch for ch in nombre_completo.lower().strip() if ch.isalnum())[:20]
+            base_name = f"{nombres} {apellidos}".strip()
+            slug_name = "".join(ch for ch in base_name.lower() if ch.isalnum())[:20]
             only_digits = "".join(ch for ch in telefono if ch.isdigit())[-6:]
             base = f"{slug_name}{only_digits}" if slug_name else f"cliente{only_digits}"
         base = base or "cliente"
@@ -157,7 +168,8 @@ class AgendarMantencionSerializer(serializers.Serializer):
         User = get_user_model()
         email = (self.validated_data.get("email") or "").strip().lower()
         telefono = self.validated_data["telefono"].strip()
-        nombre_completo = self.validated_data["nombre_completo"].strip()
+        nombres = self.validated_data["nombres"].strip()
+        apellidos = self.validated_data["apellidos"].strip()
 
         user = None
         if email:
@@ -167,13 +179,12 @@ class AgendarMantencionSerializer(serializers.Serializer):
             ).first()
 
         if not user:
-            username = self._generate_username(nombre_completo, telefono, email)
-            first_name, _, last_name = nombre_completo.partition(" ")
+            username = self._generate_username(nombres, apellidos, telefono, email)
             user = User.objects.create(
                 username=username,
                 email=email,
-                first_name=first_name.strip(),
-                last_name=last_name.strip(),
+                first_name=nombres,
+                last_name=apellidos,
                 is_active=True,
             )
             user.set_unusable_password()

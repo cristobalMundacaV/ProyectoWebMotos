@@ -51,6 +51,7 @@ export default function EquipamientoCatalog({ variant = "accesorios" }) {
   const [categorias, setCategorias] = useState([]);
   const [motosCompatibles, setMotosCompatibles] = useState([]);
   const [selectedCategorias, setSelectedCategorias] = useState([]);
+  const [selectedMarcas, setSelectedMarcas] = useState([]);
   const [selectedMotos, setSelectedMotos] = useState([]);
   const [order, setOrder] = useState("release");
   const [currentPage, setCurrentPage] = useState(1);
@@ -161,10 +162,13 @@ export default function EquipamientoCatalog({ variant = "accesorios" }) {
 
   const productosFiltrados = useMemo(() => {
     let items = productos.filter((item) => {
+      const marcaOk =
+        selectedMarcas.length === 0 ||
+        selectedMarcas.includes(item.marca_nombre);
       const categoriaOk =
         selectedCategorias.length === 0 ||
         selectedCategorias.includes(item.subcategoria_nombre);
-      return categoriaOk;
+      return marcaOk && categoriaOk;
     });
 
     if (order === "precio-asc") {
@@ -175,7 +179,13 @@ export default function EquipamientoCatalog({ variant = "accesorios" }) {
     }
 
     return items;
-  }, [order, productos, selectedCategorias]);
+  }, [order, productos, selectedCategorias, selectedMarcas]);
+
+  const marcas = useMemo(() => {
+    return [...new Set(productos.map((item) => item.marca_nombre).filter(Boolean))].sort((a, b) =>
+      a.localeCompare(b, "es")
+    );
+  }, [productos]);
 
   const totalPages = Math.max(1, Math.ceil(productosFiltrados.length / ITEMS_PER_PAGE));
   const pageSafe = Math.min(currentPage, totalPages);
@@ -186,7 +196,7 @@ export default function EquipamientoCatalog({ variant = "accesorios" }) {
 
   useEffect(() => {
     setCurrentPage(1);
-  }, [order, selectedCategorias, selectedMotos, tipoApi]);
+  }, [order, selectedCategorias, selectedMarcas, selectedMotos, tipoApi]);
 
   useEffect(() => {
     if (currentPage > totalPages) setCurrentPage(totalPages);
@@ -357,9 +367,10 @@ export default function EquipamientoCatalog({ variant = "accesorios" }) {
   const previewSrc =
     editImagePreview ||
     (editingProducto?.imagen_principal ? buildMediaUrl(editingProducto.imagen_principal) : "");
-  const activeFiltersCount = selectedCategorias.length + selectedMotos.length;
+  const activeFiltersCount = selectedCategorias.length + selectedMarcas.length + selectedMotos.length;
 
   function clearFilters() {
+    setSelectedMarcas([]);
     setSelectedCategorias([]);
     setSelectedMotos([]);
   }
@@ -373,16 +384,18 @@ export default function EquipamientoCatalog({ variant = "accesorios" }) {
       </div>
 
       <header className="equip-header">
-        <h1>{formatTitleCase(title)}</h1>
+        <div className="equip-title-block">
+          <h1>{formatTitleCase(title)}</h1>
+          <p className="equip-results-meta">{productosFiltrados.length} articulos</p>
+        </div>
         <div className="equip-sort-row">
-          <p>{productosFiltrados.length} articulos</p>
           <label htmlFor="equip-order">Ordenar por</label>
           <select
             id="equip-order"
             value={order}
             onChange={(e) => setOrder(e.target.value)}
           >
-            <option value="release">Fecha de release</option>
+            <option value="release">Fecha de lanzamiento</option>
             <option value="precio-asc">Menor precio</option>
             <option value="precio-desc">Mayor precio</option>
           </select>
@@ -420,6 +433,25 @@ export default function EquipamientoCatalog({ variant = "accesorios" }) {
             <button type="button" onClick={() => setIsFiltersOpen(false)}>
               Cerrar
             </button>
+          </div>
+
+          <div className="equip-filter-block">
+            <h3>Marcas</h3>
+            <div className="equip-filter-list">
+              {marcas.map((marca) => (
+                <label key={marca}>
+                  <input
+                    type="checkbox"
+                    checked={selectedMarcas.includes(marca)}
+                    onChange={() =>
+                      toggleValue(setSelectedMarcas, selectedMarcas, marca)
+                    }
+                  />
+                  <span>{formatTitleCase(marca)}</span>
+                </label>
+              ))}
+              {marcas.length === 0 && <p className="equip-filter-empty">Sin marcas</p>}
+            </div>
           </div>
 
           <div className="equip-filter-block">
@@ -502,16 +534,20 @@ export default function EquipamientoCatalog({ variant = "accesorios" }) {
                     </div>
                   )}
                 </div>
-                <h3>{formatTitleCase(producto.nombre)}</h3>
-                <p>${Number(producto.precio).toLocaleString("es-CL")}</p>
-                <div className="equip-card-actions">
-                  {isAdmin ? (
-                    <Link className="equip-card-detail-btn" to={detailPath}>
-                      Ver detalles
-                    </Link>
-                  ) : (
-                    <span className="equip-card-detail-btn">Ver detalles</span>
-                  )}
+                <div className="equip-card-body">
+                  <h3>{formatTitleCase(producto.nombre)}</h3>
+                  <div className="equip-card-bottom">
+                    <p className="equip-card-price">${Number(producto.precio).toLocaleString("es-CL")}</p>
+                    <div className="equip-card-actions">
+                      {isAdmin ? (
+                        <Link className="equip-card-detail-btn" to={detailPath}>
+                          Ver detalles
+                        </Link>
+                      ) : (
+                        <span className="equip-card-detail-btn">Ver detalles</span>
+                      )}
+                    </div>
+                  </div>
                 </div>
               </>
             );

@@ -48,7 +48,7 @@ def _filter_marcas_por_tipo(queryset, tipo):
 @api_view(["GET", "POST"])
 def lista_motos(request):
     if request.method == "GET":
-        motos = Moto.objects.filter(activa=True).select_related("marca", "categoria", "modelo_ref")
+        motos = Moto.objects.filter(activa=True).select_related("marca", "modelo_moto", "modelo_moto__categoria")
         serializer = MotoSerializer(motos, many=True)
         return Response(serializer.data)
 
@@ -95,24 +95,23 @@ def meta_motos(request):
         .order_by("nombre")
         .values("id", "nombre")
     )
-    categorias = list(
-        CategoriaMoto.objects.filter(activa=True)
-        .order_by("nombre")
-        .values("id", "nombre")
-    )
+    categorias = list(CategoriaMoto.objects.filter(activa=True).order_by("nombre").values("id", "nombre"))
     modelos_raw = list(
         ModeloMoto.objects.filter(activo=True)
-        .select_related("marca")
-        .order_by("nombre")
-        .values("id", "nombre", "slug", "marca", "marca__nombre")
+        .select_related("marca", "categoria")
+        .order_by("nombre_modelo")
+        .values("id", "nombre_modelo", "slug", "marca", "marca__nombre", "categoria_id", "categoria__nombre", "cilindrada")
     )
     modelos = [
         {
             "id": item["id"],
-            "nombre": item["nombre"],
+            "nombre": item["nombre_modelo"],
             "slug": item["slug"],
             "marca": item["marca"],
             "marca_nombre": item["marca__nombre"],
+            "categoria": item["categoria_id"],
+            "categoria_nombre": item["categoria__nombre"],
+            "cilindrada": item["cilindrada"],
         }
         for item in modelos_raw
     ]
@@ -124,7 +123,7 @@ def meta_motos(request):
 def modelos_moto(request):
     if request.method == "GET":
         marca_id = request.GET.get("marca")
-        queryset = ModeloMoto.objects.select_related("marca").order_by("nombre")
+        queryset = ModeloMoto.objects.select_related("marca", "categoria").order_by("nombre_modelo")
         if marca_id:
             queryset = queryset.filter(marca_id=marca_id)
         serializer = ModeloMotoSerializer(queryset, many=True)
@@ -167,7 +166,7 @@ def modelos_moto_detalle(request, modelo_id):
     serializer = ModeloMotoSerializer(modelo, data=request.data, partial=True)
     serializer.is_valid(raise_exception=True)
     updated_modelo = serializer.save()
-    Moto.objects.filter(modelo_ref=updated_modelo).update(modelo=updated_modelo.nombre)
+    Moto.objects.filter(modelo_moto=updated_modelo).update(modelo=updated_modelo.nombre_modelo)
     return Response(ModeloMotoSerializer(updated_modelo).data)
 
 

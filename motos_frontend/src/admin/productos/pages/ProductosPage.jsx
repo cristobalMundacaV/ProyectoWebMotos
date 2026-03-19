@@ -69,6 +69,19 @@ export default function ProductosPage({
     return digits.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
   }
 
+  function formatCategoryLabel(value) {
+    const clean = String(value || "")
+      .trim()
+      .replace(/\s+/g, " ");
+    if (!clean) return "Sin subcategoria";
+    return clean
+      .toLowerCase()
+      .split(" ")
+      .filter(Boolean)
+      .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(" ");
+  }
+
   const [accesorioMotoLocalPreview, setAccesorioMotoLocalPreview] = useState("");
   const [accesorioRiderLocalPreview, setAccesorioRiderLocalPreview] = useState("");
 
@@ -145,7 +158,7 @@ export default function ProductosPage({
           </form>
         </article>
 
-        <article className="admin-panel-card">
+        <article className="admin-panel-card admin-category-list-card">
           <div className="admin-card-header">
             <h2>Categorias Indumentaria Rider</h2>
             <span>{categoriasAccRiderMeta.subcategorias.length} registradas</span>
@@ -155,7 +168,7 @@ export default function ProductosPage({
             {paginatedCategoriasAccRider.items.map((categoria) => (
               <div key={categoria.id} className="admin-table-row admin-table-row-two-cols">
                 <div className="admin-entity-name-cell admin-category-name-cell">
-                  <strong>{categoria.nombre}</strong>
+                  <strong>{formatCategoryLabel(categoria.nombre)}</strong>
                 </div>
                 <div className="admin-row-actions">
                   <button type="button" className="admin-row-action-btn edit" title="Editar" onClick={() => onCategoriaAccRiderEdit?.(categoria)}>
@@ -233,7 +246,7 @@ export default function ProductosPage({
           </form>
         </article>
 
-        <article className="admin-panel-card">
+        <article className="admin-panel-card admin-category-list-card">
           <div className="admin-card-header">
             <h2>Categorias Accesorios Motos</h2>
             <span>{categoriasAccMotosMeta.subcategorias.length} registradas</span>
@@ -243,7 +256,7 @@ export default function ProductosPage({
             {paginatedCategoriasAccMotos.items.map((categoria) => (
               <div key={categoria.id} className="admin-table-row admin-table-row-two-cols">
                 <div className="admin-entity-name-cell admin-category-name-cell">
-                  <strong>{categoria.nombre}</strong>
+                  <strong>{formatCategoryLabel(categoria.nombre)}</strong>
                 </div>
                 <div className="admin-row-actions">
                   <button type="button" className="admin-row-action-btn edit" title="Editar" onClick={() => onCategoriaAccMotosEdit?.(categoria)}>
@@ -291,7 +304,7 @@ export default function ProductosPage({
                 <option value="">Selecciona una categoria</option>
                 {categoriasAccMotosMeta.subcategorias.map((subcategoria) => (
                   <option key={subcategoria.id} value={subcategoria.id}>
-                    {subcategoria.nombre}
+                    {formatCategoryLabel(subcategoria.nombre)}
                   </option>
                 ))}
               </select>
@@ -437,7 +450,7 @@ export default function ProductosPage({
               <div key={producto.id} className="admin-table-row admin-table-row-product-actions">
                 <div>
                   <strong>{producto.nombre}</strong>
-                  <span>{producto.subcategoria_nombre || "Sin subcategoria"}</span>
+                  <span>{formatCategoryLabel(producto.subcategoria_nombre)}</span>
                 </div>
                 <div className="admin-product-price-cell">
                   <strong>
@@ -495,7 +508,7 @@ export default function ProductosPage({
                 <option value="">Selecciona una categoria</option>
                 {accesoriosRiderMeta.subcategorias.map((subcategoria) => (
                   <option key={subcategoria.id} value={subcategoria.id}>
-                    {subcategoria.nombre}
+                    {formatCategoryLabel(subcategoria.nombre)}
                   </option>
                 ))}
               </select>
@@ -610,7 +623,7 @@ export default function ProductosPage({
               <div key={producto.id} className="admin-table-row admin-table-row-product-actions">
                 <div>
                   <strong>{producto.nombre}</strong>
-                  <span>{producto.subcategoria_nombre || "Sin subcategoria"}</span>
+                  <span>{formatCategoryLabel(producto.subcategoria_nombre)}</span>
                 </div>
                 <div className="admin-product-price-cell">
                   <strong>

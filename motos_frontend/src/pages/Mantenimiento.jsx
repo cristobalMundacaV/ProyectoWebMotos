@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+﻿import { useEffect, useMemo, useState } from "react";
 import Navbar from "../components/layout/Navbar";
 import Footer from "../components/layout/Footer";
 import { getStoredUser } from "../services/authService";
@@ -19,13 +19,14 @@ const TIPO_MANTENCION_OPTIONS = [
 
 const WEEK_DAYS = ["Lun", "Mar", "Mie", "Jue", "Vie", "Sab", "Dom"];
 const CURRENT_YEAR = new Date().getFullYear();
-const YEAR_OPTIONS = Array.from({ length: CURRENT_YEAR - 1899 }, (_, index) => String(CURRENT_YEAR - index));
+const MIN_MOTO_YEAR = 2000;
+const YEAR_OPTIONS = Array.from({ length: CURRENT_YEAR - MIN_MOTO_YEAR + 1 }, (_, index) => String(CURRENT_YEAR - index));
 
 function getInitialForm() {
   const user = getStoredUser();
-  const nombreCompleto = `${user?.first_name || ""} ${user?.last_name || ""}`.trim();
   return {
-    nombre_completo: nombreCompleto || user?.username || "",
+    nombres: user?.first_name || user?.username || "",
+    apellidos: user?.last_name || "",
     telefono: user?.telefono || "",
     email: user?.email || "",
     matricula: "",
@@ -179,13 +180,14 @@ export default function Mantenimiento() {
     if (loading) return;
 
     const requiredFields = [
-      ["nombre_completo", "Nombre completo"],
+      ["nombres", "Nombres"],
+      ["apellidos", "Apellidos"],
       ["telefono", "Telefono"],
       ["email", "Email"],
       ["matricula", "Matricula"],
       ["marca", "Marca"],
       ["modelo", "Modelo"],
-      ["anio", "Años"],
+      ["anio", "A\u00F1o"],
       ["kilometraje_actual", "Kilometraje actual"],
       ["fecha_agendada", "Dia de mantencion"],
       ["hora_agendada", "Hora de mantencion"],
@@ -197,12 +199,14 @@ export default function Mantenimiento() {
       setToast({ type: "error", message: `Completa el campo obligatorio: ${missingField[1]}.` });
       return;
     }
+
     const normalizedEmail = form.email.trim().toLowerCase();
     const emailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalizedEmail);
     if (!emailValid) {
       setToast({ type: "error", message: "Ingresa un email valido (ejemplo: nombre@dominio.com)." });
       return;
     }
+
     const normalizedMatricula = form.matricula.trim().toUpperCase();
     if (!/^[A-Z]{3}\d{2}$/.test(normalizedMatricula)) {
       setToast({ type: "error", message: "La matricula debe tener formato AAA99 (ejemplo: TKG30)." });
@@ -218,7 +222,8 @@ export default function Mantenimiento() {
         matricula: normalizedMatricula,
         marca: form.marca.trim(),
         modelo: form.modelo.trim(),
-        nombre_completo: form.nombre_completo.trim(),
+        nombres: form.nombres.trim(),
+        apellidos: form.apellidos.trim(),
         telefono: form.telefono.trim(),
         email: normalizedEmail,
         motivo: form.motivo.trim(),
@@ -231,7 +236,8 @@ export default function Mantenimiento() {
       setToast({ type: "success", message: "Solicitud enviada con exito. Te contactaremos para confirmar tu hora." });
       setForm((prev) => ({
         ...getInitialForm(),
-        nombre_completo: prev.nombre_completo,
+        nombres: prev.nombres,
+        apellidos: prev.apellidos,
         telefono: prev.telefono,
         email: prev.email,
       }));
@@ -274,8 +280,13 @@ export default function Mantenimiento() {
 
             <div className="mantencion-grid">
               <label>
-                Nombre completo
-                <input name="nombre_completo" value={form.nombre_completo} onChange={handleChange} required />
+                Nombres
+                <input name="nombres" value={form.nombres} onChange={handleChange} required />
+              </label>
+
+              <label>
+                Apellidos
+                <input name="apellidos" value={form.apellidos} onChange={handleChange} required />
               </label>
 
               <label>
@@ -283,7 +294,7 @@ export default function Mantenimiento() {
                 <input name="telefono" value={form.telefono} onChange={handleChange} required />
               </label>
 
-              <label className="mantencion-field-full">
+              <label>
                 Email
                 <input name="email" type="email" value={form.email} onChange={handleChange} required />
               </label>
@@ -315,9 +326,9 @@ export default function Mantenimiento() {
               </label>
 
               <label>
-                Años
+                {"A\u00F1o"}
                 <select name="anio" value={form.anio} onChange={handleChange} required>
-                  <option value="">Selecciona años</option>
+                  <option value="">{`Selecciona A\u00F1o`}</option>
                   {YEAR_OPTIONS.map((year) => (
                     <option key={year} value={year}>
                       {year}

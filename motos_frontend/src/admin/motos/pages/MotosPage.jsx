@@ -1,6 +1,19 @@
 import { useEffect, useState } from "react";
 import AdminPagination, { paginateItems } from "../../shared/components/AdminPagination";
 
+const MOTO_COLOR_PALETTE = [
+  { value: "Negro" },
+  { value: "Blanco" },
+  { value: "Rojo" },
+  { value: "Azul" },
+  { value: "Verde" },
+  { value: "Amarillo" },
+  { value: "Naranjo" },
+  { value: "Gris" },
+  { value: "Plateado" },
+  { value: "Dorado" },
+];
+
 export default function MotosPage({
   activeSection,
   loading,
@@ -40,8 +53,11 @@ export default function MotosPage({
   onCategoriaMotoDelete,
 }) {
   const PAGE_SIZE = 10;
-  const MODELOS_PAGE_SIZE = 8;
+  const MODELOS_PAGE_SIZE = 6;
   const RECENT_MOTOS_PAGE_SIZE = 7;
+  const MIN_MOTO_YEAR = 2000;
+  const currentYear = new Date().getFullYear();
+  const motoYearOptions = Array.from({ length: currentYear - MIN_MOTO_YEAR + 1 }, (_, index) => String(currentYear - index));
   const [tablePages, setTablePages] = useState({
     marcas: 1,
     modelosMoto: 1,
@@ -66,6 +82,19 @@ export default function MotosPage({
     const enteroConPuntos = entero.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
 
     return decimal ? `${enteroConPuntos},${decimal}` : enteroConPuntos;
+  }
+
+  function formatCategoryLabel(value) {
+    const clean = String(value || "")
+      .trim()
+      .replace(/\s+/g, " ");
+    if (!clean) return "-";
+    return clean
+      .toLowerCase()
+      .split(" ")
+      .filter(Boolean)
+      .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(" ");
   }
 
   if (activeSection === "marcas_motos" || activeSection === "marcas_acc_motos" || activeSection === "marcas_acc_rider") {
@@ -190,7 +219,7 @@ export default function MotosPage({
           </form>
         </article>
 
-        <article className="admin-panel-card">
+        <article className="admin-panel-card admin-category-list-card">
           <div className="admin-card-header">
             <h2>Categorias creadas</h2>
             <span>{categoriasMoto.length} registradas</span>
@@ -200,7 +229,7 @@ export default function MotosPage({
             {paginatedCategoriasMoto.items.map((categoria) => (
               <div key={categoria.id} className="admin-table-row admin-table-row-two-cols">
                 <div className="admin-entity-name-cell admin-category-name-cell">
-                  <strong>{categoria.nombre}</strong>
+                  <strong>{formatCategoryLabel(categoria.nombre)}</strong>
                 </div>
                 <div className="admin-row-actions">
                   <button type="button" className="admin-row-action-btn edit" title="Editar" onClick={() => onCategoriaMotoEdit?.(categoria)}>
@@ -250,12 +279,36 @@ export default function MotosPage({
             </label>
 
             <label>
+              Categoria *
+              <select name="categoria" value={modeloMotoForm.categoria} onChange={onModeloMotoInputChange} required>
+                <option value="">Selecciona una categoria</option>
+                {motoMeta.categorias.map((categoria) => (
+                  <option key={categoria.id} value={categoria.id}>
+                    {formatCategoryLabel(categoria.nombre)}
+                  </option>
+                ))}
+              </select>
+            </label>
+
+            <label>
               Nombre del modelo *
               <input
                 name="nombre"
                 value={modeloMotoForm.nombre}
                 onChange={onModeloMotoInputChange}
                 maxLength={150}
+                required
+              />
+            </label>
+
+            <label>
+              Cilindrada (cc) *
+              <input
+                type="number"
+                name="cilindrada"
+                value={modeloMotoForm.cilindrada}
+                onChange={onModeloMotoInputChange}
+                min="1"
                 required
               />
             </label>
@@ -294,6 +347,7 @@ export default function MotosPage({
                   <span className="admin-row-label">Nombre Modelo</span>
                   <strong>{modelo.nombre}</strong>
                   <span>{modelo.marca_nombre || "-"}</span>
+                  <span>{formatCategoryLabel(modelo.categoria_nombre) || "-"} | {modelo.cilindrada ? `${modelo.cilindrada}cc` : "-"}</span>
                 </div>
                 <div className="admin-row-actions">
                   <button type="button" className="admin-row-action-btn edit" title="Editar" onClick={() => onModeloMotoEdit?.(modelo)}>
@@ -346,18 +400,6 @@ export default function MotosPage({
             </label>
 
             <label>
-              Categoria *
-              <select name="categoria" value={motoForm.categoria} onChange={onMotoInputChange} required>
-                <option value="">Selecciona una categoria</option>
-                {motoMeta.categorias.map((categoria) => (
-                  <option key={categoria.id} value={categoria.id}>
-                    {categoria.nombre}
-                  </option>
-                ))}
-              </select>
-            </label>
-
-            <label>
               Modelo *
               <select name="modelo" value={motoForm.modelo} onChange={onMotoInputChange} required>
                 <option value="">Selecciona un modelo</option>
@@ -388,18 +430,42 @@ export default function MotosPage({
             </label>
 
             <label>
-              Cilindrada *
-              <input type="number" name="cilindrada" value={motoForm.cilindrada} onChange={onMotoInputChange} min="1" required />
+              {"A\u00f1o *"}
+              <select name="anio" value={motoForm.anio} onChange={onMotoInputChange} required>
+                <option value="">{"Selecciona un a\u00f1o"}</option>
+                {motoYearOptions.map((year) => (
+                  <option key={year} value={year}>
+                    {year}
+                  </option>
+                ))}
+              </select>
             </label>
 
             <label>
-              Año *
-              <input type="number" name="anio" value={motoForm.anio} onChange={onMotoInputChange} min="1900" required />
+              Color (opcional)
+              <select name="color" value={motoForm.color} onChange={onMotoInputChange}>
+                <option value="">Selecciona un color</option>
+                {MOTO_COLOR_PALETTE.map((color) => (
+                  <option key={color.value} value={color.value}>
+                    {color.value}
+                  </option>
+                ))}
+              </select>
             </label>
 
             <label>
               Stock *
               <input type="number" name="stock" value={motoForm.stock} onChange={onMotoInputChange} min="0" required />
+            </label>
+
+            <label>
+              Estado *
+              <select name="estado" value={motoForm.estado} onChange={onMotoInputChange} required>
+                <option value="disponible">Disponible</option>
+                <option value="reservada">Reservada</option>
+                <option value="vendida">Vendida</option>
+                <option value="inactiva">Inactiva</option>
+              </select>
             </label>
 
             <label className="admin-form-span-2">
@@ -448,7 +514,7 @@ export default function MotosPage({
                 </div>
                 <div className="admin-moto-table-cell">
                   <span className="admin-row-label">Tipo</span>
-                  <strong>{moto.categoria_nombre || "-"}</strong>
+                  <strong>{formatCategoryLabel(moto.categoria_nombre)}</strong>
                   <span>{moto.anio}</span>
                 </div>
                 <div className="admin-row-actions">

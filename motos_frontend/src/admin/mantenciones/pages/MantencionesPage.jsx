@@ -42,6 +42,20 @@ function formatMoney(value) {
   return `$${Number(value || 0).toLocaleString("es-CL", { maximumFractionDigits: 0 })}`;
 }
 
+function toWholeNumber(value) {
+  const parsed = Number(value || 0);
+  if (!Number.isFinite(parsed)) return 0;
+  return Math.trunc(parsed);
+}
+
+function sanitizeIntegerInput(value) {
+  const raw = String(value ?? "").trim();
+  if (!raw) return "";
+  const parsed = Number(raw.replace(",", "."));
+  if (!Number.isFinite(parsed)) return "";
+  return String(Math.trunc(parsed));
+}
+
 export default function MantencionesPage({
   activeSection,
   loading,
@@ -90,7 +104,7 @@ export default function MantencionesPage({
     return (
       editsById[item.id] || {
         estado: item.estado,
-        costo_total: item.costo_total || 0,
+        costo_total: toWholeNumber(item.costo_total),
         kilometraje_ingreso: item.kilometraje_ingreso ?? "",
       }
     );
@@ -156,7 +170,7 @@ export default function MantencionesPage({
             <strong>{moto.matricula || "-"}</strong>
           </div>
           <div>
-            <span>A\u00f1o</span>
+            <span>{"A\u00F1o"}</span>
             <strong>{moto.anio || "-"}</strong>
           </div>
           <div>
@@ -220,8 +234,8 @@ export default function MantencionesPage({
                 type="number"
                 min="0"
                 step="1"
-                value={draft.costo_total ?? item.costo_total ?? 0}
-                onChange={(event) => setDraft(item.id, "costo_total", event.target.value)}
+                value={toWholeNumber(draft.costo_total ?? item.costo_total ?? 0)}
+                onChange={(event) => setDraft(item.id, "costo_total", sanitizeIntegerInput(event.target.value))}
                 disabled={saving}
               />
             </label>

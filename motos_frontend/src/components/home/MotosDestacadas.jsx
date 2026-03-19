@@ -1,4 +1,5 @@
 import { useEffect, useState, useRef } from "react";
+import { useNavigate } from "react-router-dom";
 import { useMotos } from "../../hooks/useMotos";
 import MotoCard from "../motos/MotoCard";
 import { deleteMoto } from "../../services/motosService";
@@ -6,6 +7,7 @@ import { getStoredToken, getStoredUser, hasAdminAccess } from "../../services/au
 import "../../styles/home.css";
 
 export default function MotosDestacadas() {
+  const navigate = useNavigate();
   const { motos, setMotos, loading, error } = useMotos();
   const motosList = Array.isArray(motos) ? motos : [];
   const trackRef = useRef(null);
@@ -44,6 +46,10 @@ export default function MotosDestacadas() {
     }
   }
 
+  function handleEditMoto() {
+    navigate("/catalogo");
+  }
+
   return (
     <section className="destacadas" id="catalogo">
       <h2>Modelos Destacados</h2>
@@ -68,9 +74,10 @@ export default function MotosDestacadas() {
                 <MotoCard
                   moto={moto}
                   isAdmin={isAdmin}
+                  onEdit={handleEditMoto}
                   onDelete={handleDeleteMoto}
-                  showAdminOverlayActions={false}
-                  showBottomDeleteAction
+                  showAdminOverlayActions
+                  showBottomDeleteAction={false}
                 />
               </div>
             ))}

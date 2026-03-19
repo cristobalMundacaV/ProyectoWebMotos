@@ -26,7 +26,8 @@ class ContactoCliente(models.Model):
     moto = models.ForeignKey('motos.Moto', on_delete=models.SET_NULL, null=True, blank=True)
     producto = models.ForeignKey('productos.Producto', on_delete=models.SET_NULL, null=True, blank=True)
 
-    nombre_completo = models.CharField(max_length=150)
+    nombres = models.CharField(max_length=120)
+    apellidos = models.CharField(max_length=120)
     telefono = models.CharField(max_length=30)
     email = models.EmailField(blank=True)
     mensaje = models.TextField(blank=True)
@@ -34,4 +35,5 @@ class ContactoCliente(models.Model):
     fecha_creacion = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return self.nombre_completo
+        full_name = f"{self.nombres} {self.apellidos}".strip()
+        return full_name or self.telefono

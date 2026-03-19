@@ -1,4 +1,4 @@
-﻿import { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   clearAuthSession,
@@ -57,14 +57,14 @@ import "../styles/admin.css";
 
 const initialMotoForm = {
   marca: "",
-  categoria: "",
   modelo: "",
   slug: "",
   descripcion: "",
   precio: "",
-  cilindrada: "",
   anio: "",
+  color: "",
   stock: "0",
+  estado: "disponible",
   es_destacada: false,
   activa: true,
   imagen_principal: null,
@@ -72,6 +72,8 @@ const initialMotoForm = {
 
 const initialModeloMotoForm = {
   marca: "",
+  categoria: "",
+  cilindrada: "",
   nombre: "",
   slug: "",
   descripcion: "",
@@ -159,6 +161,19 @@ const initialHorarioMantencionForm = {
   cupos_por_bloque: "1",
 };
 
+const MOTO_COLOR_PALETTE = [
+  "Negro",
+  "Blanco",
+  "Rojo",
+  "Azul",
+  "Verde",
+  "Amarillo",
+  "Naranjo",
+  "Gris",
+  "Plateado",
+  "Dorado",
+];
+
 function buildSlug(value) {
   return (value || "")
     .toString()
@@ -181,6 +196,27 @@ function normalizeUppercaseLabel(value) {
     .trim()
     .replace(/\s+/g, " ")
     .toUpperCase();
+}
+
+function normalizeTitleCaseForInput(value) {
+  const raw = String(value || "").replace(/\t/g, " ");
+  return raw
+    .split(/(\s+)/)
+    .map((part) => {
+      if (!part || /^\s+$/.test(part)) return part;
+      return part.charAt(0).toUpperCase() + part.slice(1).toLowerCase();
+    })
+    .join("");
+}
+
+function normalizeTitleCaseLabel(value) {
+  return normalizeTitleCaseForInput(value)
+    .trim()
+    .replace(/\s+/g, " ");
+}
+
+function normalizeCategoryLabel(value) {
+  return normalizeTitleCaseLabel(value);
 }
 
 function normalizeAdminUsersResponse(payload) {
@@ -546,11 +582,11 @@ export default function AdminPanel() {
   function handleMarcaInputChange(event) {
     clearInvalidFieldStyle(event.target);
     const { name, type, value, checked } = event.target;
-    const normalizedValue = name === "nombre" ? normalizeUppercaseLabel(value) : value;
+    const normalizedValue = name === "nombre" ? normalizeTitleCaseForInput(value) : value;
     setMarcaForm((prev) => ({
       ...prev,
       [name]: type === "checkbox" ? checked : normalizedValue,
-      ...(name === "nombre" ? { slug: buildSlug(normalizedValue) } : {}),
+      ...(name === "nombre" ? { slug: buildSlug(normalizeTitleCaseLabel(normalizedValue)) } : {}),
     }));
   }
 
@@ -568,31 +604,33 @@ export default function AdminPanel() {
   function handleCategoriaMotoInputChange(event) {
     clearInvalidFieldStyle(event.target);
     const { name, type, value, checked } = event.target;
-    const normalizedValue = name === "nombre" ? normalizeUppercaseLabel(value) : value;
+    const normalizedValue = name === "nombre" ? normalizeTitleCaseForInput(value) : value;
     setCategoriaMotoForm((prev) => ({
       ...prev,
       [name]: type === "checkbox" ? checked : normalizedValue,
-      ...(name === "nombre" ? { slug: buildSlug(normalizedValue) } : {}),
+      ...(name === "nombre" ? { slug: buildSlug(normalizeTitleCaseLabel(normalizedValue)) } : {}),
     }));
   }
 
   function handleCategoriaAccMotosInputChange(event) {
     clearInvalidFieldStyle(event.target);
     const { name, type, value, checked } = event.target;
+    const normalizedValue = name === "nombre" ? normalizeTitleCaseForInput(value) : value;
     setCategoriaAccMotosForm((prev) => ({
       ...prev,
-      [name]: type === "checkbox" ? checked : value,
-      ...(name === "nombre" ? { slug: buildSlug(value) } : {}),
+      [name]: type === "checkbox" ? checked : normalizedValue,
+      ...(name === "nombre" ? { slug: buildSlug(normalizeTitleCaseLabel(normalizedValue)) } : {}),
     }));
   }
 
   function handleCategoriaAccRiderInputChange(event) {
     clearInvalidFieldStyle(event.target);
     const { name, type, value, checked } = event.target;
+    const normalizedValue = name === "nombre" ? normalizeTitleCaseForInput(value) : value;
     setCategoriaAccRiderForm((prev) => ({
       ...prev,
-      [name]: type === "checkbox" ? checked : value,
-      ...(name === "nombre" ? { slug: buildSlug(value) } : {}),
+      [name]: type === "checkbox" ? checked : normalizedValue,
+      ...(name === "nombre" ? { slug: buildSlug(normalizeTitleCaseLabel(normalizedValue)) } : {}),
     }));
   }
 
@@ -728,15 +766,15 @@ export default function AdminPanel() {
     const payload = new FormData();
     const selectedModelo = motoMeta.modelos.find((item) => String(item.id) === String(form.modelo));
     payload.append("marca", form.marca);
-    payload.append("categoria", form.categoria);
     payload.append("modelo_id", form.modelo);
     payload.append("modelo", selectedModelo?.nombre || "");
     payload.append("slug", selectedModelo?.slug || form.slug);
     payload.append("descripcion", form.descripcion);
     payload.append("precio", form.precio);
-    payload.append("cilindrada", form.cilindrada);
     payload.append("anio", form.anio);
+    payload.append("color", form.color || "");
     payload.append("stock", form.stock);
+    payload.append("estado", form.estado || "disponible");
     payload.append("es_destacada", String(form.es_destacada));
     payload.append("activa", String(form.activa));
     if (form.imagen_principal) {
@@ -882,10 +920,19 @@ export default function AdminPanel() {
 
   function openEntityEditModal({ kind, item }) {
     setEntityModalError("");
+    const isBrandKind =
+      kind === "marca_motos" ||
+      kind === "marca_acc_motos" ||
+      kind === "marca_acc_rider";
+    const isCategoryKind =
+      kind === "categoria_moto" ||
+      kind === "categoria_acc_motos" ||
+      kind === "categoria_acc_rider";
+    const normalizedNombre = isBrandKind || isCategoryKind ? normalizeTitleCaseLabel(item.nombre || "") : item.nombre || "";
     setEntityEditModal({
       kind,
       id: item.id,
-      nombre: item.nombre || "",
+      nombre: normalizedNombre,
       slug: item.slug || "",
     });
   }
@@ -916,16 +963,28 @@ export default function AdminPanel() {
     const { name, value } = event.target;
     setEntityEditModal((prev) => {
       if (!prev) return prev;
-      const shouldUppercaseNombre =
+      const isBrandKind =
         prev.kind === "marca_motos" ||
         prev.kind === "marca_acc_motos" ||
-        prev.kind === "marca_acc_rider" ||
+        prev.kind === "marca_acc_rider";
+      const isModelKind = prev.kind === "modelo_moto";
+      const isCategoryKind =
         prev.kind === "categoria_moto" ||
-        prev.kind === "modelo_moto";
+        prev.kind === "categoria_acc_motos" ||
+        prev.kind === "categoria_acc_rider";
       const normalizedValue =
-        name === "nombre" && shouldUppercaseNombre ? normalizeUppercaseLabel(value) : value;
+        name === "nombre"
+          ? isModelKind
+            ? normalizeUppercaseLabel(value)
+            : isBrandKind || isCategoryKind
+              ? normalizeTitleCaseForInput(value)
+              : value
+          : value;
       const next = { ...prev, [name]: normalizedValue };
-      if (name === "nombre") next.slug = buildSlug(normalizedValue);
+      if (name === "nombre") {
+        const valueForSlug = isBrandKind || isCategoryKind ? normalizeTitleCaseLabel(normalizedValue) : normalizedValue;
+        next.slug = buildSlug(valueForSlug);
+      }
       return next;
     });
   }
@@ -946,15 +1005,20 @@ export default function AdminPanel() {
     if (!entityEditModal) return;
     if (!validateFormWithToast(event.currentTarget)) return;
 
-    const shouldUppercaseNombre =
+    const isBrandKind =
       entityEditModal.kind === "marca_motos" ||
       entityEditModal.kind === "marca_acc_motos" ||
-      entityEditModal.kind === "marca_acc_rider" ||
+      entityEditModal.kind === "marca_acc_rider";
+    const isModelKind = entityEditModal.kind === "modelo_moto";
+    const isCategoryKind =
       entityEditModal.kind === "categoria_moto" ||
-      entityEditModal.kind === "modelo_moto";
-    const nombre = shouldUppercaseNombre
+      entityEditModal.kind === "categoria_acc_motos" ||
+      entityEditModal.kind === "categoria_acc_rider";
+    const nombre = isModelKind
       ? normalizeUppercaseLabel(entityEditModal.nombre)
-      : (entityEditModal.nombre || "").trim();
+      : isBrandKind || isCategoryKind
+        ? normalizeTitleCaseLabel(entityEditModal.nombre)
+        : (entityEditModal.nombre || "").trim();
     const slug = (entityEditModal.slug || "").trim();
     if (!nombre) {
       setEntityModalError("El nombre es obligatorio.");
@@ -1290,14 +1354,14 @@ export default function AdminPanel() {
       imageInputKey: Date.now(),
       form: {
         marca: String(moto.marca ?? ""),
-        categoria: String(moto.categoria ?? ""),
         modelo: String(resolvedModeloId ?? ""),
         slug: moto.slug || "",
         descripcion: moto.descripcion || "",
         precio: normalizePrecioFromApi(moto.precio),
-        cilindrada: String(moto.cilindrada ?? ""),
         anio: String(moto.anio ?? ""),
+        color: moto.color || "",
         stock: String(moto.stock ?? "0"),
+        estado: moto.estado || "disponible",
         es_destacada: Boolean(moto.es_destacada),
         activa: moto.activa !== false,
         imagen_principal: null,
@@ -1365,6 +1429,8 @@ export default function AdminPanel() {
       const normalizedNombre = normalizeUppercaseLabel(modeloMotoForm.nombre);
       const payload = {
         ...modeloMotoForm,
+        categoria: modeloMotoForm.categoria || null,
+        cilindrada: modeloMotoForm.cilindrada ? Number(modeloMotoForm.cilindrada) : null,
         nombre: normalizedNombre,
         slug: limitSlug(buildSlug(normalizedNombre), 50),
       };
@@ -1389,7 +1455,7 @@ export default function AdminPanel() {
     setCategoriaMotoSaving(true);
 
     try {
-      const normalizedNombre = normalizeUppercaseLabel(categoriaMotoForm.nombre);
+      const normalizedNombre = normalizeCategoryLabel(categoriaMotoForm.nombre);
       const payload = {
         ...categoriaMotoForm,
         nombre: normalizedNombre,
@@ -1416,7 +1482,7 @@ export default function AdminPanel() {
     setMarcaSaving(true);
 
     try {
-      const normalizedNombre = normalizeUppercaseLabel(marcaForm.nombre);
+      const normalizedNombre = normalizeTitleCaseLabel(marcaForm.nombre);
       const payload = {
         ...marcaForm,
         nombre: normalizedNombre,
@@ -1466,7 +1532,13 @@ export default function AdminPanel() {
     setCategoriaAccMotosSaving(true);
 
     try {
-      const nuevaSubcategoria = await createCategoriaAccesoriosMotos(categoriaAccMotosForm);
+      const normalizedNombre = normalizeCategoryLabel(categoriaAccMotosForm.nombre);
+      const payload = {
+        ...categoriaAccMotosForm,
+        nombre: normalizedNombre,
+        slug: buildSlug(normalizedNombre),
+      };
+      const nuevaSubcategoria = await createCategoriaAccesoriosMotos(payload);
       setCategoriasAccMotosMeta((prev) => ({
         ...prev,
         subcategorias: [nuevaSubcategoria, ...prev.subcategorias],
@@ -1490,7 +1562,13 @@ export default function AdminPanel() {
     setCategoriaAccRiderSaving(true);
 
     try {
-      const nuevaSubcategoria = await createCategoriaAccesoriosRider(categoriaAccRiderForm);
+      const normalizedNombre = normalizeCategoryLabel(categoriaAccRiderForm.nombre);
+      const payload = {
+        ...categoriaAccRiderForm,
+        nombre: normalizedNombre,
+        slug: buildSlug(normalizedNombre),
+      };
+      const nuevaSubcategoria = await createCategoriaAccesoriosRider(payload);
       setCategoriasAccRiderMeta((prev) => ({ ...prev, subcategorias: [nuevaSubcategoria, ...prev.subcategorias] }));
       setAccesoriosRiderMeta((prev) => ({ ...prev, subcategorias: [nuevaSubcategoria, ...prev.subcategorias] }));
       setCategoriaAccRiderForm(initialCategoriaAccRiderForm);
@@ -1893,6 +1971,9 @@ export default function AdminPanel() {
   }
 
   const paginatedAdminUsers = paginateItems(adminUsers, adminUsersPage, 10);
+  const MIN_MOTO_YEAR = 2000;
+  const currentYear = new Date().getFullYear();
+  const motoYearOptions = Array.from({ length: currentYear - MIN_MOTO_YEAR + 1 }, (_, index) => String(currentYear - index));
   const motoEditModelosFiltrados = motoEditModal
     ? motoMeta.modelos.filter((modelo) => !motoEditModal.form.marca || String(modelo.marca) === String(motoEditModal.form.marca))
     : [];
@@ -2242,23 +2323,6 @@ export default function AdminPanel() {
                   </label>
 
                   <label>
-                    Categoria *
-                    <select
-                      name="categoria"
-                      value={motoEditModal.form.categoria}
-                      onChange={handleMotoEditInputChange}
-                      required
-                    >
-                      <option value="">Selecciona una categoria</option>
-                      {motoMeta.categorias.map((categoria) => (
-                        <option key={categoria.id} value={categoria.id}>
-                          {categoria.nombre}
-                        </option>
-                      ))}
-                    </select>
-                  </label>
-
-                  <label>
                     Modelo *
                     <select
                       name="modelo"
@@ -2298,27 +2362,41 @@ export default function AdminPanel() {
                   </label>
 
                   <label>
-                    Cilindrada *
-                    <input
-                      type="number"
-                      name="cilindrada"
-                      value={motoEditModal.form.cilindrada}
-                      onChange={handleMotoEditInputChange}
-                      min="1"
-                      required
-                    />
-                  </label>
-
-                  <label>
-                    Año *
-                    <input
-                      type="number"
+                    {"A\u00f1o *"}
+                    <select
                       name="anio"
                       value={motoEditModal.form.anio}
                       onChange={handleMotoEditInputChange}
-                      min="1900"
                       required
-                    />
+                    >
+                      <option value="">{"Selecciona un a\u00f1o"}</option>
+                      {motoYearOptions.map((year) => (
+                        <option key={year} value={year}>
+                          {year}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+
+                  <label>
+                    Color (opcional)
+                    <select
+                      name="color"
+                      value={motoEditModal.form.color}
+                      onChange={handleMotoEditInputChange}
+                    >
+                      <option value="">Selecciona un color</option>
+                      {MOTO_COLOR_PALETTE.map((color) => (
+                        <option key={color} value={color}>
+                          {color}
+                        </option>
+                      ))}
+                      {motoEditModal.form.color && !MOTO_COLOR_PALETTE.includes(motoEditModal.form.color) && (
+                        <option value={motoEditModal.form.color}>
+                          {`Color actual: ${motoEditModal.form.color}`}
+                        </option>
+                      )}
+                    </select>
                   </label>
 
                   <label>
@@ -2331,6 +2409,21 @@ export default function AdminPanel() {
                       min="0"
                       required
                     />
+                  </label>
+
+                  <label>
+                    Estado *
+                    <select
+                      name="estado"
+                      value={motoEditModal.form.estado}
+                      onChange={handleMotoEditInputChange}
+                      required
+                    >
+                      <option value="disponible">Disponible</option>
+                      <option value="reservada">Reservada</option>
+                      <option value="vendida">Vendida</option>
+                      <option value="inactiva">Inactiva</option>
+                    </select>
                   </label>
 
                   <label className="admin-form-span-2">

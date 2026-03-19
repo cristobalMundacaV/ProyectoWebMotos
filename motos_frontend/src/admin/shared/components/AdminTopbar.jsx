@@ -1,6 +1,10 @@
 import { Link } from "react-router-dom";
+import { getStoredUser } from "../../../services/authService";
 
 export default function AdminTopbar({ onLogout, onToggleSidebar, isSidebarOpen = false }) {
+  const user = getStoredUser();
+  const userName = user?.username || user?.email || "admin";
+
   return (
     <header className="admin-topbar">
       <button
@@ -27,6 +31,9 @@ export default function AdminTopbar({ onLogout, onToggleSidebar, isSidebarOpen =
         <Link to="/" className="admin-topbar-link">
           Ver sitio
         </Link>
+        <span className="admin-topbar-username" title={userName}>
+          {userName}
+        </span>
         <button type="button" className="admin-primary-action" onClick={onLogout}>
           Cerrar sesion
         </button>

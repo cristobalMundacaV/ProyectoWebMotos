@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 function SidebarIcon({ kind }) {
   if (kind === "dashboard") {
@@ -29,6 +30,17 @@ function SidebarIcon({ kind }) {
   }
 
   if (kind === "categorias") {
+    return (
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <rect x="3" y="4" width="8" height="7" rx="1.4" />
+        <rect x="13" y="4" width="8" height="7" rx="1.4" />
+        <rect x="3" y="13" width="8" height="7" rx="1.4" />
+        <rect x="13" y="13" width="8" height="7" rx="1.4" />
+      </svg>
+    );
+  }
+
+  if (kind === "mantenedores") {
     return (
       <svg viewBox="0 0 24 24" aria-hidden="true">
         <rect x="3" y="4" width="8" height="7" rx="1.4" />
@@ -87,51 +99,27 @@ const navigationGroups = [
   {
     label: "Dashboard",
     icon: "dashboard",
-    items: [{ label: "Resumen", value: "resumen" }],
+    directValue: "resumen",
+    items: [],
   },
   {
     label: "Motos",
     icon: "motos",
     items: [
       { label: "Crear motos", value: "motos" },
-    ],
-  },
-  {
-    label: "Modelos",
-    icon: "modelos",
-    items: [{ label: "Motos", value: "modelos_motos" }],
-  },
-  {
-    label: "Categorias",
-    icon: "categorias",
-    items: [
-      { label: "Motos", value: "categoria_motos" },
-      { label: "Accesorios de moto", value: "categorias_acc_motos" },
-      { label: "Indumentaria rider", value: "categorias_acc_rider" },
-    ],
-  },
-  {
-    label: "Marcas",
-    icon: "marcas",
-    items: [
-      { label: "Motos", value: "marcas_motos" },
-      { label: "Acc. Motos", value: "marcas_acc_motos" },
-      { label: "Indumentaria", value: "marcas_acc_rider" },
+      { label: "Lista motos", to: "/catalogo" },
     ],
   },
   {
     label: "Productos",
     icon: "productos",
     items: [
-      { label: "Accesorios moto", value: "accesorios_motos" },
-      { label: "Equipamiento rider", value: "accesorios_rider" },
-    ],
-  },
-  {
-    label: "Usuarios",
-    icon: "usuarios",
-    items: [
-      { label: "Crear Usuario", value: "crear_usuario" },
+      { label: "Indumentaria Rider", kind: "heading" },
+      { label: "Crear indumentaria rider", value: "accesorios_rider" },
+      { label: "Lista indumentaria rider", to: "/indumentaria" },
+      { label: "Accesorios de moto", kind: "heading" },
+      { label: "Crear accesorios de moto", value: "accesorios_motos" },
+      { label: "Lista accesorios de moto", to: "/accesorios" },
     ],
   },
   {
@@ -144,6 +132,29 @@ const navigationGroups = [
     ],
   },
   {
+    label: "Mantenedores",
+    icon: "mantenedores",
+    items: [
+      { label: "Motos", kind: "heading" },
+      { label: "Marca", value: "marcas_motos" },
+      { label: "Modelo", value: "modelos_motos" },
+      { label: "Categoria", value: "categoria_motos" },
+      { label: "Accesorios de moto", kind: "heading" },
+      { label: "Marca", value: "marcas_acc_motos" },
+      { label: "Categoria", value: "categorias_acc_motos" },
+      { label: "Indumentaria rider", kind: "heading" },
+      { label: "Marca", value: "marcas_acc_rider" },
+      { label: "Categoria", value: "categorias_acc_rider" },
+    ],
+  },
+  {
+    label: "Usuarios",
+    icon: "usuarios",
+    items: [
+      { label: "Crear Usuario", value: "crear_usuario" },
+    ],
+  },
+  {
     label: "Configuracion",
     icon: "categorias",
     items: [{ label: "Contacto y datos del sitio", value: "contacto" }],
@@ -151,11 +162,14 @@ const navigationGroups = [
 ];
 
 function getGroupLabelBySection(section) {
-  const group = navigationGroups.find((item) => item.items.some((subItem) => subItem.value === section));
+  const group = navigationGroups.find((item) =>
+    item.directValue === section || item.items.some((subItem) => subItem.value && subItem.value === section)
+  );
   return group?.label || navigationGroups[0].label;
 }
 
 export default function AdminSidebar({ activeSection, onChangeSection, className = "", onNavigate }) {
+  const navigate = useNavigate();
   const activeGroupLabel = useMemo(() => getGroupLabelBySection(activeSection), [activeSection]);
   const [expandedGroup, setExpandedGroup] = useState(activeGroupLabel);
 
@@ -173,45 +187,72 @@ export default function AdminSidebar({ activeSection, onChangeSection, className
     onNavigate?.();
   }
 
+  function handleExternalNavigate(groupLabel, path) {
+    setExpandedGroup(groupLabel);
+    onNavigate?.();
+    navigate(path);
+  }
+
   return (
     <aside className={`admin-sidebar ${className}`.trim()}>
       <div className="admin-sidebar-card">
         <p className="admin-sidebar-eyebrow">Navegacion</p>
         <nav className="admin-sidebar-nav">
           {navigationGroups.map((group) => {
+            const isDirect = Boolean(group.directValue);
             const isOpen = expandedGroup === group.label;
-            const hasActiveItem = group.items.some((item) => item.value === activeSection);
+            const hasActiveItem = isDirect
+              ? group.directValue === activeSection
+              : group.items.some((item) => item.value && item.value === activeSection);
 
             return (
               <div key={group.label} className={isOpen ? "admin-sidebar-module open" : "admin-sidebar-module"}>
                 <button
                   type="button"
                   className={hasActiveItem ? "admin-sidebar-module-trigger active" : "admin-sidebar-module-trigger"}
-                  onClick={() => toggleGroup(group.label)}
-                  aria-expanded={isOpen}
+                  onClick={() => {
+                    if (isDirect) {
+                      handleSelectSection(group.label, group.directValue);
+                      return;
+                    }
+                    toggleGroup(group.label);
+                  }}
+                  aria-expanded={isDirect ? undefined : isOpen}
                 >
                   <span className="admin-sidebar-module-icon">
                     <SidebarIcon kind={group.icon} />
                   </span>
                   <span className="admin-sidebar-module-label">{group.label}</span>
-                  <span className={isOpen ? "admin-sidebar-module-caret open" : "admin-sidebar-module-caret"}>v</span>
+                  {!isDirect && (
+                    <span className={isOpen ? "admin-sidebar-module-caret open" : "admin-sidebar-module-caret"}>v</span>
+                  )}
                 </button>
 
-                {isOpen && (
+                {!isDirect && isOpen && (
                   <div className="admin-sidebar-subnav">
                     {group.items.map((item) => (
-                      <button
-                        key={`${group.label}-${item.value}`}
-                        type="button"
-                        className={
-                          activeSection === item.value
-                            ? "admin-sidebar-link admin-sidebar-sublink active"
-                            : "admin-sidebar-link admin-sidebar-sublink"
-                        }
-                        onClick={() => handleSelectSection(group.label, item.value)}
-                      >
-                        {item.label}
-                      </button>
+                      item.kind === "heading" ? (
+                        <p key={`${group.label}-${item.label}`} className="admin-sidebar-subtitle">
+                          {item.label}
+                        </p>
+                      ) : (
+                        <button
+                          key={`${group.label}-${item.value || item.to}`}
+                          type="button"
+                          className={
+                            activeSection === item.value
+                              ? "admin-sidebar-link admin-sidebar-sublink active"
+                              : "admin-sidebar-link admin-sidebar-sublink"
+                          }
+                          onClick={() =>
+                            item.to
+                              ? handleExternalNavigate(group.label, item.to)
+                              : handleSelectSection(group.label, item.value)
+                          }
+                        >
+                          {item.label}
+                        </button>
+                      )
                     ))}
                   </div>
                 )}

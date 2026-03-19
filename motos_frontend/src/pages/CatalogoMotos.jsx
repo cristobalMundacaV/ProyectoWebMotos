@@ -29,7 +29,14 @@ export default function CatalogoMotos() {
   const [deleteCandidate, setDeleteCandidate] = useState(null);
   const [deletingMoto, setDeletingMoto] = useState(false);
   const editFileInputRef = useRef(null);
-  const formatUppercase = (value) => String(value || "-").toUpperCase();
+  const formatTitleCase = (value) =>
+    String(value || "-")
+      .trim()
+      .toLowerCase()
+      .split(/\s+/)
+      .filter(Boolean)
+      .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(" ");
 
   useEffect(() => {
     const token = getStoredToken();
@@ -429,7 +436,7 @@ export default function CatalogoMotos() {
                           checked={selectedMarcas.includes(marca)}
                           onChange={() => toggleMarca(marca)}
                         />
-                        <span>{formatUppercase(marca)}</span>
+                        <span>{formatTitleCase(marca)}</span>
                       </label>
                     ))}
                     {marcas.length === 0 && <p className="moto-filter-empty">Sin marcas</p>}
@@ -446,7 +453,7 @@ export default function CatalogoMotos() {
                           checked={selectedCategorias.includes(categoria)}
                           onChange={() => toggleCategoria(categoria)}
                         />
-                        <span>{formatUppercase(categoria)}</span>
+                        <span>{formatTitleCase(categoria)}</span>
                       </label>
                     ))}
                     {categorias.length === 0 && <p className="moto-filter-empty">Sin categorias</p>}
