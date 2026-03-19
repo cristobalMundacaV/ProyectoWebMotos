@@ -733,7 +733,7 @@ export default function MantencionesPage({
                   <div className="admin-horario-edit-grid">
                     <div className="admin-horario-edit-field admin-horario-edit-field-static">
                       <span>Dia</span>
-                      <strong>{DIAS_LABEL[item.dia_semana] || item.dia_semana}</strong>
+                      <p>{DIAS_LABEL[item.dia_semana] || item.dia_semana}</p>
                     </div>
                     <div className="admin-horario-edit-field">
                       <span>Hora inicio</span>
@@ -750,10 +750,6 @@ export default function MantencionesPage({
                         value={draft.hora_fin}
                         onChange={(event) => setHorarioDraft(item.id, "hora_fin", event.target.value)}
                       />
-                    </div>
-                    <div className="admin-horario-edit-field admin-horario-edit-field-static">
-                      <span>Intervalo</span>
-                      <strong>{`${item.intervalo_minutos} min`}</strong>
                     </div>
                     <div className="admin-horario-edit-field">
                       <span>Cupos por bloque</span>

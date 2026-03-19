@@ -1753,35 +1753,33 @@
 
 .admin-horario-edit-card {
   border-top: 1px solid #e5e7eb;
-  padding: 18px 0;
+  padding: 16px 0;
   display: grid;
-  gap: 14px;
+  gap: 10px;
 }
 
 .admin-horario-edit-grid {
   display: grid;
-  grid-template-columns: minmax(160px, 0.9fr) minmax(170px, 1fr) minmax(170px, 1fr) minmax(140px, 0.8fr) minmax(170px, 1fr);
+  grid-template-columns: minmax(150px, 0.9fr) minmax(165px, 1fr) minmax(165px, 1fr) minmax(165px, 1fr);
   gap: 16px;
   align-items: end;
 }
 
 .admin-horario-edit-field {
   display: grid;
-  gap: 8px;
+  gap: 6px;
   min-width: 0;
 }
 
 .admin-horario-edit-field span {
   color: #475569;
-  font-size: 0.8rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.03em;
+  font-size: 0.78rem;
+  font-weight: 500;
 }
 
 .admin-horario-edit-field input {
   width: 100%;
-  min-height: 42px;
+  min-height: 40px;
   border: 1px solid #d7dce3;
   border-radius: 12px;
   padding: 9px 12px;
@@ -1796,17 +1794,15 @@
   border-color: #93c5fd;
 }
 
-.admin-horario-edit-field-static strong {
-  min-height: 42px;
-  border: 1px solid #e2e8f0;
-  border-radius: 12px;
-  padding: 10px 12px;
+.admin-horario-edit-field-static p {
+  min-height: 40px;
+  margin: 0;
   display: flex;
   align-items: center;
-  background: #f8fafc;
+  padding: 0 2px;
   color: #0f172a;
-  font-size: 0.95rem;
-  font-weight: 800;
+  font-size: 0.96rem;
+  font-weight: 400;
 }
 
 .admin-horario-edit-actions {
