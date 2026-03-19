@@ -1751,7 +1751,261 @@
   border-color: #93c5fd;
 }
 
+.admin-horarios-calendar-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.45fr) minmax(320px, 0.9fr);
+  gap: 20px;
+  align-items: start;
+}
+
+.admin-horarios-calendar-card,
+.admin-horarios-slots-card {
+  border: 1px solid #e5e7eb;
+  border-radius: 18px;
+  background: linear-gradient(180deg, #ffffff 0%, #fafafa 100%);
+  padding: 18px;
+}
+
+.admin-horarios-calendar-head,
+.admin-horarios-slots-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+  margin-bottom: 16px;
+}
+
+.admin-horarios-calendar-kicker {
+  margin: 0 0 4px;
+  color: #64748b;
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.admin-horarios-calendar-head strong,
+.admin-horarios-slots-head strong {
+  font-size: 1.2rem;
+  text-transform: capitalize;
+  color: #111827;
+}
+
+.admin-horarios-calendar-nav {
+  display: flex;
+  gap: 8px;
+}
+
+.admin-horarios-calendar-nav button {
+  width: 38px;
+  height: 38px;
+  border: 1px solid #d7dce3;
+  border-radius: 12px;
+  background: #fff;
+  font-size: 1rem;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.admin-horarios-calendar-summary,
+.admin-horarios-day-stats {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+  margin-bottom: 18px;
+}
+
+.admin-horarios-calendar-summary article,
+.admin-horarios-day-stats article {
+  border: 1px solid #e5e7eb;
+  border-radius: 14px;
+  background: #fff;
+  padding: 12px;
+  display: grid;
+  gap: 6px;
+}
+
+.admin-horarios-calendar-summary span,
+.admin-horarios-day-stats span {
+  color: #64748b;
+  font-size: 0.78rem;
+}
+
+.admin-horarios-calendar-summary strong,
+.admin-horarios-day-stats strong {
+  color: #111827;
+  font-size: 1.2rem;
+}
+
+.admin-horarios-calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.admin-horarios-calendar-weekdays {
+  margin-bottom: 8px;
+}
+
+.admin-horarios-calendar-weekdays span {
+  text-align: center;
+  color: #64748b;
+  font-size: 0.78rem;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.admin-horarios-calendar-days {
+  margin-bottom: 14px;
+}
+
+.admin-horarios-calendar-empty {
+  min-height: 78px;
+}
+
+.admin-horarios-day-btn {
+  min-height: 78px;
+  border-radius: 16px;
+  border: 1px solid transparent;
+  padding: 10px 8px;
+  display: grid;
+  align-content: space-between;
+  justify-items: start;
+  text-align: left;
+  cursor: pointer;
+  transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
+}
+
+.admin-horarios-day-btn strong {
+  font-size: 1rem;
+  color: #111827;
+}
+
+.admin-horarios-day-btn small {
+  font-size: 0.72rem;
+  color: inherit;
+}
+
+.admin-horarios-day-btn.available {
+  background: #ecfdf3;
+  color: #166534;
+}
+
+.admin-horarios-day-btn.occupied {
+  background: #eceff3;
+  color: #6b7280;
+}
+
+.admin-horarios-day-btn.inactive {
+  background: #f8fafc;
+  color: #cbd5e1;
+  cursor: not-allowed;
+}
+
+.admin-horarios-day-btn.today {
+  box-shadow: inset 0 0 0 1px rgba(17, 24, 39, 0.12);
+}
+
+.admin-horarios-day-btn.selected {
+  border-color: #0f172a;
+  box-shadow: 0 8px 18px rgba(15, 23, 42, 0.12);
+  transform: translateY(-1px);
+}
+
+.admin-horarios-calendar-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  color: #64748b;
+  font-size: 0.82rem;
+}
+
+.admin-horarios-calendar-legend span {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.admin-horarios-calendar-legend .dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 999px;
+  display: inline-block;
+}
+
+.admin-horarios-calendar-legend .dot-available {
+  background: #16a34a;
+}
+
+.admin-horarios-calendar-legend .dot-occupied {
+  background: #9ca3af;
+}
+
+.admin-horarios-calendar-legend .dot-inactive {
+  background: #e2e8f0;
+}
+
+.admin-horarios-slot-list {
+  display: grid;
+  gap: 10px;
+}
+
+.admin-horarios-slot-item {
+  border: 1px solid #e5e7eb;
+  border-radius: 14px;
+  background: #fff;
+  padding: 12px 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.admin-horarios-slot-item div {
+  display: grid;
+  gap: 4px;
+}
+
+.admin-horarios-slot-item strong {
+  color: #111827;
+  font-size: 0.98rem;
+}
+
+.admin-horarios-slot-item span,
+.admin-horarios-slot-item b {
+  font-size: 0.82rem;
+}
+
+.admin-horarios-slot-item.available {
+  background: #f0fdf4;
+  border-color: #bbf7d0;
+}
+
+.admin-horarios-slot-item.available span,
+.admin-horarios-slot-item.available b {
+  color: #166534;
+}
+
+.admin-horarios-slot-item.occupied {
+  background: #f3f4f6;
+  border-color: #e5e7eb;
+}
+
+.admin-horarios-slot-item.occupied span,
+.admin-horarios-slot-item.occupied b {
+  color: #6b7280;
+}
+
 @media (max-width: 1180px) {
+  .admin-horarios-calendar-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-horarios-calendar-summary,
+  .admin-horarios-day-stats {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
   .admin-summary-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
@@ -2208,6 +2462,15 @@
 
   .admin-card-header span {
     width: 100%;
+  }
+
+  .admin-horarios-calendar-grid {
+    gap: 6px;
+  }
+
+  .admin-horarios-day-btn {
+    min-height: 70px;
+    padding: 8px 6px;
   }
 
   .admin-moto-form input,

@@ -135,6 +135,7 @@ const navigationGroups = [
     icon: "modelos",
     items: [
       { label: "Horarios operativos", value: "horarios_operativos" },
+      { label: "Calendario de disponibilidad", value: "horarios_calendario" },
     ],
   },
   {

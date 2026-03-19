@@ -1,4 +1,5 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { getDisponibilidadMantenciones } from "../../../services/mantencionesService";
 
 const ESTADO_OPTIONS = [
   { value: "en_revision", label: "En revision" },
@@ -8,6 +9,8 @@ const ESTADO_OPTIONS = [
   { value: "entregada", label: "Entregada" },
   { value: "cancelada", label: "Cancelada" },
 ];
+
+const WEEK_DAYS = ["Lun", "Mar", "Mie", "Jue", "Vie", "Sab", "Dom"];
 
 function formatDate(value) {
   if (!value) return "-";
@@ -72,6 +75,31 @@ function parseDateTimestamp(value) {
   return new Date(Number(year), Number(month) - 1, Number(day)).getTime();
 }
 
+function formatLongDate(value, options = {}) {
+  if (!value) return "";
+  const [year, month, day] = String(value).split("-").map(Number);
+  const date = new Date(year, (month || 1) - 1, day || 1);
+  if (Number.isNaN(date.getTime())) return String(value);
+  return date.toLocaleDateString("es-CL", {
+    weekday: "long",
+    day: "2-digit",
+    month: "long",
+    year: "numeric",
+    ...options,
+  });
+}
+
+function toIsoDate(date) {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
+
+function addMonths(date, delta) {
+  return new Date(date.getFullYear(), date.getMonth() + delta, 1);
+}
+
 function getMantencionSortTimestamp(item) {
   const fechaTs = parseDateTimestamp(item?.fecha_ingreso);
   const horaRaw = item?.hora_ingreso ? String(item.hora_ingreso).slice(0, 5) : "";
@@ -107,6 +135,14 @@ export default function MantencionesPage({
   const [editsById, setEditsById] = useState({});
   const [selectedSolicitudId, setSelectedSolicitudId] = useState(null);
   const [selectedFichaId, setSelectedFichaId] = useState(null);
+  const [calendarLoading, setCalendarLoading] = useState(false);
+  const [calendarError, setCalendarError] = useState("");
+  const [availabilityDays, setAvailabilityDays] = useState([]);
+  const [selectedCalendarDate, setSelectedCalendarDate] = useState("");
+  const [calendarMonth, setCalendarMonth] = useState(() => {
+    const now = new Date();
+    return new Date(now.getFullYear(), now.getMonth(), 1);
+  });
 
   const DIAS_LABEL = {
     0: "Lunes",
@@ -117,6 +153,122 @@ export default function MantencionesPage({
     5: "Sabado",
     6: "Domingo",
   };
+
+  const availabilityMap = useMemo(() => {
+    const map = {};
+    availabilityDays.forEach((day) => {
+      map[day.fecha] = day;
+    });
+    return map;
+  }, [availabilityDays]);
+
+  const selectedCalendarDay = useMemo(() => availabilityMap[selectedCalendarDate] || null, [availabilityMap, selectedCalendarDate]);
+
+  const calendarMonthLabel = useMemo(
+    () => calendarMonth.toLocaleDateString("es-CL", { month: "long", year: "numeric" }),
+    [calendarMonth]
+  );
+
+  const calendarCells = useMemo(() => {
+    const year = calendarMonth.getFullYear();
+    const month = calendarMonth.getMonth();
+    const firstDay = new Date(year, month, 1);
+    const firstWeekday = (firstDay.getDay() + 6) % 7;
+    const daysInMonth = new Date(year, month + 1, 0).getDate();
+    const todayIso = toIsoDate(new Date());
+    const cells = [];
+
+    for (let i = 0; i < firstWeekday; i += 1) {
+      cells.push({ key: `empty-${year}-${month}-${i}`, empty: true });
+    }
+
+    for (let day = 1; day <= daysInMonth; day += 1) {
+      const date = new Date(year, month, day);
+      const iso = toIsoDate(date);
+      const info = availabilityMap[iso];
+      const totalSlots = Array.isArray(info?.horas) ? info.horas.length : 0;
+      const availableSlots = Array.isArray(info?.horas) ? info.horas.filter((slot) => slot.disponible).length : 0;
+
+      cells.push({
+        key: iso,
+        iso,
+        day,
+        hasSchedule: Boolean(info),
+        hasAvailable: availableSlots > 0,
+        totalSlots,
+        availableSlots,
+        occupiedSlots: Math.max(totalSlots - availableSlots, 0),
+        isToday: iso === todayIso,
+      });
+    }
+
+    return cells;
+  }, [availabilityMap, calendarMonth]);
+
+  const monthSummary = useMemo(
+    () =>
+      calendarCells.reduce(
+        (accumulator, cell) => {
+          if (cell.empty || !cell.hasSchedule) return accumulator;
+          accumulator.daysWithSchedule += 1;
+          accumulator.totalSlots += cell.totalSlots;
+          accumulator.availableSlots += cell.availableSlots;
+          accumulator.occupiedSlots += cell.occupiedSlots;
+          if (cell.hasAvailable) {
+            accumulator.daysAvailable += 1;
+          } else {
+            accumulator.daysFull += 1;
+          }
+          return accumulator;
+        },
+        {
+          daysWithSchedule: 0,
+          daysAvailable: 0,
+          daysFull: 0,
+          totalSlots: 0,
+          availableSlots: 0,
+          occupiedSlots: 0,
+        }
+      ),
+    [calendarCells]
+  );
+
+  useEffect(() => {
+    if (activeSection !== "horarios_calendario") return undefined;
+
+    let mounted = true;
+
+    async function loadAvailability() {
+      setCalendarLoading(true);
+      setCalendarError("");
+      try {
+        const data = await getDisponibilidadMantenciones(60);
+        if (!mounted) return;
+        const days = Array.isArray(data?.slots) ? data.slots : [];
+        setAvailabilityDays(days);
+
+        if (days.length > 0) {
+          setSelectedCalendarDate((prev) => (prev && days.some((day) => day.fecha === prev) ? prev : days[0].fecha));
+          const [year, month] = days[0].fecha.split("-").map(Number);
+          setCalendarMonth(new Date(year, (month || 1) - 1, 1));
+        } else {
+          setSelectedCalendarDate("");
+        }
+      } catch (_error) {
+        if (!mounted) return;
+        setAvailabilityDays([]);
+        setSelectedCalendarDate("");
+        setCalendarError("No se pudo cargar la disponibilidad del calendario.");
+      } finally {
+        if (mounted) setCalendarLoading(false);
+      }
+    }
+
+    loadAvailability();
+    return () => {
+      mounted = false;
+    };
+  }, [activeSection]);
 
   const solicitudes = useMemo(
     () =>
@@ -560,6 +712,182 @@ export default function MantencionesPage({
 
             {!horariosLoading && horarios.length === 0 && <p className="admin-empty">No hay horarios operativos configurados.</p>}
             {horariosLoading && <p className="admin-empty">Cargando horarios...</p>}
+          </div>
+        </article>
+      </section>
+    );
+  }
+
+  if (activeSection === "horarios_calendario") {
+    return (
+      <section className="admin-content-grid admin-content-grid-mantenciones">
+        <article className="admin-panel-card">
+          <div className="admin-card-header">
+            <div>
+              <h2>Calendario de disponibilidad</h2>
+              <span>Vista mensual para revisar dias habilitados y el detalle de horas disponibles u ocupadas.</span>
+            </div>
+            <button
+              type="button"
+              className="admin-primary-action"
+              onClick={async () => {
+                setCalendarLoading(true);
+                setCalendarError("");
+                try {
+                  const data = await getDisponibilidadMantenciones(60);
+                  const days = Array.isArray(data?.slots) ? data.slots : [];
+                  setAvailabilityDays(days);
+                  setSelectedCalendarDate((prev) => (prev && days.some((day) => day.fecha === prev) ? prev : days[0]?.fecha || ""));
+                } catch (_error) {
+                  setAvailabilityDays([]);
+                  setSelectedCalendarDate("");
+                  setCalendarError("No se pudo cargar la disponibilidad del calendario.");
+                } finally {
+                  setCalendarLoading(false);
+                }
+              }}
+            >
+              Actualizar
+            </button>
+          </div>
+
+          <div className="admin-horarios-calendar-layout">
+            <section className="admin-horarios-calendar-card">
+              <div className="admin-horarios-calendar-head">
+                <div>
+                  <p className="admin-horarios-calendar-kicker">Vista mensual</p>
+                  <strong>{calendarMonthLabel}</strong>
+                </div>
+                <div className="admin-horarios-calendar-nav">
+                  <button type="button" onClick={() => setCalendarMonth((prev) => addMonths(prev, -1))}>
+                    {"<"}
+                  </button>
+                  <button type="button" onClick={() => setCalendarMonth((prev) => addMonths(prev, 1))}>
+                    {">"}
+                  </button>
+                </div>
+              </div>
+
+              <div className="admin-horarios-calendar-summary">
+                <article>
+                  <span>Dias con agenda</span>
+                  <strong>{monthSummary.daysWithSchedule}</strong>
+                </article>
+                <article>
+                  <span>Dias con cupos</span>
+                  <strong>{monthSummary.daysAvailable}</strong>
+                </article>
+                <article>
+                  <span>Dias completos</span>
+                  <strong>{monthSummary.daysFull}</strong>
+                </article>
+                <article>
+                  <span>Horas ocupadas</span>
+                  <strong>{monthSummary.occupiedSlots}</strong>
+                </article>
+              </div>
+
+              <div className="admin-horarios-calendar-grid admin-horarios-calendar-weekdays">
+                {WEEK_DAYS.map((day) => (
+                  <span key={day}>{day}</span>
+                ))}
+              </div>
+
+              <div className="admin-horarios-calendar-grid admin-horarios-calendar-days">
+                {calendarCells.map((cell) => {
+                  if (cell.empty) return <span key={cell.key} className="admin-horarios-calendar-empty" />;
+
+                  const isSelected = selectedCalendarDate === cell.iso;
+                  const className = [
+                    "admin-horarios-day-btn",
+                    cell.hasSchedule ? (cell.hasAvailable ? "available" : "occupied") : "inactive",
+                    cell.isToday ? "today" : "",
+                    isSelected ? "selected" : "",
+                  ]
+                    .filter(Boolean)
+                    .join(" ");
+
+                  return (
+                    <button
+                      key={cell.key}
+                      type="button"
+                      className={className}
+                      disabled={!cell.hasSchedule}
+                      onClick={() => setSelectedCalendarDate(cell.iso)}
+                      title={cell.hasSchedule ? formatLongDate(cell.iso) : "Sin horarios configurados"}
+                    >
+                      <strong>{cell.day}</strong>
+                      <small>
+                        {cell.hasSchedule
+                          ? cell.hasAvailable
+                            ? `${cell.availableSlots}/${cell.totalSlots} libres`
+                            : "Completo"
+                          : "Sin agenda"}
+                      </small>
+                    </button>
+                  );
+                })}
+              </div>
+
+              <div className="admin-horarios-calendar-legend">
+                <span><i className="dot dot-available" />Disponible</span>
+                <span><i className="dot dot-occupied" />Completo</span>
+                <span><i className="dot dot-inactive" />Sin agenda</span>
+              </div>
+
+              {calendarLoading && <p className="admin-empty">Cargando calendario...</p>}
+              {!calendarLoading && calendarError && <p className="admin-empty">{calendarError}</p>}
+            </section>
+
+            <aside className="admin-horarios-slots-card">
+              <div className="admin-horarios-slots-head">
+                <div>
+                  <p className="admin-horarios-calendar-kicker">Detalle del dia</p>
+                  <strong>{selectedCalendarDate ? formatLongDate(selectedCalendarDate) : "Selecciona un dia"}</strong>
+                </div>
+                {selectedCalendarDay && (
+                  <span className={`admin-status-pill ${selectedCalendarDay.has_disponibles ? "status-aceptada" : "status-cancelada"}`}>
+                    {selectedCalendarDay.has_disponibles ? "Con cupos" : "Completo"}
+                  </span>
+                )}
+              </div>
+
+              {selectedCalendarDay ? (
+                <>
+                  <div className="admin-horarios-day-stats">
+                    <article>
+                      <span>Total bloques</span>
+                      <strong>{selectedCalendarDay.horas?.length || 0}</strong>
+                    </article>
+                    <article>
+                      <span>Disponibles</span>
+                      <strong>{selectedCalendarDay.horas?.filter((slot) => slot.disponible).length || 0}</strong>
+                    </article>
+                    <article>
+                      <span>Ocupados</span>
+                      <strong>{selectedCalendarDay.horas?.filter((slot) => !slot.disponible).length || 0}</strong>
+                    </article>
+                  </div>
+
+                  <div className="admin-horarios-slot-list">
+                    {(selectedCalendarDay.horas || []).map((slot) => (
+                      <div
+                        key={slot.hora}
+                        className={slot.disponible ? "admin-horarios-slot-item available" : "admin-horarios-slot-item occupied"}
+                      >
+                        <div>
+                          <strong>{slot.hora}</strong>
+                          <span>{slot.disponible ? "Disponible" : "Ocupado"}</span>
+                        </div>
+                        <b>{slot.cupos_disponibles} cupos</b>
+                      </div>
+                    ))}
+                  </div>
+                </>
+              ) : (
+                <p className="admin-empty">Selecciona un dia del calendario para ver sus horas.</p>
+              )}
+            </aside>
           </div>
         </article>
       </section>
