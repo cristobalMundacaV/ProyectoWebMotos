@@ -156,7 +156,7 @@ const initialCreateUserForm = {
 
 const initialHorarioMantencionForm = {
   dia_inicio: "0",
-  dia_fin: "0",
+  dia_fin: "4",
   hora_inicio: "09:00",
   hora_fin: "18:00",
   intervalo_minutos: "60",
@@ -1275,12 +1275,30 @@ export default function AdminPanel() {
       };
 
       await Promise.all(
-        Array.from({ length: diaFin - diaInicio + 1 }, (_, index) =>
-          createHorarioMantencionAdmin({
+        Array.from({ length: diaFin - diaInicio + 1 }, async (_, index) => {
+          const diaSemana = diaInicio + index;
+          const existentes = horariosMantencion
+            .filter((item) => Number(item.dia_semana) === diaSemana)
+            .sort((a, b) => Number(a.id) - Number(b.id));
+
+          if (existentes.length > 0) {
+            const [principal, ...duplicados] = existentes;
+            await updateHorarioMantencionAdmin(principal.id, {
+              ...payloadBase,
+              dia_semana: diaSemana,
+            });
+
+            if (duplicados.length > 0) {
+              await Promise.all(duplicados.map((item) => deleteHorarioMantencionAdmin(item.id)));
+            }
+            return;
+          }
+
+          await createHorarioMantencionAdmin({
             ...payloadBase,
-            dia_semana: diaInicio + index,
-          })
-        )
+            dia_semana: diaSemana,
+          });
+        })
       );
       setHorarioMantencionForm(initialHorarioMantencionForm);
       await fetchHorariosMantencionList();

@@ -309,12 +309,20 @@ export default function MantencionesPage({
   }, [fichasMantencion, selectedFichaId]);
 
   const horariosOrdenados = useMemo(
-    () =>
-      [...horarios].sort(
+    () => {
+      const agrupados = new Map();
+      [...horarios]
+        .sort((a, b) => Number(a.id ?? 0) - Number(b.id ?? 0))
+        .forEach((item) => {
+          agrupados.set(Number(item.dia_semana ?? 0), item);
+        });
+
+      return [...agrupados.values()].sort(
         (a, b) =>
           Number(a.dia_semana ?? 0) - Number(b.dia_semana ?? 0) ||
           String(a.hora_inicio || "").localeCompare(String(b.hora_inicio || ""))
-      ),
+      );
+    },
     [horarios]
   );
 
@@ -675,7 +683,7 @@ export default function MantencionesPage({
             </label>
 
             <label>
-              Dia fin
+              Dia final
               <select name="dia_fin" value={horarioForm?.dia_fin ?? "0"} onChange={onHorarioInputChange} required>
                 {Object.entries(DIAS_LABEL).map(([value, label]) => (
                   <option key={value} value={value}>

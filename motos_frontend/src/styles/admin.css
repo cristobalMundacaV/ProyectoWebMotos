@@ -1760,7 +1760,7 @@
 
 .admin-horario-edit-grid {
   display: grid;
-  grid-template-columns: minmax(150px, 0.9fr) minmax(165px, 1fr) minmax(165px, 1fr) minmax(165px, 1fr);
+  grid-template-columns: minmax(90px, max-content) minmax(165px, 1fr) minmax(165px, 1fr) minmax(165px, 1fr);
   gap: 16px;
   align-items: end;
 }
@@ -1802,7 +1802,7 @@
   padding: 0 2px;
   color: #0f172a;
   font-size: 0.96rem;
-  font-weight: 400;
+  font-weight: 700;
 }
 
 .admin-horario-edit-actions {
