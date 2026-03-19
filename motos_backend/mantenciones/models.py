@@ -91,6 +91,7 @@ class Mantencion(models.Model):
     ESTADO_FINALIZADA = "finalizada"
     ESTADO_ENTREGADA = "entregada"
     ESTADO_CANCELADA = "cancelada"
+    ESTADO_NO_ASISTIO = "no_asistio"
 
     ESTADO_CHOICES = [
         (ESTADO_INGRESADA, "Ingresada"),
@@ -101,6 +102,7 @@ class Mantencion(models.Model):
         (ESTADO_FINALIZADA, "Finalizada"),
         (ESTADO_ENTREGADA, "Entregada"),
         (ESTADO_CANCELADA, "Cancelada"),
+        (ESTADO_NO_ASISTIO, "No asistio"),
     ]
 
     moto_cliente = models.ForeignKey(
@@ -137,6 +139,60 @@ class Mantencion(models.Model):
         verbose_name = "mantencion"
         verbose_name_plural = "mantenciones"
         ordering = ["-fecha_ingreso", "-created_at"]
+        indexes = [
+            models.Index(fields=["created_at"], name="idx_mantencion_created_at"),
+            models.Index(fields=["fecha_ingreso"], name="idx_mantencion_fecha_ingreso"),
+            models.Index(fields=["estado"], name="idx_mantencion_estado"),
+            models.Index(fields=["tipo_mantencion"], name="idx_mantencion_tipo"),
+            models.Index(fields=["fecha_ingreso", "hora_ingreso"], name="idx_mantencion_fecha_hora"),
+            models.Index(fields=["created_at", "estado"], name="idx_mantencion_created_estado"),
+        ]
 
     def __str__(self) -> str:
         return f"Mantencion {self.moto_cliente.matricula} - {self.fecha_ingreso} ({self.get_estado_display()})"
+
+
+class MantencionEstadoHistorial(models.Model):
+    FUENTE_PORTAL_CLIENTE = "portal_cliente"
+    FUENTE_ADMIN_PANEL = "admin_panel"
+    FUENTE_API = "api"
+
+    FUENTE_CHOICES = [
+        (FUENTE_PORTAL_CLIENTE, "Portal cliente"),
+        (FUENTE_ADMIN_PANEL, "Admin panel"),
+        (FUENTE_API, "API"),
+    ]
+
+    mantencion = models.ForeignKey(
+        Mantencion,
+        on_delete=models.CASCADE,
+        related_name="historial_estados",
+        verbose_name="mantencion",
+    )
+    estado_anterior = models.CharField(max_length=24, blank=True, default="", verbose_name="estado anterior")
+    estado_nuevo = models.CharField(max_length=24, choices=Mantencion.ESTADO_CHOICES, verbose_name="estado nuevo")
+    changed_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="mantenciones_estado_cambios",
+        verbose_name="modificado por",
+    )
+    fuente = models.CharField(max_length=24, choices=FUENTE_CHOICES, default=FUENTE_API, verbose_name="fuente")
+    observacion = models.CharField(max_length=255, blank=True, default="", verbose_name="observacion")
+    changed_at = models.DateTimeField(auto_now_add=True, verbose_name="fecha de cambio")
+
+    class Meta:
+        verbose_name = "historial de estado de mantencion"
+        verbose_name_plural = "historial de estados de mantenciones"
+        ordering = ["-changed_at", "-id"]
+        indexes = [
+            models.Index(fields=["changed_at"], name="idx_hist_mant_changed_at"),
+            models.Index(fields=["estado_nuevo"], name="idx_hist_mant_estado_nuevo"),
+            models.Index(fields=["mantencion", "changed_at"], name="idx_hist_mant_mant_fecha"),
+        ]
+
+    def __str__(self) -> str:
+        previo = self.estado_anterior or "sin_estado"
+        return f"{self.mantencion_id}: {previo} -> {self.estado_nuevo}"

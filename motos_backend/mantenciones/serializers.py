@@ -5,7 +5,7 @@ from rest_framework import serializers
 
 from clientes.models import PerfilUsuario
 from .availability import slot_disponible
-from .models import HorarioMantencion, Mantencion, VehiculoCliente
+from .models import HorarioMantencion, Mantencion, MantencionEstadoHistorial, VehiculoCliente
 from .notifications import send_mantencion_confirmation_email
 
 
@@ -107,13 +107,31 @@ class MantencionSerializer(serializers.ModelSerializer):
         read_only_fields = ("created_at", "updated_at")
 
     def update(self, instance, validated_data):
+        previous_estado = instance.estado
         next_estado = validated_data.get("estado", instance.estado)
         entrando_a_revision = instance.estado != Mantencion.ESTADO_EN_REVISION and next_estado == Mantencion.ESTADO_EN_REVISION
 
         if entrando_a_revision and "hora_ingreso" not in validated_data:
             validated_data["hora_ingreso"] = timezone.localtime().time().replace(microsecond=0)
 
-        return super().update(instance, validated_data)
+        updated_instance = super().update(instance, validated_data)
+
+        if previous_estado != updated_instance.estado:
+            request = self.context.get("request")
+            source = (
+                MantencionEstadoHistorial.FUENTE_ADMIN_PANEL
+                if request and getattr(request, "user", None) and request.user.is_authenticated
+                else MantencionEstadoHistorial.FUENTE_API
+            )
+            MantencionEstadoHistorial.objects.create(
+                mantencion=updated_instance,
+                estado_anterior=previous_estado,
+                estado_nuevo=updated_instance.estado,
+                changed_by=request.user if request and getattr(request, "user", None) and request.user.is_authenticated else None,
+                fuente=source,
+            )
+
+        return updated_instance
 
 
 class AgendarMantencionSerializer(serializers.Serializer):
@@ -247,6 +265,14 @@ class AgendarMantencionSerializer(serializers.Serializer):
                 observaciones="",
                 estado=Mantencion.ESTADO_INGRESADA,
                 costo_total=0,
+            )
+            MantencionEstadoHistorial.objects.create(
+                mantencion=mantencion,
+                estado_anterior="",
+                estado_nuevo=Mantencion.ESTADO_INGRESADA,
+                changed_by=cliente if getattr(cliente, "is_authenticated", False) else None,
+                fuente=MantencionEstadoHistorial.FUENTE_PORTAL_CLIENTE,
+                observacion="Creacion de solicitud de mantencion",
             )
 
             cliente_nombre = f"{validated_data['nombres']} {validated_data['apellidos']}".strip()

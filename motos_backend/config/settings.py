@@ -44,6 +44,7 @@ INSTALLED_APPS = [
     'core',
     'clientes',
     'mantenciones',
+    'analitica',
     'corsheaders',
     'rest_framework',
     'rest_framework.authtoken',

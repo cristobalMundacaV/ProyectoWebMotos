@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import HorarioMantencion, Mantencion, VehiculoCliente
+from .models import HorarioMantencion, Mantencion, MantencionEstadoHistorial, VehiculoCliente
 
 
 @admin.register(VehiculoCliente)
@@ -27,3 +27,10 @@ class MantencionAdmin(admin.ModelAdmin):
 class HorarioMantencionAdmin(admin.ModelAdmin):
     list_display = ("dia_semana", "hora_inicio", "hora_fin", "intervalo_minutos", "cupos_por_bloque", "activo")
     list_filter = ("dia_semana", "activo")
+
+
+@admin.register(MantencionEstadoHistorial)
+class MantencionEstadoHistorialAdmin(admin.ModelAdmin):
+    list_display = ("mantencion", "estado_anterior", "estado_nuevo", "fuente", "changed_by", "changed_at")
+    list_filter = ("estado_nuevo", "fuente", "changed_at")
+    search_fields = ("mantencion__moto_cliente__matricula", "mantencion__moto_cliente__marca")
