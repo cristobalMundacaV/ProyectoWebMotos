@@ -2160,7 +2160,8 @@
   flex: 1;
   display: flex;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-start;
+  padding-left: 14px;
 }
 
 .admin-analytics-kpi-foot {

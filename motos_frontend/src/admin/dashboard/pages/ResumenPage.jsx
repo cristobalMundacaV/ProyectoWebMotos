@@ -2,7 +2,6 @@ import { useEffect, useMemo, useState } from "react";
 import KpiCard from "../components/KpiCard";
 import BarChartCard from "../components/BarChartCard";
 import LineChartCard from "../components/LineChartCard";
-import SummaryTableCard from "../components/SummaryTableCard";
 import { fetchDashboardAnalytics } from "../services/dashboardService";
 
 const MONTHS = [
@@ -125,7 +124,7 @@ export default function ResumenPage() {
     [catalogo.trend, catalogo.range]
   );
 
-  const visitasCategoriaRows = useMemo(() => {
+  const categoriasMotoMasClickeadas = useMemo(() => {
     const categoriasMoto = Array.isArray(catalogo.visitas_por_categoria_moto)
       ? catalogo.visitas_por_categoria_moto
       : [];
@@ -181,7 +180,7 @@ export default function ResumenPage() {
 
       <section className="admin-analytics-grid two-cols">
         <BarChartCard title="Top 5 modelos de moto mas vistos" items={topMotos} loading={loading} />
-        <SummaryTableCard title="Categorias de motos mas clickeadas" rows={visitasCategoriaRows} loading={loading} />
+        <BarChartCard title="Categorias de motos mas clickeadas" items={categoriasMotoMasClickeadas} horizontal loading={loading} />
       </section>
 
       <section className="admin-analytics-grid">

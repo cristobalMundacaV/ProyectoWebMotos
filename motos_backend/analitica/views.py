@@ -12,6 +12,7 @@ from rest_framework_simplejwt.authentication import JWTAuthentication
 from clientes.permissions import has_admin_access
 from mantenciones.analytics import get_monthly_kpis
 from mantenciones.models import Mantencion
+from motos.models import Moto
 from .models import CatalogoEvento
 from .serializers import CatalogoEventoCreateSerializer
 
@@ -150,14 +151,60 @@ class CatalogoDashboardAnalyticsAPIView(APIView):
             elif tipo == CatalogoEvento.TIPO_ACCESORIO:
                 by_category["accesorios"] = row["total"]
 
-        categorias_moto = list(
+        categorias_moto_metadata = list(
             qs.filter(tipo_entidad=CatalogoEvento.TIPO_MOTO)
             .exclude(metadata__categoria__isnull=True)
             .exclude(metadata__categoria__exact="")
             .values("metadata__categoria")
             .annotate(total=Count("id"))
-            .order_by("-total", "metadata__categoria")[:8]
+            .order_by("-total", "metadata__categoria")
         )
+
+        categoria_totales = {}
+        for row in categorias_moto_metadata:
+            nombre = (row.get("metadata__categoria") or "").strip()
+            if not nombre:
+                continue
+            categoria_totales[nombre] = categoria_totales.get(nombre, 0) + int(row.get("total") or 0)
+
+        # Fallback: para eventos antiguos sin metadata.categoria, reconstruimos categoria por entidad_id de moto.
+        moto_ids_without_category = list(
+            qs.filter(tipo_entidad=CatalogoEvento.TIPO_MOTO)
+            .filter(metadata__categoria__isnull=True)
+            .values("entidad_id")
+            .annotate(total=Count("id"))
+            .order_by()
+        )
+        moto_ids_empty_category = list(
+            qs.filter(tipo_entidad=CatalogoEvento.TIPO_MOTO, metadata__categoria__exact="")
+            .values("entidad_id")
+            .annotate(total=Count("id"))
+            .order_by()
+        )
+
+        eventos_sin_categoria_por_moto = {}
+        for row in [*moto_ids_without_category, *moto_ids_empty_category]:
+            moto_id = row.get("entidad_id")
+            if moto_id is None:
+                continue
+            eventos_sin_categoria_por_moto[moto_id] = eventos_sin_categoria_por_moto.get(moto_id, 0) + int(row.get("total") or 0)
+
+        if eventos_sin_categoria_por_moto:
+            motos_map = {
+                item["id"]: (item.get("modelo_moto__categoria__nombre") or "").strip() or "Sin categoria"
+                for item in Moto.objects.filter(id__in=list(eventos_sin_categoria_por_moto.keys())).values(
+                    "id",
+                    "modelo_moto__categoria__nombre",
+                )
+            }
+            for moto_id, total in eventos_sin_categoria_por_moto.items():
+                categoria = motos_map.get(moto_id, "Sin categoria")
+                categoria_totales[categoria] = categoria_totales.get(categoria, 0) + total
+
+        categorias_moto = sorted(
+            [{"categoria": categoria, "total": total} for categoria, total in categoria_totales.items()],
+            key=lambda item: (-item["total"], item["categoria"].lower()),
+        )[:8]
 
         return Response(
             {
@@ -169,7 +216,7 @@ class CatalogoDashboardAnalyticsAPIView(APIView):
                 "top_5_entidades": top_5_entidades,
                 "visitas_por_categoria": by_category,
                 "visitas_por_categoria_moto": [
-                    {"categoria": item["metadata__categoria"], "total": item["total"]}
+                    {"categoria": item["categoria"], "total": item["total"]}
                     for item in categorias_moto
                 ],
                 "trend": [
