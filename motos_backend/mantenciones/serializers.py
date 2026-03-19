@@ -1,5 +1,6 @@
 from django.contrib.auth import get_user_model
 from django.db import transaction
+from django.utils import timezone
 from rest_framework import serializers
 
 from clientes.models import PerfilUsuario
@@ -104,6 +105,15 @@ class MantencionSerializer(serializers.ModelSerializer):
             "updated_at",
         )
         read_only_fields = ("created_at", "updated_at")
+
+    def update(self, instance, validated_data):
+        next_estado = validated_data.get("estado", instance.estado)
+        entrando_a_revision = instance.estado != Mantencion.ESTADO_EN_REVISION and next_estado == Mantencion.ESTADO_EN_REVISION
+
+        if entrando_a_revision and "hora_ingreso" not in validated_data:
+            validated_data["hora_ingreso"] = timezone.localtime().time().replace(microsecond=0)
+
+        return super().update(instance, validated_data)
 
 
 class AgendarMantencionSerializer(serializers.Serializer):

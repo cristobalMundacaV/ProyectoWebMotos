@@ -58,11 +58,7 @@ function toWholeNumber(value) {
 }
 
 function sanitizeIntegerInput(value) {
-  const raw = String(value ?? "").trim();
-  if (!raw) return "";
-  const parsed = Number(raw.replace(",", "."));
-  if (!Number.isFinite(parsed)) return "";
-  return String(Math.trunc(parsed));
+  return String(value ?? "").replace(/[^\d]/g, "");
 }
 
 function parseDateTimestamp(value) {
@@ -162,7 +158,7 @@ export default function MantencionesPage({
     return (
       editsById[item.id] || {
         estado: item.estado,
-        costo_total: toWholeNumber(item.costo_total),
+        costo_total: item.costo_total === null || item.costo_total === undefined ? "" : String(toWholeNumber(item.costo_total)),
         kilometraje_ingreso: item.kilometraje_ingreso ?? "",
         diagnostico: item.diagnostico ?? "",
         trabajo_realizado: item.trabajo_realizado ?? "",
@@ -335,7 +331,7 @@ export default function MantencionesPage({
                 type="number"
                 min="0"
                 step="1"
-                value={toWholeNumber(draft.costo_total ?? item.costo_total ?? 0)}
+                value={draft.costo_total ?? ""}
                 onChange={(event) => setDraft(item.id, "costo_total", sanitizeIntegerInput(event.target.value))}
                 disabled={saving}
               />
@@ -472,7 +468,7 @@ export default function MantencionesPage({
     );
   }
 
-  if (activeSection === "mantenciones_horarios") {
+  if (activeSection === "horarios_operativos" || activeSection === "mantenciones_horarios") {
     return (
       <section className="admin-content-grid admin-content-grid-mantenciones">
         <article className="admin-panel-card">

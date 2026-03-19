@@ -466,7 +466,7 @@ export default function AdminPanel() {
   }, [activeSection]);
 
   useEffect(() => {
-    if (activeSection !== "mantenciones_horarios") return;
+    if (activeSection !== "horarios_operativos" && activeSection !== "mantenciones_horarios") return;
     let isMounted = true;
     setHorariosMantencionLoading(true);
 

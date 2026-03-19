@@ -128,7 +128,13 @@ const navigationGroups = [
     items: [
       { label: "Solicitudes de Mantencion", value: "mantenciones_solicitudes" },
       { label: "Fichas de Mantencion", value: "mantenciones_fichas" },
-      { label: "Horarios", value: "mantenciones_horarios" },
+    ],
+  },
+  {
+    label: "Horarios",
+    icon: "modelos",
+    items: [
+      { label: "Horarios operativos", value: "horarios_operativos" },
     ],
   },
   {
