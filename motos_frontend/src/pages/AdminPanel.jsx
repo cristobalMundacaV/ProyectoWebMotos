@@ -1307,8 +1307,11 @@ export default function AdminPanel() {
     if (horarioMantencionSaving) return;
     setHorarioMantencionSaving(true);
     try {
-      const diaInicio = Number(horarioMantencionForm.dia_inicio);
-      const diaFin = Number(horarioMantencionForm.dia_fin);
+      const diaInicio = Number.parseInt(horarioMantencionForm.dia_inicio, 10);
+      const diaFin = Number.parseInt(horarioMantencionForm.dia_fin, 10);
+      if (!Number.isFinite(diaInicio) || !Number.isFinite(diaFin) || diaInicio < 0 || diaFin > 6) {
+        throw new Error("Selecciona un rango de dias valido.");
+      }
       if (diaFin < diaInicio) {
         throw new Error("El dia fin no puede ser menor al dia inicio.");
       }
@@ -1321,32 +1324,29 @@ export default function AdminPanel() {
         activo: true,
       };
 
-      await Promise.all(
-        Array.from({ length: diaFin - diaInicio + 1 }, async (_, index) => {
-          const diaSemana = diaInicio + index;
-          const existentes = horariosMantencion
-            .filter((item) => Number(item.dia_semana) === diaSemana)
-            .sort((a, b) => Number(a.id) - Number(b.id));
+      for (let diaSemana = diaInicio; diaSemana <= diaFin; diaSemana += 1) {
+        const existentes = horariosMantencion
+          .filter((item) => Number(item.dia_semana) === diaSemana)
+          .sort((a, b) => Number(a.id) - Number(b.id));
 
-          if (existentes.length > 0) {
-            const [principal, ...duplicados] = existentes;
-            await updateHorarioMantencionAdmin(principal.id, {
-              ...payloadBase,
-              dia_semana: diaSemana,
-            });
-
-            if (duplicados.length > 0) {
-              await Promise.all(duplicados.map((item) => deleteHorarioMantencionAdmin(item.id)));
-            }
-            return;
-          }
-
-          await createHorarioMantencionAdmin({
+        if (existentes.length > 0) {
+          const [principal, ...duplicados] = existentes;
+          await updateHorarioMantencionAdmin(principal.id, {
             ...payloadBase,
             dia_semana: diaSemana,
           });
-        })
-      );
+
+          if (duplicados.length > 0) {
+            await Promise.all(duplicados.map((item) => deleteHorarioMantencionAdmin(item.id)));
+          }
+          continue;
+        }
+
+        await createHorarioMantencionAdmin({
+          ...payloadBase,
+          dia_semana: diaSemana,
+        });
+      }
       await fetchHorariosMantencionList();
       pushToast("Horario operativo creado correctamente.", "success");
     } catch (error) {
