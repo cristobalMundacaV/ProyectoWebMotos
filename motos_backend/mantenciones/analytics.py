@@ -49,6 +49,7 @@ def get_monthly_kpis(year: int, month: int) -> dict:
     total_ocupadas = reservations.exclude(estado=Mantencion.ESTADO_CANCELADA).count()
     total_disponibles = _sum_capacity_for_month(start_date, end_date)
     ocupacion_pct = round((total_ocupadas / total_disponibles) * 100, 2) if total_disponibles else 0
+    horas_disponibles_restantes = max(total_disponibles - total_ocupadas, 0)
 
     peak_hours_qs = (
         reservations.exclude(hora_ingreso__isnull=True)
@@ -85,6 +86,9 @@ def get_monthly_kpis(year: int, month: int) -> dict:
         "month": month,
         "total_agendadas_mes": total_agendadas,
         "ocupacion_pct": ocupacion_pct,
+        "horas_disponibles_restantes_mes": horas_disponibles_restantes,
+        "horas_disponibles_mes": total_disponibles,
+        "horas_reservadas_mes": total_ocupadas,
         "horas_peak": peak_hours,
         "servicios_mas_solicitados": list(servicios),
         "tasa_no_asistencia_pct": no_asistencia_pct,

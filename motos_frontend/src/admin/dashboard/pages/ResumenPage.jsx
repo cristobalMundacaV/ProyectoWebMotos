@@ -5,12 +5,6 @@ import LineChartCard from "../components/LineChartCard";
 import SummaryTableCard from "../components/SummaryTableCard";
 import { fetchDashboardAnalytics } from "../services/dashboardService";
 
-const TREND_OPTIONS = [
-  { value: "day", label: "Dia" },
-  { value: "month", label: "Mes" },
-  { value: "year", label: "Anio" },
-];
-
 const MONTHS = [
   "Enero",
   "Febrero",
@@ -39,24 +33,27 @@ function getMonthRange(year, month) {
   };
 }
 
-function buildYearOptions(baseYear = new Date().getFullYear()) {
-  const options = [];
-  for (let year = baseYear - 4; year <= baseYear + 1; year += 1) {
-    options.push(year);
-  }
-  return options;
-}
-
 function formatGrowth(value) {
   if (value === null || value === undefined) return "N/A";
   return `${value > 0 ? "+" : ""}${value}%`;
 }
 
+function parseIsoDate(iso) {
+  const [year, month, day] = String(iso || "").split("-").map(Number);
+  return new Date(year, (month || 1) - 1, day || 1);
+}
+
+function formatIsoDate(date) {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
+
 export default function ResumenPage() {
   const now = new Date();
-  const [year, setYear] = useState(now.getFullYear());
-  const [month, setMonth] = useState(now.getMonth() + 1);
-  const [trendGroupBy, setTrendGroupBy] = useState("day");
+  const year = now.getFullYear();
+  const month = now.getMonth() + 1;
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [analytics, setAnalytics] = useState({
@@ -77,7 +74,7 @@ export default function ResumenPage() {
           month,
           start: range.start,
           end: range.end,
-          groupBy: trendGroupBy,
+          groupBy: "day",
         });
         if (!active) return;
         setAnalytics(data);
@@ -93,7 +90,7 @@ export default function ResumenPage() {
     return () => {
       active = false;
     };
-  }, [year, month, trendGroupBy]);
+  }, [year, month]);
 
   const catalogo = analytics.catalogo || {};
   const mantenciones = analytics.mantenciones || {};
@@ -105,18 +102,38 @@ export default function ResumenPage() {
   );
 
   const trendData = useMemo(
-    () => (catalogo.trend || []).map((item) => ({ label: item.period, value: item.total })),
-    [catalogo.trend]
+    () => {
+      const raw = Array.isArray(catalogo.trend) ? catalogo.trend : [];
+      const range = catalogo.range || {};
+      const start = range.start ? parseIsoDate(range.start) : null;
+      const end = range.end ? parseIsoDate(range.end) : null;
+
+      if (!start || !end || Number.isNaN(start.getTime()) || Number.isNaN(end.getTime())) {
+        return raw.map((item) => ({ label: item.period, value: item.total }));
+      }
+
+      const totalsByDay = new Map(raw.map((item) => [item.period, Number(item.total || 0)]));
+      const rows = [];
+      const cursor = new Date(start);
+      while (cursor <= end) {
+        const iso = formatIsoDate(cursor);
+        rows.push({ label: iso, value: totalsByDay.get(iso) || 0 });
+        cursor.setDate(cursor.getDate() + 1);
+      }
+      return rows;
+    },
+    [catalogo.trend, catalogo.range]
   );
 
   const visitasCategoriaRows = useMemo(() => {
-    const base = catalogo.visitas_por_categoria || {};
-    return [
-      { label: "Motos", value: base.motos || 0 },
-      { label: "Indumentaria", value: base.indumentaria || 0 },
-      { label: "Accesorios", value: base.accesorios || 0 },
-    ];
-  }, [catalogo.visitas_por_categoria]);
+    const categoriasMoto = Array.isArray(catalogo.visitas_por_categoria_moto)
+      ? catalogo.visitas_por_categoria_moto
+      : [];
+    return categoriasMoto.map((item) => ({
+      label: item.categoria || "Sin categoria",
+      value: item.total || 0,
+    }));
+  }, [catalogo.visitas_por_categoria_moto]);
 
   const peakHours = useMemo(
     () => (mantenciones.horas_peak_top_6 || []).map((item) => ({ label: item.hora, value: item.total || 0 })),
@@ -142,42 +159,9 @@ export default function ResumenPage() {
 
   return (
     <div className="admin-dashboard-stack admin-analytics-dashboard">
-      <section className="admin-panel-card admin-analytics-filter-card">
-        <div className="admin-card-header">
-          <h2>Dashboard gerencial</h2>
-          <span>Analitica comercial y operacional</span>
-        </div>
-        <div className="admin-analytics-filters">
-          <label>
-            Anio
-            <select value={year} onChange={(event) => setYear(Number(event.target.value))}>
-              {buildYearOptions().map((optionYear) => (
-                <option key={optionYear} value={optionYear}>
-                  {optionYear}
-                </option>
-              ))}
-            </select>
-          </label>
-          <label>
-            Mes
-            <select value={month} onChange={(event) => setMonth(Number(event.target.value))}>
-              {MONTHS.map((label, index) => (
-                <option key={label} value={index + 1}>
-                  {label}
-                </option>
-              ))}
-            </select>
-          </label>
-          <label>
-            Tendencia
-            <select value={trendGroupBy} onChange={(event) => setTrendGroupBy(event.target.value)}>
-              {TREND_OPTIONS.map((item) => (
-                <option key={item.value} value={item.value}>
-                  {item.label}
-                </option>
-              ))}
-            </select>
-          </label>
+      <section className="admin-hero-card">
+        <div>
+          <h1>Bienvenido al dashboard gerencial</h1>
         </div>
       </section>
 
@@ -186,13 +170,18 @@ export default function ResumenPage() {
       <section className="admin-analytics-kpi-grid">
         <KpiCard title="Mantenciones del mes" value={kpis.total_agendadas_mes ?? 0} subtitle={`${MONTHS[month - 1]} ${year}`} loading={loading} />
         <KpiCard title="Crecimiento vs mes anterior" value={formatGrowth(kpis.crecimiento_mensual_pct)} trend={kpis.crecimiento_mensual_pct} loading={loading} />
-        <KpiCard title="Ocupacion del taller" value={`${kpis.ocupacion_pct ?? 0}%`} subtitle="Horas reservadas vs disponibles" loading={loading} />
+        <KpiCard
+          title="Ocupacion del taller"
+          value={`${kpis.horas_disponibles_restantes_mes ?? 0} horas`}
+          subtitle="Horas disponibles restantes este mes"
+          loading={loading}
+        />
         <KpiCard title="Modelo mas visto del mes" value={modelMasVisto} subtitle={catalogo.most_viewed_moto ? `${catalogo.most_viewed_moto.total} visitas` : "Sin visitas"} loading={loading} />
       </section>
 
       <section className="admin-analytics-grid two-cols">
         <BarChartCard title="Top 5 modelos de moto mas vistos" items={topMotos} loading={loading} />
-        <SummaryTableCard title="Visitas por categoria" rows={visitasCategoriaRows} loading={loading} />
+        <SummaryTableCard title="Categorias de motos mas clickeadas" rows={visitasCategoriaRows} loading={loading} />
       </section>
 
       <section className="admin-analytics-grid">
@@ -201,7 +190,7 @@ export default function ResumenPage() {
 
       <section className="admin-analytics-grid two-cols">
         <BarChartCard title="Horas peak mas solicitadas" items={peakHours} horizontal loading={loading} />
-        <BarChartCard title="Tipo de servicio mas solicitado" items={servicios} loading={loading} />
+        <BarChartCard title="Tipo de servicio mas solicitado" items={servicios} horizontal loading={loading} />
       </section>
 
       <section className="admin-analytics-kpi-grid compact">

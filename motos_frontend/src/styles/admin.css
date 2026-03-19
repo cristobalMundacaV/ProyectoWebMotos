@@ -2131,9 +2131,9 @@
   border-radius: 20px;
   box-shadow: 0 14px 40px rgba(16, 16, 16, 0.08);
   padding: 18px;
-  display: grid;
+  display: flex;
+  flex-direction: column;
   gap: 6px;
-  align-content: start;
   min-height: 146px;
 }
 
@@ -2148,10 +2148,18 @@
   font-size: 1.7rem;
   line-height: 1.15;
   color: #0f172a;
+  padding-left: 6px;
+  font-variant-numeric: tabular-nums;
 }
 
 .admin-analytics-kpi-value.loading {
   color: #94a3b8;
+}
+
+.admin-analytics-kpi-foot {
+  margin-top: auto;
+  display: grid;
+  gap: 4px;
 }
 
 .admin-analytics-kpi-subtitle {
@@ -2249,6 +2257,16 @@
   stroke-width: 3;
   stroke-linejoin: round;
   stroke-linecap: round;
+}
+
+.admin-analytics-area {
+  fill: rgba(14, 165, 233, 0.14);
+}
+
+.admin-analytics-point {
+  fill: #0284c7;
+  stroke: #e0f2fe;
+  stroke-width: 1.2;
 }
 
 .admin-analytics-line-labels {

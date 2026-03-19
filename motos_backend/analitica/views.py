@@ -150,6 +150,15 @@ class CatalogoDashboardAnalyticsAPIView(APIView):
             elif tipo == CatalogoEvento.TIPO_ACCESORIO:
                 by_category["accesorios"] = row["total"]
 
+        categorias_moto = list(
+            qs.filter(tipo_entidad=CatalogoEvento.TIPO_MOTO)
+            .exclude(metadata__categoria__isnull=True)
+            .exclude(metadata__categoria__exact="")
+            .values("metadata__categoria")
+            .annotate(total=Count("id"))
+            .order_by("-total", "metadata__categoria")[:8]
+        )
+
         return Response(
             {
                 "range": {"start": start.isoformat(), "end": end.isoformat()},
@@ -159,6 +168,10 @@ class CatalogoDashboardAnalyticsAPIView(APIView):
                 "top_5_motos": top_5_motos,
                 "top_5_entidades": top_5_entidades,
                 "visitas_por_categoria": by_category,
+                "visitas_por_categoria_moto": [
+                    {"categoria": item["metadata__categoria"], "total": item["total"]}
+                    for item in categorias_moto
+                ],
                 "trend": [
                     {"period": item["periodo"].date().isoformat(), "total": item["total"]}
                     for item in trend
