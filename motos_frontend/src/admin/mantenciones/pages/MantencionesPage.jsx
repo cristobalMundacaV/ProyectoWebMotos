@@ -151,6 +151,7 @@ export default function MantencionesPage({
     return new Date(now.getFullYear(), now.getMonth(), 1);
   });
   const [horarioEditsById, setHorarioEditsById] = useState({});
+  const [showHorarioForm, setShowHorarioForm] = useState(false);
 
   const DIAS_LABEL = {
     0: "Lunes",
@@ -323,7 +324,9 @@ export default function MantencionesPage({
           agrupados.set(Number(item.dia_semana ?? 0), item);
         });
 
-      return [...agrupados.values()].sort(
+      return [...agrupados.values()]
+        .filter((item) => Number(item.dia_semana ?? 0) >= 0 && Number(item.dia_semana ?? 0) <= 4)
+        .sort(
         (a, b) =>
           Number(a.dia_semana ?? 0) - Number(b.dia_semana ?? 0) ||
           String(a.hora_inicio || "").localeCompare(String(b.hora_inicio || ""))
@@ -672,73 +675,75 @@ export default function MantencionesPage({
         <article className="admin-panel-card">
           <div className="admin-card-header">
             <h2>Horarios operativos</h2>
-            <button type="button" className="admin-primary-action" onClick={onRefreshHorarios}>
-              Actualizar
+            <button type="button" className="admin-primary-action" onClick={() => setShowHorarioForm((prev) => !prev)}>
+              {showHorarioForm ? "Ocultar formulario" : "Agregar horario"}
             </button>
           </div>
 
-          <form className="admin-moto-form" onSubmit={onHorarioSubmit} noValidate>
-            <label>
-              Dia inicio
-              <select name="dia_inicio" value={horarioForm?.dia_inicio ?? "0"} onChange={onHorarioInputChange} required>
-                {Object.entries(DIAS_LABEL).map(([value, label]) => (
-                  <option key={value} value={value}>
-                    {label}
-                  </option>
-                ))}
-              </select>
-            </label>
+          {showHorarioForm && (
+            <form className="admin-moto-form" onSubmit={onHorarioSubmit} noValidate>
+              <label>
+                Dia inicio
+                <select name="dia_inicio" value={horarioForm?.dia_inicio ?? "0"} onChange={onHorarioInputChange} required>
+                  {Object.entries(DIAS_LABEL).map(([value, label]) => (
+                    <option key={value} value={value}>
+                      {label}
+                    </option>
+                  ))}
+                </select>
+              </label>
 
-            <label>
-              Dia final
-              <select name="dia_fin" value={horarioForm?.dia_fin ?? "0"} onChange={onHorarioInputChange} required>
-                {Object.entries(DIAS_LABEL).map(([value, label]) => (
-                  <option key={value} value={value}>
-                    {label}
-                  </option>
-                ))}
-              </select>
-            </label>
+              <label>
+                Dia final
+                <select name="dia_fin" value={horarioForm?.dia_fin ?? "0"} onChange={onHorarioInputChange} required>
+                  {Object.entries(DIAS_LABEL).map(([value, label]) => (
+                    <option key={value} value={value}>
+                      {label}
+                    </option>
+                  ))}
+                </select>
+              </label>
 
-            <label>
-              Hora inicio
-              <input type="time" name="hora_inicio" value={horarioForm?.hora_inicio ?? ""} onChange={onHorarioInputChange} required />
-            </label>
+              <label>
+                Hora inicio
+                <input type="time" name="hora_inicio" value={horarioForm?.hora_inicio ?? ""} onChange={onHorarioInputChange} required />
+              </label>
 
-            <label>
-              Hora fin
-              <input type="time" name="hora_fin" value={horarioForm?.hora_fin ?? ""} onChange={onHorarioInputChange} required />
-            </label>
+              <label>
+                Hora fin
+                <input type="time" name="hora_fin" value={horarioForm?.hora_fin ?? ""} onChange={onHorarioInputChange} required />
+              </label>
 
-            <label>
-              Intervalo (minutos)
-              <input
-                type="number"
-                min="15"
-                step="15"
-                name="intervalo_minutos"
-                value={horarioForm?.intervalo_minutos ?? "60"}
-                onChange={onHorarioInputChange}
-                required
-              />
-            </label>
+              <label>
+                Intervalo (minutos)
+                <input
+                  type="number"
+                  min="15"
+                  step="15"
+                  name="intervalo_minutos"
+                  value={horarioForm?.intervalo_minutos ?? "60"}
+                  onChange={onHorarioInputChange}
+                  required
+                />
+              </label>
 
-            <label>
-              Horas por bloque
-              <input
-                type="number"
-                min="1"
-                name="cupos_por_bloque"
-                value={horarioForm?.cupos_por_bloque ?? "1"}
-                onChange={onHorarioInputChange}
-                required
-              />
-            </label>
+              <label>
+                Horas por bloque
+                <input
+                  type="number"
+                  min="1"
+                  name="cupos_por_bloque"
+                  value={horarioForm?.cupos_por_bloque ?? "1"}
+                  onChange={onHorarioInputChange}
+                  required
+                />
+              </label>
 
-            <button type="submit" className="admin-primary-action" disabled={horarioSaving}>
-              {horarioSaving ? "Guardando..." : "Agregar horario"}
-            </button>
-          </form>
+              <button type="submit" className="admin-primary-action" disabled={horarioSaving}>
+                {horarioSaving ? "Guardando..." : "Agregar horario"}
+              </button>
+            </form>
+          )}
 
           <div className="admin-table">
             {horariosOrdenados.map((item) => {
