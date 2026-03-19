@@ -2084,6 +2084,224 @@
   color: #6b7280;
 }
 
+.admin-analytics-dashboard {
+  gap: 16px;
+}
+
+.admin-analytics-filter-card {
+  padding-bottom: 18px;
+}
+
+.admin-analytics-filters {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 220px));
+  gap: 12px;
+}
+
+.admin-analytics-filters label {
+  display: grid;
+  gap: 8px;
+  font-size: 0.88rem;
+  color: #475569;
+  font-weight: 700;
+}
+
+.admin-analytics-filters select {
+  min-height: 40px;
+  border: 1px solid #d7dce3;
+  border-radius: 12px;
+  background: #fff;
+  padding: 9px 12px;
+  font: inherit;
+}
+
+.admin-analytics-kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.admin-analytics-kpi-grid.compact .admin-analytics-kpi-card {
+  min-height: 132px;
+}
+
+.admin-analytics-kpi-card {
+  background: rgba(255, 255, 255, 0.9);
+  border: 1px solid rgba(16, 16, 16, 0.08);
+  border-radius: 20px;
+  box-shadow: 0 14px 40px rgba(16, 16, 16, 0.08);
+  padding: 18px;
+  display: grid;
+  gap: 6px;
+  align-content: start;
+  min-height: 146px;
+}
+
+.admin-analytics-kpi-title {
+  margin: 0;
+  color: #64748b;
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+
+.admin-analytics-kpi-value {
+  font-size: 1.7rem;
+  line-height: 1.15;
+  color: #0f172a;
+}
+
+.admin-analytics-kpi-value.loading {
+  color: #94a3b8;
+}
+
+.admin-analytics-kpi-subtitle {
+  color: #475569;
+  font-size: 0.82rem;
+}
+
+.admin-analytics-kpi-trend {
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+.admin-analytics-kpi-trend.up {
+  color: #047857;
+}
+
+.admin-analytics-kpi-trend.down {
+  color: #b91c1c;
+}
+
+.admin-analytics-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 14px;
+}
+
+.admin-analytics-grid.two-cols {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.admin-analytics-chart-card {
+  min-height: 320px;
+}
+
+.admin-analytics-bars {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 10px;
+  margin-top: 8px;
+}
+
+.admin-analytics-bar-row {
+  display: grid;
+  grid-template-columns: minmax(120px, 1fr) minmax(160px, 2fr) auto;
+  align-items: center;
+  gap: 10px;
+}
+
+.admin-analytics-bar-label {
+  font-size: 0.86rem;
+  color: #334155;
+  font-weight: 600;
+}
+
+.admin-analytics-bar-track {
+  height: 14px;
+  border-radius: 999px;
+  background: #e2e8f0;
+  overflow: hidden;
+}
+
+.admin-analytics-bars.horizontal .admin-analytics-bar-track {
+  height: 16px;
+}
+
+.admin-analytics-bar-fill {
+  background: linear-gradient(90deg, #0ea5e9, #0284c7);
+  height: 100%;
+  width: 0;
+  border-radius: 999px;
+}
+
+.admin-analytics-bar-value {
+  font-size: 0.95rem;
+  color: #0f172a;
+}
+
+.admin-analytics-line-wrap {
+  width: 100%;
+  height: 220px;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  background: linear-gradient(180deg, #f8fafc, #ffffff);
+  overflow: hidden;
+}
+
+.admin-analytics-line-svg {
+  width: 100%;
+  height: 100%;
+}
+
+.admin-analytics-line {
+  fill: none;
+  stroke: #0ea5e9;
+  stroke-width: 3;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+}
+
+.admin-analytics-line-labels {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(84px, 1fr));
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.admin-analytics-line-labels div {
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 6px 8px;
+  display: grid;
+  gap: 3px;
+}
+
+.admin-analytics-line-labels span {
+  color: #64748b;
+  font-size: 0.75rem;
+}
+
+.admin-analytics-line-labels strong {
+  color: #0f172a;
+  font-size: 0.9rem;
+}
+
+.admin-analytics-table {
+  display: grid;
+  gap: 10px;
+}
+
+.admin-analytics-table-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid #e2e8f0;
+  padding-bottom: 10px;
+}
+
+.admin-analytics-table-row:last-child {
+  border-bottom: none;
+}
+
+.admin-analytics-table-row span {
+  color: #334155;
+}
+
+.admin-analytics-table-row strong {
+  color: #0f172a;
+  font-size: 1rem;
+}
+
 @media (max-width: 1180px) {
   .admin-horario-edit-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -2105,6 +2323,14 @@
 
   .admin-summary-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .admin-analytics-kpi-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .admin-analytics-grid.two-cols {
+    grid-template-columns: 1fr;
   }
 
   .admin-kpi-layout .kpi-main-1,
@@ -2342,6 +2568,14 @@
   }
 
   .admin-summary-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-analytics-filters {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-analytics-kpi-grid {
     grid-template-columns: 1fr;
   }
 

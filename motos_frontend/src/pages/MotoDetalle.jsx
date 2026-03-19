@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { buildMediaUrl } from "../services/apiConfig";
 import { getMotoBySlug } from "../services/motosService";
 import { getContactoPublico } from "../services/productosService";
+import { trackCatalogView } from "../services/analyticsService";
 import Navbar from "../components/layout/Navbar";
 import "../styles/detalle.css";
 
@@ -27,6 +28,19 @@ export default function MotoDetalle() {
 
         if (!isMounted) return;
         setMoto(motoData);
+        if (motoData) {
+          trackCatalogView({
+            tipoEntidad: "moto",
+            entidadId: motoData.id,
+            entidadSlug: motoData.slug,
+            entidadNombre: motoData.modelo || motoData.nombre || "",
+            origen: `/motos/${slug}`,
+            metadata: {
+              marca: motoData.marca_nombre || "",
+              categoria: motoData.categoria_nombre || "",
+            },
+          });
+        }
 
         if (contactoData) {
           setContacto({

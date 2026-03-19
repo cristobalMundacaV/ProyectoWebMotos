@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { getDisponibilidadMantenciones } from "../../../services/mantencionesService";
 
 const ESTADO_OPTIONS = [
@@ -152,7 +152,6 @@ export default function MantencionesPage({
   });
   const [horarioEditsById, setHorarioEditsById] = useState({});
   const [showHorarioForm, setShowHorarioForm] = useState(false);
-  const horarioCreateFormRef = useRef(null);
 
   const DIAS_LABEL = {
     0: "Lunes",
@@ -677,23 +676,14 @@ export default function MantencionesPage({
             <button
               type="button"
               className="admin-primary-action"
-              onClick={() => {
-                if (!showHorarioForm) {
-                  setShowHorarioForm(true);
-                  return;
-                }
-                if (horarioCreateFormRef.current) {
-                  horarioCreateFormRef.current.requestSubmit();
-                }
-              }}
-              disabled={horarioSaving}
+              onClick={() => setShowHorarioForm((prev) => !prev)}
             >
-              {showHorarioForm ? (horarioSaving ? "Guardando..." : "Guardar horario") : "Agregar horario"}
+              {showHorarioForm ? "Cerrar formulario" : "Agregar horario"}
             </button>
           </div>
 
           {showHorarioForm && (
-            <form ref={horarioCreateFormRef} className="admin-moto-form admin-horario-create-form" onSubmit={onHorarioSubmit} noValidate>
+            <form className="admin-moto-form admin-horario-create-form" onSubmit={onHorarioSubmit} noValidate>
               <label>
                 Dia inicio
                 <select name="dia_inicio" value={horarioForm?.dia_inicio ?? "0"} onChange={onHorarioInputChange} required>
@@ -750,6 +740,10 @@ export default function MantencionesPage({
                   required
                 />
               </label>
+
+              <button type="submit" className="admin-primary-action" disabled={horarioSaving}>
+                {horarioSaving ? "Guardando..." : "Guardar horario"}
+              </button>
             </form>
           )}
 

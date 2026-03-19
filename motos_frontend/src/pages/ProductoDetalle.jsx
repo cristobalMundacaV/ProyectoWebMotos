@@ -2,6 +2,7 @@ import { useParams, Link } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { buildMediaUrl } from "../services/apiConfig";
 import { getProductoBySlug, getContactoPublico } from "../services/productosService";
+import { trackCatalogView } from "../services/analyticsService";
 import Navbar from "../components/layout/Navbar";
 import "../styles/detalle.css";
 
@@ -26,6 +27,21 @@ export default function ProductoDetalle() {
 
         if (!isMounted) return;
         setProducto(productoData);
+        if (productoData) {
+          const categoria = (productoData.categoria_nombre || "").toLowerCase();
+          const tipoEntidad = categoria.includes("indumentaria") ? "indumentaria" : "accesorio";
+          trackCatalogView({
+            tipoEntidad,
+            entidadId: productoData.id,
+            entidadSlug: productoData.slug,
+            entidadNombre: productoData.nombre || "",
+            origen: `/productos/${slug}`,
+            metadata: {
+              categoria: productoData.subcategoria_nombre || "",
+              marca: productoData.marca_nombre || "",
+            },
+          });
+        }
 
         if (contactoData) {
           setContacto({

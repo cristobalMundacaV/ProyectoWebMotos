@@ -1,4 +1,5 @@
 import { getMotoAdminMeta, getMotos, getCategoriasMoto, getMarcasAdmin, getModelosMoto } from "../../motos/services/motosAdminService";
+import api from "../../../services/api";
 import {
   getAccesoriosMotosAdmin,
   getAccesoriosMotosMeta,
@@ -72,4 +73,29 @@ export async function fetchAdminBootstrapData() {
     accesoriosRiderMetaData,
     contactoAdmin,
   };
+}
+
+export async function fetchCatalogoAnalytics({ start, end, groupBy } = {}) {
+  const params = {};
+  if (start) params.start = start;
+  if (end) params.end = end;
+  if (groupBy) params.group_by = groupBy;
+  const response = await api.get("/api/analitica/dashboard/catalogo/", { params });
+  return response.data;
+}
+
+export async function fetchMantencionesAnalytics({ year, month } = {}) {
+  const params = {};
+  if (year) params.year = year;
+  if (month) params.month = month;
+  const response = await api.get("/api/analitica/dashboard/mantenciones/", { params });
+  return response.data;
+}
+
+export async function fetchDashboardAnalytics({ year, month, start, end, groupBy } = {}) {
+  const [catalogo, mantenciones] = await Promise.all([
+    fetchCatalogoAnalytics({ start, end, groupBy }),
+    fetchMantencionesAnalytics({ year, month }),
+  ]);
+  return { catalogo, mantenciones };
 }
