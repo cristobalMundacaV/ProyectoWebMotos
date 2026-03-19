@@ -1751,6 +1751,70 @@
   border-color: #93c5fd;
 }
 
+.admin-horario-edit-card {
+  border-top: 1px solid #e5e7eb;
+  padding: 18px 0;
+  display: grid;
+  gap: 14px;
+}
+
+.admin-horario-edit-grid {
+  display: grid;
+  grid-template-columns: minmax(160px, 0.9fr) minmax(170px, 1fr) minmax(170px, 1fr) minmax(140px, 0.8fr) minmax(170px, 1fr);
+  gap: 16px;
+  align-items: end;
+}
+
+.admin-horario-edit-field {
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+}
+
+.admin-horario-edit-field span {
+  color: #475569;
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.admin-horario-edit-field input {
+  width: 100%;
+  min-height: 42px;
+  border: 1px solid #d7dce3;
+  border-radius: 12px;
+  padding: 9px 12px;
+  font: inherit;
+  color: #111827;
+  background: #fff;
+}
+
+.admin-horario-edit-field input:focus {
+  outline: 2px solid rgba(147, 197, 253, 0.35);
+  outline-offset: 0;
+  border-color: #93c5fd;
+}
+
+.admin-horario-edit-field-static strong {
+  min-height: 42px;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 10px 12px;
+  display: flex;
+  align-items: center;
+  background: #f8fafc;
+  color: #0f172a;
+  font-size: 0.95rem;
+  font-weight: 800;
+}
+
+.admin-horario-edit-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
 .admin-horarios-calendar-layout {
   display: grid;
   grid-template-columns: minmax(0, 1.45fr) minmax(320px, 0.9fr);
@@ -1997,6 +2061,15 @@
 }
 
 @media (max-width: 1180px) {
+  .admin-horario-edit-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .admin-horario-edit-actions {
+    justify-content: flex-start;
+    flex-wrap: wrap;
+  }
+
   .admin-horarios-calendar-layout {
     grid-template-columns: 1fr;
   }
@@ -2462,6 +2535,10 @@
 
   .admin-card-header span {
     width: 100%;
+  }
+
+  .admin-horario-edit-grid {
+    grid-template-columns: 1fr;
   }
 
   .admin-horarios-calendar-grid {

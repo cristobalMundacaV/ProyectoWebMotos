@@ -308,6 +308,16 @@ export default function MantencionesPage({
     return byId || fichasMantencion[0] || null;
   }, [fichasMantencion, selectedFichaId]);
 
+  const horariosOrdenados = useMemo(
+    () =>
+      [...horarios].sort(
+        (a, b) =>
+          Number(a.dia_semana ?? 0) - Number(b.dia_semana ?? 0) ||
+          String(a.hora_inicio || "").localeCompare(String(b.hora_inicio || ""))
+      ),
+    [horarios]
+  );
+
   function getDraft(item) {
     return (
       editsById[item.id] || {
@@ -716,65 +726,55 @@ export default function MantencionesPage({
           </form>
 
           <div className="admin-table">
-            {horarios.map((item) => {
+            {horariosOrdenados.map((item) => {
               const draft = getHorarioDraft(item);
               return (
-                <div key={item.id} className="admin-table-row admin-moto-table-row admin-mantencion-row">
-                  <div className="admin-moto-table-cell">
-                    <strong>Dia</strong>
-                    <select value={draft.dia_semana} onChange={(event) => setHorarioDraft(item.id, "dia_semana", event.target.value)}>
-                      {Object.entries(DIAS_LABEL).map(([value, label]) => (
-                        <option key={value} value={value}>
-                          {label}
-                        </option>
-                      ))}
-                    </select>
+                <div key={item.id} className="admin-horario-edit-card">
+                  <div className="admin-horario-edit-grid">
+                    <div className="admin-horario-edit-field admin-horario-edit-field-static">
+                      <span>Dia</span>
+                      <strong>{DIAS_LABEL[item.dia_semana] || item.dia_semana}</strong>
+                    </div>
+                    <div className="admin-horario-edit-field">
+                      <span>Hora inicio</span>
+                      <input
+                        type="time"
+                        value={draft.hora_inicio}
+                        onChange={(event) => setHorarioDraft(item.id, "hora_inicio", event.target.value)}
+                      />
+                    </div>
+                    <div className="admin-horario-edit-field">
+                      <span>Hora fin</span>
+                      <input
+                        type="time"
+                        value={draft.hora_fin}
+                        onChange={(event) => setHorarioDraft(item.id, "hora_fin", event.target.value)}
+                      />
+                    </div>
+                    <div className="admin-horario-edit-field admin-horario-edit-field-static">
+                      <span>Intervalo</span>
+                      <strong>{`${item.intervalo_minutos} min`}</strong>
+                    </div>
+                    <div className="admin-horario-edit-field">
+                      <span>Cupos por bloque</span>
+                      <input
+                        type="number"
+                        min="1"
+                        value={draft.cupos_por_bloque}
+                        onChange={(event) => setHorarioDraft(item.id, "cupos_por_bloque", event.target.value)}
+                      />
+                    </div>
                   </div>
-                  <div className="admin-moto-table-cell">
-                    <strong>Hora inicio</strong>
-                    <input
-                      type="time"
-                      value={draft.hora_inicio}
-                      onChange={(event) => setHorarioDraft(item.id, "hora_inicio", event.target.value)}
-                    />
-                  </div>
-                  <div className="admin-moto-table-cell">
-                    <strong>Hora fin</strong>
-                    <input
-                      type="time"
-                      value={draft.hora_fin}
-                      onChange={(event) => setHorarioDraft(item.id, "hora_fin", event.target.value)}
-                    />
-                  </div>
-                  <div className="admin-moto-table-cell">
-                    <strong>Intervalo</strong>
-                    <input
-                      type="number"
-                      min="15"
-                      step="15"
-                      value={draft.intervalo_minutos}
-                      onChange={(event) => setHorarioDraft(item.id, "intervalo_minutos", event.target.value)}
-                    />
-                  </div>
-                  <div className="admin-moto-table-cell">
-                    <strong>Cupos por bloque</strong>
-                    <input
-                      type="number"
-                      min="1"
-                      value={draft.cupos_por_bloque}
-                      onChange={(event) => setHorarioDraft(item.id, "cupos_por_bloque", event.target.value)}
-                    />
-                  </div>
-                  <div className="admin-moto-table-cell admin-mantencion-actions">
+                  <div className="admin-horario-edit-actions">
                     <button
                       type="button"
                       className="admin-primary-action admin-mantencion-action-btn admin-mantencion-save-btn"
                       onClick={() =>
                         onHorarioUpdate(item.id, {
-                          dia_semana: Number(draft.dia_semana),
+                          dia_semana: Number(item.dia_semana),
                           hora_inicio: draft.hora_inicio,
                           hora_fin: draft.hora_fin,
-                          intervalo_minutos: Number(draft.intervalo_minutos),
+                          intervalo_minutos: Number(item.intervalo_minutos),
                           cupos_por_bloque: Number(draft.cupos_por_bloque),
                         })
                       }
