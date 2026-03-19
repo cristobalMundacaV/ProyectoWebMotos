@@ -93,6 +93,8 @@ export default function MotoDetalle() {
         <div className="detalle-breadcrumb">
           <Link to="/">Inicio</Link>
           <span>/</span>
+          <Link to="/motos">Motos</Link>
+          <span>/</span>
           <span>{modelo}</span>
         </div>
 

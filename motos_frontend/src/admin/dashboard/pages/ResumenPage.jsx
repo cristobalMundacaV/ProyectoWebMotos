@@ -180,7 +180,7 @@ export default function ResumenPage() {
 
       <section className="admin-analytics-grid two-cols">
         <BarChartCard title="Top 5 modelos de moto mas vistos" items={topMotos} loading={loading} />
-        <BarChartCard title="Categorias de motos mas clickeadas" items={categoriasMotoMasClickeadas} horizontal loading={loading} />
+        <BarChartCard title="Categorias de motos mas vistas" items={categoriasMotoMasClickeadas} horizontal loading={loading} />
       </section>
 
       <section className="admin-analytics-grid">

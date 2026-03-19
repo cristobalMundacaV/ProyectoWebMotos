@@ -80,6 +80,10 @@ export default function ProductoDetalle() {
   }
 
   const nombre = producto.nombre || producto.slug || "Producto";
+  const categoriaSlug = String(producto.categoria_slug || "").toLowerCase();
+  const esAccesorioMoto = categoriaSlug === "accesorios-para-la-moto" || categoriaSlug === "accesorios";
+  const breadcrumbSectionLabel = esAccesorioMoto ? "Accesorios Motos" : "Indumentaria Rider";
+  const breadcrumbSectionPath = esAccesorioMoto ? "/accesorios" : "/indumentaria";
   const descripcionRaw = producto.descripcion?.trim();
   const descripcion =
     descripcionRaw && descripcionRaw !== nombre
@@ -93,6 +97,8 @@ export default function ProductoDetalle() {
       <main className="detalle-main">
         <div className="detalle-breadcrumb">
           <Link to="/">Inicio</Link>
+          <span>/</span>
+          <Link to={breadcrumbSectionPath}>{breadcrumbSectionLabel}</Link>
           <span>/</span>
           <span>{nombre}</span>
         </div>

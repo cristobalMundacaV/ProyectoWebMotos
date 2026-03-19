@@ -151,55 +151,59 @@ class CatalogoDashboardAnalyticsAPIView(APIView):
             elif tipo == CatalogoEvento.TIPO_ACCESORIO:
                 by_category["accesorios"] = row["total"]
 
-        categorias_moto_metadata = list(
+        moto_events = list(
             qs.filter(tipo_entidad=CatalogoEvento.TIPO_MOTO)
-            .exclude(metadata__categoria__isnull=True)
-            .exclude(metadata__categoria__exact="")
-            .values("metadata__categoria")
+            .values("metadata__categoria", "entidad_id", "entidad_slug", "entidad_nombre")
             .annotate(total=Count("id"))
-            .order_by("-total", "metadata__categoria")
+            .order_by()
         )
+
+        moto_catalogo = list(
+            Moto.objects.select_related("modelo_moto__categoria").values(
+                "id",
+                "slug",
+                "modelo",
+                "modelo_moto__nombre_modelo",
+                "modelo_moto__categoria__nombre",
+            )
+        )
+        categoria_by_id = {}
+        categoria_by_slug = {}
+        categoria_by_modelo = {}
+        for moto in moto_catalogo:
+            categoria = (moto.get("modelo_moto__categoria__nombre") or "").strip() or "Sin categoria"
+            moto_id = moto.get("id")
+            slug = (moto.get("slug") or "").strip().lower()
+            modelo = (moto.get("modelo") or "").strip().lower()
+            modelo_ref = (moto.get("modelo_moto__nombre_modelo") or "").strip().lower()
+            if moto_id is not None:
+                categoria_by_id[moto_id] = categoria
+            if slug:
+                categoria_by_slug[slug] = categoria
+            if modelo:
+                categoria_by_modelo[modelo] = categoria
+            if modelo_ref:
+                categoria_by_modelo[modelo_ref] = categoria
 
         categoria_totales = {}
-        for row in categorias_moto_metadata:
-            nombre = (row.get("metadata__categoria") or "").strip()
-            if not nombre:
-                continue
-            categoria_totales[nombre] = categoria_totales.get(nombre, 0) + int(row.get("total") or 0)
+        for row in moto_events:
+            total = int(row.get("total") or 0)
+            categoria = (row.get("metadata__categoria") or "").strip()
 
-        # Fallback: para eventos antiguos sin metadata.categoria, reconstruimos categoria por entidad_id de moto.
-        moto_ids_without_category = list(
-            qs.filter(tipo_entidad=CatalogoEvento.TIPO_MOTO)
-            .filter(metadata__categoria__isnull=True)
-            .values("entidad_id")
-            .annotate(total=Count("id"))
-            .order_by()
-        )
-        moto_ids_empty_category = list(
-            qs.filter(tipo_entidad=CatalogoEvento.TIPO_MOTO, metadata__categoria__exact="")
-            .values("entidad_id")
-            .annotate(total=Count("id"))
-            .order_by()
-        )
+            if not categoria:
+                entidad_id = row.get("entidad_id")
+                entidad_slug = (row.get("entidad_slug") or "").strip().lower()
+                entidad_nombre = (row.get("entidad_nombre") or "").strip().lower()
 
-        eventos_sin_categoria_por_moto = {}
-        for row in [*moto_ids_without_category, *moto_ids_empty_category]:
-            moto_id = row.get("entidad_id")
-            if moto_id is None:
-                continue
-            eventos_sin_categoria_por_moto[moto_id] = eventos_sin_categoria_por_moto.get(moto_id, 0) + int(row.get("total") or 0)
+                if entidad_id is not None:
+                    categoria = categoria_by_id.get(entidad_id, "")
+                if not categoria and entidad_slug:
+                    categoria = categoria_by_slug.get(entidad_slug, "")
+                if not categoria and entidad_nombre:
+                    categoria = categoria_by_modelo.get(entidad_nombre, "")
 
-        if eventos_sin_categoria_por_moto:
-            motos_map = {
-                item["id"]: (item.get("modelo_moto__categoria__nombre") or "").strip() or "Sin categoria"
-                for item in Moto.objects.filter(id__in=list(eventos_sin_categoria_por_moto.keys())).values(
-                    "id",
-                    "modelo_moto__categoria__nombre",
-                )
-            }
-            for moto_id, total in eventos_sin_categoria_por_moto.items():
-                categoria = motos_map.get(moto_id, "Sin categoria")
-                categoria_totales[categoria] = categoria_totales.get(categoria, 0) + total
+            categoria = categoria or "Sin categoria"
+            categoria_totales[categoria] = categoria_totales.get(categoria, 0) + total
 
         categorias_moto = sorted(
             [{"categoria": categoria, "total": total} for categoria, total in categoria_totales.items()],
