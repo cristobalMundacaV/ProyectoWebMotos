@@ -360,7 +360,7 @@ export default function MantencionesPage({
         hora_fin: item.hora_fin?.slice(0, 5) || "",
         intervalo_minutos: String(item.intervalo_minutos ?? "60"),
         cupos_por_bloque: String(item.cupos_por_bloque ?? "1"),
-        activo: item.activo !== false,
+        activo: true,
       }
     );
   }
@@ -724,7 +724,7 @@ export default function MantencionesPage({
             </label>
 
             <label>
-              Cupos por bloque
+              Horas por bloque
               <input
                 type="number"
                 min="1"
@@ -767,12 +767,17 @@ export default function MantencionesPage({
                       />
                     </div>
                     <div className="admin-horario-edit-field">
-                      <span>Cupos por bloque</span>
+                      <span>Horas por bloque</span>
                       <input
                         type="number"
                         min="1"
                         value={draft.cupos_por_bloque}
                         onChange={(event) => setHorarioDraft(item.id, "cupos_por_bloque", event.target.value)}
+                        onBlur={() => {
+                          if (String(draft.cupos_por_bloque ?? "").trim() === "") {
+                            setHorarioDraft(item.id, "cupos_por_bloque", "1");
+                          }
+                        }}
                       />
                     </div>
                     <div className="admin-horario-edit-field admin-horario-edit-field-checkbox">
@@ -780,10 +785,9 @@ export default function MantencionesPage({
                       <label className="admin-inline-checkbox">
                         <input
                           type="checkbox"
-                          checked={Boolean(draft.activo)}
-                          onChange={(event) => setHorarioDraft(item.id, "activo", event.target.checked)}
+                          checked
+                          readOnly
                         />
-                        <span>{draft.activo ? "Si" : "No"}</span>
                       </label>
                     </div>
                     <div className="admin-horario-edit-actions">
@@ -797,7 +801,7 @@ export default function MantencionesPage({
                             hora_fin: draft.hora_fin,
                             intervalo_minutos: toPositiveInteger(draft.intervalo_minutos, Number(item.intervalo_minutos ?? 60) || 60),
                             cupos_por_bloque: toPositiveInteger(draft.cupos_por_bloque, Number(item.cupos_por_bloque ?? 1) || 1),
-                            activo: Boolean(draft.activo),
+                            activo: true,
                           })
                         }
                       >

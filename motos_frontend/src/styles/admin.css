@@ -1816,8 +1816,23 @@
   min-height: 40px;
   display: inline-flex;
   align-items: center;
-  gap: 8px;
+  justify-content: center;
+  gap: 0;
   padding: 0 2px;
+  width: 100%;
+}
+
+.admin-horario-edit-field-checkbox > span {
+  text-align: center;
+}
+
+.admin-horario-edit-field-checkbox .admin-inline-checkbox input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+}
+
+.admin-horario-edit-field-checkbox .admin-inline-checkbox span {
+  display: none;
 }
 
 .admin-horarios-calendar-layout {

@@ -1284,7 +1284,22 @@ export default function AdminPanel() {
 
   function handleHorarioMantencionInputChange(event) {
     const { name, value, type, checked } = event.target;
-    setHorarioMantencionForm((prev) => ({ ...prev, [name]: type === "checkbox" ? checked : value }));
+    setHorarioMantencionForm((prev) => {
+      const nextValue = type === "checkbox" ? checked : value;
+      const next = { ...prev, [name]: nextValue };
+
+      if (name === "cupos_por_bloque") {
+        const clean = String(nextValue ?? "").replace(/[^\d]/g, "");
+        next.cupos_por_bloque = clean;
+        return next;
+      }
+
+      if (String(prev.cupos_por_bloque ?? "").trim() === "") {
+        next.cupos_por_bloque = "1";
+      }
+
+      return next;
+    });
   }
 
   async function handleHorarioMantencionSubmit(event) {
@@ -1302,7 +1317,7 @@ export default function AdminPanel() {
         hora_inicio: horarioMantencionForm.hora_inicio,
         hora_fin: horarioMantencionForm.hora_fin,
         intervalo_minutos: Number(horarioMantencionForm.intervalo_minutos),
-        cupos_por_bloque: Number(horarioMantencionForm.cupos_por_bloque),
+        cupos_por_bloque: Math.max(1, Number.parseInt(horarioMantencionForm.cupos_por_bloque, 10) || 1),
         activo: true,
       };
 
@@ -1355,7 +1370,16 @@ export default function AdminPanel() {
   async function handleUpdateHorarioMantencion(horarioId, payload) {
     try {
       const updated = await updateHorarioMantencionAdmin(horarioId, payload);
-      setHorariosMantencion((prev) => prev.map((item) => (item.id === horarioId ? updated : item)));
+
+      const targetDia = Number(updated?.dia_semana ?? payload?.dia_semana ?? 0);
+      const duplicados = horariosMantencion.filter(
+        (item) => Number(item.dia_semana) === targetDia && Number(item.id) !== Number(updated.id)
+      );
+      if (duplicados.length > 0) {
+        await Promise.all(duplicados.map((item) => deleteHorarioMantencionAdmin(item.id)));
+      }
+
+      await fetchHorariosMantencionList();
       pushToast("Horario actualizado correctamente.", "success");
     } catch (error) {
       pushToast(getErrorText(error, "No se pudo actualizar el horario."), "error");
