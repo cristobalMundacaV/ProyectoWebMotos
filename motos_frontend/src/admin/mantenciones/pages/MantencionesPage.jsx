@@ -768,30 +768,30 @@ export default function MantencionesPage({
                         onChange={(event) => setHorarioDraft(item.id, "cupos_por_bloque", event.target.value)}
                       />
                     </div>
-                  </div>
-                  <div className="admin-horario-edit-actions">
-                    <button
-                      type="button"
-                      className="admin-primary-action admin-mantencion-action-btn admin-mantencion-save-btn"
-                      onClick={() =>
-                        onHorarioUpdate(item.id, {
-                          dia_semana: Number(item.dia_semana),
-                          hora_inicio: draft.hora_inicio,
-                          hora_fin: draft.hora_fin,
-                          intervalo_minutos: Number(item.intervalo_minutos),
-                          cupos_por_bloque: Number(draft.cupos_por_bloque),
-                        })
-                      }
-                    >
-                      Guardar
-                    </button>
-                    <button
-                      type="button"
-                      className="admin-danger-action admin-mantencion-action-btn"
-                      onClick={() => onHorarioDelete(item.id)}
-                    >
-                      Eliminar
-                    </button>
+                    <div className="admin-horario-edit-actions">
+                      <button
+                        type="button"
+                        className="admin-primary-action admin-mantencion-action-btn admin-mantencion-save-btn"
+                        onClick={() =>
+                          onHorarioUpdate(item.id, {
+                            dia_semana: Number(item.dia_semana),
+                            hora_inicio: draft.hora_inicio,
+                            hora_fin: draft.hora_fin,
+                            intervalo_minutos: Number(item.intervalo_minutos),
+                            cupos_por_bloque: Number(draft.cupos_por_bloque),
+                          })
+                        }
+                      >
+                        Guardar
+                      </button>
+                      <button
+                        type="button"
+                        className="admin-danger-action admin-mantencion-action-btn"
+                        onClick={() => onHorarioDelete(item.id)}
+                      >
+                        Eliminar
+                      </button>
+                    </div>
                   </div>
                 </div>
               );
