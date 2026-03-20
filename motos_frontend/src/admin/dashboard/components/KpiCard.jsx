@@ -8,7 +8,15 @@ function formatTrendValue(value) {
   return `${abs % 1 === 0 ? abs.toFixed(0) : abs.toFixed(2)}%`;
 }
 
-export default function KpiCard({ title, value, subtitle, trend, loading = false, supportText = "" }) {
+export default function KpiCard({
+  title,
+  value,
+  subtitle,
+  trend,
+  loading = false,
+  supportText = "",
+  valueBadge = false,
+}) {
   const trendIsValid = isNumeric(trend);
   const trendIsUp = trend >= 0;
 
@@ -16,9 +24,15 @@ export default function KpiCard({ title, value, subtitle, trend, loading = false
     <article className="admin-analytics-kpi-card">
       <p className="admin-analytics-kpi-title">{title}</p>
       <div className="admin-analytics-kpi-body">
-        <strong className={loading ? "admin-analytics-kpi-value loading" : "admin-analytics-kpi-value"}>
-          {loading ? "..." : value}
-        </strong>
+        {valueBadge && !loading ? (
+          <span className={`admin-analytics-kpi-value-badge ${trendIsValid ? (trendIsUp ? "up" : "down") : "flat"}`}>
+            {value}
+          </span>
+        ) : (
+          <strong className={loading ? "admin-analytics-kpi-value loading" : "admin-analytics-kpi-value"}>
+            {loading ? "..." : value}
+          </strong>
+        )}
       </div>
       <div className="admin-analytics-kpi-foot">
         {subtitle ? <span className="admin-analytics-kpi-subtitle">{subtitle}</span> : null}

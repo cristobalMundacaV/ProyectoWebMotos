@@ -204,7 +204,8 @@ export default function ResumenPage() {
           title="Crecimiento vs periodo anterior"
           value={kpis.growth_label === "nuevo_periodo_activo" ? "Nuevo periodo activo" : `${kpis.growth_pct ?? 0}%`}
           subtitle="Comparacion del mismo largo temporal"
-          trend={null}
+          trend={kpis.growth_label === "nuevo_periodo_activo" ? null : Number(kpis.growth_pct ?? 0)}
+          valueBadge
           supportText={`Rango previo: ${summary?.previous_range?.start || "-"} a ${summary?.previous_range?.end || "-"}`}
           loading={loading}
         />
