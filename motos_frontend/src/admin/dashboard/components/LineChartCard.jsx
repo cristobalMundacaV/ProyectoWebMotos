@@ -1,84 +1,144 @@
-function buildPoints(items, width, height, padding) {
-  if (!items.length) return "";
-  const values = items.map((item) => Number(item.value || 0));
-  const max = Math.max(...values, 1);
-  const min = Math.min(...values, 0);
-  const drawableWidth = width - padding * 2;
-  const drawableHeight = height - padding * 2;
-  const range = Math.max(max - min, 1);
+import { useMemo, useState } from "react";
 
-  return items
-    .map((item, index) => {
-      const x = padding + (items.length === 1 ? drawableWidth / 2 : (index / (items.length - 1)) * drawableWidth);
-      const y = padding + drawableHeight - (((Number(item.value || 0) - min) / range) * drawableHeight);
-      return `${x},${y}`;
-    })
-    .join(" ");
+function clamp(n, min, max) {
+  return Math.max(min, Math.min(max, n));
 }
 
-function buildChartCoords(items, width, height, padding) {
-  if (!items.length) return [];
+function getCoords(items, width, height, padding) {
+  if (!items.length) return { points: [], max: 0 };
   const values = items.map((item) => Number(item.value || 0));
   const max = Math.max(...values, 1);
-  const min = Math.min(...values, 0);
-  const drawableWidth = width - padding * 2;
-  const drawableHeight = height - padding * 2;
-  const range = Math.max(max - min, 1);
+  const drawableWidth = width - padding.left - padding.right;
+  const drawableHeight = height - padding.top - padding.bottom;
 
-  return items.map((item, index) => {
-    const x = padding + (items.length === 1 ? drawableWidth / 2 : (index / (items.length - 1)) * drawableWidth);
-    const y = padding + drawableHeight - (((Number(item.value || 0) - min) / range) * drawableHeight);
+  const points = items.map((item, index) => {
+    const x = padding.left + (items.length === 1 ? drawableWidth / 2 : (index / (items.length - 1)) * drawableWidth);
+    const y = padding.top + drawableHeight - ((Number(item.value || 0) / max) * drawableHeight);
     return { x, y, value: Number(item.value || 0), label: item.label };
   });
+  return { points, max };
 }
 
-function getLabelItems(items) {
-  if (items.length <= 6) return items;
-  const picks = [0, Math.floor(items.length / 4), Math.floor(items.length / 2), Math.floor((items.length * 3) / 4), items.length - 1];
-  const unique = [...new Set(picks)];
-  return unique.map((idx) => items[idx]).filter(Boolean);
+function getTicks(max, count = 4) {
+  const step = max / count;
+  return Array.from({ length: count + 1 }, (_, i) => Math.round(step * i));
 }
 
-export default function LineChartCard({ title, items = [], loading = false }) {
-  const width = 640;
-  const height = 220;
-  const padding = 22;
-  const points = buildPoints(items, width, height, padding);
-  const coords = buildChartCoords(items, width, height, padding);
-  const labels = getLabelItems(items);
-  const areaPoints = coords.length
-    ? `${coords.map((point) => `${point.x},${point.y}`).join(" ")} ${width - padding},${height - padding} ${padding},${height - padding}`
+function getLabelIndexes(length) {
+  if (length <= 6) return Array.from({ length }, (_, i) => i);
+  return [...new Set([0, Math.floor(length * 0.25), Math.floor(length * 0.5), Math.floor(length * 0.75), length - 1])];
+}
+
+export default function LineChartCard({ title, subtitle = "", items = [], loading = false }) {
+  const width = 900;
+  const height = 280;
+  const padding = { top: 18, right: 16, bottom: 34, left: 46 };
+  const [hoverIndex, setHoverIndex] = useState(null);
+
+  const chart = useMemo(() => getCoords(items, width, height, padding), [items]);
+  const { points, max } = chart;
+  const ticks = useMemo(() => getTicks(max, 4), [max]);
+  const activePoint = hoverIndex === null ? null : points[hoverIndex] || null;
+
+  const polyline = points.map((point) => `${point.x},${point.y}`).join(" ");
+  const area = points.length
+    ? `${polyline} ${points[points.length - 1].x},${height - padding.bottom} ${points[0].x},${height - padding.bottom}`
     : "";
 
+  const labelIndexes = getLabelIndexes(points.length);
+  const drawableWidth = width - padding.left - padding.right;
+  const drawableHeight = height - padding.top - padding.bottom;
+
+  function handleMouseMove(event) {
+    if (!points.length) return;
+    const bounds = event.currentTarget.getBoundingClientRect();
+    const rawX = event.clientX - bounds.left;
+    const relativeX = clamp((rawX / bounds.width) * width, padding.left, width - padding.right);
+    const ratio = (relativeX - padding.left) / Math.max(drawableWidth, 1);
+    const index = Math.round(ratio * (points.length - 1));
+    setHoverIndex(clamp(index, 0, points.length - 1));
+  }
+
   return (
-    <article className="admin-panel-card admin-analytics-chart-card">
+    <article className="admin-panel-card admin-analytics-chart-card admin-analytics-chart-card-line">
       <div className="admin-card-header">
-        <h2>{title}</h2>
+        <div>
+          <h2>{title}</h2>
+          {subtitle ? <p className="admin-analytics-card-subtitle">{subtitle}</p> : null}
+        </div>
       </div>
+
       {loading ? (
         <p className="admin-empty">Cargando datos...</p>
       ) : items.length === 0 ? (
         <p className="admin-empty">Sin datos para mostrar.</p>
       ) : (
-        <>
-          <div className="admin-analytics-line-wrap">
-            <svg viewBox={`0 0 ${width} ${height}`} preserveAspectRatio="none" className="admin-analytics-line-svg">
-              {areaPoints ? <polygon points={areaPoints} className="admin-analytics-area" /> : null}
-              <polyline points={points} className="admin-analytics-line" />
-              {coords.map((point) => (
-                <circle key={`${point.label}-${point.value}`} cx={point.x} cy={point.y} r="3.5" className="admin-analytics-point" />
-              ))}
-            </svg>
-          </div>
-          <div className="admin-analytics-line-labels">
-            {labels.map((item, index) => (
-              <div key={`${item.label}-${index}`}>
-                <span>{item.label}</span>
-                <strong>{item.value}</strong>
-              </div>
-            ))}
-          </div>
-        </>
+        <div
+          className="admin-analytics-line-wrap"
+          onMouseMove={handleMouseMove}
+          onMouseLeave={() => setHoverIndex(null)}
+        >
+          <svg viewBox={`0 0 ${width} ${height}`} preserveAspectRatio="none" className="admin-analytics-line-svg">
+            {ticks.map((tick) => {
+              const y = padding.top + drawableHeight - ((tick / Math.max(max, 1)) * drawableHeight);
+              return (
+                <g key={`y-${tick}`}>
+                  <line x1={padding.left} y1={y} x2={width - padding.right} y2={y} className="admin-analytics-grid-line" />
+                  <text x={padding.left - 8} y={y + 4} textAnchor="end" className="admin-analytics-axis-text">
+                    {tick}
+                  </text>
+                </g>
+              );
+            })}
+
+            <line x1={padding.left} y1={height - padding.bottom} x2={width - padding.right} y2={height - padding.bottom} className="admin-analytics-axis-line" />
+            <line x1={padding.left} y1={padding.top} x2={padding.left} y2={height - padding.bottom} className="admin-analytics-axis-line" />
+
+            {labelIndexes.map((idx) => {
+              const point = points[idx];
+              if (!point) return null;
+              return (
+                <text key={`x-${idx}`} x={point.x} y={height - 10} textAnchor="middle" className="admin-analytics-axis-text">
+                  {point.label}
+                </text>
+              );
+            })}
+
+            {area ? <polygon points={area} className="admin-analytics-area" /> : null}
+            {polyline ? <polyline points={polyline} className="admin-analytics-line" /> : null}
+
+            {points.map((point, index) => {
+              const showPoint = point.value > 0 || points.length <= 12 || index === hoverIndex;
+              if (!showPoint) return null;
+              return (
+                <circle
+                  key={`${point.label}-${index}`}
+                  cx={point.x}
+                  cy={point.y}
+                  r={index === hoverIndex ? 4.8 : 3.2}
+                  className={index === hoverIndex ? "admin-analytics-point active" : "admin-analytics-point"}
+                />
+              );
+            })}
+
+            {activePoint ? (
+              <line
+                x1={activePoint.x}
+                y1={padding.top}
+                x2={activePoint.x}
+                y2={height - padding.bottom}
+                className="admin-analytics-hover-line"
+              />
+            ) : null}
+          </svg>
+
+          {activePoint ? (
+            <div className="admin-analytics-tooltip" style={{ left: `${(activePoint.x / width) * 100}%` }}>
+              <span>{activePoint.label}</span>
+              <strong>{activePoint.value} visitas</strong>
+            </div>
+          ) : null}
+        </div>
       )}
     </article>
   );

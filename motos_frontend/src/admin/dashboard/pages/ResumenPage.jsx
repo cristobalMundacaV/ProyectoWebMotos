@@ -49,6 +49,26 @@ function formatIsoDate(date) {
   return `${year}-${month}-${day}`;
 }
 
+function formatMonthYear(year, month) {
+  return `${MONTHS[(month || 1) - 1] || "Mes"} ${year}`;
+}
+
+function aggregateTrendByWeek(items = []) {
+  if (!Array.isArray(items) || items.length === 0) return [];
+  const buckets = [];
+  for (let i = 0; i < items.length; i += 7) {
+    const chunk = items.slice(i, i + 7);
+    const total = chunk.reduce((sum, item) => sum + Number(item.value || 0), 0);
+    const first = chunk[0]?.label || "";
+    const last = chunk[chunk.length - 1]?.label || "";
+    buckets.push({
+      label: first === last ? first : `${first} - ${last}`,
+      value: total,
+    });
+  }
+  return buckets;
+}
+
 export default function ResumenPage() {
   const now = new Date();
   const year = now.getFullYear();
@@ -124,6 +144,16 @@ export default function ResumenPage() {
     [catalogo.trend, catalogo.range]
   );
 
+  const tendenciaVisitas = useMemo(() => {
+    if (!trendData.length) return trendData;
+    const zeroCount = trendData.filter((item) => Number(item.value || 0) === 0).length;
+    const zeroRatio = zeroCount / trendData.length;
+    if (trendData.length >= 20 && zeroRatio >= 0.7) {
+      return aggregateTrendByWeek(trendData);
+    }
+    return trendData;
+  }, [trendData]);
+
   const categoriasMotoMasClickeadas = useMemo(() => {
     const categoriasMoto = Array.isArray(catalogo.visitas_por_categoria_moto)
       ? catalogo.visitas_por_categoria_moto
@@ -155,6 +185,13 @@ export default function ResumenPage() {
 
   const clientes = mantenciones.clientes || {};
   const modelMasVisto = catalogo.most_viewed_moto?.entidad_nombre || "Sin datos";
+  const totalVisitasMes = catalogo.total_views ?? 0;
+  const mesTexto = formatMonthYear(year, month);
+  const ocupacionPct = Number(kpis.ocupacion_pct ?? 0);
+  const horasReservadasMes = Number(kpis.horas_reservadas_mes ?? 0);
+  const horasDisponiblesMes = Number(kpis.horas_disponibles_mes ?? 0);
+  const horasRestantesMes = Number(kpis.horas_disponibles_restantes_mes ?? 0);
+  const crecimientoValor = kpis.crecimiento_mensual_pct;
 
   return (
     <div className="admin-dashboard-stack admin-analytics-dashboard">
@@ -166,41 +203,118 @@ export default function ResumenPage() {
 
       {error ? <section className="admin-panel-card"><p className="admin-empty">{error}</p></section> : null}
 
-      <section className="admin-analytics-kpi-grid">
-        <KpiCard title="Mantenciones del mes" value={kpis.total_agendadas_mes ?? 0} subtitle={`${MONTHS[month - 1]} ${year}`} loading={loading} />
-        <KpiCard title="Crecimiento vs mes anterior" value={formatGrowth(kpis.crecimiento_mensual_pct)} trend={kpis.crecimiento_mensual_pct} loading={loading} />
+      <section className="admin-analytics-kpi-grid admin-analytics-kpi-grid-main">
         <KpiCard
-          title="Ocupacion del taller"
-          value={`${kpis.horas_disponibles_restantes_mes ?? 0} horas`}
-          subtitle="Horas disponibles restantes este mes"
+          title="Mantenciones agendadas"
+          value={kpis.total_agendadas_mes ?? 0}
+          subtitle={`En ${mesTexto}`}
+          supportText={`${kpis.total_agendadas_mes ?? 0} reservas en el periodo`}
           loading={loading}
         />
-        <KpiCard title="Modelo mas visto del mes" value={modelMasVisto} subtitle={catalogo.most_viewed_moto ? `${catalogo.most_viewed_moto.total} visitas` : "Sin visitas"} loading={loading} />
+        <KpiCard
+          title="Crecimiento mensual"
+          value={formatGrowth(crecimientoValor)}
+          subtitle="Comparacion mensual"
+          trend={crecimientoValor}
+          supportText={`Base: ${kpis.mes_anterior_total ?? 0} reservas en mes anterior`}
+          loading={loading}
+        />
+        <KpiCard
+          title="Ocupacion del taller"
+          value={`${ocupacionPct.toFixed(2)}%`}
+          subtitle={`Horas reservadas vs disponibles en ${mesTexto}`}
+          supportText={`${horasReservadasMes} / ${horasDisponiblesMes} horas (${horasRestantesMes} horas restantes)`}
+          loading={loading}
+        />
+        <KpiCard
+          title="Modelo mas visto"
+          value={modelMasVisto}
+          subtitle={catalogo.most_viewed_moto ? `${catalogo.most_viewed_moto.total} visitas en ${mesTexto}` : `Sin visitas en ${mesTexto}`}
+          supportText={`${totalVisitasMes} visitas totales en catalogo durante el mes`}
+          loading={loading}
+        />
       </section>
 
-      <section className="admin-analytics-grid two-cols">
-        <BarChartCard title="Top 5 modelos de moto mas vistos" items={topMotos} loading={loading} />
-        <BarChartCard title="Categorias de motos mas vistas" items={categoriasMotoMasClickeadas} horizontal loading={loading} />
+      <section className="admin-analytics-grid two-cols admin-analytics-row">
+        <BarChartCard
+          title="Top 5 modelos de moto mas vistos"
+          subtitle={`Ranking de interes en ${mesTexto}`}
+          items={topMotos}
+          loading={loading}
+        />
+        <BarChartCard
+          title="Categorias de motos mas vistas"
+          subtitle={`Distribucion por categoria en ${mesTexto}`}
+          items={categoriasMotoMasClickeadas}
+          horizontal
+          loading={loading}
+        />
       </section>
 
-      <section className="admin-analytics-grid">
-        <LineChartCard title="Tendencia de visitas" items={trendData} loading={loading} />
+      <section className="admin-analytics-grid admin-analytics-row">
+        <LineChartCard
+          title="Tendencia de visitas"
+          subtitle={`Evolucion de trafico del catalogo en ${mesTexto}`}
+          items={tendenciaVisitas}
+          loading={loading}
+        />
       </section>
 
-      <section className="admin-analytics-grid two-cols">
-        <BarChartCard title="Horas peak mas solicitadas" items={peakHours} horizontal loading={loading} />
-        <BarChartCard title="Tipo de servicio mas solicitado" items={servicios} horizontal loading={loading} />
+      <section className="admin-analytics-grid two-cols admin-analytics-row">
+        <BarChartCard
+          title="Horas peak mas solicitadas"
+          subtitle="Bloques horarios con mayor demanda"
+          items={peakHours}
+          horizontal
+          loading={loading}
+        />
+        <BarChartCard
+          title="Tipo de servicio mas solicitado"
+          subtitle={`Servicios preferidos en ${mesTexto}`}
+          items={servicios}
+          horizontal
+          loading={loading}
+        />
       </section>
 
-      <section className="admin-analytics-kpi-grid compact">
-        <KpiCard title="Tasa de cancelaciones" value={`${kpis.tasa_cancelacion_pct ?? 0}%`} loading={loading} />
-        <KpiCard title="Tasa de no asistencia" value={`${kpis.tasa_no_asistencia_pct ?? 0}%`} loading={loading} />
-        <KpiCard title="Clientes recurrentes" value={clientes.recurrentes ?? 0} subtitle={`De ${clientes.total_unicos_mes ?? 0} clientes unicos`} loading={loading} />
-        <KpiCard title="Clientes nuevos" value={clientes.nuevos ?? 0} subtitle="Primera reserva en el periodo" loading={loading} />
+      <section className="admin-analytics-kpi-grid compact admin-analytics-row">
+        <KpiCard
+          title="Tasa de cancelaciones"
+          value={`${kpis.tasa_cancelacion_pct ?? 0}%`}
+          subtitle={`En ${mesTexto}`}
+          supportText={`${kpis.total_agendadas_mes ?? 0} reservas consideradas`}
+          loading={loading}
+        />
+        <KpiCard
+          title="Tasa de no asistencia"
+          value={`${kpis.tasa_no_asistencia_pct ?? 0}%`}
+          subtitle={`En ${mesTexto}`}
+          supportText={`Impacto operativo del periodo`}
+          loading={loading}
+        />
+        <KpiCard
+          title="Clientes recurrentes"
+          value={clientes.recurrentes ?? 0}
+          subtitle={`${clientes.recurrentes ?? 0} de ${clientes.total_unicos_mes ?? 0} clientes unicos`}
+          supportText="Con al menos una reserva previa"
+          loading={loading}
+        />
+        <KpiCard
+          title="Clientes nuevos"
+          value={clientes.nuevos ?? 0}
+          subtitle={`${clientes.nuevos ?? 0} de ${clientes.total_unicos_mes ?? 0} clientes unicos`}
+          supportText="Primera reserva en el periodo"
+          loading={loading}
+        />
       </section>
 
-      <section className="admin-analytics-grid">
-        <LineChartCard title="Crecimiento mensual de reservas" items={crecimientoMensual} loading={loading} />
+      <section className="admin-analytics-grid admin-analytics-row">
+        <LineChartCard
+          title="Crecimiento mensual de reservas"
+          subtitle="Ultimos 12 meses de agendamientos"
+          items={crecimientoMensual}
+          loading={loading}
+        />
       </section>
     </div>
   );

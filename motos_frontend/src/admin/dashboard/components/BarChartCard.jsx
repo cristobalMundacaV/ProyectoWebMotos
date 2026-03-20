@@ -3,21 +3,19 @@ function safeMax(items) {
   return Math.max(...items.map((item) => Number(item.value || 0)), 1);
 }
 
-const BAR_COLORS = [
-  "linear-gradient(90deg, #0ea5e9, #0284c7)",
-  "linear-gradient(90deg, #22c55e, #16a34a)",
-  "linear-gradient(90deg, #f59e0b, #d97706)",
-  "linear-gradient(90deg, #a855f7, #7e22ce)",
-  "linear-gradient(90deg, #ef4444, #dc2626)",
-];
+const PRIMARY_BAR = "linear-gradient(90deg, #0e7490, #0369a1)";
+const HIGHLIGHT_BAR = "linear-gradient(90deg, #0891b2, #0284c7)";
 
-export default function BarChartCard({ title, items = [], horizontal = false, loading = false }) {
+export default function BarChartCard({ title, subtitle = "", items = [], horizontal = false, loading = false }) {
   const max = safeMax(items);
 
   return (
     <article className="admin-panel-card admin-analytics-chart-card">
       <div className="admin-card-header">
-        <h2>{title}</h2>
+        <div>
+          <h2>{title}</h2>
+          {subtitle ? <p className="admin-analytics-card-subtitle">{subtitle}</p> : null}
+        </div>
       </div>
       {loading ? (
         <p className="admin-empty">Cargando datos...</p>
@@ -28,7 +26,7 @@ export default function BarChartCard({ title, items = [], horizontal = false, lo
           {items.map((item, index) => {
             const value = Number(item.value || 0);
             const pct = Math.max(6, Math.round((value / max) * 100));
-            const color = BAR_COLORS[index % BAR_COLORS.length];
+            const color = index === 0 ? HIGHLIGHT_BAR : PRIMARY_BAR;
             return (
               <div key={`${item.label}-${index}`} className="admin-analytics-bar-row">
                 <span className="admin-analytics-bar-label">{item.label}</span>

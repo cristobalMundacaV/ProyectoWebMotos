@@ -2881,3 +2881,225 @@
     width: calc(100vw - 20px);
   }
 }
+
+/* Executive dashboard refresh */
+.admin-analytics-dashboard {
+  --analytics-primary: #0369a1;
+  --analytics-primary-soft: #0ea5e9;
+  --analytics-highlight: #0f766e;
+  --analytics-success: #15803d;
+  --analytics-danger: #dc2626;
+  gap: 18px;
+}
+
+.admin-analytics-row {
+  margin-top: 2px;
+}
+
+.admin-analytics-kpi-grid-main .admin-analytics-kpi-card {
+  min-height: 188px;
+}
+
+.admin-analytics-kpi-card {
+  background: #ffffff;
+  border-color: #e6ebf1;
+  border-radius: 18px;
+  box-shadow: 0 10px 26px rgba(2, 6, 23, 0.06);
+  padding: 18px 20px;
+  gap: 8px;
+}
+
+.admin-analytics-kpi-title {
+  color: #64748b;
+  font-size: 0.78rem;
+  letter-spacing: 0.02em;
+  font-weight: 700;
+}
+
+.admin-analytics-kpi-body {
+  align-items: center;
+  justify-content: flex-start;
+  padding-left: 6px;
+}
+
+.admin-analytics-kpi-value {
+  font-size: clamp(1.9rem, 2.6vw, 2.4rem);
+  font-weight: 800;
+  color: #0f172a;
+  letter-spacing: -0.02em;
+  padding-left: 0;
+}
+
+.admin-analytics-kpi-foot {
+  margin-top: auto;
+  gap: 3px;
+}
+
+.admin-analytics-kpi-subtitle {
+  color: #334155;
+  font-size: 0.83rem;
+}
+
+.admin-analytics-kpi-support {
+  color: #64748b;
+  font-size: 0.78rem;
+}
+
+.admin-analytics-kpi-trend {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  width: fit-content;
+  border-radius: 999px;
+  padding: 4px 10px;
+  font-size: 0.78rem;
+}
+
+.admin-analytics-kpi-trend.up {
+  background: #ecfdf3;
+  color: var(--analytics-success);
+}
+
+.admin-analytics-kpi-trend.down {
+  background: #fef2f2;
+  color: #b91c1c;
+}
+
+.admin-analytics-kpi-trend-arrow {
+  font-size: 0.92rem;
+  line-height: 1;
+}
+
+.admin-analytics-chart-card {
+  min-height: 338px;
+  border-radius: 18px;
+  border: 1px solid #e6ebf1;
+  box-shadow: 0 10px 26px rgba(2, 6, 23, 0.06);
+  padding: 20px;
+}
+
+.admin-card-header h2 {
+  font-size: 1.02rem;
+}
+
+.admin-analytics-card-subtitle {
+  margin: 6px 0 0;
+  color: #64748b;
+  font-size: 0.84rem;
+  font-weight: 500;
+}
+
+.admin-analytics-bars {
+  gap: 12px;
+}
+
+.admin-analytics-bar-row {
+  grid-template-columns: minmax(150px, 1fr) minmax(180px, 2.3fr) auto;
+  gap: 12px;
+}
+
+.admin-analytics-bar-label {
+  color: #1e293b;
+  font-weight: 600;
+}
+
+.admin-analytics-bar-track {
+  background: #d7dee7;
+  height: 13px;
+}
+
+.admin-analytics-bars.horizontal .admin-analytics-bar-track {
+  height: 14px;
+}
+
+.admin-analytics-bar-fill {
+  background: linear-gradient(90deg, var(--analytics-primary), var(--analytics-primary-soft));
+}
+
+.admin-analytics-bar-value {
+  color: #0f172a;
+  font-weight: 800;
+}
+
+.admin-analytics-chart-card-line {
+  min-height: 360px;
+}
+
+.admin-analytics-line-wrap {
+  position: relative;
+  height: 280px;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  background: linear-gradient(180deg, #f8fafc 0%, #ffffff 100%);
+  overflow: hidden;
+}
+
+.admin-analytics-grid-line {
+  stroke: #e5eaf2;
+  stroke-width: 1;
+}
+
+.admin-analytics-axis-line {
+  stroke: #cbd5e1;
+  stroke-width: 1.2;
+}
+
+.admin-analytics-axis-text {
+  fill: #64748b;
+  font-size: 10px;
+  font-weight: 600;
+}
+
+.admin-analytics-line {
+  fill: none;
+  stroke: var(--analytics-primary-soft);
+  stroke-width: 3;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+}
+
+.admin-analytics-area {
+  fill: rgba(14, 165, 233, 0.14);
+}
+
+.admin-analytics-point {
+  fill: #0284c7;
+  stroke: #f0f9ff;
+  stroke-width: 1.2;
+}
+
+.admin-analytics-point.active {
+  fill: #0c4a6e;
+  stroke-width: 1.6;
+}
+
+.admin-analytics-hover-line {
+  stroke: #94a3b8;
+  stroke-dasharray: 3 3;
+  stroke-width: 1;
+}
+
+.admin-analytics-tooltip {
+  position: absolute;
+  top: 10px;
+  transform: translateX(-50%);
+  min-width: 130px;
+  border: 1px solid #d6dde8;
+  border-radius: 10px;
+  background: #ffffff;
+  box-shadow: 0 10px 18px rgba(2, 6, 23, 0.12);
+  padding: 8px 10px;
+  display: grid;
+  gap: 2px;
+  pointer-events: none;
+}
+
+.admin-analytics-tooltip span {
+  color: #64748b;
+  font-size: 0.72rem;
+}
+
+.admin-analytics-tooltip strong {
+  color: #0f172a;
+  font-size: 0.85rem;
+}
