@@ -54,6 +54,12 @@ function monthNameFromIso(iso) {
   return `${map[month] || "Mes"} ${year || ""}`.trim();
 }
 
+function formatMantenciones(value) {
+  const total = Number(value || 0);
+  if (total === 1) return "1 mantencion";
+  return `${total} mantenciones`;
+}
+
 export default function ResumenPage() {
   const [period, setPeriod] = useState("this_month");
   const [loading, setLoading] = useState(true);
@@ -187,7 +193,7 @@ export default function ResumenPage() {
       <section className="admin-analytics-kpi-grid admin-analytics-kpi-grid-main">
         <KpiCard
           title="Mantenciones agendadas"
-          value={kpis.total_mantenciones ?? 0}
+          value={formatMantenciones(kpis.total_mantenciones)}
           subtitle={`En ${periodText}`}
           supportText={`${kpis.total_mantenciones ?? 0} reservas en el periodo`}
           loading={loading}
@@ -196,7 +202,7 @@ export default function ResumenPage() {
           title="Crecimiento vs periodo anterior"
           value={kpis.growth_label === "nuevo_periodo_activo" ? "Nuevo periodo activo" : `${kpis.growth_pct ?? 0}%`}
           subtitle="Comparacion del mismo largo temporal"
-          trend={kpis.growth_label === "nuevo_periodo_activo" ? null : kpis.growth_pct}
+          trend={null}
           supportText={`Rango previo: ${summary?.previous_range?.start || "-"} a ${summary?.previous_range?.end || "-"}`}
           loading={loading}
         />

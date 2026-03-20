@@ -5,7 +5,7 @@
     radial-gradient(circle at top left, rgba(255, 214, 102, 0.26), transparent 26%),
     linear-gradient(180deg, #f4f4f4 0%, #ececec 100%);
   color: #101010;
-  font-family: "Segoe UI", "Inter", system-ui, -apple-system, sans-serif;
+  font-family: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
   overflow-x: clip;
 }
 
