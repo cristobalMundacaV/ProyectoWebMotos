@@ -2,6 +2,7 @@ from datetime import date, timedelta
 
 from django.db.models import Count, Min
 from django.db.models.functions import TruncDay, TruncMonth, TruncYear
+from django.utils.text import slugify
 from rest_framework import status
 from rest_framework.authentication import SessionAuthentication
 from rest_framework.permissions import AllowAny, IsAuthenticated
@@ -74,6 +75,13 @@ def _parse_int(value, fallback: int, *, min_value: int, max_value: int) -> int:
     except (TypeError, ValueError):
         return fallback
     return max(min_value, min(max_value, parsed))
+
+
+def _normalize_key(value: str) -> str:
+    raw = (value or "").strip().lower()
+    if not raw:
+        return ""
+    return "".join(ch for ch in raw if ch.isalnum())
 
 
 class CatalogoDashboardAnalyticsAPIView(APIView):
@@ -176,14 +184,23 @@ class CatalogoDashboardAnalyticsAPIView(APIView):
             slug = (moto.get("slug") or "").strip().lower()
             modelo = (moto.get("modelo") or "").strip().lower()
             modelo_ref = (moto.get("modelo_moto__nombre_modelo") or "").strip().lower()
+            modelo_key = _normalize_key(modelo)
+            modelo_ref_key = _normalize_key(modelo_ref)
             if moto_id is not None:
                 categoria_by_id[moto_id] = categoria
             if slug:
                 categoria_by_slug[slug] = categoria
+                categoria_by_slug[slugify(slug)] = categoria
             if modelo:
                 categoria_by_modelo[modelo] = categoria
+                categoria_by_modelo[slugify(modelo)] = categoria
+                if modelo_key:
+                    categoria_by_modelo[modelo_key] = categoria
             if modelo_ref:
                 categoria_by_modelo[modelo_ref] = categoria
+                categoria_by_modelo[slugify(modelo_ref)] = categoria
+                if modelo_ref_key:
+                    categoria_by_modelo[modelo_ref_key] = categoria
 
         categoria_totales = {}
         for row in moto_events:
@@ -194,13 +211,18 @@ class CatalogoDashboardAnalyticsAPIView(APIView):
                 entidad_id = row.get("entidad_id")
                 entidad_slug = (row.get("entidad_slug") or "").strip().lower()
                 entidad_nombre = (row.get("entidad_nombre") or "").strip().lower()
+                entidad_nombre_key = _normalize_key(entidad_nombre)
 
                 if entidad_id is not None:
                     categoria = categoria_by_id.get(entidad_id, "")
                 if not categoria and entidad_slug:
-                    categoria = categoria_by_slug.get(entidad_slug, "")
+                    categoria = categoria_by_slug.get(entidad_slug, "") or categoria_by_slug.get(slugify(entidad_slug), "")
                 if not categoria and entidad_nombre:
-                    categoria = categoria_by_modelo.get(entidad_nombre, "")
+                    categoria = (
+                        categoria_by_modelo.get(entidad_nombre, "")
+                        or categoria_by_modelo.get(slugify(entidad_nombre), "")
+                        or categoria_by_modelo.get(entidad_nombre_key, "")
+                    )
 
             categoria = categoria or "Sin categoria"
             categoria_totales[categoria] = categoria_totales.get(categoria, 0) + total
