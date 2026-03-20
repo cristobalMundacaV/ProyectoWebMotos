@@ -43,6 +43,38 @@ class CatalogoEventoCreateAPIView(APIView):
         ip = _get_client_ip(request) or None
         user_agent = (request.META.get("HTTP_USER_AGENT") or "")[:1000]
         origen = serializer.validated_data.get("origen") or request.META.get("HTTP_REFERER", "")[:255]
+        metadata = serializer.validated_data.get("metadata") or {}
+
+        if serializer.validated_data["tipo_entidad"] == CatalogoEvento.TIPO_MOTO:
+            categoria_actual = str(metadata.get("categoria") or "").strip()
+            if not categoria_actual:
+                entidad_id = serializer.validated_data.get("entidad_id")
+                entidad_slug = (serializer.validated_data.get("entidad_slug") or "").strip()
+                entidad_nombre = (serializer.validated_data.get("entidad_nombre") or "").strip()
+                moto = None
+                if entidad_id is not None:
+                    moto = (
+                        Moto.objects.select_related("modelo_moto__categoria")
+                        .filter(id=entidad_id)
+                        .first()
+                    )
+                if moto is None and entidad_slug:
+                    moto = (
+                        Moto.objects.select_related("modelo_moto__categoria")
+                        .filter(slug__iexact=entidad_slug)
+                        .first()
+                    )
+                if moto is None and entidad_nombre:
+                    moto = (
+                        Moto.objects.select_related("modelo_moto__categoria")
+                        .filter(modelo__iexact=entidad_nombre)
+                        .first()
+                    )
+                if moto is not None:
+                    categoria_nombre = (getattr(getattr(moto, "modelo_moto", None), "categoria", None) or None)
+                    categoria_nombre = categoria_nombre.nombre if categoria_nombre else ""
+                    if categoria_nombre:
+                        metadata = {**metadata, "categoria": categoria_nombre}
 
         CatalogoEvento.objects.create(
             tipo_evento=serializer.validated_data["tipo_evento"],
@@ -55,7 +87,7 @@ class CatalogoEventoCreateAPIView(APIView):
             ip_address=ip,
             user_agent=user_agent,
             origen=origen,
-            metadata=serializer.validated_data.get("metadata") or {},
+            metadata=metadata,
         )
         return Response({"ok": True}, status=status.HTTP_201_CREATED)
 
@@ -161,7 +193,7 @@ class CatalogoDashboardAnalyticsAPIView(APIView):
 
         moto_events = list(
             qs.filter(tipo_entidad=CatalogoEvento.TIPO_MOTO)
-            .values("metadata__categoria", "entidad_id", "entidad_slug", "entidad_nombre")
+            .values("metadata", "entidad_id", "entidad_slug", "entidad_nombre")
             .annotate(total=Count("id"))
             .order_by()
         )
@@ -171,6 +203,7 @@ class CatalogoDashboardAnalyticsAPIView(APIView):
                 "id",
                 "slug",
                 "modelo",
+                "marca__nombre",
                 "modelo_moto__nombre_modelo",
                 "modelo_moto__categoria__nombre",
             )
@@ -183,9 +216,13 @@ class CatalogoDashboardAnalyticsAPIView(APIView):
             moto_id = moto.get("id")
             slug = (moto.get("slug") or "").strip().lower()
             modelo = (moto.get("modelo") or "").strip().lower()
+            marca = (moto.get("marca__nombre") or "").strip().lower()
             modelo_ref = (moto.get("modelo_moto__nombre_modelo") or "").strip().lower()
             modelo_key = _normalize_key(modelo)
+            marca_key = _normalize_key(marca)
             modelo_ref_key = _normalize_key(modelo_ref)
+            marca_modelo_key = _normalize_key(f"{marca} {modelo}") if marca and modelo else ""
+            marca_modelo_ref_key = _normalize_key(f"{marca} {modelo_ref}") if marca and modelo_ref else ""
             if moto_id is not None:
                 categoria_by_id[moto_id] = categoria
             if slug:
@@ -201,11 +238,20 @@ class CatalogoDashboardAnalyticsAPIView(APIView):
                 categoria_by_modelo[slugify(modelo_ref)] = categoria
                 if modelo_ref_key:
                     categoria_by_modelo[modelo_ref_key] = categoria
+            if marca_modelo_key:
+                categoria_by_modelo[marca_modelo_key] = categoria
+            if marca_modelo_ref_key:
+                categoria_by_modelo[marca_modelo_ref_key] = categoria
+            if marca_key and modelo_key:
+                categoria_by_modelo[f"{marca_key}{modelo_key}"] = categoria
+            if marca_key and modelo_ref_key:
+                categoria_by_modelo[f"{marca_key}{modelo_ref_key}"] = categoria
 
         categoria_totales = {}
         for row in moto_events:
             total = int(row.get("total") or 0)
-            categoria = (row.get("metadata__categoria") or "").strip()
+            metadata_row = row.get("metadata") or {}
+            categoria = str(metadata_row.get("categoria") or "").strip()
 
             if not categoria:
                 entidad_id = row.get("entidad_id")
@@ -223,6 +269,14 @@ class CatalogoDashboardAnalyticsAPIView(APIView):
                         or categoria_by_modelo.get(slugify(entidad_nombre), "")
                         or categoria_by_modelo.get(entidad_nombre_key, "")
                     )
+                if not categoria and entidad_nombre_key:
+                    # Fallback tolerante para nombres con prefijos/sufijos (ej: "Voge 250RR").
+                    for modelo_key, categoria_modelo in categoria_by_modelo.items():
+                        if not modelo_key:
+                            continue
+                        if modelo_key in entidad_nombre_key or entidad_nombre_key in modelo_key:
+                            categoria = categoria_modelo
+                            break
 
             categoria = categoria or "Sin categoria"
             categoria_totales[categoria] = categoria_totales.get(categoria, 0) + total

@@ -1347,8 +1347,18 @@ export default function AdminPanel() {
           dia_semana: diaSemana,
         });
       }
+
+      // El rango guardado debe ser exacto: elimina horarios fuera de [dia_inicio, dia_fin].
+      const fueraDeRango = horariosMantencion.filter((item) => {
+        const dia = Number(item.dia_semana);
+        return Number.isFinite(dia) && (dia < diaInicio || dia > diaFin);
+      });
+      if (fueraDeRango.length > 0) {
+        await Promise.all(fueraDeRango.map((item) => deleteHorarioMantencionAdmin(item.id)));
+      }
+
       await fetchHorariosMantencionList();
-      pushToast("Horario operativo creado correctamente.", "success");
+      pushToast("Horario operativo guardado correctamente.", "success");
     } catch (error) {
       pushToast(getErrorText(error, "No se pudo crear el horario operativo."), "error");
     } finally {
