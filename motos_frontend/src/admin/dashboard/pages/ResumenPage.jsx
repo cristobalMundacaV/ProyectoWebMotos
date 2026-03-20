@@ -24,13 +24,15 @@ function applyWindow(points = [], groupBy = "day") {
   return points.slice(-size);
 }
 
-function smartStart(points = [], { trimLeadingZeros = true, keepContext = true } = {}) {
+function smartStart(points = [], { trimLeadingZeros = true, keepContext = true, minVisible = 8 } = {}) {
   if (!trimLeadingZeros || points.length === 0) return points;
   const firstWithData = points.findIndex((item) => Number(item.value || 0) > 0);
-  if (firstWithData <= 0) return points;
-  if (firstWithData === -1) return points.slice(-Math.min(points.length, 8));
+  const safeMinVisible = Math.min(points.length, Math.max(3, minVisible));
+  if (firstWithData === -1) return points.slice(-safeMinVisible);
+  if (firstWithData <= 0) return points.slice(-safeMinVisible);
   const startIndex = keepContext ? Math.max(firstWithData - 1, 0) : firstWithData;
-  return points.slice(startIndex);
+  const startByWindow = Math.max(points.length - safeMinVisible, 0);
+  return points.slice(Math.min(startIndex, startByWindow));
 }
 
 function monthNameFromIso(iso) {

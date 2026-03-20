@@ -40,6 +40,7 @@ export default function LineChartCard({ title, subtitle = "", items = [], loadin
   const width = Math.max(760, Math.min(1360, (items.length - 1) * pointSpacing + 74));
   const height = 280;
   const padding = { top: 18, right: 10, bottom: 34, left: 34 };
+  const svgPixelWidth = Math.max(640, Math.min(1180, 260 + (Math.max(items.length, 2) - 1) * 70));
   const [hoverIndex, setHoverIndex] = useState(null);
 
   const chart = useMemo(() => getCoords(items, width, height, padding), [items]);
@@ -90,68 +91,71 @@ export default function LineChartCard({ title, subtitle = "", items = [], loadin
           className="admin-analytics-line-wrap"
           onMouseLeave={() => setHoverIndex(null)}
         >
-          <svg
-            viewBox={`0 0 ${width} ${height}`}
-            preserveAspectRatio="none"
-            className="admin-analytics-line-svg"
-            onMouseMove={handleMouseMove}
-          >
-            {ticks.map((tick) => {
-              const y = padding.top + drawableHeight - ((tick / Math.max(max, 1)) * drawableHeight);
-              return (
-                <g key={`y-${tick}`}>
-                  <line x1={padding.left} y1={y} x2={width - padding.right} y2={y} className="admin-analytics-grid-line" />
-                  <text x={padding.left - 8} y={y + 4} textAnchor="end" className="admin-analytics-axis-text">
-                    {tick}
+          <div className="admin-analytics-line-canvas">
+            <svg
+              viewBox={`0 0 ${width} ${height}`}
+              preserveAspectRatio="xMidYMid meet"
+              className="admin-analytics-line-svg"
+              onMouseMove={handleMouseMove}
+              style={{ width: `${svgPixelWidth}px` }}
+            >
+              {ticks.map((tick) => {
+                const y = padding.top + drawableHeight - ((tick / Math.max(max, 1)) * drawableHeight);
+                return (
+                  <g key={`y-${tick}`}>
+                    <line x1={padding.left} y1={y} x2={width - padding.right} y2={y} className="admin-analytics-grid-line" />
+                    <text x={padding.left - 8} y={y + 4} textAnchor="end" className="admin-analytics-axis-text">
+                      {tick}
+                    </text>
+                  </g>
+                );
+              })}
+
+              <line x1={padding.left} y1={height - padding.bottom} x2={width - padding.right} y2={height - padding.bottom} className="admin-analytics-axis-line" />
+              <line x1={padding.left} y1={padding.top} x2={padding.left} y2={height - padding.bottom} className="admin-analytics-axis-line" />
+
+              {avgLineY !== null ? (
+                <line x1={padding.left} y1={avgLineY} x2={width - padding.right} y2={avgLineY} className="admin-analytics-avg-line" />
+              ) : null}
+
+              {labelIndexes.map((idx) => {
+                const point = points[idx];
+                if (!point) return null;
+                return (
+                  <text key={`x-${idx}`} x={point.x} y={height - 10} textAnchor="middle" className="admin-analytics-axis-text">
+                    {point.label}
                   </text>
-                </g>
-              );
-            })}
+                );
+              })}
 
-            <line x1={padding.left} y1={height - padding.bottom} x2={width - padding.right} y2={height - padding.bottom} className="admin-analytics-axis-line" />
-            <line x1={padding.left} y1={padding.top} x2={padding.left} y2={height - padding.bottom} className="admin-analytics-axis-line" />
+              {area ? <polygon points={area} className="admin-analytics-area" /> : null}
+              {polyline ? <polyline points={polyline} className="admin-analytics-line" /> : null}
 
-            {avgLineY !== null ? (
-              <line x1={padding.left} y1={avgLineY} x2={width - padding.right} y2={avgLineY} className="admin-analytics-avg-line" />
-            ) : null}
+              {points.map((point, index) => {
+                const showPoint = point.value > 0 || points.length <= 12 || index === hoverIndex;
+                if (!showPoint) return null;
+                return (
+                  <circle
+                    key={`${point.label}-${index}`}
+                    cx={point.x}
+                    cy={point.y}
+                    r={index === hoverIndex ? 4.8 : 3.2}
+                    className={index === hoverIndex ? "admin-analytics-point active" : "admin-analytics-point"}
+                  />
+                );
+              })}
 
-            {labelIndexes.map((idx) => {
-              const point = points[idx];
-              if (!point) return null;
-              return (
-                <text key={`x-${idx}`} x={point.x} y={height - 10} textAnchor="middle" className="admin-analytics-axis-text">
-                  {point.label}
-                </text>
-              );
-            })}
-
-            {area ? <polygon points={area} className="admin-analytics-area" /> : null}
-            {polyline ? <polyline points={polyline} className="admin-analytics-line" /> : null}
-
-            {points.map((point, index) => {
-              const showPoint = point.value > 0 || points.length <= 12 || index === hoverIndex;
-              if (!showPoint) return null;
-              return (
-                <circle
-                  key={`${point.label}-${index}`}
-                  cx={point.x}
-                  cy={point.y}
-                  r={index === hoverIndex ? 4.8 : 3.2}
-                  className={index === hoverIndex ? "admin-analytics-point active" : "admin-analytics-point"}
+              {activePoint ? (
+                <line
+                  x1={activePoint.x}
+                  y1={padding.top}
+                  x2={activePoint.x}
+                  y2={height - padding.bottom}
+                  className="admin-analytics-hover-line"
                 />
-              );
-            })}
-
-            {activePoint ? (
-              <line
-                x1={activePoint.x}
-                y1={padding.top}
-                x2={activePoint.x}
-                y2={height - padding.bottom}
-                className="admin-analytics-hover-line"
-              />
-            ) : null}
-          </svg>
+              ) : null}
+            </svg>
+          </div>
 
           {activePoint ? (
             <div className="admin-analytics-tooltip" style={{ left: `${(activePoint.x / width) * 100}%` }}>
