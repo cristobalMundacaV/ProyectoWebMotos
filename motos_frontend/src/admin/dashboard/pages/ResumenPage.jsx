@@ -6,10 +6,14 @@ import LineChartCard from "../components/LineChartCard";
 import { fetchDashboardAnalytics } from "../services/dashboardService";
 
 const PERIOD_OPTIONS = [
+  { value: "today", label: "Hoy" },
+  { value: "this_week", label: "Esta semana" },
   { value: "this_month", label: "Este mes" },
   { value: "last_3_months", label: "Ultimos 3 meses" },
   { value: "last_6_months", label: "Ultimos 6 meses" },
+  { value: "last_9_months", label: "Ultimos 9 meses" },
   { value: "last_year", label: "Ultimo ano" },
+  { value: "all", label: "Todos" },
 ];
 
 const WINDOW_BY_GROUP = {
@@ -56,6 +60,28 @@ function monthNameFromIso(iso) {
   return `${map[month] || "Mes"} ${year || ""}`.trim();
 }
 
+function formatShortDate(iso) {
+  const value = new Date(`${iso}T00:00:00`);
+  if (Number.isNaN(value.getTime())) return iso || "-";
+  return new Intl.DateTimeFormat("es-CL", {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+  }).format(value);
+}
+
+function getPeriodSubtitle(period, range) {
+  const start = range?.start || "";
+  const end = range?.end || "";
+
+  if (!start || !end) return "Periodo seleccionado";
+  if (period === "today") return `Hoy, ${formatShortDate(start)}`;
+  if (period === "this_week") return `Semana actual: ${formatShortDate(start)} a ${formatShortDate(end)}`;
+  if (period === "this_month") return `En ${monthNameFromIso(start)}`;
+  if (period === "all") return `Todo el historial desde ${formatShortDate(start)}`;
+  return `${formatShortDate(start)} a ${formatShortDate(end)}`;
+}
+
 function formatMantenciones(value) {
   const total = Number(value || 0);
   if (total === 1) return "1 mantencion";
@@ -98,7 +124,7 @@ export default function ResumenPage() {
 
   const kpis = summary?.kpis || {};
   const range = summary?.range || {};
-  const periodText = monthNameFromIso(range.start);
+  const periodSubtitle = getPeriodSubtitle(period, range);
 
   const topMotos = useMemo(
     () => (summary?.top_modelos_moto || []).map((item) => ({ label: item.modelo, value: item.total })),
@@ -127,10 +153,10 @@ export default function ResumenPage() {
         variationPct: item.variation_pct,
       }));
       const grouped = summary?.visitas_trend?.group_by || "day";
-      const windowed = applyWindow(raw, grouped);
+      const windowed = period === "all" ? raw : applyWindow(raw, grouped);
       return smartStart(windowed, { trimLeadingZeros: true, keepContext: true });
     },
-    [summary?.visitas_trend?.points, summary?.visitas_trend?.group_by]
+    [period, summary?.visitas_trend?.points, summary?.visitas_trend?.group_by]
   );
 
   const horasPeak = useMemo(
@@ -196,9 +222,10 @@ export default function ResumenPage() {
         <KpiCard
           title="Mantenciones agendadas"
           value={formatMantenciones(kpis.total_mantenciones)}
-          subtitle={`En ${periodText}`}
+          subtitle={periodSubtitle}
           supportText={`${kpis.total_mantenciones ?? 0} reservas en el periodo`}
           loading={loading}
+          truncateValue
         />
         <KpiCard
           title="Crecimiento vs periodo anterior"
@@ -222,6 +249,7 @@ export default function ResumenPage() {
           subtitle={`${kpis.modelo_mas_visto?.total || 0} visitas`}
           supportText={`${kpis.total_visitas_catalogo ?? 0} visitas totales del catalogo`}
           loading={loading}
+          truncateValue
         />
       </section>
 

@@ -128,17 +128,36 @@ def _add_months(value: date, months: int) -> date:
     return date(year, month, 1)
 
 
+def _resolve_all_period_start(today: date) -> date:
+    catalog_first = _value_to_date(
+        CatalogoEvento.objects.aggregate(first_created=Min("created_at")).get("first_created")
+    )
+    mant_first = Mantencion.objects.aggregate(first_fecha=Min("fecha_ingreso")).get("first_fecha")
+    candidates = [value for value in [catalog_first, mant_first] if value]
+    return min(candidates) if candidates else today
+
+
 def _period_bounds(period: str, today: date) -> tuple[date, date, str]:
     period = (period or "this_month").strip().lower()
+    if period == "today":
+        return today, today, "day"
+    if period == "this_week":
+        start = today - timedelta(days=today.weekday())
+        return start, today, "day"
     if period == "last_3_months":
         start = _add_months(_first_day_of_month(today), -2)
         return start, today, "week"
     if period == "last_6_months":
         start = _add_months(_first_day_of_month(today), -5)
-        return start, today, "week"
+        return start, today, "month"
+    if period == "last_9_months":
+        start = _add_months(_first_day_of_month(today), -8)
+        return start, today, "month"
     if period == "last_year":
         start = _add_months(_first_day_of_month(today), -11)
         return start, today, "month"
+    if period == "all":
+        return _resolve_all_period_start(today), today, "month"
     start = _first_day_of_month(today)
     return start, today, "day"
 

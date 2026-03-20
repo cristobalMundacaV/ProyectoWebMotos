@@ -10,20 +10,32 @@ export default function KpiCard({
   loading = false,
   supportText = "",
   valueBadge = false,
+  truncateValue = false,
 }) {
   const trendIsValid = isNumeric(trend);
   const trendIsUp = trend >= 0;
+  const valueLabel = loading ? undefined : String(value ?? "");
+  const valueClassName = [
+    "admin-analytics-kpi-value",
+    loading ? "loading" : "",
+    truncateValue ? "truncate" : "",
+  ]
+    .filter(Boolean)
+    .join(" ");
 
   return (
     <article className="admin-analytics-kpi-card">
       <p className="admin-analytics-kpi-title">{title}</p>
       <div className="admin-analytics-kpi-body">
         {valueBadge && !loading ? (
-          <span className={`admin-analytics-kpi-value-badge ${trendIsValid ? (trendIsUp ? "up" : "down") : "flat"}`}>
+          <span
+            className={`admin-analytics-kpi-value-badge ${trendIsValid ? (trendIsUp ? "up" : "down") : "flat"}`}
+            title={valueLabel}
+          >
             {value}
           </span>
         ) : (
-          <strong className={loading ? "admin-analytics-kpi-value loading" : "admin-analytics-kpi-value"}>
+          <strong className={valueClassName} title={valueLabel}>
             {loading ? "..." : value}
           </strong>
         )}

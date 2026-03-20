@@ -13,7 +13,7 @@ export default function GaugeKpiCard({
 }) {
   const safeValue = Math.max(0, Math.min(100, Number(value || 0)));
   const gaugeColor = getGaugeColor(safeValue);
-  const degrees = (safeValue / 100) * 180;
+  const degrees = (safeValue / 100) * 180 - 90;
 
   return (
     <article className="admin-analytics-kpi-card admin-analytics-gauge-card">

@@ -113,14 +113,29 @@ function addMonths(value, months) {
 
 function getPeriodRange(period) {
   const now = new Date();
+  if (period === "today") {
+    return { start: toIsoDate(now), end: toIsoDate(now), groupBy: "day" };
+  }
+  if (period === "this_week") {
+    const weekStart = new Date(now);
+    const dayOfWeek = (weekStart.getDay() + 6) % 7;
+    weekStart.setDate(weekStart.getDate() - dayOfWeek);
+    return { start: toIsoDate(weekStart), end: toIsoDate(now), groupBy: "day" };
+  }
   if (period === "last_3_months") {
     return { start: toIsoDate(addMonths(firstDayOfMonth(now), -2)), end: toIsoDate(now), groupBy: "month" };
   }
   if (period === "last_6_months") {
     return { start: toIsoDate(addMonths(firstDayOfMonth(now), -5)), end: toIsoDate(now), groupBy: "month" };
   }
+  if (period === "last_9_months") {
+    return { start: toIsoDate(addMonths(firstDayOfMonth(now), -8)), end: toIsoDate(now), groupBy: "month" };
+  }
   if (period === "last_year") {
     return { start: toIsoDate(addMonths(firstDayOfMonth(now), -11)), end: toIsoDate(now), groupBy: "month" };
+  }
+  if (period === "all") {
+    return { start: toIsoDate(addMonths(firstDayOfMonth(now), -59)), end: toIsoDate(now), groupBy: "month" };
   }
   return { start: toIsoDate(firstDayOfMonth(now)), end: toIsoDate(now), groupBy: "day" };
 }
