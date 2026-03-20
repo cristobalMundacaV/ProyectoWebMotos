@@ -302,6 +302,14 @@ def _compute_capacity_by_hour(start: date, end: date) -> tuple[dict[str, int], i
     return capacity_by_hour, total_capacity
 
 
+def _value_to_date(value):
+    if isinstance(value, datetime):
+        return value.date()
+    if isinstance(value, date):
+        return value
+    return None
+
+
 class CatalogoDashboardAnalyticsAPIView(APIView):
     authentication_classes = [JWTAuthentication, SessionAuthentication]
     permission_classes = [IsAuthenticated]
@@ -654,9 +662,9 @@ class DashboardSummaryAnalyticsAPIView(APIView):
             .order_by("periodo")
         )
         trend_map = {
-            row["periodo"].date(): int(row["total"])
+            _value_to_date(row["periodo"]): int(row["total"])
             for row in trend_rows
-            if row.get("periodo")
+            if _value_to_date(row.get("periodo"))
         }
 
         trend_points = []
@@ -766,9 +774,9 @@ class DashboardSummaryAnalyticsAPIView(APIView):
             .order_by("periodo")
         )
         monthly_map = {
-            row["periodo"].date().replace(day=1): int(row["total"])
+            _value_to_date(row["periodo"]).replace(day=1): int(row["total"])
             for row in monthly_rows
-            if row.get("periodo")
+            if _value_to_date(row.get("periodo"))
         }
         months = _iter_buckets(series_start, series_end, "month")
         monthly_series = []
