@@ -1,105 +1,63 @@
 import { useEffect, useMemo, useState } from "react";
 import KpiCard from "../components/KpiCard";
+import GaugeKpiCard from "../components/GaugeKpiCard";
 import BarChartCard from "../components/BarChartCard";
 import LineChartCard from "../components/LineChartCard";
 import { fetchDashboardAnalytics } from "../services/dashboardService";
 
-const MONTHS = [
-  "Enero",
-  "Febrero",
-  "Marzo",
-  "Abril",
-  "Mayo",
-  "Junio",
-  "Julio",
-  "Agosto",
-  "Septiembre",
-  "Octubre",
-  "Noviembre",
-  "Diciembre",
+const PERIOD_OPTIONS = [
+  { value: "this_month", label: "Este mes" },
+  { value: "last_3_months", label: "Ultimos 3 meses" },
+  { value: "last_6_months", label: "Ultimos 6 meses" },
+  { value: "last_year", label: "Ultimo ano" },
 ];
 
-function toIsoDate(value) {
-  return value.toISOString().slice(0, 10);
-}
-
-function getMonthRange(year, month) {
-  const first = new Date(year, month - 1, 1);
-  const last = new Date(year, month, 0);
-  return {
-    start: toIsoDate(first),
-    end: toIsoDate(last),
+function monthNameFromIso(iso) {
+  const value = String(iso || "");
+  const year = value.slice(0, 4);
+  const month = value.slice(5, 7);
+  const map = {
+    "01": "Enero",
+    "02": "Febrero",
+    "03": "Marzo",
+    "04": "Abril",
+    "05": "Mayo",
+    "06": "Junio",
+    "07": "Julio",
+    "08": "Agosto",
+    "09": "Septiembre",
+    "10": "Octubre",
+    "11": "Noviembre",
+    "12": "Diciembre",
   };
-}
-
-function formatGrowth(value) {
-  if (value === null || value === undefined) return "N/A";
-  return `${value > 0 ? "+" : ""}${value}%`;
-}
-
-function parseIsoDate(iso) {
-  const [year, month, day] = String(iso || "").split("-").map(Number);
-  return new Date(year, (month || 1) - 1, day || 1);
-}
-
-function formatIsoDate(date) {
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, "0");
-  const day = String(date.getDate()).padStart(2, "0");
-  return `${year}-${month}-${day}`;
-}
-
-function formatMonthYear(year, month) {
-  return `${MONTHS[(month || 1) - 1] || "Mes"} ${year}`;
-}
-
-function aggregateTrendByWeek(items = []) {
-  if (!Array.isArray(items) || items.length === 0) return [];
-  const buckets = [];
-  for (let i = 0; i < items.length; i += 7) {
-    const chunk = items.slice(i, i + 7);
-    const total = chunk.reduce((sum, item) => sum + Number(item.value || 0), 0);
-    const first = chunk[0]?.label || "";
-    const last = chunk[chunk.length - 1]?.label || "";
-    buckets.push({
-      label: first === last ? first : `${first} - ${last}`,
-      value: total,
-    });
-  }
-  return buckets;
+  return `${map[month] || "Mes"} ${year || ""}`.trim();
 }
 
 export default function ResumenPage() {
-  const now = new Date();
-  const year = now.getFullYear();
-  const month = now.getMonth() + 1;
+  const [period, setPeriod] = useState("this_month");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const [analytics, setAnalytics] = useState({
-    catalogo: {},
-    mantenciones: {},
-  });
+  const [summary, setSummary] = useState(null);
 
   useEffect(() => {
     let active = true;
-    const range = getMonthRange(year, month);
 
     async function load() {
       setLoading(true);
       setError("");
       try {
-        const data = await fetchDashboardAnalytics({
-          year,
-          month,
-          start: range.start,
-          end: range.end,
-          groupBy: "day",
-        });
+        const data = await fetchDashboardAnalytics({ period });
         if (!active) return;
-        setAnalytics(data);
+        if (data?.__legacy) {
+          setError("No se pudo cargar el resumen analitico unificado.");
+          setSummary(null);
+          return;
+        }
+        setSummary(data);
       } catch (_error) {
         if (!active) return;
         setError("No se pudieron cargar las metricas del dashboard.");
+        setSummary(null);
       } finally {
         if (active) setLoading(false);
       }
@@ -109,89 +67,71 @@ export default function ResumenPage() {
     return () => {
       active = false;
     };
-  }, [year, month]);
+  }, [period]);
 
-  const catalogo = analytics.catalogo || {};
-  const mantenciones = analytics.mantenciones || {};
-  const kpis = mantenciones.kpis_mensuales || {};
+  const kpis = summary?.kpis || {};
+  const range = summary?.range || {};
+  const periodText = monthNameFromIso(range.start);
 
   const topMotos = useMemo(
-    () => (catalogo.top_5_motos || []).map((item) => ({ label: item.entidad_nombre || item.entidad_slug || "Sin nombre", value: item.total || 0 })),
-    [catalogo.top_5_motos]
+    () => (summary?.top_modelos_moto || []).map((item) => ({ label: item.modelo, value: item.total })),
+    [summary?.top_modelos_moto]
   );
 
-  const trendData = useMemo(
-    () => {
-      const raw = Array.isArray(catalogo.trend) ? catalogo.trend : [];
-      const range = catalogo.range || {};
-      const start = range.start ? parseIsoDate(range.start) : null;
-      const end = range.end ? parseIsoDate(range.end) : null;
-
-      if (!start || !end || Number.isNaN(start.getTime()) || Number.isNaN(end.getTime())) {
-        return raw.map((item) => ({ label: item.period, value: item.total }));
-      }
-
-      const totalsByDay = new Map(raw.map((item) => [item.period, Number(item.total || 0)]));
-      const rows = [];
-      const cursor = new Date(start);
-      while (cursor <= end) {
-        const iso = formatIsoDate(cursor);
-        rows.push({ label: iso, value: totalsByDay.get(iso) || 0 });
-        cursor.setDate(cursor.getDate() + 1);
-      }
-      return rows;
-    },
-    [catalogo.trend, catalogo.range]
+  const categoriasMoto = useMemo(
+    () =>
+      (summary?.categorias_moto || []).map((item) => ({
+        label: item.categoria,
+        value: item.total,
+        percent: item.share_pct,
+        trend: item.trend_direction,
+        meta: item.trend_pct !== null && item.trend_pct !== undefined
+          ? `${item.trend_pct >= 0 ? "+" : ""}${item.trend_pct}% vs periodo anterior`
+          : "Nuevo periodo activo",
+      })),
+    [summary?.categorias_moto]
   );
 
-  const tendenciaVisitas = useMemo(() => {
-    if (!trendData.length) return trendData;
-    const zeroCount = trendData.filter((item) => Number(item.value || 0) === 0).length;
-    const zeroRatio = zeroCount / trendData.length;
-    if (trendData.length >= 20 && zeroRatio >= 0.7) {
-      return aggregateTrendByWeek(trendData);
-    }
-    return trendData;
-  }, [trendData]);
+  const visitasTrend = useMemo(
+    () =>
+      (summary?.visitas_trend?.points || []).map((item) => ({
+        label: item.label,
+        value: item.total,
+        variationPct: item.variation_pct,
+      })),
+    [summary?.visitas_trend?.points]
+  );
 
-  const categoriasMotoMasClickeadas = useMemo(() => {
-    const categoriasMoto = Array.isArray(catalogo.visitas_por_categoria_moto)
-      ? catalogo.visitas_por_categoria_moto
-      : [];
-    return categoriasMoto.map((item) => ({
-      label: item.categoria || "Sin categoria",
-      value: item.total || 0,
-    }));
-  }, [catalogo.visitas_por_categoria_moto]);
-
-  const peakHours = useMemo(
-    () => (mantenciones.horas_peak_top_6 || []).map((item) => ({ label: item.hora, value: item.total || 0 })),
-    [mantenciones.horas_peak_top_6]
+  const horasPeak = useMemo(
+    () =>
+      (summary?.horas_peak || []).map((item) => ({
+        label: item.hora,
+        value: item.total_reservas,
+        percent: item.ocupacion_pct,
+        critical: item.is_critical,
+        meta: `${item.total_reservas} reservas | ${item.ocupacion_pct}% ocupacion`,
+      })),
+    [summary?.horas_peak]
   );
 
   const servicios = useMemo(
-    () => (kpis.servicios_mas_solicitados || []).map((item) => ({ label: item.tipo_mantencion, value: item.total || 0 })),
-    [kpis.servicios_mas_solicitados]
-  );
-
-  const crecimientoMensual = useMemo(
     () =>
-      (mantenciones.agendadas_ultimos_12_meses || []).map((item) => ({
-        label: `${String(item.month).padStart(2, "0")}/${String(item.year).slice(-2)}`,
-        value: item.total_agendadas || 0,
+      (summary?.servicios || []).map((item) => ({
+        label: item.tipo_mantencion,
+        value: item.total,
       })),
-    [mantenciones.agendadas_ultimos_12_meses]
+    [summary?.servicios]
   );
 
-  const clientes = mantenciones.clientes || {};
-  const modelMasVisto = catalogo.most_viewed_moto?.entidad_nombre || "Sin datos";
-  const totalVisitasMes = catalogo.total_views ?? 0;
-  const mesTexto = formatMonthYear(year, month);
-  const ocupacionPct = Number(kpis.ocupacion_pct ?? 0);
-  const horasReservadasMes = Number(kpis.horas_reservadas_mes ?? 0);
-  const horasDisponiblesMes = Number(kpis.horas_disponibles_mes ?? 0);
-  const horasRestantesMes = Number(kpis.horas_disponibles_restantes_mes ?? 0);
-  const crecimientoValor = kpis.crecimiento_mensual_pct;
+  const reservasMensuales = useMemo(
+    () =>
+      (summary?.reservas_mensuales || []).map((item) => ({
+        label: item.label,
+        value: item.total_reservas,
+        variationPct: item.growth_pct,
+      })),
+    [summary?.reservas_mensuales]
+  );
 
   return (
     <div className="admin-dashboard-stack admin-analytics-dashboard">
@@ -201,36 +141,51 @@ export default function ResumenPage() {
         </div>
       </section>
 
+      <section className="admin-panel-card admin-analytics-filter-card">
+        <div className="admin-analytics-filters">
+          <label>
+            Periodo global
+            <select value={period} onChange={(e) => setPeriod(e.target.value)}>
+              {PERIOD_OPTIONS.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
+          </label>
+        </div>
+      </section>
+
       {error ? <section className="admin-panel-card"><p className="admin-empty">{error}</p></section> : null}
 
       <section className="admin-analytics-kpi-grid admin-analytics-kpi-grid-main">
         <KpiCard
           title="Mantenciones agendadas"
-          value={kpis.total_agendadas_mes ?? 0}
-          subtitle={`En ${mesTexto}`}
-          supportText={`${kpis.total_agendadas_mes ?? 0} reservas en el periodo`}
+          value={kpis.total_mantenciones ?? 0}
+          subtitle={`En ${periodText}`}
+          supportText={`${kpis.total_mantenciones ?? 0} reservas en el periodo`}
           loading={loading}
         />
         <KpiCard
-          title="Crecimiento mensual"
-          value={formatGrowth(crecimientoValor)}
-          subtitle="Comparacion mensual"
-          trend={crecimientoValor}
-          supportText={`Base: ${kpis.mes_anterior_total ?? 0} reservas en mes anterior`}
+          title="Crecimiento vs periodo anterior"
+          value={kpis.growth_label === "nuevo_periodo_activo" ? "Nuevo periodo activo" : `${kpis.growth_pct ?? 0}%`}
+          subtitle="Comparacion del mismo largo temporal"
+          trend={kpis.growth_label === "nuevo_periodo_activo" ? null : kpis.growth_pct}
+          supportText={`Rango previo: ${summary?.previous_range?.start || "-"} a ${summary?.previous_range?.end || "-"}`}
           loading={loading}
         />
-        <KpiCard
+        <GaugeKpiCard
           title="Ocupacion del taller"
-          value={`${ocupacionPct.toFixed(2)}%`}
-          subtitle={`Horas reservadas vs disponibles en ${mesTexto}`}
-          supportText={`${horasReservadasMes} / ${horasDisponiblesMes} horas (${horasRestantesMes} horas restantes)`}
+          value={kpis.ocupacion_pct ?? 0}
+          subtitle="Horas reservadas vs capacidad disponible"
+          supportText={`${kpis.horas_reservadas ?? 0}/${kpis.horas_disponibles ?? 0} horas (${kpis.horas_restantes ?? 0} restantes)`}
           loading={loading}
         />
         <KpiCard
-          title="Modelo mas visto"
-          value={modelMasVisto}
-          subtitle={catalogo.most_viewed_moto ? `${catalogo.most_viewed_moto.total} visitas en ${mesTexto}` : `Sin visitas en ${mesTexto}`}
-          supportText={`${totalVisitasMes} visitas totales en catalogo durante el mes`}
+          title="Modelo mas visto del periodo"
+          value={kpis.modelo_mas_visto?.entidad_nombre || "Sin datos"}
+          subtitle={`${kpis.modelo_mas_visto?.total || 0} visitas`}
+          supportText={`${kpis.total_visitas_catalogo ?? 0} visitas totales del catalogo`}
           loading={loading}
         />
       </section>
@@ -238,14 +193,14 @@ export default function ResumenPage() {
       <section className="admin-analytics-grid two-cols admin-analytics-row">
         <BarChartCard
           title="Top 5 modelos de moto mas vistos"
-          subtitle={`Ranking de interes en ${mesTexto}`}
+          subtitle="Ranking de interes del periodo"
           items={topMotos}
           loading={loading}
         />
         <BarChartCard
           title="Categorias de motos mas vistas"
-          subtitle={`Distribucion por categoria en ${mesTexto}`}
-          items={categoriasMotoMasClickeadas}
+          subtitle="Participacion sobre visitas de motos"
+          items={categoriasMoto}
           horizontal
           loading={loading}
         />
@@ -254,23 +209,24 @@ export default function ResumenPage() {
       <section className="admin-analytics-grid admin-analytics-row">
         <LineChartCard
           title="Tendencia de visitas"
-          subtitle={`Evolucion de trafico del catalogo en ${mesTexto}`}
-          items={tendenciaVisitas}
+          subtitle="Serie temporal continua segun periodo seleccionado"
+          items={visitasTrend}
+          averageValue={summary?.visitas_trend?.average_total ?? 0}
           loading={loading}
         />
       </section>
 
       <section className="admin-analytics-grid two-cols admin-analytics-row">
         <BarChartCard
-          title="Horas peak mas solicitadas"
-          subtitle="Bloques horarios con mayor demanda"
-          items={peakHours}
+          title="Horas peak del taller"
+          subtitle="Ranking por demanda y ocupacion"
+          items={horasPeak}
           horizontal
           loading={loading}
         />
         <BarChartCard
           title="Tipo de servicio mas solicitado"
-          subtitle={`Servicios preferidos en ${mesTexto}`}
+          subtitle="Distribucion de reservas por servicio"
           items={servicios}
           horizontal
           loading={loading}
@@ -280,29 +236,29 @@ export default function ResumenPage() {
       <section className="admin-analytics-kpi-grid compact admin-analytics-row">
         <KpiCard
           title="Tasa de cancelaciones"
-          value={`${kpis.tasa_cancelacion_pct ?? 0}%`}
-          subtitle={`En ${mesTexto}`}
-          supportText={`${kpis.total_agendadas_mes ?? 0} reservas consideradas`}
+          value={`${kpis.cancelaciones_pct ?? 0}%`}
+          subtitle="Sobre reservas del periodo"
+          supportText="Indicador de desercion"
           loading={loading}
         />
         <KpiCard
           title="Tasa de no asistencia"
-          value={`${kpis.tasa_no_asistencia_pct ?? 0}%`}
-          subtitle={`En ${mesTexto}`}
-          supportText={`Impacto operativo del periodo`}
+          value={`${kpis.no_asistencia_pct ?? 0}%`}
+          subtitle="Sobre reservas del periodo"
+          supportText="Impacto operativo en agenda"
           loading={loading}
         />
         <KpiCard
           title="Clientes recurrentes"
-          value={clientes.recurrentes ?? 0}
-          subtitle={`${clientes.recurrentes ?? 0} de ${clientes.total_unicos_mes ?? 0} clientes unicos`}
-          supportText="Con al menos una reserva previa"
+          value={kpis.clientes_recurrentes ?? 0}
+          subtitle={`${kpis.clientes_recurrentes ?? 0} de ${kpis.clientes_total_unicos ?? 0} clientes unicos`}
+          supportText="Con historial previo a este periodo"
           loading={loading}
         />
         <KpiCard
           title="Clientes nuevos"
-          value={clientes.nuevos ?? 0}
-          subtitle={`${clientes.nuevos ?? 0} de ${clientes.total_unicos_mes ?? 0} clientes unicos`}
+          value={kpis.clientes_nuevos ?? 0}
+          subtitle={`${kpis.clientes_nuevos ?? 0} de ${kpis.clientes_total_unicos ?? 0} clientes unicos`}
           supportText="Primera reserva en el periodo"
           loading={loading}
         />
@@ -311,8 +267,14 @@ export default function ResumenPage() {
       <section className="admin-analytics-grid admin-analytics-row">
         <LineChartCard
           title="Crecimiento mensual de reservas"
-          subtitle="Ultimos 12 meses de agendamientos"
-          items={crecimientoMensual}
+          subtitle="Serie mensual con comportamiento de crecimiento"
+          items={reservasMensuales}
+          averageValue={
+            Array.isArray(summary?.reservas_mensuales) && summary.reservas_mensuales.length
+              ? summary.reservas_mensuales.reduce((sum, item) => sum + Number(item.moving_avg_3 || 0), 0) /
+                summary.reservas_mensuales.length
+              : 0
+          }
           loading={loading}
         />
       </section>

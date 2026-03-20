@@ -18,7 +18,11 @@ export default function BarChartCard({ title, subtitle = "", items = [], horizon
         </div>
       </div>
       {loading ? (
-        <p className="admin-empty">Cargando datos...</p>
+        <div className="admin-analytics-skeleton-list">
+          <span />
+          <span />
+          <span />
+        </div>
       ) : items.length === 0 ? (
         <p className="admin-empty">Sin datos para mostrar.</p>
       ) : (
@@ -27,16 +31,31 @@ export default function BarChartCard({ title, subtitle = "", items = [], horizon
             const value = Number(item.value || 0);
             const pct = Math.max(6, Math.round((value / max) * 100));
             const color = index === 0 ? HIGHLIGHT_BAR : PRIMARY_BAR;
+            const sideMetric = item.percent !== null && item.percent !== undefined
+              ? `${Number(item.percent).toFixed(1)}%`
+              : null;
+            const trend = item.trend || "flat";
             return (
-              <div key={`${item.label}-${index}`} className="admin-analytics-bar-row">
-                <span className="admin-analytics-bar-label">{item.label}</span>
+              <div key={`${item.label}-${index}`} className={`admin-analytics-bar-row ${item.critical ? "critical" : ""}`}>
+                <span className="admin-analytics-bar-label">
+                  {item.label}
+                  {item.meta ? <small>{item.meta}</small> : null}
+                </span>
                 <div className="admin-analytics-bar-track">
                   <div
                     className="admin-analytics-bar-fill"
                     style={{ width: `${pct}%`, background: color }}
                   />
                 </div>
-                <strong className="admin-analytics-bar-value">{value}</strong>
+                <strong className="admin-analytics-bar-value">
+                  {value}
+                  {sideMetric ? <small>{sideMetric}</small> : null}
+                  {item.trend ? (
+                    <span className={`admin-analytics-mini-trend ${trend}`}>
+                      {trend === "up" ? "↑" : trend === "down" ? "↓" : "→"}
+                    </span>
+                  ) : null}
+                </strong>
               </div>
             );
           })}

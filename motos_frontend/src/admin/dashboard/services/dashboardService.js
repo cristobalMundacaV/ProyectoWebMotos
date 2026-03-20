@@ -92,10 +92,22 @@ export async function fetchMantencionesAnalytics({ year, month } = {}) {
   return response.data;
 }
 
-export async function fetchDashboardAnalytics({ year, month, start, end, groupBy } = {}) {
-  const [catalogo, mantenciones] = await Promise.all([
-    fetchCatalogoAnalytics({ start, end, groupBy }),
-    fetchMantencionesAnalytics({ year, month }),
-  ]);
-  return { catalogo, mantenciones };
+export async function fetchDashboardSummary({ period = "this_month" } = {}) {
+  const response = await api.get("/api/analitica/dashboard-summary/", {
+    params: { period },
+  });
+  return response.data;
+}
+
+export async function fetchDashboardAnalytics({ period = "this_month", year, month, start, end, groupBy } = {}) {
+  try {
+    return await fetchDashboardSummary({ period });
+  } catch (_error) {
+    // Fallback defensivo al esquema anterior.
+    const [catalogo, mantenciones] = await Promise.all([
+      fetchCatalogoAnalytics({ start, end, groupBy }),
+      fetchMantencionesAnalytics({ year, month }),
+    ]);
+    return { catalogo, mantenciones, __legacy: true };
+  }
 }
