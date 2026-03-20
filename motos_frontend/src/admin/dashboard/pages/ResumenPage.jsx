@@ -12,6 +12,27 @@ const PERIOD_OPTIONS = [
   { value: "last_year", label: "Ultimo ano" },
 ];
 
+const WINDOW_BY_GROUP = {
+  day: 30,
+  week: 8,
+  month: 12,
+};
+
+function applyWindow(points = [], groupBy = "day") {
+  const size = WINDOW_BY_GROUP[groupBy] || points.length;
+  if (points.length <= size) return points;
+  return points.slice(-size);
+}
+
+function smartStart(points = [], { trimLeadingZeros = true, keepContext = true } = {}) {
+  if (!trimLeadingZeros || points.length === 0) return points;
+  const firstWithData = points.findIndex((item) => Number(item.value || 0) > 0);
+  if (firstWithData <= 0) return points;
+  if (firstWithData === -1) return points.slice(-Math.min(points.length, 8));
+  const startIndex = keepContext ? Math.max(firstWithData - 1, 0) : firstWithData;
+  return points.slice(startIndex);
+}
+
 function monthNameFromIso(iso) {
   const value = String(iso || "");
   const year = value.slice(0, 4);
@@ -91,13 +112,17 @@ export default function ResumenPage() {
   );
 
   const visitasTrend = useMemo(
-    () =>
-      (summary?.visitas_trend?.points || []).map((item) => ({
+    () => {
+      const raw = (summary?.visitas_trend?.points || []).map((item) => ({
         label: item.label,
         value: item.total,
         variationPct: item.variation_pct,
-      })),
-    [summary?.visitas_trend?.points]
+      }));
+      const grouped = summary?.visitas_trend?.group_by || "day";
+      const windowed = applyWindow(raw, grouped);
+      return smartStart(windowed, { trimLeadingZeros: true, keepContext: true });
+    },
+    [summary?.visitas_trend?.points, summary?.visitas_trend?.group_by]
   );
 
   const horasPeak = useMemo(
@@ -122,12 +147,15 @@ export default function ResumenPage() {
   );
 
   const reservasMensuales = useMemo(
-    () =>
-      (summary?.reservas_mensuales || []).map((item) => ({
+    () => {
+      const raw = (summary?.reservas_mensuales || []).map((item) => ({
         label: item.label,
         value: item.total_reservas,
         variationPct: item.growth_pct,
-      })),
+      }));
+      const windowed = applyWindow(raw, "month");
+      return smartStart(windowed, { trimLeadingZeros: true, keepContext: true });
+    },
     [summary?.reservas_mensuales]
   );
 
@@ -209,7 +237,11 @@ export default function ResumenPage() {
           title="Tendencia de visitas"
           subtitle="Serie temporal continua segun periodo seleccionado"
           items={visitasTrend}
-          averageValue={summary?.visitas_trend?.average_total ?? 0}
+          averageValue={
+            visitasTrend.length
+              ? visitasTrend.reduce((sum, item) => sum + Number(item.value || 0), 0) / visitasTrend.length
+              : 0
+          }
           loading={loading}
         />
       </section>
@@ -268,9 +300,9 @@ export default function ResumenPage() {
           subtitle="Serie mensual con comportamiento de crecimiento"
           items={reservasMensuales}
           averageValue={
-            Array.isArray(summary?.reservas_mensuales) && summary.reservas_mensuales.length
-              ? summary.reservas_mensuales.reduce((sum, item) => sum + Number(item.moving_avg_3 || 0), 0) /
-                summary.reservas_mensuales.length
+            reservasMensuales.length
+              ? reservasMensuales.reduce((sum, item) => sum + Number(item.value || 0), 0) /
+                reservasMensuales.length
               : 0
           }
           loading={loading}

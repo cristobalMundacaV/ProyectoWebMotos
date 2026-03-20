@@ -36,9 +36,10 @@ function getLabelIndexes(length) {
 }
 
 export default function LineChartCard({ title, subtitle = "", items = [], loading = false, averageValue = null }) {
-  const width = 900;
+  const pointSpacing = items.length > 24 ? 26 : 34;
+  const width = Math.max(760, Math.min(1360, (items.length - 1) * pointSpacing + 74));
   const height = 280;
-  const padding = { top: 18, right: 16, bottom: 34, left: 46 };
+  const padding = { top: 18, right: 10, bottom: 34, left: 34 };
   const [hoverIndex, setHoverIndex] = useState(null);
 
   const chart = useMemo(() => getCoords(items, width, height, padding), [items]);
@@ -87,10 +88,14 @@ export default function LineChartCard({ title, subtitle = "", items = [], loadin
       ) : (
         <div
           className="admin-analytics-line-wrap"
-          onMouseMove={handleMouseMove}
           onMouseLeave={() => setHoverIndex(null)}
         >
-          <svg viewBox={`0 0 ${width} ${height}`} preserveAspectRatio="none" className="admin-analytics-line-svg">
+          <svg
+            viewBox={`0 0 ${width} ${height}`}
+            preserveAspectRatio="none"
+            className="admin-analytics-line-svg"
+            onMouseMove={handleMouseMove}
+          >
             {ticks.map((tick) => {
               const y = padding.top + drawableHeight - ((tick / Math.max(max, 1)) * drawableHeight);
               return (

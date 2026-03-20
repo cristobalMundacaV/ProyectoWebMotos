@@ -3078,7 +3078,16 @@
   border: 1px solid #e2e8f0;
   border-radius: 14px;
   background: linear-gradient(180deg, #f8fafc 0%, #ffffff 100%);
-  overflow: hidden;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: thin;
+}
+
+.admin-analytics-line-svg {
+  width: 100%;
+  min-width: 760px;
+  height: 100%;
+  display: block;
 }
 
 .admin-analytics-grid-line {
