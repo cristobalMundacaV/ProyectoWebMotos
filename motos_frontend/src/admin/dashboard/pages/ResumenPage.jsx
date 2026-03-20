@@ -49,9 +49,7 @@ export default function ResumenPage() {
         const data = await fetchDashboardAnalytics({ period });
         if (!active) return;
         if (data?.__legacy) {
-          setError("No se pudo cargar el resumen analitico unificado.");
-          setSummary(null);
-          return;
+          setError("");
         }
         setSummary(data);
       } catch (_error) {
