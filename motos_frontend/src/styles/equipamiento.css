@@ -833,8 +833,22 @@
   }
 }
 
-@media (min-width: 1280px) {
+@media (min-width: 1280px) and (max-width: 1399px) {
+  .equip-card-detail-btn {
+    min-height: 32px;
+    padding: 0 9px;
+    font-size: 0.76rem;
+  }
+}
+
+@media (min-width: 1400px) {
   .equip-grid {
     grid-template-columns: repeat(4, minmax(180px, 1fr));
+  }
+}
+
+@media (max-width: 1310px) and (min-width: 961px) {
+  .equip-card-detail-btn {
+    display: none;
   }
 }
