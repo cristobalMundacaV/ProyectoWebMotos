@@ -10,12 +10,15 @@ export default function Navbar() {
     return token ? getStoredUser() : null;
   });
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isMaintenanceMenuOpen, setIsMaintenanceMenuOpen] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
   const canAccessAdminPanel = hasAdminAccess(user);
+  const isMaintenanceRoute = location.pathname.startsWith("/mantenimiento");
 
   useEffect(() => {
     setIsMenuOpen(false);
+    setIsMaintenanceMenuOpen(false);
   }, [location.pathname, location.hash]);
 
   useEffect(() => {
@@ -73,9 +76,28 @@ export default function Navbar() {
           <Link to="/equipamiento/accesorios" onClick={() => setIsMenuOpen(false)}>
             Accesorios Motos
           </Link>
-          <Link to="/mantenimiento" onClick={() => setIsMenuOpen(false)}>
-            Mantenimiento
-          </Link>
+          <div
+            className={`nav-dropdown ${isMaintenanceMenuOpen ? "open" : ""}`}
+            onMouseEnter={() => setIsMaintenanceMenuOpen(true)}
+            onMouseLeave={() => setIsMaintenanceMenuOpen(false)}
+          >
+            <button
+              type="button"
+              className={`nav-dropdown-trigger ${isMaintenanceRoute ? "active" : ""}`}
+              aria-expanded={isMaintenanceMenuOpen}
+              onClick={() => setIsMaintenanceMenuOpen((prev) => !prev)}
+            >
+              Mantenimiento
+            </button>
+            <div className="nav-dropdown-menu">
+              <Link to="/mantenimiento/agendar" onClick={() => setIsMenuOpen(false)}>
+                Agendar Hora
+              </Link>
+              <Link to="/mantenimiento/consultar" onClick={() => setIsMenuOpen(false)}>
+                Consultar hora
+              </Link>
+            </div>
+          </div>
           <Link
             to="/"
             onClick={(event) => {

@@ -5,7 +5,6 @@ import Footer from "../components/layout/Footer";
 import { getStoredUser } from "../services/authService";
 import {
   agendarMantencion,
-  consultarMantencionesPorRut,
   getDisponibilidadMantenciones,
 } from "../services/mantencionesService";
 import "../styles/mantenimiento.css";
@@ -125,10 +124,6 @@ export default function Mantenimiento() {
   const [loadingSlots, setLoadingSlots] = useState(false);
   const [slotsByDate, setSlotsByDate] = useState([]);
   const [toast, setToast] = useState({ type: "", message: "" });
-  const [consultaRut, setConsultaRut] = useState("");
-  const [consultaLoading, setConsultaLoading] = useState(false);
-  const [consultaError, setConsultaError] = useState("");
-  const [consultaResultados, setConsultaResultados] = useState([]);
   const [calendarMonth, setCalendarMonth] = useState(() => {
     const now = new Date();
     return new Date(now.getFullYear(), now.getMonth(), 1);
@@ -376,35 +371,6 @@ export default function Mantenimiento() {
     }
   }
 
-  async function handleConsultarEstado(event) {
-    event.preventDefault();
-    if (consultaLoading) return;
-
-    const normalizedRut = normalizeRut(consultaRut);
-    if (!normalizedRut || !isValidRut(normalizedRut)) {
-      setConsultaError("Ingresa un RUT valido para consultar (ejemplo: 12345678-5).");
-      setConsultaResultados([]);
-      return;
-    }
-
-    setConsultaLoading(true);
-    setConsultaError("");
-
-    try {
-      const data = await consultarMantencionesPorRut(normalizedRut);
-      const results = Array.isArray(data?.results) ? data.results : [];
-      setConsultaResultados(results);
-      if (results.length === 0) {
-        setConsultaError("No encontramos horas de mantencion asociadas a ese RUT.");
-      }
-    } catch {
-      setConsultaResultados([]);
-      setConsultaError("No pudimos consultar el estado de tus horas. Intenta nuevamente.");
-    } finally {
-      setConsultaLoading(false);
-    }
-  }
-
   return (
     <div>
       <Navbar />
@@ -413,13 +379,13 @@ export default function Mantenimiento() {
         <div className="mantencion-breadcrumb">
           <Link to="/">Home</Link>
           <span>/</span>
-          <span>Agenda tu mantenimiento</span>
+          <span>Agendar hora</span>
         </div>
 
         <section className="mantencion-container">
           <div className="mantencion-head">
             <p className="mantencion-kicker">Servicio Tecnico Delanoe Motos</p>
-            <h1>Agenda tu mantenimiento</h1>
+            <h1>Agendar hora de mantencion</h1>
             <p>Selecciona en el calendario un dia y hora.</p>
           </div>
 
@@ -636,58 +602,6 @@ export default function Mantenimiento() {
               {loading ? "Enviando..." : "Agendar mantenimiento"}
             </button>
           </form>
-
-          <section className="mantencion-consulta-section">
-            <h2>Consulta el estado de tu hora</h2>
-            <p>Ingresa tu RUT para revisar tus solicitudes de mantencion.</p>
-
-            <form className="mantencion-consulta-form" onSubmit={handleConsultarEstado} noValidate>
-              <label>
-                RUT
-                <input
-                  name="consulta_rut"
-                  value={consultaRut}
-                  onChange={(event) => setConsultaRut(formatRutInput(event.target.value))}
-                  placeholder="12.345.678-5"
-                  maxLength={12}
-                  required
-                />
-              </label>
-              <button type="submit" className="mantencion-consulta-btn" disabled={consultaLoading}>
-                {consultaLoading ? "Consultando..." : "Consultar estado"}
-              </button>
-            </form>
-
-            {consultaError && <p className="mantencion-consulta-error">{consultaError}</p>}
-
-            {consultaResultados.length > 0 && (
-              <div className="mantencion-consulta-list">
-                {consultaResultados.map((item) => (
-                  <article key={item.id} className="mantencion-consulta-card">
-                    <header>
-                      <h3>{item.tipo_mantencion_label || item.tipo_mantencion}</h3>
-                      <span className={`mantencion-estado-pill estado-${item.estado}`}>{item.estado_label}</span>
-                    </header>
-                    <p>
-                      <strong>Fecha:</strong>{" "}
-                      {item.fecha_ingreso
-                        ? new Date(`${item.fecha_ingreso}T00:00:00`).toLocaleDateString("es-CL")
-                        : "-"}
-                    </p>
-                    <p>
-                      <strong>Hora:</strong> {item.hora_ingreso?.slice(0, 5) || "-"}
-                    </p>
-                    <p>
-                      <strong>Moto:</strong> {item.marca} {item.modelo} ({item.matricula})
-                    </p>
-                    <p>
-                      <strong>Motivo:</strong> {item.motivo}
-                    </p>
-                  </article>
-                ))}
-              </div>
-            )}
-          </section>
         </section>
       </main>
 
