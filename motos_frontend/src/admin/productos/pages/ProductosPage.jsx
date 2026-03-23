@@ -166,11 +166,11 @@ export default function ProductosPage({
 
           <div className="admin-table">
             {paginatedCategoriasAccRider.items.map((categoria) => (
-              <div key={categoria.id} className="admin-table-row admin-table-row-two-cols">
-                <div className="admin-entity-name-cell admin-category-name-cell">
+              <div key={categoria.id} className="admin-table-row admin-table-row-two-cols admin-recent-simple-row">
+                <div className="admin-entity-name-cell admin-category-name-cell admin-recent-simple-main">
                   <strong>{formatCategoryLabel(categoria.nombre)}</strong>
                 </div>
-                <div className="admin-row-actions">
+                <div className="admin-row-actions admin-recent-simple-actions">
                   <button type="button" className="admin-row-action-btn edit" title="Editar" onClick={() => onCategoriaAccRiderEdit?.(categoria)}>
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
                   </button>
@@ -254,11 +254,11 @@ export default function ProductosPage({
 
           <div className="admin-table">
             {paginatedCategoriasAccMotos.items.map((categoria) => (
-              <div key={categoria.id} className="admin-table-row admin-table-row-two-cols">
-                <div className="admin-entity-name-cell admin-category-name-cell">
+              <div key={categoria.id} className="admin-table-row admin-table-row-two-cols admin-recent-simple-row">
+                <div className="admin-entity-name-cell admin-category-name-cell admin-recent-simple-main">
                   <strong>{formatCategoryLabel(categoria.nombre)}</strong>
                 </div>
-                <div className="admin-row-actions">
+                <div className="admin-row-actions admin-recent-simple-actions">
                   <button type="button" className="admin-row-action-btn edit" title="Editar" onClick={() => onCategoriaAccMotosEdit?.(categoria)}>
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
                   </button>
@@ -447,18 +447,18 @@ export default function ProductosPage({
 
           <div className="admin-table">
             {paginatedAccesoriosMotos.items.map((producto) => (
-              <div key={producto.id} className="admin-table-row admin-table-row-product-actions">
-                <div>
+              <div key={producto.id} className="admin-table-row admin-table-row-product-actions admin-recent-product-row">
+                <div className="admin-recent-product-main">
                   <strong>{producto.nombre}</strong>
                   <span>{formatCategoryLabel(producto.subcategoria_nombre)}</span>
                 </div>
-                <div className="admin-product-price-cell">
+                <div className="admin-product-price-cell admin-recent-product-meta">
                   <strong>
                     {producto.precio ? `$${Number(producto.precio).toLocaleString("es-CL")}` : "Sin precio"}
                   </strong>
                   <span>{producto.activo ? "Activo" : "Inactivo"}</span>
                 </div>
-                <div className="admin-row-actions">
+                <div className="admin-row-actions admin-recent-product-actions">
                   <button type="button" className="admin-row-action-btn edit" title="Editar" onClick={() => onAccesorioMotoEdit?.(producto)}>
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
                   </button>
@@ -620,18 +620,18 @@ export default function ProductosPage({
 
           <div className="admin-table">
             {paginatedAccesoriosRider.items.map((producto) => (
-              <div key={producto.id} className="admin-table-row admin-table-row-product-actions">
-                <div>
+              <div key={producto.id} className="admin-table-row admin-table-row-product-actions admin-recent-product-row">
+                <div className="admin-recent-product-main">
                   <strong>{producto.nombre}</strong>
                   <span>{formatCategoryLabel(producto.subcategoria_nombre)}</span>
                 </div>
-                <div className="admin-product-price-cell">
+                <div className="admin-product-price-cell admin-recent-product-meta">
                   <strong>
                     {producto.precio ? `$${Number(producto.precio).toLocaleString("es-CL")}` : "Sin precio"}
                   </strong>
                   <span>{producto.activo ? "Activo" : "Inactivo"}</span>
                 </div>
-                <div className="admin-row-actions">
+                <div className="admin-row-actions admin-recent-product-actions">
                   <button type="button" className="admin-row-action-btn edit" title="Editar" onClick={() => onAccesorioRiderEdit?.(producto)}>
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
                   </button>
