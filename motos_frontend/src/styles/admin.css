@@ -2496,12 +2496,12 @@
 
   .admin-sidebar-drawer {
     position: fixed;
-    inset: 0 auto 0 0;
-    width: min(86vw, 320px);
+    inset: 0 0 0 auto;
+    width: min(72vw, 280px);
     z-index: 70;
-    transform: translateX(-105%);
+    transform: translateX(105%);
     transition: transform 220ms ease;
-    padding: 14px 10px 14px 14px;
+    padding: 10px 10px 10px 6px;
     pointer-events: none;
   }
 
@@ -2511,13 +2511,13 @@
   }
 
   .admin-sidebar-drawer .admin-sidebar {
-    height: calc(100vh - 12px);
+    height: calc(100vh - 10px);
     overflow: auto;
   }
 
   .admin-sidebar-drawer .admin-sidebar-card {
-    padding: 16px;
-    border-radius: 18px;
+    padding: 14px;
+    border-radius: 16px;
   }
 
   .admin-sidebar-backdrop {
@@ -2786,6 +2786,63 @@
 
   .admin-mobile-menu-btn span {
     width: 16px;
+  }
+
+  .admin-sidebar-drawer {
+    width: min(68vw, 250px);
+    padding: 8px 8px 8px 4px;
+  }
+
+  .admin-sidebar-drawer .admin-sidebar-card {
+    padding: 12px;
+    border-radius: 14px;
+  }
+
+  .admin-sidebar-eyebrow {
+    margin-bottom: 12px;
+    font-size: 0.92rem;
+  }
+
+  .admin-sidebar-nav {
+    gap: 8px;
+  }
+
+  .admin-sidebar-module-trigger {
+    grid-template-columns: 28px minmax(0, 1fr) 18px;
+    gap: 10px;
+    padding: 11px 10px;
+    font-size: 0.98rem;
+  }
+
+  .admin-sidebar-module-icon {
+    width: 28px;
+    height: 28px;
+  }
+
+  .admin-sidebar-module-icon svg {
+    width: 16px;
+    height: 16px;
+  }
+
+  .admin-sidebar-subnav {
+    gap: 6px;
+    padding: 4px 8px 10px;
+  }
+
+  .admin-sidebar-link {
+    border-radius: 10px;
+    padding: 9px 10px;
+    font-size: 0.92rem;
+  }
+
+  .admin-sidebar-subtitle {
+    font-size: 0.72rem;
+  }
+
+  .admin-sidebar-quick-actions {
+    margin-top: 14px;
+    padding-top: 12px;
+    gap: 8px;
   }
 
   .admin-panel-card,
@@ -3318,6 +3375,10 @@
 }
 
 @media (max-width: 420px) {
+  .admin-sidebar-drawer {
+    width: min(66vw, 230px);
+  }
+
   .admin-analytics-kpi-card,
   .admin-analytics-chart-card,
   .admin-analytics-chart-card-line {
