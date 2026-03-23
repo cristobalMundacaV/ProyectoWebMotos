@@ -402,6 +402,42 @@ export default function MantencionesPage({
     );
   }
 
+  function renderFichaMobilePicker(items, selectedId, onSelect, emptyText) {
+    if (loading) {
+      return <p className="admin-empty admin-mantencion-ficha-mobile-picker-empty">Cargando fichas...</p>;
+    }
+
+    if (!items.length) {
+      return <p className="admin-empty admin-mantencion-ficha-mobile-picker-empty">{emptyText}</p>;
+    }
+
+    const selectedValue = selectedId != null ? String(selectedId) : String(items[0].id);
+
+    return (
+      <div className="admin-mantencion-ficha-mobile-picker">
+        <label htmlFor="admin-mantencion-ficha-selector">Seleccionar ficha</label>
+        <select
+          id="admin-mantencion-ficha-selector"
+          value={selectedValue}
+          onChange={(event) => {
+            const value = event.target.value;
+            const nextItem = items.find((item) => String(item.id) === value);
+            if (nextItem) onSelect(nextItem.id);
+          }}
+        >
+          {items.map((item) => {
+            const moto = item?.moto_cliente_detalle || {};
+            return (
+              <option key={item.id} value={String(item.id)}>
+                {`${moto.marca || "-"} ${moto.modelo || "-"} - ${moto.cliente_nombre || "Cliente"}`}
+              </option>
+            );
+          })}
+        </select>
+      </div>
+    );
+  }
+
   function renderFichaDetail(item, mode) {
     if (!item) {
       return <p className="admin-empty">Selecciona una ficha para ver el detalle.</p>;
@@ -639,6 +675,12 @@ export default function MantencionesPage({
           </div>
 
           <div className="admin-mantencion-fichas-layout">
+            {renderFichaMobilePicker(
+              solicitudes,
+              selectedSolicitud?.id,
+              setSelectedSolicitudId,
+              "No hay solicitudes pendientes."
+            )}
             {renderFichaList(solicitudes, selectedSolicitud?.id, setSelectedSolicitudId, "No hay solicitudes pendientes.")}
             <div className="admin-mantencion-ficha-detail">{renderFichaDetail(selectedSolicitud, "solicitudes")}</div>
           </div>
@@ -659,6 +701,12 @@ export default function MantencionesPage({
           </div>
 
           <div className="admin-mantencion-fichas-layout">
+            {renderFichaMobilePicker(
+              fichasMantencion,
+              selectedFicha?.id,
+              setSelectedFichaId,
+              "No hay fichas de mantencion disponibles."
+            )}
             {renderFichaList(fichasMantencion, selectedFicha?.id, setSelectedFichaId, "No hay fichas de mantencion disponibles.")}
             <div className="admin-mantencion-ficha-detail">{renderFichaDetail(selectedFicha, "fichas")}</div>
           </div>

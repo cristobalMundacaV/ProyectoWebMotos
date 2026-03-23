@@ -1682,6 +1682,33 @@
   padding-right: 4px;
 }
 
+.admin-mantencion-ficha-mobile-picker,
+.admin-mantencion-ficha-mobile-picker-empty {
+  display: none;
+}
+
+.admin-mantencion-ficha-mobile-picker {
+  gap: 6px;
+}
+
+.admin-mantencion-ficha-mobile-picker label {
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  color: #475569;
+  text-transform: uppercase;
+}
+
+.admin-mantencion-ficha-mobile-picker select {
+  width: 100%;
+  border: 1px solid #d0d7e3;
+  border-radius: 10px;
+  background: #fff;
+  color: #0f172a;
+  padding: 10px 12px;
+  font-size: 0.92rem;
+}
+
 .admin-mantencion-ficha-group {
   display: grid;
   gap: 8px;
@@ -2853,6 +2880,18 @@
   .admin-mantencion-ficha-blocks,
   .admin-mantencion-ficha-controls {
     grid-template-columns: 1fr;
+  }
+
+  .admin-mantencion-ficha-mobile-picker {
+    display: grid;
+  }
+
+  .admin-mantencion-ficha-mobile-picker-empty {
+    display: block;
+  }
+
+  .admin-mantencion-fichas-list {
+    display: none;
   }
 
   .admin-mantencion-ficha-actions-bottom {
