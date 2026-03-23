@@ -209,50 +209,55 @@ export default function ConsultarHora() {
             {consultaResultados.length > 0 && (
               <div className="mantencion-consulta-list">
                 {consultaResultados.map((item) => (
-                  <article key={item.id} className="mantencion-consulta-card">
+                  <article
+                    key={item.id}
+                    className={`mantencion-consulta-card${canCancelMantencion(item.estado) ? " has-action" : ""}`}
+                  >
                     <header>
                       <h3>{item.tipo_mantencion_label || item.tipo_mantencion}</h3>
                       <span className={`mantencion-estado-pill estado-${item.estado}`}>{item.estado_label}</span>
                     </header>
 
-                    <div className="mantencion-consulta-details">
-                      <div className="mantencion-consulta-column">
-                        <p>
-                          <strong>Nombres:</strong> {item.nombres || "-"}
-                        </p>
-                        <p>
-                          <strong>Apellidos:</strong> {item.apellidos || "-"}
-                        </p>
-                        <p>
-                          <strong>Telefono:</strong> {item.telefono || "-"}
-                        </p>
-                        <p>
-                          <strong>Email:</strong> {item.email || "-"}
-                        </p>
+                    <div className="mantencion-consulta-main">
+                      <div className="mantencion-consulta-details">
+                        <div className="mantencion-consulta-column">
+                          <p>
+                            <strong>Nombres:</strong> {item.nombres || "-"}
+                          </p>
+                          <p>
+                            <strong>Apellidos:</strong> {item.apellidos || "-"}
+                          </p>
+                          <p>
+                            <strong>Telefono:</strong> {item.telefono || "-"}
+                          </p>
+                          <p>
+                            <strong>Email:</strong> {item.email || "-"}
+                          </p>
+                        </div>
+
+                        <div className="mantencion-consulta-column">
+                          <p>
+                            <strong>Moto:</strong> {[item.marca, item.modelo].filter(Boolean).join(" ") || "-"}
+                          </p>
+                          <p>
+                            <strong>Patente:</strong> {item.matricula || "-"}
+                          </p>
+                          <p>
+                            <strong>Fecha:</strong>{" "}
+                            {item.fecha_ingreso
+                              ? new Date(`${item.fecha_ingreso}T00:00:00`).toLocaleDateString("es-CL")
+                              : "-"}
+                          </p>
+                          <p>
+                            <strong>Hora:</strong> {item.hora_ingreso?.slice(0, 5) || "-"}
+                          </p>
+                        </div>
                       </div>
 
-                      <div className="mantencion-consulta-column">
-                        <p>
-                          <strong>Moto:</strong> {[item.marca, item.modelo].filter(Boolean).join(" ") || "-"}
-                        </p>
-                        <p>
-                          <strong>Patente:</strong> {item.matricula || "-"}
-                        </p>
-                        <p>
-                          <strong>Fecha:</strong>{" "}
-                          {item.fecha_ingreso
-                            ? new Date(`${item.fecha_ingreso}T00:00:00`).toLocaleDateString("es-CL")
-                            : "-"}
-                        </p>
-                        <p>
-                          <strong>Hora:</strong> {item.hora_ingreso?.slice(0, 5) || "-"}
-                        </p>
-                      </div>
+                      <p className="mantencion-consulta-motivo">
+                        <strong>Motivo:</strong> {item.motivo}
+                      </p>
                     </div>
-
-                    <p>
-                      <strong>Motivo:</strong> {item.motivo}
-                    </p>
 
                     {canCancelMantencion(item.estado) && (
                       <div className="mantencion-consulta-actions">
