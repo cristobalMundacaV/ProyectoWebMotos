@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 function clamp(n, min, max) {
   return Math.max(min, Math.min(max, n));
@@ -36,12 +36,33 @@ function getLabelIndexes(length) {
 }
 
 export default function LineChartCard({ title, subtitle = "", items = [], loading = false, averageValue = null }) {
-  const pointSpacing = items.length > 24 ? 26 : 34;
-  const width = Math.max(760, Math.min(1360, (items.length - 1) * pointSpacing + 74));
-  const height = 280;
-  const padding = { top: 18, right: 10, bottom: 34, left: 34 };
-  const svgPixelWidth = Math.max(640, Math.min(1180, 260 + (Math.max(items.length, 2) - 1) * 70));
+  const [viewportWidth, setViewportWidth] = useState(() =>
+    typeof window !== "undefined" ? window.innerWidth : 1280
+  );
   const [hoverIndex, setHoverIndex] = useState(null);
+  const isMobile = viewportWidth <= 640;
+  const pointSpacing = isMobile ? (items.length > 24 ? 18 : 24) : (items.length > 24 ? 26 : 34);
+  const width = isMobile
+    ? Math.max(420, Math.min(920, (items.length - 1) * pointSpacing + 56))
+    : Math.max(760, Math.min(1360, (items.length - 1) * pointSpacing + 74));
+  const height = isMobile ? 220 : 280;
+  const padding = isMobile
+    ? { top: 16, right: 8, bottom: 30, left: 28 }
+    : { top: 18, right: 10, bottom: 34, left: 34 };
+  const svgPixelWidth = isMobile
+    ? Math.max(420, Math.min(860, 180 + (Math.max(items.length, 2) - 1) * 42))
+    : Math.max(640, Math.min(1180, 260 + (Math.max(items.length, 2) - 1) * 70));
+
+  useEffect(() => {
+    if (typeof window === "undefined") return undefined;
+
+    function handleResize() {
+      setViewportWidth(window.innerWidth);
+    }
+
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
 
   const chart = useMemo(() => getCoords(items, width, height, padding), [items]);
   const { points, max } = chart;

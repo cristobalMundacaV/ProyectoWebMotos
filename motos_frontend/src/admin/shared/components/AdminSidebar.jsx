@@ -175,7 +175,7 @@ function getGroupLabelBySection(section) {
   return group?.label || navigationGroups[0].label;
 }
 
-export default function AdminSidebar({ activeSection, onChangeSection, className = "", onNavigate }) {
+export default function AdminSidebar({ activeSection, onChangeSection, className = "", onNavigate, onLogout }) {
   const navigate = useNavigate();
   const activeGroupLabel = useMemo(() => getGroupLabelBySection(activeSection), [activeSection]);
   const [expandedGroup, setExpandedGroup] = useState(activeGroupLabel);
@@ -267,6 +267,15 @@ export default function AdminSidebar({ activeSection, onChangeSection, className
             );
           })}
         </nav>
+
+        <div className="admin-sidebar-quick-actions">
+          <button type="button" className="admin-sidebar-link" onClick={() => handleExternalNavigate("Navegacion", "/")}>
+            Ver sitio
+          </button>
+          <button type="button" className="admin-sidebar-link admin-sidebar-link-danger" onClick={onLogout}>
+            Cerrar sesion
+          </button>
+        </div>
       </div>
     </aside>
   );

@@ -2146,6 +2146,7 @@ export default function AdminPanel() {
             activeSection={activeSection}
             onChangeSection={setActiveSection}
             onNavigate={() => setIsMobileSidebarOpen(false)}
+            onLogout={handleLogout}
           />
         </div>
 

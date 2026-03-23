@@ -15,6 +15,10 @@ export default function Navbar() {
   const navigate = useNavigate();
   const canAccessAdminPanel = hasAdminAccess(user);
   const isMaintenanceRoute = location.pathname.startsWith("/mantenimiento");
+  const supportsHover =
+    typeof window !== "undefined" && typeof window.matchMedia === "function"
+      ? window.matchMedia("(hover: hover) and (pointer: fine)").matches
+      : false;
 
   useEffect(() => {
     setIsMenuOpen(false);
@@ -44,6 +48,25 @@ export default function Navbar() {
     const navbarHeight = navbar ? navbar.getBoundingClientRect().height : 64;
     const top = Math.max(0, target.getBoundingClientRect().top + window.scrollY - (navbarHeight + 10));
     window.scrollTo({ top, behavior: "smooth" });
+  }
+
+  function handleMaintenanceMenuToggle() {
+    setIsMaintenanceMenuOpen((prev) => !prev);
+  }
+
+  function handleMaintenanceMenuOpen() {
+    if (!supportsHover) return;
+    setIsMaintenanceMenuOpen(true);
+  }
+
+  function handleMaintenanceMenuClose() {
+    if (!supportsHover) return;
+    setIsMaintenanceMenuOpen(false);
+  }
+
+  function handleMaintenanceLinkClick() {
+    setIsMaintenanceMenuOpen(false);
+    setIsMenuOpen(false);
   }
 
   return (
@@ -78,22 +101,22 @@ export default function Navbar() {
           </Link>
           <div
             className={`nav-dropdown ${isMaintenanceMenuOpen ? "open" : ""}`}
-            onMouseEnter={() => setIsMaintenanceMenuOpen(true)}
-            onMouseLeave={() => setIsMaintenanceMenuOpen(false)}
+            onMouseEnter={handleMaintenanceMenuOpen}
+            onMouseLeave={handleMaintenanceMenuClose}
           >
             <button
               type="button"
               className={`nav-dropdown-trigger ${isMaintenanceRoute ? "active" : ""}`}
               aria-expanded={isMaintenanceMenuOpen}
-              onClick={() => setIsMaintenanceMenuOpen((prev) => !prev)}
+              onClick={handleMaintenanceMenuToggle}
             >
               Mantenimiento
             </button>
             <div className="nav-dropdown-menu">
-              <Link to="/mantenimiento/agendar" onClick={() => setIsMenuOpen(false)}>
+              <Link to="/mantenimiento/agendar" onClick={handleMaintenanceLinkClick}>
                 Agendar Hora
               </Link>
-              <Link to="/mantenimiento/consultar" onClick={() => setIsMenuOpen(false)}>
+              <Link to="/mantenimiento/consultar" onClick={handleMaintenanceLinkClick}>
                 Consultar hora
               </Link>
             </div>

@@ -197,7 +197,7 @@ export default function ResumenPage() {
     <div className="admin-dashboard-stack admin-analytics-dashboard">
       <section className="admin-hero-card">
         <div>
-          <h1>Bienvenido al dashboard gerencial</h1>
+          <h1>Bienvenido al dashboard</h1>
         </div>
       </section>
 
