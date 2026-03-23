@@ -233,16 +233,48 @@ class AgendarMantencionSerializer(serializers.Serializer):
             candidate = f"{base}{suffix}"
         return candidate[:150]
 
+    def _sync_cliente_data(self, user, *, nombres: str, apellidos: str, telefono: str, email: str):
+        updated_fields = []
+
+        if user.first_name != nombres:
+            user.first_name = nombres
+            updated_fields.append("first_name")
+
+        if user.last_name != apellidos:
+            user.last_name = apellidos
+            updated_fields.append("last_name")
+
+        if email and user.email != email:
+            user.email = email
+            updated_fields.append("email")
+
+        if updated_fields:
+            user.save(update_fields=updated_fields)
+
+        PerfilUsuario.objects.update_or_create(
+            user=user,
+            defaults={"telefono": telefono, "rol": PerfilUsuario.ROL_CLIENTE},
+        )
+
+        return user
+
     def _resolve_or_create_cliente(self):
         request = self.context.get("request")
-        if request and getattr(request, "user", None) and request.user.is_authenticated:
-            return request.user
-
-        User = get_user_model()
-        email = (self.validated_data.get("email") or "").strip().lower()
         telefono = self.validated_data["telefono"].strip()
         nombres = self.validated_data["nombres"].strip()
         apellidos = self.validated_data["apellidos"].strip()
+        email = (self.validated_data.get("email") or "").strip().lower()
+
+        if request and getattr(request, "user", None) and request.user.is_authenticated:
+            return self._sync_cliente_data(
+                request.user,
+                nombres=nombres,
+                apellidos=apellidos,
+                telefono=telefono,
+                email=email,
+            )
+
+        User = get_user_model()
 
         user = None
         if email:
@@ -263,11 +295,13 @@ class AgendarMantencionSerializer(serializers.Serializer):
             user.set_unusable_password()
             user.save(update_fields=["password"])
 
-        PerfilUsuario.objects.update_or_create(
-            user=user,
-            defaults={"telefono": telefono, "rol": PerfilUsuario.ROL_CLIENTE},
+        return self._sync_cliente_data(
+            user,
+            nombres=nombres,
+            apellidos=apellidos,
+            telefono=telefono,
+            email=email,
         )
-        return user
 
     def create(self, validated_data):
         with transaction.atomic():
