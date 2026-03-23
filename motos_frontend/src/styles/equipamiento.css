@@ -143,6 +143,23 @@
   accent-color: #0d5fff;
 }
 
+.equip-filter-list-scrollable {
+  max-height: 320px;
+  overflow-y: auto;
+  padding-right: 6px;
+  scrollbar-width: thin;
+  scrollbar-color: #c2c9d4 transparent;
+}
+
+.equip-filter-list-scrollable::-webkit-scrollbar {
+  width: 8px;
+}
+
+.equip-filter-list-scrollable::-webkit-scrollbar-thumb {
+  background: #c2c9d4;
+  border-radius: 999px;
+}
+
 .equip-grid {
   display: grid;
   grid-template-columns: 1fr;

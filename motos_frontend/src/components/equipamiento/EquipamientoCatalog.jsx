@@ -475,7 +475,11 @@ export default function EquipamientoCatalog({ variant = "accesorios" }) {
           {showModeloCompatible && (
             <div className="equip-filter-block">
               <h3>Modelo Compatible</h3>
-              <div className="equip-filter-list">
+              <div
+                className={`equip-filter-list${
+                  motosCompatibles.length > 10 ? " equip-filter-list-scrollable" : ""
+                }`}
+              >
                 {motosCompatibles.map((moto) => (
                   <label key={moto.slug}>
                     <input
