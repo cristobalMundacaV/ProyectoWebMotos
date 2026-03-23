@@ -29,7 +29,7 @@ api.interceptors.response.use(
       return Promise.reject(error);
     }
 
-    if (originalRequest.url?.includes("/api/clientes/token/refresh/")) {
+    if (originalRequest.url?.includes("/clientes/token/refresh/")) {
       return Promise.reject(error);
     }
 
@@ -50,7 +50,7 @@ api.interceptors.response.use(
     originalRequest._retry = true;
 
     try {
-      const refreshResponse = await api.post("/api/clientes/token/refresh/", { refresh });
+      const refreshResponse = await api.post("/clientes/token/refresh/", { refresh });
       const nextAccess = refreshResponse.data?.access;
       const nextRefresh = refreshResponse.data?.refresh;
 

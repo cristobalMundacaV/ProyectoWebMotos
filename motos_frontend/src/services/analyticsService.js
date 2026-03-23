@@ -28,7 +28,7 @@ export async function trackCatalogView({
   metadata = {},
 }) {
   try {
-    await api.post("/api/analitica/catalogo/eventos/", {
+    await api.post("/analitica/catalogo/eventos/", {
       tipo_evento: tipoEvento,
       tipo_entidad: tipoEntidad,
       entidad_id: entidadId ?? null,

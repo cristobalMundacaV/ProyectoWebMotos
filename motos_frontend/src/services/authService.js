@@ -52,40 +52,40 @@ export function clearAuthSession() {
 }
 
 export async function registerUser(payload) {
-  const response = await api.post("/api/clientes/register/", payload);
+  const response = await api.post("/clientes/register/", payload);
   return response.data;
 }
 
 export async function createAdminUser(payload) {
-  const response = await api.post("/api/clientes/admin/users/", payload);
+  const response = await api.post("/clientes/admin/users/", payload);
   return response.data;
 }
 
 export async function listAdminUsers() {
-  const response = await api.get("/api/clientes/admin/users/");
+  const response = await api.get("/clientes/admin/users/");
   return response.data;
 }
 
 export async function updateAdminUser(userId, payload) {
-  const response = await api.patch(`/api/clientes/admin/users/${userId}/`, payload);
+  const response = await api.patch(`/clientes/admin/users/${userId}/`, payload);
   return response.data;
 }
 
 export async function deleteAdminUser(userId) {
-  await api.delete(`/api/clientes/admin/users/${userId}/`);
+  await api.delete(`/clientes/admin/users/${userId}/`);
 }
 
 export async function loginUser(payload) {
-  const response = await api.post("/api/clientes/login/", payload);
+  const response = await api.post("/clientes/login/", payload);
   return response.data;
 }
 
 export async function fetchCurrentUser() {
-  const response = await api.get("/api/clientes/me/");
+  const response = await api.get("/clientes/me/");
   return response.data;
 }
 
 export async function logoutUser() {
   const refresh = getStoredRefreshToken();
-  await api.post("/api/clientes/logout/", refresh ? { refresh } : {});
+  await api.post("/clientes/logout/", refresh ? { refresh } : {});
 }

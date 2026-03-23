@@ -80,7 +80,7 @@ export async function fetchCatalogoAnalytics({ start, end, groupBy } = {}) {
   if (start) params.start = start;
   if (end) params.end = end;
   if (groupBy) params.group_by = groupBy;
-  const response = await api.get("/api/analitica/dashboard/catalogo/", { params });
+  const response = await api.get("/analitica/dashboard/catalogo/", { params });
   return response.data;
 }
 
@@ -88,12 +88,12 @@ export async function fetchMantencionesAnalytics({ year, month } = {}) {
   const params = {};
   if (year) params.year = year;
   if (month) params.month = month;
-  const response = await api.get("/api/analitica/dashboard/mantenciones/", { params });
+  const response = await api.get("/analitica/dashboard/mantenciones/", { params });
   return response.data;
 }
 
 export async function fetchDashboardSummary({ period = "this_month" } = {}) {
-  const response = await api.get("/api/analitica/dashboard-summary/", {
+  const response = await api.get("/analitica/dashboard-summary/", {
     params: { period },
   });
   return response.data;

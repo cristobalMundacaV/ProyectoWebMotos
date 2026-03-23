@@ -23,13 +23,13 @@ async function getWithFallback(primaryUrl, fallbackUrl) {
 }
 
 export async function agendarMantencion(payload) {
-  const response = await postWithFallback("/api/mantenciones/agendar/", "/mantenciones/agendar/", payload);
+  const response = await postWithFallback("/mantenciones/agendar/", "/mantenciones/agendar/", payload);
   return response.data;
 }
 
 export async function getDisponibilidadMantenciones(days = 21) {
   const response = await getWithFallback(
-    `/api/mantenciones/disponibilidad/?days=${days}`,
+    `/mantenciones/disponibilidad/?days=${days}`,
     `/mantenciones/disponibilidad/?days=${days}`
   );
   return response.data;
@@ -38,7 +38,7 @@ export async function getDisponibilidadMantenciones(days = 21) {
 export async function consultarMantencionesPorRut(rut) {
   const encodedRut = encodeURIComponent(rut);
   const response = await getWithFallback(
-    `/api/mantenciones/consulta/?rut=${encodedRut}`,
+    `/mantenciones/consulta/?rut=${encodedRut}`,
     `/mantenciones/consulta/?rut=${encodedRut}`
   );
   return response.data;
@@ -46,7 +46,7 @@ export async function consultarMantencionesPorRut(rut) {
 
 export async function cancelarMantencionPorRut(mantencionId, rut) {
   const response = await postWithFallback(
-    `/api/mantenciones/consulta/${mantencionId}/cancelar/`,
+    `/mantenciones/consulta/${mantencionId}/cancelar/`,
     `/mantenciones/consulta/${mantencionId}/cancelar/`,
     { rut }
   );

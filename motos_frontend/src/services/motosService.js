@@ -2,7 +2,7 @@ import api from "./api";
 
 /** Retorna el listado completo de motos desde el backend */
 export async function getMotos() {
-  const res = await api.get("/api/motos/");
+  const res = await api.get("/motos/");
   const payload = res.data;
   if (Array.isArray(payload)) return payload;
   if (Array.isArray(payload?.results)) return payload.results;
@@ -10,7 +10,7 @@ export async function getMotos() {
 }
 
 export async function getMotoAdminMeta() {
-  const res = await api.get("/api/motos/meta/");
+  const res = await api.get("/motos/meta/");
   const payload = res.data || {};
   const modelosRaw = Array.isArray(payload.modelos) ? payload.modelos : [];
   const modelos = modelosRaw.map((item) => ({
@@ -25,7 +25,7 @@ export async function getMotoAdminMeta() {
 }
 
 export async function createMoto(payload) {
-  const res = await api.post("/api/motos/", payload, {
+  const res = await api.post("/motos/", payload, {
     headers: {
       "Content-Type": "multipart/form-data",
     },
@@ -34,38 +34,38 @@ export async function createMoto(payload) {
 }
 
 export async function updateMoto(id, payload) {
-  const res = await api.patch(`/api/motos/${id}/`, payload);
+  const res = await api.patch(`/motos/${id}/`, payload);
   return res.data;
 }
 
 export async function deleteMoto(id) {
-  await api.delete(`/api/motos/${id}/`);
+  await api.delete(`/motos/${id}/`);
 }
 
 export async function getCategoriasMoto() {
-  const res = await api.get("/api/motos/categorias/");
+  const res = await api.get("/motos/categorias/");
   return res.data;
 }
 
 export async function createCategoriaMoto(payload) {
-  const res = await api.post("/api/motos/categorias/", payload);
+  const res = await api.post("/motos/categorias/", payload);
   return res.data;
 }
 
 export async function updateCategoriaMoto(id, payload) {
-  const res = await api.patch(`/api/motos/categorias/${id}/`, payload);
+  const res = await api.patch(`/motos/categorias/${id}/`, payload);
   return res.data;
 }
 
 export async function deleteCategoriaMoto(id) {
-  await api.delete(`/api/motos/categorias/${id}/`);
+  await api.delete(`/motos/categorias/${id}/`);
 }
 
 export async function getMarcasAdmin({ tipo } = {}) {
   const params = {};
   if (tipo) params.tipo = tipo;
 
-  const res = await api.get("/api/motos/marcas/", { params });
+  const res = await api.get("/motos/marcas/", { params });
   return res.data;
 }
 
@@ -73,36 +73,36 @@ export async function createMarca(payload, { tipo } = {}) {
   const params = {};
   if (tipo) params.tipo = tipo;
 
-  const res = await api.post("/api/motos/marcas/", payload, { params });
+  const res = await api.post("/motos/marcas/", payload, { params });
   return res.data;
 }
 
 export async function updateMarca(id, payload) {
-  const res = await api.patch(`/api/motos/marcas/${id}/`, payload);
+  const res = await api.patch(`/motos/marcas/${id}/`, payload);
   return res.data;
 }
 
 export async function deleteMarca(id) {
-  await api.delete(`/api/motos/marcas/${id}/`);
+  await api.delete(`/motos/marcas/${id}/`);
 }
 
 export async function getModelosMoto() {
-  const res = await api.get("/api/motos/modelos/");
+  const res = await api.get("/motos/modelos/");
   return res.data;
 }
 
 export async function createModeloMoto(payload) {
-  const res = await api.post("/api/motos/modelos/", payload);
+  const res = await api.post("/motos/modelos/", payload);
   return res.data;
 }
 
 export async function updateModeloMoto(id, payload) {
-  const res = await api.patch(`/api/motos/modelos/${id}/`, payload);
+  const res = await api.patch(`/motos/modelos/${id}/`, payload);
   return res.data;
 }
 
 export async function deleteModeloMoto(id) {
-  await api.delete(`/api/motos/modelos/${id}/`);
+  await api.delete(`/motos/modelos/${id}/`);
 }
 
 /**

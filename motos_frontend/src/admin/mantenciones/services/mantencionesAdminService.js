@@ -19,14 +19,14 @@ async function requestWithFallback(method, primaryUrl, fallbackUrl, payload) {
 }
 
 export async function getMantencionesAdmin() {
-  const response = await requestWithFallback("get", "/api/mantenciones/", "/mantenciones/");
+  const response = await requestWithFallback("get", "/mantenciones/", "/mantenciones/");
   return normalizeList(response.data);
 }
 
 export async function updateMantencionAdmin(id, payload) {
   const response = await requestWithFallback(
     "patch",
-    `/api/mantenciones/${id}/`,
+    `/mantenciones/${id}/`,
     `/mantenciones/${id}/`,
     payload
   );
@@ -34,19 +34,19 @@ export async function updateMantencionAdmin(id, payload) {
 }
 
 export async function getHorariosMantencionAdmin() {
-  const response = await requestWithFallback("get", "/api/mantenciones/horarios/", "/mantenciones/horarios/");
+  const response = await requestWithFallback("get", "/mantenciones/horarios/", "/mantenciones/horarios/");
   return normalizeList(response.data);
 }
 
 export async function createHorarioMantencionAdmin(payload) {
-  const response = await requestWithFallback("post", "/api/mantenciones/horarios/", "/mantenciones/horarios/", payload);
+  const response = await requestWithFallback("post", "/mantenciones/horarios/", "/mantenciones/horarios/", payload);
   return response.data;
 }
 
 export async function updateHorarioMantencionAdmin(id, payload) {
   const response = await requestWithFallback(
     "patch",
-    `/api/mantenciones/horarios/${id}/`,
+    `/mantenciones/horarios/${id}/`,
     `/mantenciones/horarios/${id}/`,
     payload
   );
@@ -54,5 +54,5 @@ export async function updateHorarioMantencionAdmin(id, payload) {
 }
 
 export async function deleteHorarioMantencionAdmin(id) {
-  await requestWithFallback("delete", `/api/mantenciones/horarios/${id}/`, `/mantenciones/horarios/${id}/`);
+  await requestWithFallback("delete", `/mantenciones/horarios/${id}/`, `/mantenciones/horarios/${id}/`);
 }
