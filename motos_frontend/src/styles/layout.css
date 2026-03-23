@@ -144,6 +144,8 @@
   position: relative;
   display: inline-flex;
   align-items: center;
+  padding: 10px 0;
+  margin: -10px 0;
 }
 
 .nav-dropdown-trigger {
@@ -172,7 +174,7 @@
 
 .nav-dropdown-menu {
   position: absolute;
-  top: calc(100% + 14px);
+  top: calc(100% + 2px);
   left: 50%;
   transform: translateX(-50%);
   min-width: 260px;
@@ -189,6 +191,15 @@
   pointer-events: none;
   transition: opacity 0.2s ease;
   z-index: 1010;
+}
+
+.nav-dropdown-menu::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: -12px;
+  height: 12px;
 }
 
 .navbar .nav-dropdown-menu a {
@@ -333,6 +344,8 @@
 
   .nav-dropdown {
     display: grid;
+    padding: 0;
+    margin: 0;
   }
 
   .navbar nav .nav-dropdown-trigger {
