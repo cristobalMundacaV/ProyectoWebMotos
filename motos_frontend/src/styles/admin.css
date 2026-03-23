@@ -2745,9 +2745,20 @@
 }
 
 @media (max-width: 640px) {
+  .admin-shell,
+  .admin-layout,
+  .admin-main,
+  .admin-dashboard-stack,
+  .admin-dashboard-stack > section {
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
+    box-sizing: border-box;
+  }
+
   .admin-layout {
-    padding: 12px;
-    gap: 10px;
+    padding: 8px;
+    gap: 8px;
   }
 
   .admin-topbar {
@@ -2781,8 +2792,11 @@
   .admin-sidebar-card,
   .admin-summary-card,
   .admin-hero-card {
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
     border-radius: 16px;
-    padding: 16px;
+    padding: 14px;
   }
 
   .admin-table-row {
@@ -3286,6 +3300,10 @@
   .admin-analytics-chart-card,
   .admin-analytics-chart-card-line {
     padding: 12px;
+  }
+
+  .admin-layout {
+    padding: 6px;
   }
 
   .admin-analytics-line-wrap {
