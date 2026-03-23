@@ -1,4 +1,5 @@
-ï»¿import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { Link } from "react-router-dom";
 import Navbar from "../components/layout/Navbar";
 import Footer from "../components/layout/Footer";
 import { useMotos } from "../hooks/useMotos";
@@ -377,6 +378,11 @@ export default function CatalogoMotos() {
       <Navbar />
       <main className="moto-catalog-page">
         <section className="moto-catalog-section">
+          <div className="moto-catalog-breadcrumb">
+            <Link to="/">Home</Link>
+            <span>/</span>
+            <span>Catalogo de Motos</span>
+          </div>
           <h2>Catalogo de Motos</h2>
           {loading ? (
             <p style={{ textAlign: "center" }}>Cargando...</p>
@@ -628,7 +634,7 @@ export default function CatalogoMotos() {
               </label>
 
               <label>
-                AÃ±o *
+                Año *
                 <input
                   type="number"
                   name="anio"
@@ -670,7 +676,7 @@ export default function CatalogoMotos() {
                     Examinar...
                   </button>
                   <span className="moto-edit-file-name">
-                    {editForm.imagen_principal?.name || "No se ha seleccionado ningÃºn archivo."}
+                    {editForm.imagen_principal?.name || "No se ha seleccionado ningún archivo."}
                   </span>
                 </div>
               </label>
@@ -722,7 +728,7 @@ export default function CatalogoMotos() {
           <section className="moto-delete-modal" onClick={(event) => event.stopPropagation()}>
             <img src="/images/informacion.png" alt="Informacion" className="moto-delete-modal-image" />
             <p className="moto-delete-modal-text">
-              Â¿Estas seguro que quieres eliminar {deleteCandidate.modelo || deleteCandidate.nombre}?
+              ¿Estas seguro que quieres eliminar {deleteCandidate.modelo || deleteCandidate.nombre}?
             </p>
             <div className="moto-delete-modal-actions">
               <button type="button" className="btn-back" onClick={closeDeleteModal} disabled={deletingMoto}>
@@ -740,4 +746,6 @@ export default function CatalogoMotos() {
     </div>
   );
 }
+
+
 

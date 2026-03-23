@@ -9,6 +9,19 @@
   width: 100%;
 }
 
+.moto-catalog-breadcrumb {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  color: #7f7f7f;
+  font-size: 0.95rem;
+  margin-bottom: 22px;
+}
+
+.moto-catalog-breadcrumb a {
+  color: #7f7f7f;
+}
+
 .moto-catalog-section h2 {
   text-align: left;
   font-size: clamp(1.6rem, 3vw, 2.6rem);
@@ -201,6 +214,7 @@
   width: 100%;
   min-width: 0;
 }
+
 
 .moto-grid-empty {
   grid-column: 1 / -1;
@@ -653,7 +667,7 @@
   }
 
   .motos-grid {
-    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
     gap: 24px;
   }
 }

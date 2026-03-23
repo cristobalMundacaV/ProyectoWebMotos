@@ -2,11 +2,15 @@ from django.contrib.auth import get_user_model
 from django.db import transaction
 from django.utils import timezone
 from rest_framework import serializers
+import logging
 
 from clientes.models import PerfilUsuario
 from .availability import slot_disponible
 from .models import HorarioMantencion, Mantencion, MantencionEstadoHistorial, VehiculoCliente
 from .notifications import send_mantencion_confirmation_email
+
+
+logger = logging.getLogger(__name__)
 
 
 class VehiculoClienteNestedSerializer(serializers.ModelSerializer):
@@ -90,6 +94,7 @@ class MantencionSerializer(serializers.ModelSerializer):
             "id",
             "moto_cliente",
             "moto_cliente_detalle",
+            "rut_cliente",
             "fecha_ingreso",
             "hora_ingreso",
             "kilometraje_ingreso",
@@ -135,6 +140,7 @@ class MantencionSerializer(serializers.ModelSerializer):
 
 
 class AgendarMantencionSerializer(serializers.Serializer):
+    rut = serializers.CharField(max_length=12, required=True)
     nombres = serializers.CharField(max_length=120)
     apellidos = serializers.CharField(max_length=120)
     telefono = serializers.CharField(max_length=30)
@@ -155,10 +161,42 @@ class AgendarMantencionSerializer(serializers.Serializer):
     tipo_mantencion = serializers.ChoiceField(choices=Mantencion.TIPO_MANTENCION_CHOICES)
     motivo = serializers.CharField()
 
+    def _normalize_rut(self, raw_rut: str) -> str:
+        cleaned = (raw_rut or "").replace(".", "").replace("-", "").replace(" ", "").upper()
+        if len(cleaned) < 2:
+            return ""
+        body = "".join(ch for ch in cleaned[:-1] if ch.isdigit())
+        dv = cleaned[-1]
+        if not body or not dv or (not dv.isdigit() and dv != "K"):
+            return ""
+        return f"{body}-{dv}"
+
+    def _is_valid_rut(self, raw_rut: str) -> bool:
+        normalized = self._normalize_rut(raw_rut)
+        if not normalized:
+            return False
+
+        body, dv = normalized.split("-", 1)
+        total = 0
+        multiplier = 2
+        for digit_char in reversed(body):
+            total += int(digit_char) * multiplier
+            multiplier = 2 if multiplier == 7 else multiplier + 1
+
+        remainder = 11 - (total % 11)
+        expected_dv = "0" if remainder == 11 else "K" if remainder == 10 else str(remainder)
+        return dv == expected_dv
+
     def validate(self, attrs):
+        rut = (attrs.get("rut") or "").strip()
         nombres = (attrs.get("nombres") or "").strip()
         apellidos = (attrs.get("apellidos") or "").strip()
         email = (attrs.get("email") or "").strip().lower()
+        if not rut:
+            raise serializers.ValidationError({"rut": "El RUT es obligatorio."})
+        normalized_rut = self._normalize_rut(rut)
+        if not normalized_rut or not self._is_valid_rut(normalized_rut):
+            raise serializers.ValidationError({"rut": "Ingresa un RUT valido (ejemplo: 12345678-5)."})
         if not nombres:
             raise serializers.ValidationError({"nombres": "Los nombres son obligatorios."})
         if not apellidos:
@@ -172,6 +210,7 @@ class AgendarMantencionSerializer(serializers.Serializer):
             raise serializers.ValidationError(
                 {"hora_agendada": "La hora seleccionada ya no esta disponible. Elige otra opcion."}
             )
+        attrs["rut"] = normalized_rut
         attrs["nombres"] = nombres
         attrs["apellidos"] = apellidos
         attrs["email"] = email
@@ -257,6 +296,7 @@ class AgendarMantencionSerializer(serializers.Serializer):
 
             mantencion = Mantencion.objects.create(
                 moto_cliente=vehiculo,
+                rut_cliente=validated_data["rut"],
                 fecha_ingreso=validated_data["fecha_agendada"],
                 hora_ingreso=validated_data["hora_agendada"],
                 kilometraje_ingreso=None,
@@ -276,15 +316,64 @@ class AgendarMantencionSerializer(serializers.Serializer):
             )
 
             cliente_nombre = f"{validated_data['nombres']} {validated_data['apellidos']}".strip()
-            try:
-                send_mantencion_confirmation_email(
-                    mantencion=mantencion,
-                    recipient_email=validated_data["email"],
-                    cliente_nombre=cliente_nombre or "cliente",
-                )
-            except Exception:
-                raise serializers.ValidationError(
-                    {"email": "No fue posible enviar el correo de confirmacion. Intenta nuevamente en unos minutos."}
-                )
+            recipient_email = validated_data["email"]
+            nombre_final = cliente_nombre or "cliente"
+
+            # El agendamiento no debe fallar si el servicio de correo tiene problemas.
+            # Enviamos el email al confirmar la transaccion y registramos cualquier error.
+            def _send_confirmation_email():
+                try:
+                    send_mantencion_confirmation_email(
+                        mantencion=mantencion,
+                        recipient_email=recipient_email,
+                        cliente_nombre=nombre_final,
+                    )
+                except Exception:
+                    logger.exception(
+                        "Error enviando correo de confirmacion para mantencion_id=%s",
+                        mantencion.id,
+                    )
+
+            transaction.on_commit(_send_confirmation_email)
 
             return mantencion
+
+
+class ConsultarMantencionPorRutSerializer(serializers.Serializer):
+    rut = serializers.CharField(max_length=12, required=True)
+
+    def _normalize_rut(self, raw_rut: str) -> str:
+        cleaned = (raw_rut or "").replace(".", "").replace("-", "").replace(" ", "").upper()
+        if len(cleaned) < 2:
+            return ""
+        body = "".join(ch for ch in cleaned[:-1] if ch.isdigit())
+        dv = cleaned[-1]
+        if not body or not dv or (not dv.isdigit() and dv != "K"):
+            return ""
+        return f"{body}-{dv}"
+
+    def _is_valid_rut(self, raw_rut: str) -> bool:
+        normalized = self._normalize_rut(raw_rut)
+        if not normalized:
+            return False
+
+        body, dv = normalized.split("-", 1)
+        total = 0
+        multiplier = 2
+        for digit_char in reversed(body):
+            total += int(digit_char) * multiplier
+            multiplier = 2 if multiplier == 7 else multiplier + 1
+
+        remainder = 11 - (total % 11)
+        expected_dv = "0" if remainder == 11 else "K" if remainder == 10 else str(remainder)
+        return dv == expected_dv
+
+    def validate(self, attrs):
+        rut = (attrs.get("rut") or "").strip()
+        if not rut:
+            raise serializers.ValidationError({"rut": "El RUT es obligatorio."})
+        normalized_rut = self._normalize_rut(rut)
+        if not normalized_rut or not self._is_valid_rut(normalized_rut):
+            raise serializers.ValidationError({"rut": "Ingresa un RUT valido (ejemplo: 12345678-5)."})
+        attrs["rut"] = normalized_rut
+        return attrs

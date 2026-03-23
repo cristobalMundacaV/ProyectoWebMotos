@@ -34,3 +34,12 @@ export async function getDisponibilidadMantenciones(days = 21) {
   );
   return response.data;
 }
+
+export async function consultarMantencionesPorRut(rut) {
+  const encodedRut = encodeURIComponent(rut);
+  const response = await getWithFallback(
+    `/api/mantenciones/consulta/?rut=${encodedRut}`,
+    `/mantenciones/consulta/?rut=${encodedRut}`
+  );
+  return response.data;
+}

@@ -4,6 +4,20 @@
   background: #f6f6f6;
 }
 
+.mantencion-breadcrumb {
+  width: 100%;
+  margin: 0 0 18px;
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  color: #7f7f7f;
+  font-size: 0.95rem;
+}
+
+.mantencion-breadcrumb a {
+  color: #7f7f7f;
+}
+
 .mantencion-container {
   width: min(980px, 100%);
   margin: 0 auto;
@@ -115,6 +129,14 @@
   outline-offset: 0;
 }
 
+.mantencion-form input[name="matricula"] {
+  text-transform: uppercase;
+}
+
+.mantencion-form input[name="marca"] {
+  text-transform: uppercase;
+}
+
 .mantencion-submit-btn {
   border: none;
   border-radius: 10px;
@@ -130,6 +152,147 @@
 .mantencion-submit-btn:disabled {
   cursor: not-allowed;
   opacity: 0.62;
+}
+
+.mantencion-consulta-section {
+  margin-top: 24px;
+  padding-top: 18px;
+  border-top: 1px solid #e5e7eb;
+  display: grid;
+  gap: 10px;
+}
+
+.mantencion-consulta-section h2 {
+  margin: 0;
+  font-size: 1.18rem;
+}
+
+.mantencion-consulta-section p {
+  margin: 0;
+  color: #4b5563;
+}
+
+.mantencion-consulta-form {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 10px;
+  align-items: end;
+}
+
+.mantencion-consulta-form label {
+  display: grid;
+  gap: 6px;
+  font-size: 0.92rem;
+  font-weight: 600;
+  color: #111827;
+}
+
+.mantencion-consulta-form input {
+  width: 100%;
+  border: 1px solid #d1d5db;
+  border-radius: 10px;
+  min-height: 42px;
+  padding: 10px 12px;
+  font: inherit;
+  color: #0f172a;
+  background: #fff;
+}
+
+.mantencion-consulta-btn {
+  border: none;
+  border-radius: 10px;
+  min-height: 42px;
+  padding: 0 16px;
+  font-size: 0.95rem;
+  font-weight: 800;
+  color: #fff;
+  background: #111827;
+  cursor: pointer;
+}
+
+.mantencion-consulta-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.mantencion-consulta-error {
+  color: #9f1239;
+  font-weight: 600;
+  font-size: 0.92rem;
+}
+
+.mantencion-consulta-list {
+  display: grid;
+  gap: 10px;
+}
+
+.mantencion-consulta-card {
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  background: #f8fafc;
+  padding: 12px;
+  display: grid;
+  gap: 6px;
+}
+
+.mantencion-consulta-card header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+}
+
+.mantencion-consulta-card h3 {
+  margin: 0;
+  font-size: 1rem;
+  color: #0f172a;
+}
+
+.mantencion-consulta-card p {
+  margin: 0;
+  font-size: 0.9rem;
+  color: #1f2937;
+}
+
+.mantencion-estado-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 26px;
+  padding: 0 10px;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.mantencion-estado-pill.estado-ingresada {
+  background: #e0f2fe;
+  color: #075985;
+}
+
+.mantencion-estado-pill.estado-aceptada,
+.mantencion-estado-pill.estado-en_proceso,
+.mantencion-estado-pill.estado-en_revision {
+  background: #dcfce7;
+  color: #14532d;
+}
+
+.mantencion-estado-pill.estado-esperando_repuestos {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.mantencion-estado-pill.estado-finalizada,
+.mantencion-estado-pill.estado-entregada {
+  background: #ede9fe;
+  color: #5b21b6;
+}
+
+.mantencion-estado-pill.estado-cancelada,
+.mantencion-estado-pill.estado-no_asistio {
+  background: #fee2e2;
+  color: #991b1b;
 }
 
 .mantencion-calendar-wrap {
@@ -310,6 +473,20 @@
   .mantencion-submit-btn {
     justify-self: flex-start;
     min-width: 260px;
+  }
+
+  .mantencion-consulta-form {
+    grid-template-columns: minmax(0, 320px) auto;
+  }
+
+  .mantencion-consulta-btn {
+    min-width: 170px;
+  }
+}
+
+@media (min-width: 961px) {
+  .mantencion-page {
+    padding: 98px 44px 70px;
   }
 }
 

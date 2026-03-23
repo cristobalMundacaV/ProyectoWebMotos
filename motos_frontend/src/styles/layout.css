@@ -247,7 +247,7 @@
     border-radius: 10px;
     cursor: pointer;
     flex-shrink: 0;
-    margin-left: 4px;
+    margin-left: auto;
     z-index: 1101;
   }
 
@@ -291,6 +291,7 @@
     z-index: 1100;
     pointer-events: none;
     overflow-y: auto;
+    flex: 0 0 auto;
   }
 
   .navbar nav.open {

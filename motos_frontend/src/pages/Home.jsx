@@ -13,27 +13,30 @@ export default function Home() {
 
   useEffect(() => {
     const raw = sessionStorage.getItem("homeScrollTarget");
-    if (!raw) return;
+    let id = "";
 
-    let payload = null;
-    try {
-      payload = JSON.parse(raw);
-    } catch {
+    if (raw) {
+      try {
+        const payload = JSON.parse(raw);
+        const candidate = payload?.id;
+        const ts = Number(payload?.ts || 0);
+        const isFresh = Date.now() - ts < 7000;
+        const isValidTarget = candidate === "inicio" || candidate === "contacto";
+        if (isFresh && isValidTarget) id = candidate;
+      } catch {
+        // Ignoramos payload invalido y usamos hash como fallback.
+      }
+    }
+
+    if (!id) {
+      if (location.hash === "#contacto") id = "contacto";
+      if (location.hash === "#inicio") id = "inicio";
+    }
+
+    if (!id) {
       sessionStorage.removeItem("homeScrollTarget");
       return;
     }
-
-    const id = payload?.id;
-    const ts = Number(payload?.ts || 0);
-    const isFresh = Date.now() - ts < 7000;
-    const isValidTarget = id === "inicio" || id === "contacto";
-    if (!isFresh || !isValidTarget) {
-      sessionStorage.removeItem("homeScrollTarget");
-      return;
-    }
-
-    const timers = [];
-    let attempts = 0;
 
     const getNavbarOffset = () => {
       const navbar = document.querySelector(".navbar");
@@ -41,27 +44,57 @@ export default function Home() {
       return navbarHeight + 10;
     };
 
-    const scrollToSection = (behavior = "smooth") => {
+    const getTargetTop = () => {
       const target = document.getElementById(id);
-      if (!target) return false;
+      if (!target) return null;
 
       const navbarOffset = getNavbarOffset();
-      const top = target.getBoundingClientRect().top + window.scrollY - navbarOffset;
-      window.scrollTo({ top: Math.max(0, top), behavior });
+      return Math.max(0, target.getBoundingClientRect().top + window.scrollY - navbarOffset);
+    };
+
+    const scrollToSection = (behavior = "smooth", onlyDown = false) => {
+      const top = getTargetTop();
+      if (top === null) return false;
+      if (onlyDown && top <= window.scrollY + 4) return false;
+      window.scrollTo({ top, behavior });
       return true;
     };
 
-    const tick = () => {
-      const didScroll = scrollToSection(attempts === 0 ? "smooth" : "auto");
-      attempts += 1;
-      if (!didScroll || attempts >= 14) return;
-      timers.push(window.setTimeout(tick, 170));
+    requestAnimationFrame(() => {
+      scrollToSection("smooth");
+    });
+
+    // Corrige desplazamientos por carga tardia de contenido (carruseles),
+    // pero solo hacia abajo para evitar el efecto de "sube y baja".
+    const keepStrictAnchor = id === "contacto";
+    const correctionTimer = window.setInterval(() => {
+      scrollToSection("auto", !keepStrictAnchor);
+    }, 180);
+    const stopCorrectionsTimer = window.setTimeout(() => {
+      window.clearInterval(correctionTimer);
+      sessionStorage.removeItem("homeScrollTarget");
+    }, id === "contacto" ? 6000 : 2200);
+
+    const stopOnUserScrollIntent = () => {
+      window.clearInterval(correctionTimer);
+      window.clearTimeout(stopCorrectionsTimer);
     };
 
-    requestAnimationFrame(tick);
-    sessionStorage.removeItem("homeScrollTarget");
+    window.addEventListener("wheel", stopOnUserScrollIntent, { passive: true });
+    window.addEventListener("touchstart", stopOnUserScrollIntent, { passive: true });
+    window.addEventListener("keydown", stopOnUserScrollIntent);
 
-    return () => timers.forEach((timer) => window.clearTimeout(timer));
+    if (location.hash) {
+      window.history.replaceState(null, "", location.pathname + location.search);
+    }
+
+    return () => {
+      window.clearInterval(correctionTimer);
+      window.clearTimeout(stopCorrectionsTimer);
+      window.removeEventListener("wheel", stopOnUserScrollIntent);
+      window.removeEventListener("touchstart", stopOnUserScrollIntent);
+      window.removeEventListener("keydown", stopOnUserScrollIntent);
+    };
   }, [location.pathname, location.hash]);
 
   return (

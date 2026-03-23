@@ -226,10 +226,20 @@
   border-radius: 14px;
   overflow: hidden;
   padding: 0 0 10px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  display: flex;
+  flex-direction: column;
+  min-height: 100%;
 }
 
 .equip-card-clickable {
   cursor: pointer;
+}
+
+.equip-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 16px 38px rgba(0, 0, 0, 0.16);
 }
 
 .equip-card-link {
@@ -262,12 +272,14 @@
   flex-direction: column;
   min-height: 98px;
   padding: 10px 12px 12px;
+  flex: 1;
 }
 
 .equip-card h3 {
   font-size: 0.95rem;
   line-height: 1.2;
   margin: 0;
+  min-height: 2.4em;
   line-clamp: 2;
   display: -webkit-box;
   -webkit-box-orient: vertical;
@@ -278,8 +290,9 @@
 .equip-card-bottom {
   margin-top: auto;
   display: flex;
-  align-items: flex-end;
-  justify-content: space-between;
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: flex-end;
   gap: 8px;
 }
 
@@ -293,10 +306,10 @@
 
 .equip-card-actions {
   display: flex;
-  justify-content: flex-end;
+  justify-content: stretch;
   padding: 0;
   margin-top: 0;
-  flex-shrink: 0;
+  width: 100%;
 }
 
 .equip-card-detail-btn {
@@ -311,6 +324,7 @@
   font-weight: 700;
   font-size: 0.84rem;
   white-space: nowrap;
+  width: 100%;
   max-width: 100%;
 }
 
@@ -702,12 +716,17 @@
   }
 
   .equip-filter-toggle-inline {
-    display: inline-flex;
-    margin-left: auto;
+    display: none;
   }
 
   .equip-mobile-tools {
-    display: none;
+    display: flex;
+    width: 100%;
+    justify-content: stretch;
+  }
+
+  .equip-mobile-tools .equip-filter-toggle-btn {
+    width: 100%;
   }
 
   .equip-layout {
@@ -779,11 +798,11 @@
   }
 
   .equip-card-actions {
-    justify-content: flex-end;
+    justify-content: stretch;
   }
 
   .equip-card-detail-btn {
-    width: auto;
+    width: 100%;
   }
 }
 
@@ -847,8 +866,3 @@
   }
 }
 
-@media (max-width: 1310px) and (min-width: 961px) {
-  .equip-card-detail-btn {
-    display: none;
-  }
-}

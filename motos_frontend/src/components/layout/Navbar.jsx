@@ -34,6 +34,15 @@ export default function Navbar() {
     sessionStorage.setItem("homeScrollTarget", JSON.stringify({ id: target, ts: Date.now() }));
   }
 
+  function scrollHomeSection(targetId) {
+    const target = document.getElementById(targetId);
+    if (!target) return;
+    const navbar = document.querySelector(".navbar");
+    const navbarHeight = navbar ? navbar.getBoundingClientRect().height : 64;
+    const top = Math.max(0, target.getBoundingClientRect().top + window.scrollY - (navbarHeight + 10));
+    window.scrollTo({ top, behavior: "smooth" });
+  }
+
   return (
     <header className="navbar">
       <div className="navbar-inner">
@@ -43,8 +52,12 @@ export default function Navbar() {
 
         <nav className={isMenuOpen ? "open" : ""} aria-label="Navegacion principal">
           <Link
-            to={{ pathname: "/", hash: "#inicio" }}
-            onClick={() => {
+            to="/"
+            onClick={(event) => {
+              if (location.pathname === "/") {
+                event.preventDefault();
+                scrollHomeSection("inicio");
+              }
               rememberHomeScrollTarget("inicio");
               setIsMenuOpen(false);
             }}
@@ -64,8 +77,12 @@ export default function Navbar() {
             Mantenimiento
           </Link>
           <Link
-            to={{ pathname: "/", hash: "#contacto" }}
-            onClick={() => {
+            to="/"
+            onClick={(event) => {
+              if (location.pathname === "/") {
+                event.preventDefault();
+                scrollHomeSection("contacto");
+              }
               rememberHomeScrollTarget("contacto");
               setIsMenuOpen(false);
             }}

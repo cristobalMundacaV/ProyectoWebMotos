@@ -7,6 +7,7 @@ from .availability import get_disponibilidad
 from .models import HorarioMantencion, Mantencion, VehiculoCliente
 from .serializers import (
     AgendarMantencionSerializer,
+    ConsultarMantencionPorRutSerializer,
     HorarioMantencionSerializer,
     MantencionSerializer,
     VehiculoClienteSerializer,
@@ -58,3 +59,40 @@ class MantencionDisponibilidadAPIView(APIView):
             days = 21
         days = min(max(days, 1), 60)
         return Response({"days": days, "slots": get_disponibilidad(days_ahead=days)}, status=status.HTTP_200_OK)
+
+
+class MantencionConsultaRutAPIView(APIView):
+    authentication_classes = []
+    permission_classes = [AllowAny]
+
+    def get(self, request):
+        query_serializer = ConsultarMantencionPorRutSerializer(data={"rut": request.query_params.get("rut", "")})
+        query_serializer.is_valid(raise_exception=True)
+        rut = query_serializer.validated_data["rut"]
+
+        mantenciones = (
+            Mantencion.objects.select_related("moto_cliente")
+            .filter(rut_cliente=rut)
+            .order_by("-fecha_ingreso", "-hora_ingreso", "-created_at")[:25]
+        )
+
+        results = [
+            {
+                "id": mantencion.id,
+                "rut_cliente": mantencion.rut_cliente,
+                "estado": mantencion.estado,
+                "estado_label": mantencion.get_estado_display(),
+                "fecha_ingreso": mantencion.fecha_ingreso,
+                "hora_ingreso": mantencion.hora_ingreso,
+                "tipo_mantencion": mantencion.tipo_mantencion,
+                "tipo_mantencion_label": mantencion.get_tipo_mantencion_display(),
+                "matricula": mantencion.moto_cliente.matricula,
+                "marca": mantencion.moto_cliente.marca,
+                "modelo": mantencion.moto_cliente.modelo,
+                "motivo": mantencion.motivo,
+                "created_at": mantencion.created_at,
+            }
+            for mantencion in mantenciones
+        ]
+
+        return Response({"rut": rut, "results": results}, status=status.HTTP_200_OK)

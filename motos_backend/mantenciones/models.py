@@ -111,6 +111,7 @@ class Mantencion(models.Model):
         related_name="mantenciones",
         verbose_name="moto cliente",
     )
+    rut_cliente = models.CharField(max_length=12, blank=True, default="", db_index=True, verbose_name="rut cliente")
     fecha_ingreso = models.DateField(verbose_name="fecha de ingreso")
     hora_ingreso = models.TimeField(null=True, blank=True, verbose_name="hora de ingreso")
     kilometraje_ingreso = models.IntegerField(null=True, blank=True, verbose_name="kilometraje de ingreso")
