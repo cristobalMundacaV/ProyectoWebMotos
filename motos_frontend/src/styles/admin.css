@@ -2934,7 +2934,7 @@
   align-items: center;
   justify-content: flex-start;
   min-width: 0;
-  padding-left: 0;
+  padding-left: 10px;
 }
 
 .admin-analytics-kpi-value {
@@ -2966,6 +2966,7 @@
   border-radius: 999px;
   max-width: 100%;
   padding: 10px 16px;
+  margin-left: 10px;
   font-size: clamp(1.15rem, 1.45vw + 0.75rem, 1.6rem);
   font-weight: 800;
   line-height: 1;
@@ -3203,6 +3204,7 @@
 
   .admin-analytics-kpi-body {
     align-items: flex-start;
+    padding-left: 8px;
   }
 
   .admin-analytics-kpi-value {
@@ -3220,6 +3222,7 @@
     width: fit-content;
     max-width: 100%;
     padding: 6px 10px;
+    margin-left: 8px;
     font-size: clamp(0.92rem, 4.2vw, 1.08rem);
     white-space: normal;
   }
