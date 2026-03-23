@@ -3235,6 +3235,10 @@
     min-height: auto;
     padding: 14px;
     border-radius: 14px;
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+    overflow: hidden;
   }
 
   .admin-analytics-card-subtitle {
@@ -3279,6 +3283,21 @@
   .admin-analytics-line-wrap {
     height: 205px;
     border-radius: 12px;
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+    overflow-x: auto;
+    overflow-y: hidden;
+  }
+
+  .admin-analytics-line-canvas {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .admin-analytics-line-svg {
+    display: block;
+    max-width: 100%;
   }
 
   .admin-analytics-axis-text {
@@ -3310,6 +3329,11 @@
     height: 190px;
   }
 
+  .admin-analytics-chart-card,
+  .admin-analytics-chart-card-line {
+    padding: 10px;
+  }
+
   .admin-analytics-kpi-title {
     font-size: 0.84rem;
   }
@@ -3325,6 +3349,10 @@
 
   .admin-analytics-bar-value {
     font-size: 0.88rem;
+  }
+
+  .admin-analytics-axis-text {
+    font-size: 8px;
   }
 
   .admin-analytics-bar-value small {
