@@ -14,8 +14,6 @@ export default function IndumentariaDestacada() {
   const [deletingId, setDeletingId] = useState(null);
   const trackRef = useRef(null);
 
-  const SCROLL_AMOUNT = 460;
-
   useEffect(() => {
     const token = getStoredToken();
     const user = getStoredUser();
@@ -55,9 +53,30 @@ export default function IndumentariaDestacada() {
   }, [productos]);
 
   function scroll(direction) {
-    if (trackRef.current) {
-      trackRef.current.scrollBy({ left: direction * SCROLL_AMOUNT, behavior: "smooth" });
-    }
+    const track = trackRef.current;
+    if (!track) return;
+
+    const items = Array.from(track.querySelectorAll(".carousel-item"));
+    if (items.length === 0) return;
+
+    const trackRect = track.getBoundingClientRect();
+    const trackCenterX = trackRect.left + trackRect.width / 2;
+
+    let activeIndex = 0;
+    let minDistance = Number.POSITIVE_INFINITY;
+
+    items.forEach((item, index) => {
+      const itemRect = item.getBoundingClientRect();
+      const itemCenterX = itemRect.left + itemRect.width / 2;
+      const distance = Math.abs(itemCenterX - trackCenterX);
+      if (distance < minDistance) {
+        minDistance = distance;
+        activeIndex = index;
+      }
+    });
+
+    const targetIndex = Math.max(0, Math.min(items.length - 1, activeIndex + direction));
+    items[targetIndex].scrollIntoView({ behavior: "smooth", inline: "center", block: "nearest" });
   }
 
   async function handleDeleteProducto(event, producto) {

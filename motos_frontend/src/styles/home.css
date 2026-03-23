@@ -90,7 +90,7 @@
 
 .carousel-item {
   flex: 0 0 min(348px, 86vw);
-  scroll-snap-align: start;
+  scroll-snap-align: center;
 }
 
 .carousel-wrapper-motos .carousel-track {

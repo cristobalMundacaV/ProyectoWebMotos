@@ -204,6 +204,18 @@
   line-height: 1.45;
 }
 
+.detalle-moto-page .detalle-side-cards {
+  grid-template-columns: 1fr;
+}
+
+.detalle-moto-page .detalle-cta {
+  margin-top: 6px;
+}
+
+.detalle-moto-page .detalle-description {
+  margin-top: 22px;
+}
+
 @media (max-width: 1280px) {
   .detalle-main {
     padding: 72px 16px 20px;
@@ -306,6 +318,10 @@
     font-size: 15px;
     line-height: 1.5;
   }
+
+  .detalle-moto-page .detalle-description {
+    margin-top: 16px;
+  }
 }
 
 @media (max-width: 430px) {
@@ -385,5 +401,9 @@
   .detalle-producto-page .detalle-description p {
     font-size: 13px;
     line-height: 1.5;
+  }
+
+  .detalle-moto-page .detalle-description {
+    margin-top: 14px;
   }
 }
