@@ -501,7 +501,7 @@ export default function MotosPage({
 
         <article className="admin-panel-card">
           <div className="admin-card-header">
-            <h2>Motos recientes</h2>
+            <h2>Motos registradas</h2>
             <span>{dashboard.motos.length} registradas</span>
           </div>
           <div className="admin-table">

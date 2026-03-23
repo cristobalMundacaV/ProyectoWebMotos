@@ -492,7 +492,7 @@ export default function ProductosPage({
       <section className="admin-content-grid lower">
         <article className="admin-panel-card">
           <div className="admin-card-header">
-            <h2>Agregar accesorio rider</h2>
+            <h2>Agregar Indumentaria Rider</h2>
             <span>Gestion de productos para uso del piloto.</span>
           </div>
 
@@ -614,7 +614,7 @@ export default function ProductosPage({
 
         <article className="admin-panel-card">
           <div className="admin-card-header">
-            <h2>Accesorios Rider</h2>
+            <h2>Indumentaria Rider</h2>
             <span>{accesoriosRiderAdmin.length} registrados</span>
           </div>
 
