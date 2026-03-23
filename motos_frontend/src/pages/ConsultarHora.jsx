@@ -133,18 +133,42 @@ export default function ConsultarHora() {
                       <h3>{item.tipo_mantencion_label || item.tipo_mantencion}</h3>
                       <span className={`mantencion-estado-pill estado-${item.estado}`}>{item.estado_label}</span>
                     </header>
-                    <p>
-                      <strong>Fecha:</strong>{" "}
-                      {item.fecha_ingreso
-                        ? new Date(`${item.fecha_ingreso}T00:00:00`).toLocaleDateString("es-CL")
-                        : "-"}
-                    </p>
-                    <p>
-                      <strong>Hora:</strong> {item.hora_ingreso?.slice(0, 5) || "-"}
-                    </p>
-                    <p>
-                      <strong>Moto:</strong> {item.marca} {item.modelo} ({item.matricula})
-                    </p>
+
+                    <div className="mantencion-consulta-details">
+                      <div className="mantencion-consulta-column">
+                        <p>
+                          <strong>Nombres:</strong> {item.nombres || "-"}
+                        </p>
+                        <p>
+                          <strong>Apellidos:</strong> {item.apellidos || "-"}
+                        </p>
+                        <p>
+                          <strong>Telefono:</strong> {item.telefono || "-"}
+                        </p>
+                        <p>
+                          <strong>Email:</strong> {item.email || "-"}
+                        </p>
+                      </div>
+
+                      <div className="mantencion-consulta-column">
+                        <p>
+                          <strong>Moto:</strong> {[item.marca, item.modelo].filter(Boolean).join(" ") || "-"}
+                        </p>
+                        <p>
+                          <strong>Patente:</strong> {item.matricula || "-"}
+                        </p>
+                        <p>
+                          <strong>Fecha:</strong>{" "}
+                          {item.fecha_ingreso
+                            ? new Date(`${item.fecha_ingreso}T00:00:00`).toLocaleDateString("es-CL")
+                            : "-"}
+                        </p>
+                        <p>
+                          <strong>Hora:</strong> {item.hora_ingreso?.slice(0, 5) || "-"}
+                        </p>
+                      </div>
+                    </div>
+
                     <p>
                       <strong>Motivo:</strong> {item.motivo}
                     </p>

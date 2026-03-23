@@ -236,7 +236,7 @@
   background: #f8fafc;
   padding: 12px;
   display: grid;
-  gap: 6px;
+  gap: 10px;
 }
 
 .mantencion-consulta-card header {
@@ -256,6 +256,17 @@
   margin: 0;
   font-size: 0.9rem;
   color: #1f2937;
+}
+
+.mantencion-consulta-details {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 10px;
+}
+
+.mantencion-consulta-column {
+  display: grid;
+  gap: 6px;
 }
 
 .mantencion-estado-pill {
@@ -485,6 +496,11 @@
 
   .mantencion-consulta-btn {
     min-width: 170px;
+  }
+
+  .mantencion-consulta-details {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 18px;
   }
 }
 

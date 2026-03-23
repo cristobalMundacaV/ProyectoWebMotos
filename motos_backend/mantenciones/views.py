@@ -71,7 +71,7 @@ class MantencionConsultaRutAPIView(APIView):
         rut = query_serializer.validated_data["rut"]
 
         mantenciones = (
-            Mantencion.objects.select_related("moto_cliente")
+            Mantencion.objects.select_related("moto_cliente", "moto_cliente__cliente", "moto_cliente__cliente__perfil_usuario")
             .filter(rut_cliente=rut)
             .order_by("-fecha_ingreso", "-hora_ingreso", "-created_at")[:25]
         )
@@ -80,6 +80,10 @@ class MantencionConsultaRutAPIView(APIView):
             {
                 "id": mantencion.id,
                 "rut_cliente": mantencion.rut_cliente,
+                "nombres": mantencion.moto_cliente.cliente.first_name,
+                "apellidos": mantencion.moto_cliente.cliente.last_name,
+                "telefono": getattr(getattr(mantencion.moto_cliente.cliente, "perfil_usuario", None), "telefono", ""),
+                "email": mantencion.moto_cliente.cliente.email,
                 "estado": mantencion.estado,
                 "estado_label": mantencion.get_estado_display(),
                 "fecha_ingreso": mantencion.fecha_ingreso,
