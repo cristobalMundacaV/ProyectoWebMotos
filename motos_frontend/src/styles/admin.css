@@ -2746,7 +2746,7 @@
 
 @media (max-width: 640px) {
   .admin-layout {
-    padding: 10px;
+    padding: 12px;
     gap: 10px;
   }
 
@@ -2782,7 +2782,7 @@
   .admin-summary-card,
   .admin-hero-card {
     border-radius: 16px;
-    padding: 14px;
+    padding: 16px;
   }
 
   .admin-table-row {
@@ -3182,7 +3182,7 @@
   }
 
   .admin-analytics-kpi-card {
-    padding: 12px;
+    padding: 14px;
     gap: 8px;
     border-radius: 14px;
   }
@@ -3219,7 +3219,7 @@
   .admin-analytics-chart-card,
   .admin-analytics-chart-card-line {
     min-height: auto;
-    padding: 12px;
+    padding: 14px;
     border-radius: 14px;
   }
 
@@ -3234,11 +3234,13 @@
 
   .admin-analytics-bar-row {
     display: grid;
-    grid-template-columns: 1fr;
-    gap: 8px;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 8px 10px;
+    align-items: center;
   }
 
   .admin-analytics-bar-label {
+    grid-column: 1 / -1;
     font-size: 0.92rem;
   }
 
@@ -3248,12 +3250,15 @@
   }
 
   .admin-analytics-bar-track {
+    grid-column: 1;
     width: 100%;
   }
 
   .admin-analytics-bar-value {
-    justify-content: flex-start;
-    flex-wrap: wrap;
+    grid-column: 2;
+    justify-content: flex-end;
+    align-self: center;
+    white-space: nowrap;
     font-size: 0.95rem;
   }
 
@@ -3280,7 +3285,7 @@
   .admin-analytics-kpi-card,
   .admin-analytics-chart-card,
   .admin-analytics-chart-card-line {
-    padding: 10px;
+    padding: 12px;
   }
 
   .admin-analytics-line-wrap {
@@ -3293,6 +3298,19 @@
 
   .admin-analytics-kpi-value {
     font-size: clamp(1rem, 4.8vw, 1.26rem);
+  }
+
+  .admin-analytics-bar-row {
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 7px 8px;
+  }
+
+  .admin-analytics-bar-value {
+    font-size: 0.88rem;
+  }
+
+  .admin-analytics-bar-value small {
+    font-size: 0.7rem;
   }
 }
 
