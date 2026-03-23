@@ -1699,7 +1699,7 @@
   text-transform: uppercase;
 }
 
-.admin-mantencion-ficha-mobile-picker select {
+.admin-mantencion-mobile-trigger {
   width: 100%;
   border: 1px solid #d0d7e3;
   border-radius: 10px;
@@ -1707,6 +1707,53 @@
   color: #0f172a;
   padding: 10px 12px;
   font-size: 0.92rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  text-align: left;
+  cursor: pointer;
+}
+
+.admin-mantencion-mobile-trigger span:first-child {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.admin-mantencion-mobile-trigger.is-open {
+  border-color: #0f6e6e;
+  box-shadow: 0 0 0 2px rgba(15, 110, 110, 0.12);
+}
+
+.admin-mantencion-mobile-options {
+  border: 1px solid #d0d7e3;
+  border-radius: 12px;
+  background: #fff;
+  overflow-y: auto;
+  max-height: 40vh;
+}
+
+.admin-mantencion-mobile-option {
+  width: 100%;
+  border: 0;
+  border-bottom: 1px solid #e5e7eb;
+  background: #fff;
+  color: #0f172a;
+  font-size: 0.92rem;
+  text-align: left;
+  padding: 10px 12px;
+  cursor: pointer;
+}
+
+.admin-mantencion-mobile-option:last-child {
+  border-bottom: 0;
+}
+
+.admin-mantencion-mobile-option.active {
+  background: #f1f5f9;
+  font-weight: 700;
 }
 
 .admin-mantencion-ficha-group {
