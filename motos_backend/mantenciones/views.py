@@ -4,7 +4,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from .availability import get_disponibilidad
-from .models import HorarioMantencion, Mantencion, VehiculoCliente
+from .models import HorarioMantencion, Mantencion, MantencionEstadoHistorial, VehiculoCliente
 from .serializers import (
     AgendarMantencionSerializer,
     ConsultarMantencionPorRutSerializer,
@@ -100,3 +100,56 @@ class MantencionConsultaRutAPIView(APIView):
         ]
 
         return Response({"rut": rut, "results": results}, status=status.HTTP_200_OK)
+
+
+class MantencionCancelarAPIView(APIView):
+    authentication_classes = []
+    permission_classes = [AllowAny]
+
+    def post(self, request, mantencion_id: int):
+        query_serializer = ConsultarMantencionPorRutSerializer(data={"rut": request.data.get("rut", "")})
+        query_serializer.is_valid(raise_exception=True)
+        rut = query_serializer.validated_data["rut"]
+
+        mantencion = Mantencion.objects.filter(id=mantencion_id, rut_cliente=rut).first()
+        if not mantencion:
+            return Response(
+                {"detail": "No encontramos esa hora asociada al RUT indicado."},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+        if mantencion.estado == Mantencion.ESTADO_CANCELADA:
+            return Response(
+                {"detail": "La hora ya se encuentra cancelada."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        estados_cancelables = {Mantencion.ESTADO_INGRESADA, Mantencion.ESTADO_ACEPTADA}
+        if mantencion.estado not in estados_cancelables:
+            return Response(
+                {"detail": "Solo puedes cancelar horas en estado Ingresada o Aceptada."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        estado_anterior = mantencion.estado
+        mantencion.estado = Mantencion.ESTADO_CANCELADA
+        mantencion.save()
+
+        MantencionEstadoHistorial.objects.create(
+            mantencion=mantencion,
+            estado_anterior=estado_anterior,
+            estado_nuevo=Mantencion.ESTADO_CANCELADA,
+            changed_by=None,
+            fuente=MantencionEstadoHistorial.FUENTE_PORTAL_CLIENTE,
+            observacion="Cancelacion realizada por cliente desde consulta de estado",
+        )
+
+        return Response(
+            {
+                "detail": "Tu hora fue cancelada correctamente.",
+                "id": mantencion.id,
+                "estado": mantencion.estado,
+                "estado_label": mantencion.get_estado_display(),
+            },
+            status=status.HTTP_200_OK,
+        )

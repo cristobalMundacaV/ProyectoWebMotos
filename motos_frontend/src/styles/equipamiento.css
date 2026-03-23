@@ -330,11 +330,11 @@
 
 .equip-admin-actions {
   position: absolute;
-  top: 8px;
-  right: 8px;
+  top: 12px;
+  right: 12px;
   display: flex;
   flex-direction: row;
-  gap: 6px;
+  gap: 8px;
   z-index: 10;
 }
 
@@ -342,19 +342,21 @@
   width: 34px;
   height: 34px;
   border-radius: 50%;
+  margin: 0;
+  padding: 0;
   border: none;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.25);
-  transition: transform 0.15s, opacity 0.15s;
-  opacity: 0.9;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+  transition: transform 0.15s ease;
+  opacity: 1;
+  line-height: 0;
 }
 
 .equip-admin-btn:hover {
-  opacity: 1;
-  transform: scale(1.12);
+  transform: scale(1.08);
 }
 
 .equip-admin-btn.edit {
@@ -363,8 +365,13 @@
 }
 
 .equip-admin-btn.delete {
-  background: #c0392b;
+  background: #d84f3f;
   color: #fff;
+}
+
+.equip-admin-btn svg {
+  width: 14px;
+  height: 14px;
 }
 
 .equip-empty {

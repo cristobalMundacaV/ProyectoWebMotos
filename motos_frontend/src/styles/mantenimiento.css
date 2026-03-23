@@ -225,6 +225,12 @@
   font-size: 0.92rem;
 }
 
+.mantencion-consulta-success {
+  color: #166534;
+  font-weight: 600;
+  font-size: 0.92rem;
+}
+
 .mantencion-consulta-list {
   display: grid;
   gap: 10px;
@@ -267,6 +273,117 @@
 .mantencion-consulta-column {
   display: grid;
   gap: 6px;
+}
+
+.mantencion-consulta-actions {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.mantencion-consulta-cancel-btn {
+  border: none;
+  border-radius: 10px;
+  min-height: 38px;
+  padding: 0 14px;
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: #fff;
+  background: #b91c1c;
+  cursor: pointer;
+  transition: opacity 0.15s ease, transform 0.15s ease;
+}
+
+.mantencion-consulta-cancel-btn:hover {
+  transform: translateY(-1px);
+}
+
+.mantencion-consulta-cancel-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.mantencion-cancel-modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1300;
+  background: rgba(10, 15, 24, 0.58);
+  backdrop-filter: blur(2px);
+  display: grid;
+  place-items: center;
+  padding: 18px;
+}
+
+.mantencion-cancel-modal {
+  width: min(520px, 100%);
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 18px;
+  box-shadow: 0 28px 80px rgba(0, 0, 0, 0.28);
+  padding: 24px 22px 20px;
+  display: grid;
+  justify-items: center;
+  gap: 10px;
+  text-align: center;
+}
+
+.mantencion-cancel-modal-image {
+  width: 76px;
+  height: 76px;
+  object-fit: contain;
+}
+
+.mantencion-cancel-modal h3 {
+  margin: 0;
+  color: #111827;
+  font-size: 1.3rem;
+}
+
+.mantencion-cancel-modal-text {
+  margin: 0;
+  color: #1f2937;
+  font-size: 0.95rem;
+  line-height: 1.45;
+}
+
+.mantencion-cancel-modal-subtext {
+  margin: 0;
+  color: #4b5563;
+  font-size: 0.9rem;
+}
+
+.mantencion-cancel-modal-actions {
+  margin-top: 8px;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+}
+
+.mantencion-cancel-modal-actions .btn-back,
+.mantencion-cancel-modal-actions .btn-delete {
+  border: none;
+  min-width: 140px;
+  height: 42px;
+  border-radius: 10px;
+  font-weight: 700;
+  font-size: 0.92rem;
+  cursor: pointer;
+}
+
+.mantencion-cancel-modal-actions .btn-back {
+  background: #f3f4f6;
+  color: #1f2937;
+}
+
+.mantencion-cancel-modal-actions .btn-delete {
+  background: #b91c1c;
+  color: #fff;
+}
+
+.mantencion-cancel-modal-actions .btn-back:disabled,
+.mantencion-cancel-modal-actions .btn-delete:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
 }
 
 .mantencion-estado-pill {
@@ -515,5 +632,19 @@
     top: 78px;
     right: 10px;
     width: calc(100vw - 20px);
+  }
+
+  .mantencion-cancel-modal {
+    border-radius: 14px;
+    padding: 18px 14px 16px;
+  }
+
+  .mantencion-cancel-modal-actions {
+    flex-direction: column;
+  }
+
+  .mantencion-cancel-modal-actions .btn-back,
+  .mantencion-cancel-modal-actions .btn-delete {
+    width: 100%;
   }
 }

@@ -1,8 +1,8 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import Navbar from "../components/layout/Navbar";
 import Footer from "../components/layout/Footer";
-import { consultarMantencionesPorRut } from "../services/mantencionesService";
+import { cancelarMantencionPorRut, consultarMantencionesPorRut } from "../services/mantencionesService";
 import "../styles/mantenimiento.css";
 
 function normalizeRut(rawRut) {
@@ -52,11 +52,44 @@ function isValidRut(rawRut) {
   return dv === expectedDv;
 }
 
+function canCancelMantencion(estado) {
+  return estado === "ingresada" || estado === "aceptada";
+}
+
+function getErrorText(error, fallback) {
+  const data = error?.response?.data;
+  if (!data) return fallback;
+  if (typeof data === "string") return data;
+  if (typeof data?.detail === "string") return data.detail;
+
+  const firstArray = Object.values(data).find((value) => Array.isArray(value) && value.length > 0);
+  if (firstArray) return String(firstArray[0]);
+  return fallback;
+}
+
 export default function ConsultarHora() {
   const [consultaRut, setConsultaRut] = useState("");
   const [consultaLoading, setConsultaLoading] = useState(false);
   const [consultaError, setConsultaError] = useState("");
+  const [consultaSuccess, setConsultaSuccess] = useState("");
   const [consultaResultados, setConsultaResultados] = useState([]);
+  const [cancelandoById, setCancelandoById] = useState({});
+  const [cancelModalItem, setCancelModalItem] = useState(null);
+
+  const isCancelModalSaving = cancelModalItem ? Boolean(cancelandoById[cancelModalItem.id]) : false;
+
+  useEffect(() => {
+    if (!cancelModalItem) return undefined;
+
+    const onEsc = (event) => {
+      if (event.key !== "Escape") return;
+      if (isCancelModalSaving) return;
+      setCancelModalItem(null);
+    };
+
+    window.addEventListener("keydown", onEsc);
+    return () => window.removeEventListener("keydown", onEsc);
+  }, [cancelModalItem, isCancelModalSaving]);
 
   async function handleConsultarEstado(event) {
     event.preventDefault();
@@ -71,6 +104,7 @@ export default function ConsultarHora() {
 
     setConsultaLoading(true);
     setConsultaError("");
+    setConsultaSuccess("");
 
     try {
       const data = await consultarMantencionesPorRut(normalizedRut);
@@ -84,6 +118,52 @@ export default function ConsultarHora() {
       setConsultaError("No pudimos consultar el estado de tus horas. Intenta nuevamente.");
     } finally {
       setConsultaLoading(false);
+    }
+  }
+
+  function openCancelModal(item) {
+    if (!item || !canCancelMantencion(item.estado)) return;
+    setCancelModalItem(item);
+  }
+
+  function closeCancelModal() {
+    if (isCancelModalSaving) return;
+    setCancelModalItem(null);
+  }
+
+  async function handleCancelarHora() {
+    const item = cancelModalItem;
+    if (!item || !canCancelMantencion(item.estado)) return;
+
+    const normalizedRut = normalizeRut(consultaRut || item.rut_cliente);
+    if (!normalizedRut || !isValidRut(normalizedRut)) {
+      setConsultaError("No pudimos validar el RUT para cancelar la hora.");
+      return;
+    }
+
+    setConsultaError("");
+    setConsultaSuccess("");
+    setCancelandoById((prev) => ({ ...prev, [item.id]: true }));
+
+    try {
+      const response = await cancelarMantencionPorRut(item.id, normalizedRut);
+      setConsultaResultados((prev) =>
+        prev.map((row) =>
+          row.id === item.id
+            ? {
+                ...row,
+                estado: response?.estado || "cancelada",
+                estado_label: response?.estado_label || "Cancelada",
+              }
+            : row
+        )
+      );
+      setConsultaSuccess(response?.detail || "Tu hora fue cancelada correctamente.");
+      setCancelModalItem(null);
+    } catch (error) {
+      setConsultaError(getErrorText(error, "No pudimos cancelar la hora. Intenta nuevamente."));
+    } finally {
+      setCancelandoById((prev) => ({ ...prev, [item.id]: false }));
     }
   }
 
@@ -124,6 +204,7 @@ export default function ConsultarHora() {
             </form>
 
             {consultaError && <p className="mantencion-consulta-error">{consultaError}</p>}
+            {consultaSuccess && <p className="mantencion-consulta-success">{consultaSuccess}</p>}
 
             {consultaResultados.length > 0 && (
               <div className="mantencion-consulta-list">
@@ -172,6 +253,19 @@ export default function ConsultarHora() {
                     <p>
                       <strong>Motivo:</strong> {item.motivo}
                     </p>
+
+                    {canCancelMantencion(item.estado) && (
+                      <div className="mantencion-consulta-actions">
+                        <button
+                          type="button"
+                          className="mantencion-consulta-cancel-btn"
+                          onClick={() => openCancelModal(item)}
+                          disabled={Boolean(cancelandoById[item.id])}
+                        >
+                          {cancelandoById[item.id] ? "Cancelando..." : "Cancelar hora"}
+                        </button>
+                      </div>
+                    )}
                   </article>
                 ))}
               </div>
@@ -179,6 +273,36 @@ export default function ConsultarHora() {
           </section>
         </section>
       </main>
+
+      {cancelModalItem && (
+        <div className="mantencion-cancel-modal-overlay" onClick={closeCancelModal}>
+          <section className="mantencion-cancel-modal" onClick={(event) => event.stopPropagation()}>
+            <img src="/images/informacion.png" alt="Informacion" className="mantencion-cancel-modal-image" />
+            <h3>Confirmar cancelacion</h3>
+            <p className="mantencion-cancel-modal-text">
+              Vas a cancelar la hora del{" "}
+              <strong>
+                {cancelModalItem.fecha_ingreso
+                  ? new Date(`${cancelModalItem.fecha_ingreso}T00:00:00`).toLocaleDateString("es-CL")
+                  : "-"}
+              </strong>{" "}
+              a las <strong>{cancelModalItem.hora_ingreso?.slice(0, 5) || "-"}</strong>.
+            </p>
+            <p className="mantencion-cancel-modal-subtext">
+              Esta accion cambiara el estado a <strong>Cancelada</strong>.
+            </p>
+
+            <div className="mantencion-cancel-modal-actions">
+              <button type="button" className="btn-back" onClick={closeCancelModal} disabled={isCancelModalSaving}>
+                Volver
+              </button>
+              <button type="button" className="btn-delete" onClick={handleCancelarHora} disabled={isCancelModalSaving}>
+                {isCancelModalSaving ? "Cancelando..." : "Cancelar hora"}
+              </button>
+            </div>
+          </section>
+        </div>
+      )}
 
       <Footer />
     </div>

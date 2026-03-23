@@ -43,3 +43,12 @@ export async function consultarMantencionesPorRut(rut) {
   );
   return response.data;
 }
+
+export async function cancelarMantencionPorRut(mantencionId, rut) {
+  const response = await postWithFallback(
+    `/api/mantenciones/consulta/${mantencionId}/cancelar/`,
+    `/mantenciones/consulta/${mantencionId}/cancelar/`,
+    { rut }
+  );
+  return response.data;
+}
