@@ -31,9 +31,25 @@ function getTicks(max, count = 4) {
 }
 
 function getLabelIndexes(length) {
-  if (length <= 5) return Array.from({ length }, (_, i) => i);
-  if (length <= 8) return [...new Set([0, 2, 4, 6, length - 1])];
+  if (length <= 4) return Array.from({ length }, (_, i) => i);
+  if (length <= 6) return [...new Set([0, 2, 4, length - 1])];
+  if (length <= 8) return [...new Set([0, 2, 5, length - 1])];
   return [...new Set([0, Math.floor(length * 0.25), Math.floor(length * 0.5), Math.floor(length * 0.75), length - 1])];
+}
+
+function formatAxisLabel(label, isMobile) {
+  const raw = String(label || "");
+  if (!isMobile) return raw;
+
+  if (/^\d{4}-\d{2}-\d{2}$/.test(raw)) {
+    return raw.slice(5);
+  }
+
+  if (/^\d{4}-\d{2}$/.test(raw)) {
+    return `${raw.slice(2, 4)}-${raw.slice(5, 7)}`;
+  }
+
+  return raw.length > 8 ? raw.slice(0, 8) : raw;
 }
 
 export default function LineChartCard({ title, subtitle = "", items = [], loading = false, averageValue = null }) {
@@ -51,7 +67,7 @@ export default function LineChartCard({ title, subtitle = "", items = [], loadin
     ? { top: 12, right: 4, bottom: 24, left: 22 }
     : { top: 18, right: 10, bottom: 34, left: 34 };
   const svgPixelWidth = isMobile
-    ? Math.max(280, Math.min(640, 120 + (Math.max(items.length, 2) - 1) * 28))
+    ? Math.max(320, Math.min(760, 140 + (Math.max(items.length, 2) - 1) * 34))
     : Math.max(640, Math.min(1180, 260 + (Math.max(items.length, 2) - 1) * 70));
 
   useEffect(() => {
@@ -145,7 +161,7 @@ export default function LineChartCard({ title, subtitle = "", items = [], loadin
                 if (!point) return null;
                 return (
                   <text key={`x-${idx}`} x={point.x} y={height - 10} textAnchor="middle" className="admin-analytics-axis-text">
-                    {point.label}
+                    {formatAxisLabel(point.label, isMobile)}
                   </text>
                 );
               })}
