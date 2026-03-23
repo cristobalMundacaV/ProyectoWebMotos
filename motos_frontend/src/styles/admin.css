@@ -796,7 +796,7 @@
 
 .admin-rider-product-row {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-columns: minmax(0, 1fr) minmax(120px, auto) auto;
   align-items: center;
   gap: 12px 16px;
 }
@@ -814,6 +814,15 @@
 
 .admin-rider-product-category {
   color: #6b7280;
+}
+
+.admin-rider-product-meta {
+  min-width: 120px;
+  display: grid;
+  gap: 4px;
+  align-items: start;
+  justify-items: start;
+  text-align: left;
 }
 
 .admin-rider-product-price {
@@ -3070,7 +3079,7 @@
   }
 
   .admin-table-row.admin-rider-product-row {
-    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-columns: minmax(0, 1fr) minmax(100px, auto) auto;
     align-items: center;
     gap: 10px 12px;
   }
@@ -3615,7 +3624,7 @@
   }
 
   .admin-table-row.admin-rider-product-row {
-    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-columns: minmax(0, 1fr) minmax(96px, auto) auto;
     gap: 8px 10px;
   }
 

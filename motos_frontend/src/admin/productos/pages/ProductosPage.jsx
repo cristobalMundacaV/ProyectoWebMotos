@@ -624,6 +624,8 @@ export default function ProductosPage({
                 <div className="admin-rider-product-main">
                   <strong>{producto.nombre}</strong>
                   <span className="admin-rider-product-category">{formatCategoryLabel(producto.subcategoria_nombre)}</span>
+                </div>
+                <div className="admin-rider-product-meta">
                   <strong className="admin-rider-product-price">
                     {producto.precio ? `$${Number(producto.precio).toLocaleString("es-CL")}` : "Sin precio"}
                   </strong>
