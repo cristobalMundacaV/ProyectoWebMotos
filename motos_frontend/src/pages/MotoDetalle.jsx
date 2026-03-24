@@ -2,13 +2,16 @@ import { useParams, Link } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { buildMediaUrl } from "../services/apiConfig";
 import { getMotoBySlug } from "../services/motosService";
+import { getContactoPublico } from "../services/productosService";
 import { trackCatalogView } from "../services/analyticsService";
+import { buildWhatsAppUrl } from "../services/contactoUtils";
 import Navbar from "../components/layout/Navbar";
 import "../styles/detalle.css";
 
 export default function MotoDetalle() {
   const { slug } = useParams();
   const [moto, setMoto] = useState(null);
+  const [telefonoContacto, setTelefonoContacto] = useState("+56 9 1234 5678");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
@@ -18,10 +21,13 @@ export default function MotoDetalle() {
     async function loadData() {
       setError("");
       try {
-        const motoData = await getMotoBySlug(slug);
+        const [motoData, contactoData] = await Promise.all([getMotoBySlug(slug), getContactoPublico()]);
 
         if (!isMounted) return;
         setMoto(motoData);
+        if (contactoData?.telefono) {
+          setTelefonoContacto(contactoData.telefono);
+        }
         if (motoData) {
           trackCatalogView({
             tipoEntidad: "moto",
@@ -74,6 +80,7 @@ export default function MotoDetalle() {
   const categoria = moto.categoria_nombre || "-";
   const marca = moto.marca_nombre || "-";
   const cilindrada = moto.cilindrada ? `${moto.cilindrada}cc` : "-";
+  const whatsappHref = buildWhatsAppUrl(telefonoContacto, `Hola quiero cotizar la moto ${modelo}`);
 
   return (
     <div className="detalle-page detalle-moto-page">
@@ -122,7 +129,7 @@ export default function MotoDetalle() {
 
             <a
               className="detalle-cta"
-              href={`https://wa.me/56912345678?text=Hola quiero cotizar la moto ${modelo}`}
+              href={whatsappHref || "#"}
               target="_blank"
               rel="noreferrer"
             >

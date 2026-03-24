@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { buildMediaUrl } from "../services/apiConfig";
 import { getProductoBySlug, getContactoPublico } from "../services/productosService";
 import { trackCatalogView } from "../services/analyticsService";
+import { buildWhatsAppUrl } from "../services/contactoUtils";
 import Navbar from "../components/layout/Navbar";
 import "../styles/detalle.css";
 
@@ -89,6 +90,7 @@ export default function ProductoDetalle() {
     descripcionRaw && descripcionRaw !== nombre
       ? descripcionRaw
       : "Producto ideal para complementar tu equipamiento rider con calidad y estilo.";
+  const whatsappHref = buildWhatsAppUrl(contacto.telefono, `Hola quiero cotizar el producto ${nombre}`);
 
   return (
     <div className="detalle-page detalle-producto-page">
@@ -149,7 +151,7 @@ export default function ProductoDetalle() {
 
             <a
               className="detalle-cta"
-              href={`https://wa.me/56912345678?text=Hola quiero cotizar el producto ${nombre}`}
+              href={whatsappHref || "#"}
               target="_blank"
               rel="noreferrer"
             >
