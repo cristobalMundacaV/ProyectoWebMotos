@@ -56,7 +56,7 @@ import {
   updateMantencionAdmin,
   updateHorarioMantencionAdmin,
 } from "../admin/mantenciones/services/mantencionesAdminService";
-import { buildMediaUrl } from "../services/apiConfig";
+import { buildFallbackImageDataUrl, buildMediaUrl } from "../services/apiConfig";
 import "../styles/admin.css";
 
 const initialMotoForm = {
@@ -275,6 +275,7 @@ function translateBackendMessage(message) {
 
 export default function AdminPanel() {
   const navigate = useNavigate();
+  const fallbackImage = buildFallbackImageDataUrl({ width: 900, height: 600, text: "Sin Imagen" });
   const [currentUser, setCurrentUser] = useState(() => getStoredUser());
   const [activeSection, setActiveSection] = useState("resumen");
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
@@ -1579,9 +1580,9 @@ export default function AdminPanel() {
     setMotoEditModal({
       id: moto.id,
       modelName: moto.modelo || "",
-      originalImageUrl: buildMediaUrl(moto.imagen_principal),
+      originalImageUrl: buildMediaUrl(moto.imagen_principal) || fallbackImage,
       originalImageName: getFileNameFromPath(moto.imagen_principal),
-      imagePreviewUrl: buildMediaUrl(moto.imagen_principal),
+      imagePreviewUrl: buildMediaUrl(moto.imagen_principal) || fallbackImage,
       imageFileName: getFileNameFromPath(moto.imagen_principal),
       previewIsObjectUrl: false,
       imageInputKey: Date.now(),
@@ -1927,7 +1928,7 @@ export default function AdminPanel() {
       compatibilidad_motos: Array.isArray(producto.compatibilidad_motos) ? producto.compatibilidad_motos : [],
       imagen_principal: null,
     }));
-    setAccesorioMotoImageUrl(buildMediaUrl(producto.imagen_principal));
+    setAccesorioMotoImageUrl(buildMediaUrl(producto.imagen_principal) || fallbackImage);
   }
 
   function handleAccesorioRiderEdit(producto) {
@@ -1945,9 +1946,9 @@ export default function AdminPanel() {
     setAccesorioRiderEditModal({
       id: producto.id,
       title: producto.nombre || "Editar accesorio rider",
-      originalImageUrl: buildMediaUrl(producto.imagen_principal),
+      originalImageUrl: buildMediaUrl(producto.imagen_principal) || fallbackImage,
       originalImageName: getFileNameFromPath(producto.imagen_principal),
-      imagePreviewUrl: buildMediaUrl(producto.imagen_principal),
+      imagePreviewUrl: buildMediaUrl(producto.imagen_principal) || fallbackImage,
       imageFileName: getFileNameFromPath(producto.imagen_principal),
       previewIsObjectUrl: false,
       imageInputKey: Date.now(),
@@ -2707,7 +2708,15 @@ export default function AdminPanel() {
 
                   {motoEditModal.imagePreviewUrl && (
                     <div className="admin-form-span-2 admin-image-preview-box admin-moto-edit-preview">
-                      <img src={motoEditModal.imagePreviewUrl} alt={motoEditModal.modelName || "Moto"} className="admin-image-preview" />
+                      <img
+                        src={motoEditModal.imagePreviewUrl}
+                        alt={motoEditModal.modelName || "Moto"}
+                        className="admin-image-preview"
+                        onError={(event) => {
+                          event.currentTarget.onerror = null;
+                          event.currentTarget.src = fallbackImage;
+                        }}
+                      />
                     </div>
                   )}
 
@@ -2863,6 +2872,10 @@ export default function AdminPanel() {
                         src={accesorioRiderEditModal.imagePreviewUrl}
                         alt={accesorioRiderEditModal.title || "Accesorio rider"}
                         className="admin-image-preview"
+                        onError={(event) => {
+                          event.currentTarget.onerror = null;
+                          event.currentTarget.src = fallbackImage;
+                        }}
                       />
                     </div>
                   )}

@@ -1,18 +1,12 @@
 export const API_BASE_URL = "/api";
 
 export function buildFallbackImageDataUrl({ width = 600, height = 600, text = "Sin Imagen" } = {}) {
-  const safeWidth = Number(width) || 600;
-  const safeHeight = Number(height) || 600;
-  const safeText = String(text || "Sin Imagen");
-  const svg = `
-    <svg xmlns="http://www.w3.org/2000/svg" width="${safeWidth}" height="${safeHeight}" viewBox="0 0 ${safeWidth} ${safeHeight}">
-      <rect width="100%" height="100%" fill="#efefef"/>
-      <text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" fill="#666" font-family="Arial, sans-serif" font-size="28">
-        ${safeText}
-      </text>
-    </svg>
-  `.trim();
-  return `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(svg)}`;
+  // Mantiene la firma para compatibilidad, pero devolvemos un recurso local
+  // para evitar bloqueos CSP con data URLs en produccion.
+  void width;
+  void height;
+  void text;
+  return "/images/sin-imagen.svg";
 }
 
 export function buildMediaUrl(path) {
