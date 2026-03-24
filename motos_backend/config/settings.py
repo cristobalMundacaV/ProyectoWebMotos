@@ -33,8 +33,23 @@ def parse_csv_env(name: str) -> list[str]:
     return [item.strip() for item in raw.split(",") if item.strip()]
 
 
+def merge_unique(*groups: list[str]) -> list[str]:
+    merged: list[str] = []
+    for group in groups:
+        for item in group:
+            value = str(item).strip()
+            if value and value not in merged:
+                merged.append(value)
+    return merged
+
+
 DEFAULT_ALLOWED_HOSTS = ["3.229.25.68", "localhost", "127.0.0.1"]
-ALLOWED_HOSTS = parse_csv_env("ALLOWED_HOSTS") or DEFAULT_ALLOWED_HOSTS
+REQUIRED_ALLOWED_HOSTS = ["delanoemotos.cl", "www.delanoemotos.cl"]
+ALLOWED_HOSTS = merge_unique(
+    DEFAULT_ALLOWED_HOSTS,
+    parse_csv_env("ALLOWED_HOSTS"),
+    REQUIRED_ALLOWED_HOSTS,
+)
 
 DEFAULT_TRUSTED_ORIGINS = [
     "http://3.229.25.68",
@@ -44,7 +59,17 @@ DEFAULT_TRUSTED_ORIGINS = [
     "http://127.0.0.1",
     "https://127.0.0.1",
 ]
-CSRF_TRUSTED_ORIGINS = parse_csv_env("CSRF_TRUSTED_ORIGINS") or DEFAULT_TRUSTED_ORIGINS
+REQUIRED_TRUSTED_ORIGINS = [
+    "http://delanoemotos.cl",
+    "https://delanoemotos.cl",
+    "http://www.delanoemotos.cl",
+    "https://www.delanoemotos.cl",
+]
+CSRF_TRUSTED_ORIGINS = merge_unique(
+    DEFAULT_TRUSTED_ORIGINS,
+    parse_csv_env("CSRF_TRUSTED_ORIGINS"),
+    REQUIRED_TRUSTED_ORIGINS,
+)
 SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 USE_X_FORWARDED_HOST = True
 USE_X_FORWARDED_PORT = True

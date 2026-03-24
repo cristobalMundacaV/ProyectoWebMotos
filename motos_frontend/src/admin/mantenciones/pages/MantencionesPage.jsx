@@ -182,14 +182,12 @@ export default function MantencionesPage({
   loading,
   mantenciones,
   savingById,
-  onRefresh,
   onAcceptSolicitud,
   onUpdateMantencion,
   horarios = [],
   horariosLoading = false,
   horarioForm,
   horarioSaving = false,
-  onRefreshHorarios,
   onHorarioInputChange,
   onHorarioSubmit,
   onHorarioUpdate,
@@ -315,8 +313,10 @@ export default function MantencionesPage({
     if (activeSection !== "horarios_calendario") return undefined;
 
     let mounted = true;
+    let intervalId = null;
 
     async function loadAvailability() {
+      if (!mounted || document.hidden) return;
       setCalendarLoading(true);
       setCalendarError("");
       try {
@@ -327,8 +327,6 @@ export default function MantencionesPage({
 
         if (days.length > 0) {
           setSelectedCalendarDate((prev) => (prev && days.some((day) => day.fecha === prev) ? prev : days[0].fecha));
-          const [year, month] = days[0].fecha.split("-").map(Number);
-          setCalendarMonth(new Date(year, (month || 1) - 1, 1));
         } else {
           setSelectedCalendarDate("");
         }
@@ -343,8 +341,17 @@ export default function MantencionesPage({
     }
 
     loadAvailability();
+    intervalId = window.setInterval(loadAvailability, 12000);
+
+    const onVisibilityChange = () => {
+      if (!document.hidden) loadAvailability();
+    };
+    document.addEventListener("visibilitychange", onVisibilityChange);
+
     return () => {
       mounted = false;
+      if (intervalId) window.clearInterval(intervalId);
+      document.removeEventListener("visibilitychange", onVisibilityChange);
     };
   }, [activeSection]);
 
@@ -957,9 +964,6 @@ export default function MantencionesPage({
                 })}
               </div>
             </div>
-            <button type="button" className="admin-primary-action" onClick={onRefresh}>
-              Actualizar
-            </button>
           </div>
 
           <div className="admin-mantencion-fichas-layout">
@@ -1003,9 +1007,6 @@ export default function MantencionesPage({
                 })}
               </div>
             </div>
-            <button type="button" className="admin-primary-action" onClick={onRefresh}>
-              Actualizar
-            </button>
           </div>
 
           <div className="admin-mantencion-fichas-layout">
@@ -1030,9 +1031,6 @@ export default function MantencionesPage({
         <article className="admin-panel-card">
           <div className="admin-card-header">
             <h2>Etapa de Diagnostico</h2>
-            <button type="button" className="admin-primary-action" onClick={onRefresh}>
-              Actualizar
-            </button>
           </div>
 
           <div className="admin-mantencion-fichas-layout">
@@ -1062,9 +1060,6 @@ export default function MantencionesPage({
         <article className="admin-panel-card">
           <div className="admin-card-header">
             <h2>Por entregar</h2>
-            <button type="button" className="admin-primary-action" onClick={onRefresh}>
-              Actualizar
-            </button>
           </div>
 
           <div className="admin-mantencion-fichas-layout">
@@ -1111,9 +1106,6 @@ export default function MantencionesPage({
                 </select>
               </label>
             </div>
-            <button type="button" className="admin-primary-action" onClick={onRefresh}>
-              Actualizar
-            </button>
           </div>
 
           <div className="admin-mantencion-fichas-layout">
@@ -1322,28 +1314,6 @@ export default function MantencionesPage({
               <h2>Calendario de disponibilidad</h2>
               <span>Vista mensual para revisar dias habilitados y el detalle de horas disponibles u ocupadas.</span>
             </div>
-            <button
-              type="button"
-              className="admin-primary-action"
-              onClick={async () => {
-                setCalendarLoading(true);
-                setCalendarError("");
-                try {
-                  const data = await getDisponibilidadMantenciones(60);
-                  const days = Array.isArray(data?.slots) ? data.slots : [];
-                  setAvailabilityDays(days);
-                  setSelectedCalendarDate((prev) => (prev && days.some((day) => day.fecha === prev) ? prev : days[0]?.fecha || ""));
-                } catch (_error) {
-                  setAvailabilityDays([]);
-                  setSelectedCalendarDate("");
-                  setCalendarError("No se pudo cargar la disponibilidad del calendario.");
-                } finally {
-                  setCalendarLoading(false);
-                }
-              }}
-            >
-              Actualizar
-            </button>
           </div>
 
           <div className="admin-horarios-calendar-layout">

@@ -483,6 +483,60 @@ export default function AdminPanel() {
   }, [activeSection]);
 
   useEffect(() => {
+    const isUsersSection = activeSection === "lista_usuarios" || activeSection === "crear_usuario";
+    const isMantencionesSection =
+      activeSection === "mantenciones_solicitudes" ||
+      activeSection === "mantenciones_fichas" ||
+      activeSection === "mantenciones_historicas" ||
+      activeSection === "taller_mantenciones_dia" ||
+      activeSection === "taller_en_taller" ||
+      activeSection === "taller_por_entregar";
+    const isHorariosSection = activeSection === "horarios_operativos" || activeSection === "mantenciones_horarios";
+
+    if (!isUsersSection && !isMantencionesSection && !isHorariosSection) return undefined;
+
+    let mounted = true;
+
+    const syncData = async () => {
+      if (document.hidden || !mounted) return;
+      try {
+        if (isUsersSection) {
+          const payload = await listAdminUsers();
+          if (!mounted) return;
+          setAdminUsers(normalizeAdminUsersResponse(payload));
+        }
+
+        if (isMantencionesSection) {
+          const mantencionesRows = await getMantencionesAdmin();
+          if (!mounted) return;
+          setMantenciones(mantencionesRows);
+        }
+
+        if (isHorariosSection) {
+          const horariosRows = await getHorariosMantencionAdmin();
+          if (!mounted) return;
+          setHorariosMantencion(horariosRows);
+        }
+      } catch {
+        // Actualizacion silenciosa para no saturar con toasts en tiempo real.
+      }
+    };
+
+    const intervalId = window.setInterval(syncData, 12000);
+    const onVisibilityChange = () => {
+      if (!document.hidden) syncData();
+    };
+
+    document.addEventListener("visibilitychange", onVisibilityChange);
+
+    return () => {
+      mounted = false;
+      window.clearInterval(intervalId);
+      document.removeEventListener("visibilitychange", onVisibilityChange);
+    };
+  }, [activeSection]);
+
+  useEffect(() => {
     if (activeSection !== "horarios_operativos" && activeSection !== "mantenciones_horarios") return;
     let isMounted = true;
     setHorariosMantencionLoading(true);
@@ -1283,39 +1337,6 @@ export default function AdminPanel() {
 
   function handleCategoriaAccRiderDelete(categoria) {
     openEntityDeleteModal({ kind: "categoria_acc_rider", item: categoria });
-  }
-
-  async function handleRefreshUsers() {
-    setAdminUsersLoading(true);
-    try {
-      await fetchUsersList();
-    } catch (error) {
-      pushToast(getErrorText(error, "No se pudo cargar la lista de usuarios."), "error");
-    } finally {
-      setAdminUsersLoading(false);
-    }
-  }
-
-  async function handleRefreshMantenciones() {
-    setMantencionesLoading(true);
-    try {
-      await fetchMantencionesList();
-    } catch (error) {
-      pushToast(getErrorText(error, "No se pudo cargar la lista de mantenciones."), "error");
-    } finally {
-      setMantencionesLoading(false);
-    }
-  }
-
-  async function handleRefreshHorariosMantencion() {
-    setHorariosMantencionLoading(true);
-    try {
-      await fetchHorariosMantencionList();
-    } catch (error) {
-      pushToast(getErrorText(error, "No se pudo cargar la configuracion de horarios."), "error");
-    } finally {
-      setHorariosMantencionLoading(false);
-    }
   }
 
   function handleHorarioMantencionInputChange(event) {
@@ -2306,14 +2327,12 @@ export default function AdminPanel() {
             loading={mantencionesLoading}
             mantenciones={mantenciones}
             savingById={mantencionSavingById}
-            onRefresh={handleRefreshMantenciones}
             onAcceptSolicitud={handleAcceptMantencionSolicitud}
             onUpdateMantencion={handleUpdateMantencion}
             horarios={horariosMantencion}
             horariosLoading={horariosMantencionLoading}
             horarioForm={horarioMantencionForm}
             horarioSaving={horarioMantencionSaving}
-            onRefreshHorarios={handleRefreshHorariosMantencion}
             onHorarioInputChange={handleHorarioMantencionInputChange}
             onHorarioSubmit={handleHorarioMantencionSubmit}
             onHorarioUpdate={handleUpdateHorarioMantencion}
@@ -2431,9 +2450,6 @@ export default function AdminPanel() {
               <article className="admin-panel-card">
                 <div className="admin-card-header">
                   <h2>Lista de usuarios</h2>
-                  <button type="button" className="admin-primary-action" onClick={handleRefreshUsers}>
-                    Actualizar
-                  </button>
                 </div>
                 {renderAdminUsersTable()}
               </article>
