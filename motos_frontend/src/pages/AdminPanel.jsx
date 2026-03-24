@@ -224,6 +224,14 @@ function normalizeCategoryLabel(value) {
   return normalizeTitleCaseLabel(value);
 }
 
+function normalizeCompareLabel(value) {
+  return String(value || "")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .trim()
+    .toLowerCase();
+}
+
 function forceBrandTokenInName(value, brandName) {
   const normalized = normalizeTitleCaseForInput(value);
   const normalizedBrand = normalizeUppercaseLabel(brandName);
@@ -917,14 +925,6 @@ export default function AdminPanel() {
       payload.append("imagen_principal", form.imagen_principal);
     }
     return payload;
-  }
-
-  function normalizeCompareLabel(value) {
-    return String(value || "")
-      .normalize("NFD")
-      .replace(/[\u0300-\u036f]/g, "")
-      .trim()
-      .toLowerCase();
   }
 
   function resolveOptionIdByNombre(options, explicitId, explicitNombre) {
