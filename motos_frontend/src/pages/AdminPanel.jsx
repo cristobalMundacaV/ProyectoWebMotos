@@ -706,11 +706,11 @@ export default function AdminPanel() {
   function handleMarcaInputChange(event) {
     clearInvalidFieldStyle(event.target);
     const { name, type, value, checked } = event.target;
-    const normalizedValue = name === "nombre" ? normalizeTitleCaseForInput(value) : value;
+    const normalizedValue = name === "nombre" ? normalizeUppercaseLabel(value) : value;
     setMarcaForm((prev) => ({
       ...prev,
       [name]: type === "checkbox" ? checked : normalizedValue,
-      ...(name === "nombre" ? { slug: buildSlug(normalizeTitleCaseLabel(normalizedValue)) } : {}),
+      ...(name === "nombre" ? { slug: buildSlug(normalizeUppercaseLabel(normalizedValue)) } : {}),
     }));
   }
 
