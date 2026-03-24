@@ -46,11 +46,12 @@ function formatTitleCase(value) {
 }
 
 function normalizeText(value) {
-  return String(value || "")
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .trim()
-    .toLowerCase();
+  const base = String(value || "").trim().toLowerCase();
+  try {
+    return base.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+  } catch {
+    return base;
+  }
 }
 
 export default function EquipamientoCatalog({ variant = "accesorios" }) {
@@ -272,12 +273,13 @@ export default function EquipamientoCatalog({ variant = "accesorios" }) {
     if (editImagePreview) URL.revokeObjectURL(editImagePreview);
     setEditImagePreview("");
 
+    const subcategorias = Array.isArray(editOptions?.subcategorias) ? editOptions.subcategorias : [];
+    const marcas = Array.isArray(editOptions?.marcas) ? editOptions.marcas : [];
+
     const selectedSubcategoria =
-      editOptions.subcategorias.find(
-        (item) => normalizeText(item.nombre) === normalizeText(producto.subcategoria_nombre)
-      ) || null;
+      subcategorias.find((item) => normalizeText(item?.nombre) === normalizeText(producto?.subcategoria_nombre)) || null;
     const selectedMarca =
-      editOptions.marcas.find((item) => normalizeText(item.nombre) === normalizeText(producto.marca_nombre)) || null;
+      marcas.find((item) => normalizeText(item?.nombre) === normalizeText(producto?.marca_nombre)) || null;
 
     setEditingProducto(producto);
     setEditForm({
