@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import {
   clearAuthSession,
   createAdminUser,
@@ -274,6 +274,7 @@ function translateBackendMessage(message) {
 }
 
 export default function AdminPanel() {
+  const location = useLocation();
   const navigate = useNavigate();
   const fallbackImage = buildFallbackImageDataUrl({ width: 900, height: 600, text: "Sin Imagen" });
   const [currentUser, setCurrentUser] = useState(() => getStoredUser());
@@ -357,6 +358,7 @@ export default function AdminPanel() {
   const [entityDeleteModal, setEntityDeleteModal] = useState(null);
   const [entityModalSaving, setEntityModalSaving] = useState(false);
   const [entityModalError, setEntityModalError] = useState("");
+  const handledAdminDeepLinkRef = useRef("");
 
   const marcaSectionConfig = {
     marcas_motos: {
@@ -459,6 +461,66 @@ export default function AdminPanel() {
       setAdminUsersPage(1);
     }
   }, [activeSection]);
+
+  useEffect(() => {
+    if (loading) return;
+    if (!location.search) return;
+
+    const params = new URLSearchParams(location.search);
+    const section = params.get("section");
+    const entity = params.get("entity");
+    const idRaw = params.get("id");
+    const entityId = Number(idRaw);
+
+    if (!section || !entity || !Number.isInteger(entityId) || entityId <= 0) return;
+
+    const requestKey = `${section}:${entity}:${entityId}`;
+    if (handledAdminDeepLinkRef.current === requestKey) return;
+
+    if (activeSection !== section) {
+      setActiveSection(section);
+    }
+
+    let opened = false;
+
+    if (entity === "moto") {
+      const moto = dashboard.motos.find((item) => item.id === entityId);
+      if (moto) {
+        handleMotoEdit(moto);
+        opened = true;
+      }
+    } else if (entity === "rider") {
+      const rider = accesoriosRiderAdmin.find((item) => item.id === entityId);
+      if (rider) {
+        handleAccesorioRiderEdit(rider);
+        opened = true;
+      }
+    } else if (entity === "accesorio") {
+      const accesorio = accesoriosMotosAdmin.find((item) => item.id === entityId);
+      if (accesorio) {
+        handleAccesorioMotoEdit(accesorio);
+        opened = true;
+      }
+    }
+
+    if (opened) {
+      handledAdminDeepLinkRef.current = requestKey;
+      navigate("/admin-panel", { replace: true });
+      return;
+    }
+
+    handledAdminDeepLinkRef.current = requestKey;
+    pushToast("No se encontro el registro a editar desde el catalogo.", "error");
+    navigate("/admin-panel", { replace: true });
+  }, [
+    loading,
+    location.search,
+    activeSection,
+    dashboard.motos,
+    accesoriosRiderAdmin,
+    accesoriosMotosAdmin,
+    navigate,
+  ]);
 
   useEffect(() => {
     setIsMobileSidebarOpen(false);

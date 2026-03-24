@@ -75,8 +75,9 @@ export default function MotosDestacadas() {
     }
   }
 
-  function handleEditMoto() {
-    navigate("/catalogo");
+  function handleEditMoto(moto) {
+    if (!moto?.id) return;
+    navigate(`/admin-panel?section=motos&entity=moto&id=${moto.id}`);
   }
 
   return (

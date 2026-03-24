@@ -1,4 +1,4 @@
-﻿import { Link } from "react-router-dom";
+﻿import { Link, useNavigate } from "react-router-dom";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { buildFallbackImageDataUrl, buildMediaUrl } from "../../services/apiConfig";
 import {
@@ -57,6 +57,7 @@ function normalizeText(value) {
 export default function EquipamientoCatalog({ variant = "accesorios" }) {
   const ITEMS_PER_PAGE = 16;
   const { title, breadcrumb, tipoApi, showModeloCompatible } = getConfig(variant);
+  const navigate = useNavigate();
 
   const [productos, setProductos] = useState([]);
   const [categorias, setCategorias] = useState([]);
@@ -270,30 +271,10 @@ export default function EquipamientoCatalog({ variant = "accesorios" }) {
   }
 
   function openEditModal(producto) {
-    setEditError("");
-    if (editImagePreview) URL.revokeObjectURL(editImagePreview);
-    setEditImagePreview("");
-
-    const subcategorias = Array.isArray(editOptions?.subcategorias) ? editOptions.subcategorias : [];
-    const marcas = Array.isArray(editOptions?.marcas) ? editOptions.marcas : [];
-
-    const selectedSubcategoria =
-      subcategorias.find((item) => normalizeText(item?.nombre) === normalizeText(producto?.subcategoria_nombre)) || null;
-    const selectedMarca =
-      marcas.find((item) => normalizeText(item?.nombre) === normalizeText(producto?.marca_nombre)) || null;
-
-    setEditingProducto(producto);
-    setEditForm({
-      subcategoria: selectedSubcategoria ? String(selectedSubcategoria.id) : "",
-      marca: selectedMarca ? String(selectedMarca.id) : "",
-      nombre: producto.nombre || "",
-      descripcion: producto.descripcion || "",
-      precio: String(parsePrecioEntero(producto.precio)),
-      stock: String(producto.stock ?? 0),
-      es_destacado: Boolean(producto.es_destacado),
-      activo: producto.activo !== false,
-      imagen_principal: null,
-    });
+    if (!producto?.id) return;
+    const section = variant === "indumentaria" ? "accesorios_rider" : "accesorios_motos";
+    const entity = variant === "indumentaria" ? "rider" : "accesorio";
+    navigate(`/admin-panel?section=${section}&entity=${entity}&id=${producto.id}`);
   }
 
   function closeEditModal() {
@@ -807,3 +788,4 @@ export default function EquipamientoCatalog({ variant = "accesorios" }) {
     </main>
   );
 }
+
