@@ -44,6 +44,7 @@ import AdminToastStack from "../admin/shared/components/AdminToastStack";
 import AdminPagination, { paginateItems } from "../admin/shared/components/AdminPagination";
 import ResumenPage from "../admin/dashboard/pages/ResumenPage";
 import MotosPage from "../admin/motos/pages/MotosPage";
+import FichasTecnicasPage from "../admin/motos/pages/FichasTecnicasPage";
 import ProductosPage from "../admin/productos/pages/ProductosPage";
 import ConfiguracionPage from "../admin/configuracion/pages/ConfiguracionPage";
 import MantencionesPage from "../admin/mantenciones/pages/MantencionesPage";
@@ -2330,6 +2331,11 @@ export default function AdminPanel() {
             onCategoriaMotoEdit={handleCategoriaMotoEdit}
             onCategoriaMotoDelete={handleCategoriaMotoDelete}
             accesoriosMotosMeta={accesoriosMotosMeta}
+          />
+
+          <FichasTecnicasPage
+            activeSection={activeSection}
+            motos={dashboard.motos}
           />
 
           <ProductosPage

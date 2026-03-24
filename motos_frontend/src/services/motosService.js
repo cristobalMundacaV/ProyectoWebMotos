@@ -115,3 +115,50 @@ export async function getMotoBySlug(slug) {
   const listado = Array.isArray(motos) ? motos : [];
   return listado.find((m) => m.slug === slug) || null;
 }
+
+export async function getMotoFichaTecnica(id) {
+  const res = await api.get(`/motos/${id}/ficha/`);
+  return res.data || null;
+}
+
+export async function getTiposAtributo({ seccion } = {}) {
+  const params = {};
+  if (seccion) params.seccion = seccion;
+  const res = await api.get("/motos/ficha/tipos-atributo/", { params });
+  return Array.isArray(res.data) ? res.data : [];
+}
+
+export async function createTipoAtributo(payload) {
+  const res = await api.post("/motos/ficha/tipos-atributo/", payload);
+  return res.data;
+}
+
+export async function updateTipoAtributo(id, payload) {
+  const res = await api.patch(`/motos/ficha/tipos-atributo/${id}/`, payload);
+  return res.data;
+}
+
+export async function deleteTipoAtributo(id) {
+  await api.delete(`/motos/ficha/tipos-atributo/${id}/`);
+}
+
+export async function getValoresAtributoMoto({ moto } = {}) {
+  const params = {};
+  if (moto) params.moto = moto;
+  const res = await api.get("/motos/ficha/valores/", { params });
+  return Array.isArray(res.data) ? res.data : [];
+}
+
+export async function createValorAtributoMoto(payload) {
+  const res = await api.post("/motos/ficha/valores/", payload);
+  return res.data;
+}
+
+export async function updateValorAtributoMoto(id, payload) {
+  const res = await api.patch(`/motos/ficha/valores/${id}/`, payload);
+  return res.data;
+}
+
+export async function deleteValorAtributoMoto(id) {
+  await api.delete(`/motos/ficha/valores/${id}/`);
+}

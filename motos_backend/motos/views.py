@@ -8,8 +8,16 @@ from rest_framework_simplejwt.authentication import JWTAuthentication
 
 from catalogo.models import CategoriaMoto, Marca
 from clientes.permissions import has_admin_access
-from .models import ModeloMoto, Moto
-from .serializers import CategoriaMotoSerializer, MarcaSerializer, ModeloMotoSerializer, MotoSerializer
+from .models import ModeloMoto, Moto, TipoAtributo, ValorAtributoMoto
+from .serializers import (
+    CategoriaMotoSerializer,
+    MarcaSerializer,
+    ModeloMotoSerializer,
+    MotoDetalleFichaSerializer,
+    MotoSerializer,
+    TipoAtributoSerializer,
+    ValorAtributoMotoSerializer,
+)
 
 
 ACCESORIOS_CATEGORY_SLUGS = ["accesorios-para-la-moto", "accesorios"]
@@ -83,6 +91,21 @@ def detalle_moto_admin(request, moto_id):
     serializer = MotoSerializer(moto, data=request.data, partial=True)
     serializer.is_valid(raise_exception=True)
     serializer.save()
+    return Response(serializer.data)
+
+
+@api_view(["GET"])
+def detalle_moto_ficha(request, moto_id):
+    moto = (
+        Moto.objects.filter(id=moto_id, activa=True)
+        .select_related("marca", "modelo_moto", "modelo_moto__categoria")
+        .prefetch_related("valores_atributos__tipo_atributo", "secciones_ficha__items")
+        .first()
+    )
+    if not moto:
+        return Response({"detail": "Moto no encontrada."}, status=status.HTTP_404_NOT_FOUND)
+
+    serializer = MotoDetalleFichaSerializer(moto)
     return Response(serializer.data)
 
 
@@ -269,6 +292,101 @@ def marcas_moto_detalle(request, marca_id):
         return Response(status=status.HTTP_204_NO_CONTENT)
 
     serializer = MarcaSerializer(marca, data=request.data, partial=True)
+    serializer.is_valid(raise_exception=True)
+    serializer.save()
+    return Response(serializer.data)
+
+
+@api_view(["GET", "POST"])
+def tipos_atributo(request):
+    if request.method == "GET":
+        queryset = TipoAtributo.objects.order_by("orden", "id")
+        serializer = TipoAtributoSerializer(queryset, many=True)
+        return Response(serializer.data)
+
+    if not has_admin_access(request.user):
+        return Response(
+            {"detail": "Solo administradores pueden crear secciones de ficha tecnica."},
+            status=status.HTTP_403_FORBIDDEN,
+        )
+
+    serializer = TipoAtributoSerializer(data=request.data)
+    serializer.is_valid(raise_exception=True)
+    serializer.save()
+    return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+
+@api_view(["PATCH", "DELETE"])
+def tipo_atributo_detalle(request, tipo_id):
+    if not has_admin_access(request.user):
+        return Response(
+            {"detail": "Solo administradores pueden gestionar secciones de ficha tecnica."},
+            status=status.HTTP_403_FORBIDDEN,
+        )
+
+    tipo = TipoAtributo.objects.filter(id=tipo_id).first()
+    if not tipo:
+        return Response({"detail": "Seccion no encontrada."}, status=status.HTTP_404_NOT_FOUND)
+
+    if request.method == "DELETE":
+        try:
+            tipo.delete()
+        except ProtectedError:
+            return Response(
+                {"detail": "No se puede eliminar la seccion porque tiene items asociados."},
+                status=status.HTTP_409_CONFLICT,
+            )
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+    serializer = TipoAtributoSerializer(tipo, data=request.data, partial=True)
+    serializer.is_valid(raise_exception=True)
+    serializer.save()
+    return Response(serializer.data)
+
+
+@api_view(["GET", "POST"])
+def valores_atributo_moto(request):
+    if request.method == "GET":
+        moto_id = request.GET.get("moto")
+        queryset = ValorAtributoMoto.objects.select_related("moto", "tipo_atributo").order_by(
+            "tipo_atributo__orden",
+            "orden",
+            "id",
+        )
+        if moto_id:
+            queryset = queryset.filter(moto_id=moto_id)
+        serializer = ValorAtributoMotoSerializer(queryset, many=True)
+        return Response(serializer.data)
+
+    if not has_admin_access(request.user):
+        return Response(
+            {"detail": "Solo administradores pueden crear items de ficha tecnica."},
+            status=status.HTTP_403_FORBIDDEN,
+        )
+
+    serializer = ValorAtributoMotoSerializer(data=request.data)
+    serializer.is_valid(raise_exception=True)
+    serializer.save()
+    return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+
+@api_view(["PATCH", "DELETE"])
+def valor_atributo_moto_detalle(request, valor_id):
+    if not has_admin_access(request.user):
+        return Response(
+            {"detail": "Solo administradores pueden gestionar items de ficha tecnica."},
+            status=status.HTTP_403_FORBIDDEN,
+        )
+
+    valor = ValorAtributoMoto.objects.filter(id=valor_id).first()
+    if not valor:
+        return Response({"detail": "Item no encontrado."}, status=status.HTTP_404_NOT_FOUND)
+
+    if request.method == "DELETE":
+        valor.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+    serializer = ValorAtributoMotoSerializer(valor, data=request.data, partial=True)
     serializer.is_valid(raise_exception=True)
     serializer.save()
     return Response(serializer.data)

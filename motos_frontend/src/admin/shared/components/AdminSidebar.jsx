@@ -107,6 +107,15 @@ function SidebarIcon({ kind }) {
     );
   }
 
+  if (kind === "fichas_tecnicas") {
+    return (
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <rect x="4" y="3.5" width="16" height="17" rx="2" />
+        <path d="M8 8h8M8 12h8M8 16h5" />
+      </svg>
+    );
+  }
+
   return (
     <svg viewBox="0 0 24 24" aria-hidden="true">
       <path d="M3 5h18v4H3zM3 10h18v4H3zM3 15h18v4H3z" />
@@ -187,6 +196,15 @@ const navigationGroups = [
       { label: "Indumentaria rider", kind: "heading" },
       { label: "Marca", value: "marcas_acc_rider" },
       { label: "Categoria", value: "categorias_acc_rider" },
+    ],
+  },
+  {
+    label: "Fichas tecnicas",
+    icon: "fichas_tecnicas",
+    items: [
+      { label: "Resumen general", value: "fichas_resumen" },
+      { label: "Secciones", value: "fichas_secciones" },
+      { label: "Items", value: "fichas_items" },
     ],
   },
   {

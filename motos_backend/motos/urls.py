@@ -3,17 +3,23 @@ from .views import (
     categorias_moto,
     categorias_moto_detalle,
     detalle_moto_admin,
+    detalle_moto_ficha,
     lista_motos,
     marcas_moto,
     marcas_moto_detalle,
     meta_motos,
     modelos_moto,
     modelos_moto_detalle,
+    tipo_atributo_detalle,
+    tipos_atributo,
+    valor_atributo_moto_detalle,
+    valores_atributo_moto,
 )
 
 urlpatterns = [
     path('motos/', lista_motos, name='lista_motos'),
     path('motos/<int:moto_id>/', detalle_moto_admin, name='detalle_moto_admin'),
+    path('motos/<int:moto_id>/ficha/', detalle_moto_ficha, name='detalle_moto_ficha'),
     path('motos/meta/', meta_motos, name='meta_motos'),
     path('motos/modelos/', modelos_moto, name='modelos_moto'),
     path('motos/modelos/<int:modelo_id>/', modelos_moto_detalle, name='modelos_moto_detalle'),
@@ -21,5 +27,9 @@ urlpatterns = [
     path('motos/categorias/<int:categoria_id>/', categorias_moto_detalle, name='categorias_moto_detalle'),
     path('motos/marcas/', marcas_moto, name='marcas_moto'),
     path('motos/marcas/<int:marca_id>/', marcas_moto_detalle, name='marcas_moto_detalle'),
+    path('motos/ficha/tipos-atributo/', tipos_atributo, name='tipos_atributo'),
+    path('motos/ficha/tipos-atributo/<int:tipo_id>/', tipo_atributo_detalle, name='tipo_atributo_detalle'),
+    path('motos/ficha/valores/', valores_atributo_moto, name='valores_atributo_moto'),
+    path('motos/ficha/valores/<int:valor_id>/', valor_atributo_moto_detalle, name='valor_atributo_moto_detalle'),
     path('motorcycles/', lista_motos, name='lista_motorcycles'),
 ]

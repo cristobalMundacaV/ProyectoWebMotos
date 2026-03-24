@@ -2,7 +2,14 @@ from django.utils.text import slugify
 from rest_framework import serializers
 
 from catalogo.models import CategoriaMoto, Marca
-from .models import ModeloMoto, Moto
+from .models import (
+    ItemFichaTecnica,
+    ModeloMoto,
+    Moto,
+    SeccionFichaTecnica,
+    TipoAtributo,
+    ValorAtributoMoto,
+)
 
 
 def normalize_uppercase_label(value):
@@ -226,6 +233,61 @@ class MotoSerializer(serializers.ModelSerializer):
         ]
 
 
+class ItemFichaTecnicaSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ItemFichaTecnica
+        fields = ["nombre", "valor", "orden"]
+
+
+class SeccionFichaTecnicaSerializer(serializers.ModelSerializer):
+    items = ItemFichaTecnicaSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = SeccionFichaTecnica
+        fields = ["nombre", "orden", "items"]
+
+
+class MotoDetalleFichaSerializer(MotoSerializer):
+    secciones_ficha = serializers.SerializerMethodField()
+
+    def get_secciones_ficha(self, obj):
+        valores = list(getattr(obj, "valores_atributos").all())
+        if valores:
+            secciones_map = {}
+
+            for valor in valores:
+                tipo = valor.tipo_atributo
+                seccion_actual = secciones_map.setdefault(
+                    tipo.id,
+                    {
+                        "nombre": tipo.nombre,
+                        "orden": tipo.orden,
+                        "items": [],
+                    },
+                )
+                seccion_actual["orden"] = min(seccion_actual["orden"], tipo.orden)
+                seccion_actual["items"].append(
+                    {
+                        "nombre": valor.nombre,
+                        "valor": valor.valor,
+                        "orden": valor.orden,
+                    }
+                )
+
+            secciones = sorted(secciones_map.values(), key=lambda section: (section["orden"], section["nombre"]))
+            for seccion in secciones:
+                seccion["items"] = sorted(
+                    seccion["items"],
+                    key=lambda item: (item["orden"], item["nombre"]),
+                )
+            return secciones
+
+        return SeccionFichaTecnicaSerializer(obj.secciones_ficha.all(), many=True).data
+
+    class Meta(MotoSerializer.Meta):
+        fields = MotoSerializer.Meta.fields + ["secciones_ficha"]
+
+
 class CategoriaMotoSerializer(serializers.ModelSerializer):
     def validate_nombre(self, nombre):
         normalized = normalize_title_case_label(nombre)
@@ -248,3 +310,43 @@ class MarcaSerializer(serializers.ModelSerializer):
     class Meta:
         model = Marca
         fields = ["id", "nombre", "slug", "descripcion", "tipo", "activa"]
+
+
+class TipoAtributoSerializer(serializers.ModelSerializer):
+    def validate_nombre(self, value):
+        normalized = str(value or "").strip()
+        if not normalized:
+            raise serializers.ValidationError("El nombre de la seccion es obligatorio.")
+        return normalized
+
+    def create(self, validated_data):
+        if not validated_data.get("slug"):
+            validated_data["slug"] = slugify(validated_data["nombre"]) or "seccion-ficha"
+        return super().create(validated_data)
+
+    def update(self, instance, validated_data):
+        if "nombre" in validated_data and "slug" not in validated_data:
+            validated_data["slug"] = slugify(validated_data["nombre"]) or instance.slug
+        return super().update(instance, validated_data)
+
+    class Meta:
+        model = TipoAtributo
+        fields = ["id", "nombre", "slug", "orden", "activo"]
+
+
+class ValorAtributoMotoSerializer(serializers.ModelSerializer):
+    tipo_atributo_nombre = serializers.CharField(source="tipo_atributo.nombre", read_only=True)
+    tipo_atributo_orden = serializers.IntegerField(source="tipo_atributo.orden", read_only=True)
+
+    class Meta:
+        model = ValorAtributoMoto
+        fields = [
+            "id",
+            "moto",
+            "tipo_atributo",
+            "tipo_atributo_nombre",
+            "tipo_atributo_orden",
+            "nombre",
+            "valor",
+            "orden",
+        ]

@@ -59,6 +59,92 @@ class Moto(models.Model):
         return self.modelo
 
 
+class TipoAtributo(models.Model):
+    nombre = models.CharField(max_length=120)
+    slug = models.SlugField(unique=True)
+    orden = models.PositiveIntegerField(default=1)
+    activo = models.BooleanField(default=True)
+
+    class Meta:
+        ordering = ["orden", "id"]
+
+    def __str__(self):
+        return self.nombre
+
+
+class ValorAtributoMoto(models.Model):
+    moto = models.ForeignKey(
+        Moto,
+        on_delete=models.CASCADE,
+        related_name="valores_atributos",
+    )
+    tipo_atributo = models.ForeignKey(
+        TipoAtributo,
+        on_delete=models.PROTECT,
+        related_name="valores_moto",
+    )
+    nombre = models.CharField(max_length=120, default="")
+    valor = models.TextField()
+    orden = models.PositiveIntegerField(default=1)
+
+    class Meta:
+        ordering = ["orden", "id"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["moto", "tipo_atributo", "nombre"],
+                name="uq_valoratributomoto_moto_tipoatributo_nombre",
+            ),
+        ]
+
+    def __str__(self):
+        return f"{self.moto.modelo} - {self.tipo_atributo.nombre} - {self.nombre}"
+
+
+class SeccionFichaTecnica(models.Model):
+    moto = models.ForeignKey(
+        Moto,
+        on_delete=models.CASCADE,
+        related_name="secciones_ficha",
+    )
+    nombre = models.CharField(max_length=120)
+    orden = models.PositiveIntegerField(default=1)
+
+    class Meta:
+        ordering = ["orden", "id"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["moto", "orden"],
+                name="uq_seccionfichatecnica_moto_orden",
+            ),
+        ]
+
+    def __str__(self):
+        return f"{self.moto.modelo} - {self.nombre}"
+
+
+class ItemFichaTecnica(models.Model):
+    seccion = models.ForeignKey(
+        SeccionFichaTecnica,
+        on_delete=models.CASCADE,
+        related_name="items",
+    )
+    nombre = models.CharField(max_length=120)
+    valor = models.TextField()
+    orden = models.PositiveIntegerField(default=1)
+
+    class Meta:
+        ordering = ["orden", "id"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["seccion", "orden"],
+                name="uq_itemfichatecnica_seccion_orden",
+            ),
+        ]
+
+    def __str__(self):
+        return f"{self.seccion.nombre} - {self.nombre}: {self.valor[:50]}"
+
+
 class ImagenMoto(models.Model):
     moto = models.ForeignKey(Moto, on_delete=models.CASCADE, related_name='imagenes')
     imagen = models.ImageField(upload_to="motos/galeria/", blank=True, null=True)
