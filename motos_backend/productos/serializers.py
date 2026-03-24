@@ -49,6 +49,7 @@ class ProductoSerializer(serializers.ModelSerializer):
             "stock",
             "imagen_principal",
             "es_destacado",
+            "orden_carrusel",
             "activo",
             "requiere_compatibilidad",
             "fecha_creacion",
@@ -90,6 +91,7 @@ class ProductoAccesorioAdminSerializer(serializers.ModelSerializer):
             "stock",
             "imagen_principal",
             "es_destacado",
+            "orden_carrusel",
             "activo",
             "requiere_compatibilidad",
             "compatibilidad_motos",
@@ -160,6 +162,7 @@ class ProductoAccesorioRiderAdminSerializer(serializers.ModelSerializer):
             "stock",
             "imagen_principal",
             "es_destacado",
+            "orden_carrusel",
             "activo",
         ]
         extra_kwargs = {
@@ -209,6 +212,7 @@ class ProductoAdminUpdateSerializer(serializers.ModelSerializer):
             "stock",
             "imagen_principal",
             "es_destacado",
+            "orden_carrusel",
             "activo",
         ]
         extra_kwargs = {

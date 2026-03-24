@@ -29,6 +29,7 @@ class Producto(models.Model):
     )
 
     es_destacado = models.BooleanField(default=False)
+    orden_carrusel = models.PositiveIntegerField(default=1)
     activo = models.BooleanField(default=True)
 
     # True si el producto depende de modelos específicos de moto

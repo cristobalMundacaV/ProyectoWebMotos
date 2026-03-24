@@ -6,6 +6,7 @@ import { getStoredToken, getStoredUser, hasAdminAccess } from "../../services/au
 import "../../styles/home.css";
 
 export default function IndumentariaDestacada() {
+  const fallbackImage = "https://via.placeholder.com/600x600?text=Sin+Imagen";
   const navigate = useNavigate();
   const [productos, setProductos] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -49,7 +50,9 @@ export default function IndumentariaDestacada() {
   const destacados = useMemo(() => {
     const items = Array.isArray(productos) ? productos : [];
     const selected = items.filter((item) => item?.es_destacado);
-    return (selected.length > 0 ? selected : items).slice(0, 12);
+    return (selected.length > 0 ? selected : items)
+      .sort((a, b) => (a?.orden_carrusel ?? 1) - (b?.orden_carrusel ?? 1) || (a?.id ?? 0) - (b?.id ?? 0))
+      .slice(0, 12);
   }, [productos]);
 
   function scroll(direction) {
@@ -133,10 +136,14 @@ export default function IndumentariaDestacada() {
                     src={
                       producto.imagen_principal
                         ? buildMediaUrl(producto.imagen_principal)
-                        : "https://via.placeholder.com/600x600?text=Sin+Imagen"
+                        : fallbackImage
                     }
                     alt={producto.nombre}
                     loading="lazy"
+                    onError={(event) => {
+                      event.currentTarget.onerror = null;
+                      event.currentTarget.src = fallbackImage;
+                    }}
                   />
                   {isAdmin && (
                     <div className="home-product-admin-actions" onClick={(event) => event.stopPropagation()}>

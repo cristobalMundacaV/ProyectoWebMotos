@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useMemo, useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { useMotos } from "../../hooks/useMotos";
 import MotoCard from "../motos/MotoCard";
@@ -10,6 +10,16 @@ export default function MotosDestacadas() {
   const navigate = useNavigate();
   const { motos, setMotos, loading, error } = useMotos();
   const motosList = Array.isArray(motos) ? motos : [];
+  const orderedMotos = useMemo(
+    () =>
+      [...motosList].sort((a, b) => {
+        const destacadaA = a?.es_destacada ? 1 : 0;
+        const destacadaB = b?.es_destacada ? 1 : 0;
+        if (destacadaA !== destacadaB) return destacadaB - destacadaA;
+        return (a?.orden_carrusel ?? 1) - (b?.orden_carrusel ?? 1) || (a?.id ?? 0) - (b?.id ?? 0);
+      }),
+    [motosList]
+  );
   const trackRef = useRef(null);
   const [isAdmin, setIsAdmin] = useState(false);
   const [deletingId, setDeletingId] = useState(null);
@@ -75,11 +85,11 @@ export default function MotosDestacadas() {
 
       {loading && <p className="home-carousel-empty">Cargando motos...</p>}
       {!loading && error && <p className="home-carousel-empty">{error}</p>}
-      {!loading && !error && motosList.length === 0 && (
+      {!loading && !error && orderedMotos.length === 0 && (
         <p className="home-carousel-empty">No hay motos disponibles por ahora.</p>
       )}
 
-      {!loading && !error && motosList.length > 0 && (
+      {!loading && !error && orderedMotos.length > 0 && (
         <div className="carousel-wrapper carousel-wrapper-motos">
           <button className="carousel-btn carousel-btn--prev" onClick={() => scroll(-1)} aria-label="Anterior">
             <svg className="carousel-btn__icon" viewBox="0 0 24 24" aria-hidden="true">
@@ -88,7 +98,7 @@ export default function MotosDestacadas() {
           </button>
 
           <div className="carousel-track carousel-track-motos" ref={trackRef}>
-            {motosList.map((moto) => (
+            {orderedMotos.map((moto) => (
               <div className="carousel-item carousel-item-motos" key={moto.id}>
                 <MotoCard
                   moto={moto}

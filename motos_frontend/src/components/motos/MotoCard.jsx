@@ -11,6 +11,7 @@ export default function MotoCard({
   showAdminOverlayActions = true,
   showBottomDeleteAction = false,
 }) {
+  const fallbackImage = "https://via.placeholder.com/600x600?text=Sin+Imagen";
   const navigate = useNavigate();
   const formatUppercase = (value) => String(value || "-").toUpperCase();
   const modelo = moto.modelo || moto.nombre;
@@ -26,7 +27,14 @@ export default function MotoCard({
   const cardBody = (
     <>
       <div className="moto-card-img-container">
-        <img src={buildMediaUrl(moto.imagen_principal)} alt={modelo} />
+        <img
+          src={buildMediaUrl(moto.imagen_principal) || fallbackImage}
+          alt={modelo}
+          onError={(event) => {
+            event.currentTarget.onerror = null;
+            event.currentTarget.src = fallbackImage;
+          }}
+        />
 
         {canShowOverlayActions && (
           <div className="moto-card-admin-actions" onClick={(event) => event.stopPropagation()}>

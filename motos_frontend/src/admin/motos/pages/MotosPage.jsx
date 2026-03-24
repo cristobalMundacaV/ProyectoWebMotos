@@ -468,6 +468,18 @@ export default function MotosPage({
               </select>
             </label>
 
+            <label>
+              Orden carrusel *
+              <input
+                type="number"
+                name="orden_carrusel"
+                value={motoForm.orden_carrusel}
+                onChange={onMotoInputChange}
+                min="1"
+                required
+              />
+            </label>
+
             <label className="admin-form-span-2">
               Imagen principal (opcional)
               <input
@@ -515,7 +527,7 @@ export default function MotosPage({
                 <div className="admin-moto-table-cell admin-recent-moto-meta">
                   <span className="admin-row-label">Tipo</span>
                   <strong>{formatCategoryLabel(moto.categoria_nombre)}</strong>
-                  <span>{moto.anio}</span>
+                  <span>{moto.anio} | Orden: {moto.orden_carrusel ?? 1}</span>
                 </div>
                 <div className="admin-row-actions admin-recent-moto-actions">
                   <button type="button" className="admin-row-action-btn edit" title="Editar" onClick={() => onMotoEdit?.(moto)}>

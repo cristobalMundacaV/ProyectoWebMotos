@@ -226,6 +226,7 @@ class MotoSerializer(serializers.ModelSerializer):
             "estado",
             "imagen_principal",
             "es_destacada",
+            "orden_carrusel",
             "activa",
             "fecha_creacion",
             "marca_nombre",

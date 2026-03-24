@@ -56,7 +56,11 @@ def _filter_marcas_por_tipo(queryset, tipo):
 @api_view(["GET", "POST"])
 def lista_motos(request):
     if request.method == "GET":
-        motos = Moto.objects.filter(activa=True).select_related("marca", "modelo_moto", "modelo_moto__categoria")
+        motos = (
+            Moto.objects.filter(activa=True)
+            .select_related("marca", "modelo_moto", "modelo_moto__categoria")
+            .order_by("-es_destacada", "orden_carrusel", "id")
+        )
         serializer = MotoSerializer(motos, many=True)
         return Response(serializer.data)
 

@@ -52,6 +52,7 @@ class Moto(models.Model):
     imagen_principal = models.ImageField(upload_to="motos/", blank=True, null=True)
 
     es_destacada = models.BooleanField(default=False)
+    orden_carrusel = models.PositiveIntegerField(default=1)
     activa = models.BooleanField(default=True)
     fecha_creacion = models.DateTimeField(auto_now_add=True)
 

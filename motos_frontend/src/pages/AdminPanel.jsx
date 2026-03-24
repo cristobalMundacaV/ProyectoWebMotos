@@ -70,6 +70,7 @@ const initialMotoForm = {
   stock: "0",
   estado: "disponible",
   es_destacada: false,
+  orden_carrusel: "1",
   activa: true,
   imagen_principal: null,
 };
@@ -128,6 +129,7 @@ const initialAccesorioRiderForm = {
   descripcion: "",
   precio: "",
   stock: "0",
+  orden_carrusel: "1",
   imagen_principal: null,
   es_destacado: false,
   activo: true,
@@ -921,6 +923,7 @@ export default function AdminPanel() {
     payload.append("stock", form.stock);
     payload.append("estado", form.estado || "disponible");
     payload.append("es_destacada", String(form.es_destacada));
+    payload.append("orden_carrusel", form.orden_carrusel || "1");
     payload.append("activa", String(form.activa));
     if (form.imagen_principal) {
       payload.append("imagen_principal", form.imagen_principal);
@@ -1593,6 +1596,7 @@ export default function AdminPanel() {
         stock: String(moto.stock ?? "0"),
         estado: moto.estado || "disponible",
         es_destacada: Boolean(moto.es_destacada),
+        orden_carrusel: String(moto.orden_carrusel ?? "1"),
         activa: moto.activa !== false,
         imagen_principal: null,
       },
@@ -1876,6 +1880,7 @@ export default function AdminPanel() {
     payload.append("descripcion", accesorioRiderForm.descripcion);
     payload.append("precio", accesorioRiderForm.precio);
     payload.append("stock", accesorioRiderForm.stock);
+    payload.append("orden_carrusel", accesorioRiderForm.orden_carrusel || "1");
     payload.append("es_destacado", String(accesorioRiderForm.es_destacado));
     payload.append("activo", String(accesorioRiderForm.activo));
     if (accesorioRiderForm.imagen_principal) payload.append("imagen_principal", accesorioRiderForm.imagen_principal);
@@ -1954,6 +1959,7 @@ export default function AdminPanel() {
         descripcion: producto.descripcion || "",
         precio: normalizePrecioFromApi(producto.precio),
         stock: String(producto.stock ?? "0"),
+        orden_carrusel: String(producto.orden_carrusel ?? "1"),
         es_destacado: Boolean(producto.es_destacado),
         activo: producto.activo !== false,
         imagen_principal: null,
@@ -1987,6 +1993,7 @@ export default function AdminPanel() {
     payload.append("descripcion", accesorioRiderEditModal.form.descripcion);
     payload.append("precio", accesorioRiderEditModal.form.precio);
     payload.append("stock", accesorioRiderEditModal.form.stock);
+    payload.append("orden_carrusel", accesorioRiderEditModal.form.orden_carrusel || "1");
     payload.append("es_destacado", String(accesorioRiderEditModal.form.es_destacado));
     payload.append("activo", String(accesorioRiderEditModal.form.activo));
     if (accesorioRiderEditModal.form.imagen_principal) {
@@ -2658,6 +2665,30 @@ export default function AdminPanel() {
                       <option value="vendida">Vendida</option>
                       <option value="inactiva">Inactiva</option>
                     </select>
+                  </label>
+
+                  <label>
+                    Orden carrusel *
+                    <input
+                      type="number"
+                      name="orden_carrusel"
+                      value={motoEditModal.form.orden_carrusel}
+                      onChange={handleMotoEditInputChange}
+                      min="1"
+                      required
+                    />
+                  </label>
+
+                  <label>
+                    Orden carrusel *
+                    <input
+                      type="number"
+                      name="orden_carrusel"
+                      value={accesorioRiderEditModal.form.orden_carrusel}
+                      onChange={handleAccesorioRiderEditInputChange}
+                      min="1"
+                      required
+                    />
                   </label>
 
                   <label className="admin-form-span-2">

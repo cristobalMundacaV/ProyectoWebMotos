@@ -4,7 +4,7 @@ from .models import Producto, ImagenProducto, EspecificacionProducto, Compatibil
 
 @admin.register(Producto)
 class ProductoAdmin(admin.ModelAdmin):
-	list_display = ("id", "nombre", "categoria_padre", "subcategoria", "marca", "precio", "stock", "activo")
+	list_display = ("id", "nombre", "categoria_padre", "subcategoria", "marca", "precio", "stock", "es_destacado", "orden_carrusel", "activo")
 	list_filter = ("activo", "es_destacado", "requiere_compatibilidad", "subcategoria__categoria", "subcategoria", "marca")
 	search_fields = ("nombre", "slug")
 

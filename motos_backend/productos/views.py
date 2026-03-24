@@ -71,6 +71,8 @@ def lista_productos(request):
 		productos = productos.order_by("precio")
 	elif order == "precio-desc":
 		productos = productos.order_by("-precio")
+	elif order == "release":
+		productos = productos.order_by("-es_destacado", "orden_carrusel", "id")
 	else:
 		productos = productos.order_by("-fecha_creacion")
 
@@ -199,7 +201,7 @@ def admin_accesorios_rider(request):
 		productos = (
 			Producto.objects.exclude(subcategoria__categoria__slug__in=ACCESORIOS_CATEGORY_SLUGS)
 			.select_related("subcategoria", "subcategoria__categoria", "marca")
-			.order_by("-fecha_creacion")
+			.order_by("-es_destacado", "orden_carrusel", "id")
 		)
 		serializer = ProductoSerializer(productos, many=True)
 		return Response(serializer.data)

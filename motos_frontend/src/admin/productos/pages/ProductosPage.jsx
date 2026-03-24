@@ -368,6 +368,18 @@ export default function ProductosPage({
               />
             </label>
 
+            <label>
+              Orden carrusel *
+              <input
+                type="number"
+                name="orden_carrusel"
+                value={accesorioRiderForm.orden_carrusel}
+                onChange={onAccesorioRiderInputChange}
+                min="1"
+                required
+              />
+            </label>
+
             <label className="admin-form-span-2">
               Imagen principal (opcional)
               <input
@@ -456,7 +468,9 @@ export default function ProductosPage({
                   <strong className="admin-rider-product-price">
                     {producto.precio ? `$${Number(producto.precio).toLocaleString("es-CL")}` : "Sin precio"}
                   </strong>
-                  <span className="admin-rider-product-status">{producto.activo ? "Disponible" : "No disponible"}</span>
+                  <span className="admin-rider-product-status">
+                    {producto.activo ? "Disponible" : "No disponible"} | Orden: {producto.orden_carrusel ?? 1}
+                  </span>
                 </div>
                 <div className="admin-row-actions admin-rider-product-actions">
                   <button type="button" className="admin-row-action-btn edit" title="Editar" onClick={() => onAccesorioMotoEdit?.(producto)}>
