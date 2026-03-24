@@ -937,10 +937,11 @@ export default function AdminPanel() {
   function handleAccesorioMotoInputChange(event) {
     clearInvalidFieldStyle(event.target);
     const { name, type, value, checked, files } = event.target;
+    const normalizedValue = name === "nombre" ? normalizeTitleCaseForInput(value) : value;
     setAccesorioMotoForm((prev) => ({
       ...prev,
-      [name]: type === "checkbox" ? checked : type === "file" ? files?.[0] || null : value,
-      ...(name === "nombre" ? { slug: limitSlug(buildSlug(value), 50) } : {}),
+      [name]: type === "checkbox" ? checked : type === "file" ? files?.[0] || null : normalizedValue,
+      ...(name === "nombre" ? { slug: limitSlug(buildSlug(normalizeTitleCaseLabel(normalizedValue)), 50) } : {}),
       ...(name === "requiere_compatibilidad" && !checked ? { compatibilidad_motos: [] } : {}),
     }));
   }
@@ -960,10 +961,11 @@ export default function AdminPanel() {
   function handleAccesorioRiderInputChange(event) {
     clearInvalidFieldStyle(event.target);
     const { name, type, value, checked, files } = event.target;
+    const normalizedValue = name === "nombre" ? normalizeTitleCaseForInput(value) : value;
     setAccesorioRiderForm((prev) => ({
       ...prev,
-      [name]: type === "checkbox" ? checked : type === "file" ? files?.[0] || null : value,
-      ...(name === "nombre" ? { slug: limitSlug(buildSlug(value), 50) } : {}),
+      [name]: type === "checkbox" ? checked : type === "file" ? files?.[0] || null : normalizedValue,
+      ...(name === "nombre" ? { slug: limitSlug(buildSlug(normalizeTitleCaseLabel(normalizedValue)), 50) } : {}),
     }));
   }
 
@@ -984,7 +986,8 @@ export default function AdminPanel() {
       let nextImagePreviewUrl = prev.imagePreviewUrl;
       let nextPreviewIsObjectUrl = prev.previewIsObjectUrl;
       let nextImageFileName = prev.imageFileName;
-      const nextValue = type === "checkbox" ? checked : type === "file" ? files?.[0] || null : value;
+      const normalizedValue = name === "nombre" ? normalizeTitleCaseForInput(value) : value;
+      const nextValue = type === "checkbox" ? checked : type === "file" ? files?.[0] || null : normalizedValue;
 
       if (type === "file") {
         if (prev.previewIsObjectUrl && prev.imagePreviewUrl) {
@@ -1006,7 +1009,7 @@ export default function AdminPanel() {
         form: {
           ...prev.form,
           [name]: nextValue,
-          ...(name === "nombre" ? { slug: limitSlug(buildSlug(value), 50) } : {}),
+          ...(name === "nombre" ? { slug: limitSlug(buildSlug(normalizeTitleCaseLabel(normalizedValue)), 50) } : {}),
         },
         imagePreviewUrl: nextImagePreviewUrl,
         previewIsObjectUrl: nextPreviewIsObjectUrl,

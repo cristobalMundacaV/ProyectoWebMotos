@@ -5,14 +5,22 @@ from catalogo.models import Marca
 from .models import CompatibilidadProductoMoto, Producto
 
 
+def normalize_product_name(value):
+    raw = str(value or "").replace("\t", " ")
+    normalized_parts = []
+
+    for part in raw.split():
+        if not part:
+            continue
+        normalized_parts.append(part[:1].upper() + part[1:])
+
+    return " ".join(normalized_parts).strip()
+
+
 class ProductoSerializer(serializers.ModelSerializer):
     marca_nombre = serializers.CharField(source="marca.nombre", read_only=True)
-    categoria_nombre = serializers.CharField(
-        source="subcategoria.categoria.nombre", read_only=True
-    )
-    categoria_slug = serializers.CharField(
-        source="subcategoria.categoria.slug", read_only=True
-    )
+    categoria_nombre = serializers.CharField(source="subcategoria.categoria.nombre", read_only=True)
+    categoria_slug = serializers.CharField(source="subcategoria.categoria.slug", read_only=True)
     subcategoria_nombre = serializers.CharField(source="subcategoria.nombre", read_only=True)
     subcategoria_slug = serializers.CharField(source="subcategoria.slug", read_only=True)
 
@@ -88,6 +96,12 @@ class ProductoAccesorioAdminSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError("La subcategoria debe pertenecer a Accesorios Motos.")
         return subcategoria
 
+    def validate_nombre(self, nombre):
+        normalized = normalize_product_name(nombre)
+        if not normalized:
+            raise serializers.ValidationError("El nombre es obligatorio.")
+        return normalized
+
     def validate(self, attrs):
         requiere_compatibilidad = attrs.get("requiere_compatibilidad", False)
         moto_ids = attrs.get("compatibilidad_motos", [])
@@ -144,9 +158,15 @@ class ProductoAccesorioRiderAdminSerializer(serializers.ModelSerializer):
     def validate_subcategoria(self, subcategoria):
         if subcategoria.categoria.slug in ["accesorios-para-la-moto", "accesorios"]:
             raise serializers.ValidationError(
-                "La subcategoria debe pertenecer a categorías rider, no a Accesorios Motos."
+                "La subcategoria debe pertenecer a categorias rider, no a Accesorios Motos."
             )
         return subcategoria
+
+    def validate_nombre(self, nombre):
+        normalized = normalize_product_name(nombre)
+        if not normalized:
+            raise serializers.ValidationError("El nombre es obligatorio.")
+        return normalized
 
     def create(self, validated_data):
         validated_data["requiere_compatibilidad"] = False
@@ -165,3 +185,9 @@ class ProductoAdminUpdateSerializer(serializers.ModelSerializer):
             "es_destacado",
             "activo",
         ]
+
+    def validate_nombre(self, nombre):
+        normalized = normalize_product_name(nombre)
+        if not normalized:
+            raise serializers.ValidationError("El nombre es obligatorio.")
+        return normalized
