@@ -168,7 +168,7 @@ export default function ConsultarHora() {
   }
 
   return (
-    <div>
+    <div className="page-wrapper">
       <Navbar />
 
       <main className="mantencion-page">

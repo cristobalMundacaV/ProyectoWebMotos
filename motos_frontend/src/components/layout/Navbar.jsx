@@ -147,7 +147,7 @@ export default function Navbar() {
               </button>
             ) : (
               <Link className="btn-nav btn-nav-subtle" to="/login" onClick={() => setIsMenuOpen(false)}>
-                Admin
+                Login
               </Link>
             )}
           </div>
@@ -170,7 +170,7 @@ export default function Navbar() {
           </div>
         ) : (
           <Link className="btn-nav btn-nav-subtle nav-desktop-admin" to="/login">
-            Admin
+            Login
           </Link>
         )}
 

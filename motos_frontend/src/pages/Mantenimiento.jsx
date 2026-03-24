@@ -372,7 +372,7 @@ export default function Mantenimiento() {
   }
 
   return (
-    <div>
+    <div className="page-wrapper">
       <Navbar />
 
       <main className="mantencion-page">
