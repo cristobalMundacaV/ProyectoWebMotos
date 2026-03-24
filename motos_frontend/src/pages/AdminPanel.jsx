@@ -208,6 +208,7 @@ function normalizeTitleCaseForInput(value) {
     .split(/(\s+)/)
     .map((part) => {
       if (!part || /^\s+$/.test(part)) return part;
+      if (/^[A-Z0-9-]+$/.test(part) && /[A-Z]/.test(part)) return part;
       return part.charAt(0).toUpperCase() + part.slice(1).toLowerCase();
     })
     .join("");
@@ -221,6 +222,17 @@ function normalizeTitleCaseLabel(value) {
 
 function normalizeCategoryLabel(value) {
   return normalizeTitleCaseLabel(value);
+}
+
+function forceBrandTokenInName(value, brandName) {
+  const normalized = normalizeTitleCaseForInput(value);
+  const normalizedBrand = normalizeUppercaseLabel(brandName);
+  if (!normalizedBrand) return normalized;
+
+  return normalized
+    .split(/(\s+)/)
+    .map((part) => (normalizeCompareLabel(part) === normalizeCompareLabel(normalizedBrand) ? normalizedBrand : part))
+    .join("");
 }
 
 function normalizeAdminUsersResponse(payload) {
@@ -937,13 +949,26 @@ export default function AdminPanel() {
   function handleAccesorioMotoInputChange(event) {
     clearInvalidFieldStyle(event.target);
     const { name, type, value, checked, files } = event.target;
-    const normalizedValue = name === "nombre" ? normalizeTitleCaseForInput(value) : value;
-    setAccesorioMotoForm((prev) => ({
-      ...prev,
-      [name]: type === "checkbox" ? checked : type === "file" ? files?.[0] || null : normalizedValue,
-      ...(name === "nombre" ? { slug: limitSlug(buildSlug(normalizeTitleCaseLabel(normalizedValue)), 50) } : {}),
-      ...(name === "requiere_compatibilidad" && !checked ? { compatibilidad_motos: [] } : {}),
-    }));
+    setAccesorioMotoForm((prev) => {
+      const nextBrandId = name === "marca" ? value : prev.marca;
+      const selectedBrand = accesoriosMotosMeta.marcas.find((marca) => String(marca.id) === String(nextBrandId));
+      const brandName = selectedBrand?.nombre || "";
+      const normalizedValue = name === "nombre" ? forceBrandTokenInName(value, brandName) : value;
+      const nextForm = {
+        ...prev,
+        [name]: type === "checkbox" ? checked : type === "file" ? files?.[0] || null : normalizedValue,
+        ...(name === "requiere_compatibilidad" && !checked ? { compatibilidad_motos: [] } : {}),
+      };
+
+      if (name === "marca" && nextForm.nombre) {
+        nextForm.nombre = forceBrandTokenInName(nextForm.nombre, brandName);
+      }
+      if (name === "nombre" || name === "marca") {
+        nextForm.slug = limitSlug(buildSlug(normalizeTitleCaseLabel(nextForm.nombre)), 50);
+      }
+
+      return nextForm;
+    });
   }
 
   function toggleAccesorioCompatibilidadMoto(motoId) {
@@ -961,12 +986,25 @@ export default function AdminPanel() {
   function handleAccesorioRiderInputChange(event) {
     clearInvalidFieldStyle(event.target);
     const { name, type, value, checked, files } = event.target;
-    const normalizedValue = name === "nombre" ? normalizeTitleCaseForInput(value) : value;
-    setAccesorioRiderForm((prev) => ({
-      ...prev,
-      [name]: type === "checkbox" ? checked : type === "file" ? files?.[0] || null : normalizedValue,
-      ...(name === "nombre" ? { slug: limitSlug(buildSlug(normalizeTitleCaseLabel(normalizedValue)), 50) } : {}),
-    }));
+    setAccesorioRiderForm((prev) => {
+      const nextBrandId = name === "marca" ? value : prev.marca;
+      const selectedBrand = accesoriosRiderMeta.marcas.find((marca) => String(marca.id) === String(nextBrandId));
+      const brandName = selectedBrand?.nombre || "";
+      const normalizedValue = name === "nombre" ? forceBrandTokenInName(value, brandName) : value;
+      const nextForm = {
+        ...prev,
+        [name]: type === "checkbox" ? checked : type === "file" ? files?.[0] || null : normalizedValue,
+      };
+
+      if (name === "marca" && nextForm.nombre) {
+        nextForm.nombre = forceBrandTokenInName(nextForm.nombre, brandName);
+      }
+      if (name === "nombre" || name === "marca") {
+        nextForm.slug = limitSlug(buildSlug(normalizeTitleCaseLabel(nextForm.nombre)), 50);
+      }
+
+      return nextForm;
+    });
   }
 
   function handleAccesorioRiderPrecioInputChange(event) {
@@ -986,7 +1024,10 @@ export default function AdminPanel() {
       let nextImagePreviewUrl = prev.imagePreviewUrl;
       let nextPreviewIsObjectUrl = prev.previewIsObjectUrl;
       let nextImageFileName = prev.imageFileName;
-      const normalizedValue = name === "nombre" ? normalizeTitleCaseForInput(value) : value;
+      const nextBrandId = name === "marca" ? value : prev.form.marca;
+      const selectedBrand = accesoriosRiderMeta.marcas.find((marca) => String(marca.id) === String(nextBrandId));
+      const brandName = selectedBrand?.nombre || "";
+      const normalizedValue = name === "nombre" ? forceBrandTokenInName(value, brandName) : value;
       const nextValue = type === "checkbox" ? checked : type === "file" ? files?.[0] || null : normalizedValue;
 
       if (type === "file") {
@@ -1004,13 +1045,20 @@ export default function AdminPanel() {
         }
       }
 
+      const nextForm = {
+        ...prev.form,
+        [name]: nextValue,
+      };
+      if (name === "marca" && nextForm.nombre) {
+        nextForm.nombre = forceBrandTokenInName(nextForm.nombre, brandName);
+      }
+      if (name === "nombre" || name === "marca") {
+        nextForm.slug = limitSlug(buildSlug(normalizeTitleCaseLabel(nextForm.nombre)), 50);
+      }
+
       return {
         ...prev,
-        form: {
-          ...prev.form,
-          [name]: nextValue,
-          ...(name === "nombre" ? { slug: limitSlug(buildSlug(normalizeTitleCaseLabel(normalizedValue)), 50) } : {}),
-        },
+        form: nextForm,
         imagePreviewUrl: nextImagePreviewUrl,
         previewIsObjectUrl: nextPreviewIsObjectUrl,
         imageFileName: nextImageFileName,

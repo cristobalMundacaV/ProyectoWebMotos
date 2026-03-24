@@ -1,4 +1,5 @@
 from rest_framework import serializers
+import re
 
 from catalogo.models import Marca
 
@@ -12,9 +13,22 @@ def normalize_product_name(value):
     for part in raw.split():
         if not part:
             continue
+        if re.fullmatch(r"[A-Z0-9-]+", part) and re.search(r"[A-Z]", part):
+            normalized_parts.append(part)
+            continue
         normalized_parts.append(part[:1].upper() + part[1:])
 
     return " ".join(normalized_parts).strip()
+
+
+def force_brand_token_in_name(nombre, marca):
+    normalized = normalize_product_name(nombre)
+    brand_name = str(getattr(marca, "nombre", "") or "").strip()
+    if not normalized or not brand_name:
+        return normalized
+
+    pattern = re.compile(rf"(?<!\w){re.escape(brand_name)}(?!\w)", re.IGNORECASE)
+    return pattern.sub(brand_name, normalized)
 
 
 class ProductoSerializer(serializers.ModelSerializer):
@@ -105,11 +119,15 @@ class ProductoAccesorioAdminSerializer(serializers.ModelSerializer):
     def validate(self, attrs):
         requiere_compatibilidad = attrs.get("requiere_compatibilidad", False)
         moto_ids = attrs.get("compatibilidad_motos", [])
+        marca = attrs.get("marca")
 
         if requiere_compatibilidad and not moto_ids:
             raise serializers.ValidationError(
                 {"compatibilidad_motos": ["Selecciona al menos una moto compatible."]}
             )
+
+        if "nombre" in attrs:
+            attrs["nombre"] = force_brand_token_in_name(attrs.get("nombre"), marca)
 
         return attrs
 
@@ -172,11 +190,19 @@ class ProductoAccesorioRiderAdminSerializer(serializers.ModelSerializer):
         validated_data["requiere_compatibilidad"] = False
         return Producto.objects.create(**validated_data)
 
+    def validate(self, attrs):
+        marca = attrs.get("marca")
+        if "nombre" in attrs:
+            attrs["nombre"] = force_brand_token_in_name(attrs.get("nombre"), marca)
+        return attrs
+
 
 class ProductoAdminUpdateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Producto
         fields = [
+            "subcategoria",
+            "marca",
             "nombre",
             "descripcion",
             "precio",
@@ -185,9 +211,37 @@ class ProductoAdminUpdateSerializer(serializers.ModelSerializer):
             "es_destacado",
             "activo",
         ]
+        extra_kwargs = {
+            "marca": {"required": False, "allow_null": False},
+            "subcategoria": {"required": False},
+        }
+
+    def validate_marca(self, marca):
+        if marca is None:
+            raise serializers.ValidationError("La marca es obligatoria.")
+        return marca
+
+    def validate_subcategoria(self, subcategoria):
+        return subcategoria
 
     def validate_nombre(self, nombre):
         normalized = normalize_product_name(nombre)
         if not normalized:
             raise serializers.ValidationError("El nombre es obligatorio.")
         return normalized
+
+    def validate(self, attrs):
+        marca = attrs.get("marca") or getattr(self.instance, "marca", None)
+        subcategoria = attrs.get("subcategoria") or getattr(self.instance, "subcategoria", None)
+
+        categoria_slug = getattr(getattr(subcategoria, "categoria", None), "slug", "")
+        if categoria_slug in ["accesorios-para-la-moto", "accesorios"]:
+            if marca and marca.tipo and marca.tipo != Marca.TIPO_ACCESORIO_MOTO:
+                raise serializers.ValidationError({"marca": "La marca seleccionada no pertenece a Accesorios Motos."})
+        else:
+            if marca and marca.tipo and marca.tipo != Marca.TIPO_ACCESORIO_RIDER:
+                raise serializers.ValidationError({"marca": "La marca seleccionada no pertenece a Indumentaria Rider."})
+
+        if "nombre" in attrs:
+            attrs["nombre"] = force_brand_token_in_name(attrs.get("nombre"), marca)
+        return attrs
