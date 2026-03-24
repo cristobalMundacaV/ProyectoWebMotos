@@ -182,6 +182,7 @@ export default function CatalogoMotos() {
       cilindrada: String(moto.cilindrada ?? ""),
       anio: String(moto.anio ?? ""),
       stock: String(moto.stock ?? 0),
+      orden_carrusel: String(moto.orden_carrusel ?? 1),
       es_destacada: Boolean(moto.es_destacada),
       activa: moto.activa !== false,
       imagen_principal: null,
@@ -269,6 +270,7 @@ export default function CatalogoMotos() {
     payload.append("cilindrada", editForm.cilindrada);
     payload.append("anio", editForm.anio);
     payload.append("stock", editForm.stock);
+    payload.append("orden_carrusel", editForm.orden_carrusel || "1");
     payload.append("es_destacada", String(editForm.es_destacada));
     payload.append("activa", String(editForm.activa));
 
@@ -657,6 +659,18 @@ export default function CatalogoMotos() {
                 />
               </label>
 
+              <label>
+                Orden carrusel *
+                <input
+                  type="number"
+                  name="orden_carrusel"
+                  value={editForm.orden_carrusel}
+                  onChange={handleEditInputChange}
+                  min="1"
+                  required
+                />
+              </label>
+
               <label className="moto-edit-span-2">
                 Imagen principal
                 <div className="moto-edit-file-picker">
@@ -746,6 +760,7 @@ export default function CatalogoMotos() {
     </div>
   );
 }
+
 
 
 

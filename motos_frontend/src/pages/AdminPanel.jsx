@@ -2680,18 +2680,6 @@ export default function AdminPanel() {
                     />
                   </label>
 
-                  <label>
-                    Orden carrusel *
-                    <input
-                      type="number"
-                      name="orden_carrusel"
-                      value={accesorioRiderEditModal.form.orden_carrusel}
-                      onChange={handleAccesorioRiderEditInputChange}
-                      min="1"
-                      required
-                    />
-                  </label>
-
                   <label className="admin-form-span-2">
                     Imagen principal (opcional)
                     <input
@@ -2848,6 +2836,18 @@ export default function AdminPanel() {
                       value={accesorioRiderEditModal.form.stock}
                       onChange={handleAccesorioRiderEditInputChange}
                       min="0"
+                      required
+                    />
+                  </label>
+
+                  <label>
+                    Orden carrusel *
+                    <input
+                      type="number"
+                      name="orden_carrusel"
+                      value={accesorioRiderEditModal.form.orden_carrusel}
+                      onChange={handleAccesorioRiderEditInputChange}
+                      min="1"
                       required
                     />
                   </label>
