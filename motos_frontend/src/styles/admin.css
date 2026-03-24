@@ -1290,6 +1290,9 @@
   padding: 10px;
   background: rgba(255, 255, 255, 0.7);
   width: fit-content;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .admin-image-preview {
@@ -1299,6 +1302,7 @@
   object-fit: contain;
   border-radius: 10px;
   background: #f3f5f7;
+  margin: 0 auto;
 }
 
 .admin-form-footer-submit {

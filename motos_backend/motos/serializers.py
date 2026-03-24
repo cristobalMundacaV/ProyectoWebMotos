@@ -5,6 +5,16 @@ from catalogo.models import CategoriaMoto, Marca
 from .models import ModeloMoto, Moto
 
 
+def normalize_uppercase_label(value):
+    return str(value or "").strip().replace("\t", " ").replace("  ", " ").upper()
+
+
+def normalize_title_case_label(value):
+    raw = str(value or "").replace("\t", " ")
+    parts = [part for part in raw.split() if part]
+    return " ".join(part[:1].upper() + part[1:].lower() for part in parts).strip()
+
+
 class ModeloMotoSerializer(serializers.ModelSerializer):
     marca_nombre = serializers.CharField(source="marca.nombre", read_only=True)
     nombre = serializers.CharField(source="nombre_modelo", required=False)
@@ -217,12 +227,24 @@ class MotoSerializer(serializers.ModelSerializer):
 
 
 class CategoriaMotoSerializer(serializers.ModelSerializer):
+    def validate_nombre(self, nombre):
+        normalized = normalize_title_case_label(nombre)
+        if not normalized:
+            raise serializers.ValidationError("El nombre es obligatorio.")
+        return normalized
+
     class Meta:
         model = CategoriaMoto
         fields = ["id", "nombre", "slug", "descripcion", "activa"]
 
 
 class MarcaSerializer(serializers.ModelSerializer):
+    def validate_nombre(self, nombre):
+        normalized = normalize_uppercase_label(nombre)
+        if not normalized:
+            raise serializers.ValidationError("El nombre es obligatorio.")
+        return normalized
+
     class Meta:
         model = Marca
         fields = ["id", "nombre", "slug", "descripcion", "tipo", "activa"]

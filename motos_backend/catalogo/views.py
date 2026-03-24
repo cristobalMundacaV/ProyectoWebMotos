@@ -8,6 +8,12 @@ from .models import CategoriaProducto, SubcategoriaProducto
 ACCESORIOS_CATEGORY_SLUGS = ["accesorios-para-la-moto", "accesorios"]
 
 
+def normalize_title_case_label(value):
+	raw = str(value or "").replace("\t", " ")
+	parts = [part for part in raw.split() if part]
+	return " ".join(part[:1].upper() + part[1:].lower() for part in parts).strip()
+
+
 @api_view(["GET", "POST"])
 def categorias_indumentaria(request):
 	if request.method == "GET":
@@ -30,7 +36,7 @@ def categorias_indumentaria(request):
 			status=status.HTTP_401_UNAUTHORIZED,
 		)
 
-	nombre = (request.data.get("nombre") or "").strip()
+	nombre = normalize_title_case_label(request.data.get("nombre"))
 	slug = (request.data.get("slug") or "").strip()
 	descripcion = (request.data.get("descripcion") or "").strip()
 	activa = request.data.get("activa", True)
@@ -110,7 +116,7 @@ def categorias_accesorios_moto(request):
 			status=status.HTTP_401_UNAUTHORIZED,
 		)
 
-	nombre = (request.data.get("nombre") or "").strip()
+	nombre = normalize_title_case_label(request.data.get("nombre"))
 	slug = (request.data.get("slug") or "").strip()
 	descripcion = (request.data.get("descripcion") or "").strip()
 	activa = request.data.get("activa", True)
@@ -204,7 +210,7 @@ def categorias_accesorios_rider(request):
 			status=status.HTTP_401_UNAUTHORIZED,
 		)
 
-	nombre = (request.data.get("nombre") or "").strip()
+	nombre = normalize_title_case_label(request.data.get("nombre"))
 	slug = (request.data.get("slug") or "").strip()
 	descripcion = (request.data.get("descripcion") or "").strip()
 	activa = request.data.get("activa", True)
@@ -273,7 +279,7 @@ def _serialize_subcategoria(subcategoria):
 
 def _update_subcategoria_from_request(subcategoria, data):
 	if "nombre" in data:
-		subcategoria.nombre = (data.get("nombre") or "").strip() or subcategoria.nombre
+		subcategoria.nombre = normalize_title_case_label(data.get("nombre")) or subcategoria.nombre
 	if "slug" in data:
 		subcategoria.slug = (data.get("slug") or "").strip() or subcategoria.slug
 	if "descripcion" in data:

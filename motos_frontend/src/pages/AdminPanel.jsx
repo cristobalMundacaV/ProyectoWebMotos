@@ -1055,7 +1055,11 @@ export default function AdminPanel() {
       kind === "categoria_moto" ||
       kind === "categoria_acc_motos" ||
       kind === "categoria_acc_rider";
-    const normalizedNombre = isBrandKind || isCategoryKind ? normalizeTitleCaseLabel(item.nombre || "") : item.nombre || "";
+    const normalizedNombre = isBrandKind
+      ? normalizeUppercaseLabel(item.nombre || "")
+      : isCategoryKind
+        ? normalizeTitleCaseLabel(item.nombre || "")
+        : item.nombre || "";
     setEntityEditModal({
       kind,
       id: item.id,
@@ -1103,13 +1107,19 @@ export default function AdminPanel() {
         name === "nombre"
           ? isModelKind
             ? normalizeUppercaseLabel(value)
-            : isBrandKind || isCategoryKind
+            : isBrandKind
+              ? normalizeUppercaseLabel(value)
+              : isCategoryKind
               ? normalizeTitleCaseForInput(value)
               : value
           : value;
       const next = { ...prev, [name]: normalizedValue };
       if (name === "nombre") {
-        const valueForSlug = isBrandKind || isCategoryKind ? normalizeTitleCaseLabel(normalizedValue) : normalizedValue;
+        const valueForSlug = isBrandKind
+          ? normalizeUppercaseLabel(normalizedValue)
+          : isCategoryKind
+            ? normalizeTitleCaseLabel(normalizedValue)
+            : normalizedValue;
         next.slug = buildSlug(valueForSlug);
       }
       return next;
@@ -1143,7 +1153,9 @@ export default function AdminPanel() {
       entityEditModal.kind === "categoria_acc_rider";
     const nombre = isModelKind
       ? normalizeUppercaseLabel(entityEditModal.nombre)
-      : isBrandKind || isCategoryKind
+      : isBrandKind
+        ? normalizeUppercaseLabel(entityEditModal.nombre)
+        : isCategoryKind
         ? normalizeTitleCaseLabel(entityEditModal.nombre)
         : (entityEditModal.nombre || "").trim();
     const slug = (entityEditModal.slug || "").trim();
@@ -1651,7 +1663,7 @@ export default function AdminPanel() {
     setMarcaSaving(true);
 
     try {
-      const normalizedNombre = normalizeTitleCaseLabel(marcaForm.nombre);
+      const normalizedNombre = normalizeUppercaseLabel(marcaForm.nombre);
       const payload = {
         ...marcaForm,
         nombre: normalizedNombre,
