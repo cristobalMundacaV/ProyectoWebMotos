@@ -83,7 +83,26 @@ function SidebarIcon({ kind }) {
   if (kind === "mantenciones") {
     return (
       <svg viewBox="0 0 24 24" aria-hidden="true">
+        <circle cx="12" cy="12" r="7.2" />
+        <path d="M12 7.8v4.5l3 2" />
+      </svg>
+    );
+  }
+
+  if (kind === "taller") {
+    return (
+      <svg viewBox="0 0 24 24" aria-hidden="true">
         <path d="M14.7 6.3a4.2 4.2 0 0 0 3.5 5.9l-7.6 7.6a2.2 2.2 0 0 1-3.1 0l-.3-.3a2.2 2.2 0 0 1 0-3.1l7.6-7.6a4.2 4.2 0 0 0-.1-5.8z" />
+      </svg>
+    );
+  }
+
+  if (kind === "horarios") {
+    return (
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <rect x="3" y="4" width="18" height="17" rx="2.4" />
+        <path d="M8 2v4M16 2v4M3 9h18" />
+        <path d="M12 12v4l2.6 1.6" />
       </svg>
     );
   }
@@ -107,7 +126,7 @@ const navigationGroups = [
     icon: "motos",
     items: [
       { label: "Crear motos", value: "motos" },
-      { label: "Lista motos", to: "/catalogo" },
+      { label: "Ver Catalogo", to: "/catalogo" },
     ],
   },
   {
@@ -132,7 +151,7 @@ const navigationGroups = [
   },
   {
     label: "Taller",
-    icon: "mantenciones",
+    icon: "taller",
     items: [
       { label: "Etapa de Diagnostico", value: "taller_mantenciones_dia" },
       { label: "Motos en Taller", value: "taller_en_taller" },
@@ -141,10 +160,17 @@ const navigationGroups = [
   },
   {
     label: "Horarios",
-    icon: "modelos",
+    icon: "horarios",
     items: [
       { label: "Horario de la Semana", value: "horarios_operativos" },
       { label: "Calendario de disponibilidad", value: "horarios_calendario" },
+    ],
+  },
+  {
+    label: "Usuarios",
+    icon: "usuarios",
+    items: [
+      { label: "Crear Usuario", value: "crear_usuario" },
     ],
   },
   {
@@ -161,13 +187,6 @@ const navigationGroups = [
       { label: "Indumentaria rider", kind: "heading" },
       { label: "Marca", value: "marcas_acc_rider" },
       { label: "Categoria", value: "categorias_acc_rider" },
-    ],
-  },
-  {
-    label: "Usuarios",
-    icon: "usuarios",
-    items: [
-      { label: "Crear Usuario", value: "crear_usuario" },
     ],
   },
   {

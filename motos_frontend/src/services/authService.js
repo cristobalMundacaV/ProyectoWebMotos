@@ -51,6 +51,11 @@ export function clearAuthSession() {
   localStorage.removeItem(USER_KEY);
 }
 
+export function updateStoredUser(user) {
+  if (!user) return;
+  localStorage.setItem(USER_KEY, JSON.stringify(user));
+}
+
 export async function registerUser(payload) {
   const response = await api.post("/clientes/register/", payload);
   return response.data;

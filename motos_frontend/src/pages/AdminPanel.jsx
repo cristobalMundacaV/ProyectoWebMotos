@@ -4,8 +4,10 @@ import {
   clearAuthSession,
   createAdminUser,
   deleteAdminUser,
+  getStoredUser,
   listAdminUsers,
   logoutUser,
+  updateStoredUser,
   updateAdminUser,
 } from "../services/authService";
 import { fetchAdminBootstrapData } from "../admin/dashboard/services/dashboardService";
@@ -250,6 +252,7 @@ function translateBackendMessage(message) {
 
 export default function AdminPanel() {
   const navigate = useNavigate();
+  const [currentUser, setCurrentUser] = useState(() => getStoredUser());
   const [activeSection, setActiveSection] = useState("resumen");
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
   const [dashboard, setDashboard] = useState({
@@ -548,6 +551,35 @@ export default function AdminPanel() {
     } finally {
       clearAuthSession();
       navigate("/", { replace: true });
+    }
+  }
+
+  async function handleTopbarProfileSave(payload) {
+    if (!currentUser?.id) {
+      pushToast("No se encontro la sesion del usuario.", "error");
+      return false;
+    }
+    if (!currentUser?.rol) {
+      pushToast("No se pudo identificar el rol del usuario actual.", "error");
+      return false;
+    }
+    try {
+      const response = await updateAdminUser(currentUser.id, {
+        first_name: payload.first_name,
+        last_name: payload.last_name,
+        username: payload.username,
+        email: payload.email,
+        telefono: payload.telefono,
+        rol: currentUser.rol,
+      });
+      const updatedUser = response?.user || response;
+      setCurrentUser(updatedUser);
+      updateStoredUser(updatedUser);
+      pushToast("Perfil actualizado correctamente.");
+      return true;
+    } catch (error) {
+      pushToast(getErrorText(error, "No se pudo actualizar el perfil."), "error");
+      return false;
     }
   }
 
@@ -2142,6 +2174,8 @@ export default function AdminPanel() {
         onLogout={handleLogout}
         onToggleSidebar={() => setIsMobileSidebarOpen((prev) => !prev)}
         isSidebarOpen={isMobileSidebarOpen}
+        user={currentUser}
+        onSaveProfile={handleTopbarProfileSave}
       />
 
       <div className="admin-layout">
