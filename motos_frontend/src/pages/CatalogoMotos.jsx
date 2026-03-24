@@ -1,5 +1,5 @@
 ﻿import { useEffect, useMemo, useRef, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import Navbar from "../components/layout/Navbar";
 import Footer from "../components/layout/Footer";
 import { useMotos } from "../hooks/useMotos";
@@ -11,7 +11,6 @@ import "../styles/catalogo-motos.css";
 
 /** Catálogo completo de motos con filtros y edición para admins */
 export default function CatalogoMotos() {
-  const navigate = useNavigate();
   const ITEMS_PER_PAGE = 16;
   const { motos, setMotos, loading, error } = useMotos();
   const [selectedMarcas, setSelectedMarcas] = useState([]);
@@ -169,8 +168,25 @@ export default function CatalogoMotos() {
   }
 
   function openEditModal(moto) {
-    if (!moto?.id) return;
-    navigate(`/admin-panel?section=motos&entity=moto&id=${moto.id}`);
+    setEditError("");
+    setEditImagePreview("");
+
+    setEditingMoto(moto);
+    setEditForm({
+      marca: resolveSelectId(moto.marca, moto.marca_nombre, meta.marcas),
+      categoria: resolveSelectId(moto.categoria, moto.categoria_nombre, meta.categorias),
+      modelo: moto.modelo || moto.nombre || "",
+      slug: moto.slug || "",
+      descripcion: moto.descripcion || "",
+      precio: String(parsePrecioEntero(moto.precio)),
+      cilindrada: String(moto.cilindrada ?? ""),
+      anio: String(moto.anio ?? ""),
+      stock: String(moto.stock ?? 0),
+      orden_carrusel: String(moto.orden_carrusel ?? 1),
+      es_destacada: Boolean(moto.es_destacada),
+      activa: moto.activa !== false,
+      imagen_principal: null,
+    });
   }
 
   function closeEditModal() {
