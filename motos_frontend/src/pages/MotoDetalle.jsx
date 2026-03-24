@@ -132,14 +132,18 @@ export default function MotoDetalle() {
           </div>
 
           {tieneVarianteMaletas && (
-            <label className="detalle-toggle-maletas moto-toggle-center">
-              <input
-                type="checkbox"
-                checked={varianteConMaletas}
-                onChange={(event) => setVarianteConMaletas(event.target.checked)}
-              />
-              {varianteConMaletas ? "Con maletas" : "Sin maletas"}
-            </label>
+            <button
+              type="button"
+              className={`moto-variant-toggle ${varianteConMaletas ? "is-on" : "is-off"}`}
+              onClick={() => setVarianteConMaletas((prev) => !prev)}
+              aria-pressed={varianteConMaletas}
+              aria-label={varianteConMaletas ? "Cambiar a sin maletas" : "Cambiar a con maletas"}
+            >
+              <span className="moto-variant-pill" aria-hidden="true">
+                <span className="moto-variant-dot" />
+              </span>
+              <span className="moto-variant-label">{varianteConMaletas ? "CON MALETAS" : "SIN MALETAS"}</span>
+            </button>
           )}
         </section>
 

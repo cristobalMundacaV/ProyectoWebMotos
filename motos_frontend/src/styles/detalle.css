@@ -423,7 +423,9 @@
 
 /* Nuevo layout detalle motos */
 .detalle-moto-page .detalle-main {
-  max-width: 1360px;
+  max-width: 1780px;
+  padding-left: 28px;
+  padding-right: 28px;
 }
 
 .moto-hero-block {
@@ -450,8 +452,8 @@
 }
 
 .moto-hero-image-wrap img {
-  width: min(92vw, 980px);
-  max-height: 520px;
+  width: min(96vw, 1180px);
+  max-height: 620px;
   object-fit: contain;
 }
 
@@ -465,6 +467,52 @@
 .moto-toggle-center input {
   width: 22px;
   height: 22px;
+}
+
+.moto-variant-toggle {
+  margin: -4px auto 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 14px;
+  border: none;
+  background: transparent;
+  color: #0a0a0a;
+  font-size: clamp(32px, 2.6vw, 50px);
+  font-weight: 900;
+  letter-spacing: 0.3px;
+  cursor: pointer;
+}
+
+.moto-variant-pill {
+  width: 52px;
+  height: 31px;
+  border-radius: 999px;
+  border: 4px solid #0a0a0a;
+  display: inline-flex;
+  align-items: center;
+  padding: 2px;
+  transition: background-color 0.2s ease;
+}
+
+.moto-variant-dot {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #0a0a0a;
+  transition: transform 0.2s ease;
+}
+
+.moto-variant-toggle.is-on .moto-variant-pill {
+  background: #0a0a0a;
+}
+
+.moto-variant-toggle.is-on .moto-variant-dot {
+  background: #ffffff;
+  transform: translateX(17px);
+}
+
+.moto-variant-label {
+  line-height: 1;
 }
 
 .moto-pricing-block {
@@ -570,6 +618,11 @@
 }
 
 @media (max-width: 768px) {
+  .detalle-moto-page .detalle-main {
+    padding-left: 12px;
+    padding-right: 12px;
+  }
+
   .moto-floating-title {
     position: static;
     margin-bottom: 10px;
@@ -593,6 +646,26 @@
   .moto-toggle-center {
     margin-top: 6px;
     font-size: 22px;
+  }
+
+  .moto-variant-toggle {
+    gap: 10px;
+    font-size: 38px;
+  }
+
+  .moto-variant-pill {
+    width: 42px;
+    height: 27px;
+    border-width: 3px;
+  }
+
+  .moto-variant-dot {
+    width: 14px;
+    height: 14px;
+  }
+
+  .moto-variant-toggle.is-on .moto-variant-dot {
+    transform: translateX(13px);
   }
 
   .moto-cuotas-label {
