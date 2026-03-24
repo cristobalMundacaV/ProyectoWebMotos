@@ -41,7 +41,9 @@ export default function MotosPage({
   motoImageInputKey,
   onMotoInputChange,
   onMotoPrecioInputChange,
+  onMotoPrecioListaInputChange,
   onMotoPrecioConMaletasInputChange,
+  onMotoPrecioListaConMaletasInputChange,
   onMotoSubmit,
   onMotoEdit,
   onMotoDelete,
@@ -481,6 +483,19 @@ export default function MotosPage({
               />
             </label>
 
+            <label>
+              Precio de lista *
+              <input
+                type="text"
+                name="precio_lista"
+                value={formatPrecio(motoForm.precio_lista)}
+                onChange={onMotoPrecioListaInputChange}
+                inputMode="decimal"
+                placeholder="Ej: 10.690.000"
+                required
+              />
+            </label>
+
             <label className="admin-form-check admin-form-check-compact">
               <input
                 type="checkbox"
@@ -491,22 +506,38 @@ export default function MotosPage({
               Habilitar variante con maletas
             </label>
 
-            <label>
-              Precio con maletas {motoForm.permite_variante_maletas ? "*" : "(opcional)"}
-              <input
-                type="text"
-                name="precio_con_maletas"
-                value={formatPrecio(motoForm.precio_con_maletas)}
-                onChange={onMotoPrecioConMaletasInputChange}
-                inputMode="decimal"
-                placeholder="Ej: 7.990.000"
-                disabled={!motoForm.permite_variante_maletas}
-                required={Boolean(motoForm.permite_variante_maletas)}
-              />
-            </label>
+            {motoForm.permite_variante_maletas && (
+              <label>
+                Precio con maletas *
+                <input
+                  type="text"
+                  name="precio_con_maletas"
+                  value={formatPrecio(motoForm.precio_con_maletas)}
+                  onChange={onMotoPrecioConMaletasInputChange}
+                  inputMode="decimal"
+                  placeholder="Ej: 7.990.000"
+                  required
+                />
+              </label>
+            )}
+
+            {motoForm.permite_variante_maletas && (
+              <label>
+                Precio de lista con maletas *
+                <input
+                  type="text"
+                  name="precio_lista_con_maletas"
+                  value={formatPrecio(motoForm.precio_lista_con_maletas)}
+                  onChange={onMotoPrecioListaConMaletasInputChange}
+                  inputMode="decimal"
+                  placeholder="Ej: 11.990.000"
+                  required
+                />
+              </label>
+            )}
 
             <label className="admin-form-span-2">
-              Imagen principal (opcional)
+              Imagen principal
               <input
                 key={`moto-image-${motoImageInputKey}`}
                 type="file"
@@ -516,18 +547,19 @@ export default function MotosPage({
               />
             </label>
 
-            <label className="admin-form-span-2">
-              Imagen con maletas {motoForm.permite_variante_maletas ? "*" : "(opcional)"}
-              <input
-                key={`moto-maletas-image-${motoImageInputKey}`}
-                type="file"
-                name="imagen_con_maletas"
-                accept="image/*"
-                onChange={onMotoInputChange}
-                disabled={!motoForm.permite_variante_maletas}
-                required={Boolean(motoForm.permite_variante_maletas)}
-              />
-            </label>
+            {motoForm.permite_variante_maletas && (
+              <label className="admin-form-span-2">
+                Imagen con maletas *
+                <input
+                  key={`moto-maletas-image-${motoImageInputKey}`}
+                  type="file"
+                  name="imagen_con_maletas"
+                  accept="image/*"
+                  onChange={onMotoInputChange}
+                  required
+                />
+              </label>
+            )}
 
             <div className="admin-form-footer">
               <div className="admin-form-footer-checks">

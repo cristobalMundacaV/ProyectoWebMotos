@@ -1339,9 +1339,12 @@
   z-index: 1400;
   background: rgba(9, 12, 18, 0.62);
   backdrop-filter: blur(3px);
-  display: grid;
-  place-items: center;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
   padding: 20px;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
 .admin-entity-modal {
@@ -1351,6 +1354,8 @@
   border: 1px solid #e5e7eb;
   box-shadow: 0 24px 70px rgba(0, 0, 0, 0.28);
   padding: 20px;
+  max-height: calc(100vh - 40px);
+  overflow-y: auto;
 }
 
 .admin-moto-edit-modal {
@@ -1375,6 +1380,12 @@
 
 .admin-moto-edit-preview .admin-image-preview {
   margin: 0 auto;
+}
+
+.admin-moto-dual-preview-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 12px;
 }
 
 .admin-moto-edit-modal-actions {

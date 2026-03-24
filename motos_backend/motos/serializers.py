@@ -139,6 +139,14 @@ class MotoSerializer(serializers.ModelSerializer):
             "precio_con_maletas",
             getattr(self.instance, "precio_con_maletas", None),
         )
+        precio_lista = attrs.get(
+            "precio_lista",
+            getattr(self.instance, "precio_lista", None),
+        )
+        precio_lista_con_maletas = attrs.get(
+            "precio_lista_con_maletas",
+            getattr(self.instance, "precio_lista_con_maletas", None),
+        )
         imagen_con_maletas = attrs.get(
             "imagen_con_maletas",
             getattr(self.instance, "imagen_con_maletas", None),
@@ -150,6 +158,9 @@ class MotoSerializer(serializers.ModelSerializer):
 
         if not modelo_moto and not modelo:
             raise serializers.ValidationError({"modelo_id": "Debes seleccionar un modelo o ingresar un nombre de modelo."})
+
+        if precio_lista in (None, ""):
+            raise serializers.ValidationError({"precio_lista": "Debes indicar el precio de lista."})
 
         if permite_variante_maletas and precio_con_maletas in (None, ""):
             raise serializers.ValidationError(
@@ -163,7 +174,10 @@ class MotoSerializer(serializers.ModelSerializer):
 
         if not permite_variante_maletas:
             attrs["precio_con_maletas"] = None
+            attrs["precio_lista_con_maletas"] = None
             attrs["imagen_con_maletas"] = None
+        elif precio_lista_con_maletas in (None, ""):
+            attrs["precio_lista_con_maletas"] = precio_lista
 
         return attrs
 
@@ -244,8 +258,10 @@ class MotoSerializer(serializers.ModelSerializer):
             "slug",
             "descripcion",
             "precio",
+            "precio_lista",
             "permite_variante_maletas",
             "precio_con_maletas",
+            "precio_lista_con_maletas",
             "imagen_con_maletas",
             "cilindrada",
             "cilindrada_input",

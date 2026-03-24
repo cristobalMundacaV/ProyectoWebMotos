@@ -416,7 +416,212 @@
     line-height: 1.5;
   }
 
-  .detalle-moto-page .detalle-description {
-    margin-top: 14px;
+.detalle-moto-page .detalle-description {
+  margin-top: 14px;
+}
+}
+
+/* Nuevo layout detalle motos */
+.detalle-moto-page .detalle-main {
+  max-width: 1360px;
+}
+
+.moto-hero-block {
+  position: relative;
+  min-height: 540px;
+  padding-top: 20px;
+}
+
+.moto-floating-title {
+  position: absolute;
+  top: 10px;
+  left: 8px;
+  margin: 0;
+  font-size: clamp(36px, 4.2vw, 56px);
+  line-height: 1;
+  font-weight: 900;
+  letter-spacing: 0.5px;
+}
+
+.moto-hero-image-wrap {
+  min-height: 470px;
+  display: grid;
+  place-items: center;
+}
+
+.moto-hero-image-wrap img {
+  width: min(92vw, 980px);
+  max-height: 520px;
+  object-fit: contain;
+}
+
+.moto-toggle-center {
+  width: fit-content;
+  margin: -12px auto 0;
+  font-size: 34px;
+  font-weight: 900;
+}
+
+.moto-toggle-center input {
+  width: 22px;
+  height: 22px;
+}
+
+.moto-pricing-block {
+  margin: 8px auto 28px;
+  width: min(520px, 100%);
+  text-align: center;
+}
+
+.moto-cuotas-label {
+  margin: 0 0 4px;
+  font-size: 33px;
+  font-weight: 900;
+  letter-spacing: 0.4px;
+}
+
+.moto-cuotas-value {
+  margin: 0 0 10px;
+  font-size: clamp(44px, 5.2vw, 74px);
+  line-height: 1;
+  font-weight: 900;
+}
+
+.moto-precio-desde {
+  margin: 0 auto;
+  display: inline-block;
+  background: #ffe800;
+  color: #0d0d0d;
+  padding: 8px 18px;
+  font-size: clamp(24px, 2.4vw, 40px);
+  line-height: 1.1;
+  font-weight: 900;
+}
+
+.moto-floating-content-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+  align-items: start;
+  margin-top: 8px;
+  margin-bottom: 28px;
+}
+
+.moto-description-card,
+.moto-specs-card {
+  background: rgba(255, 255, 255, 0.58);
+  border: 1px solid #d6d6d8;
+  border-radius: 14px;
+  padding: 16px 18px;
+  backdrop-filter: blur(2px);
+}
+
+.moto-description-card h2 {
+  margin: 0 0 10px;
+  font-size: 44px;
+  font-weight: 900;
+}
+
+.moto-description-card p {
+  margin: 0;
+  font-size: 34px;
+  line-height: 1.4;
+}
+
+.moto-specs-card h3 {
+  margin: 0;
+  font-size: 33px;
+  font-weight: 900;
+  padding: 0 0 8px;
+}
+
+.moto-specs-card .detalle-data-row {
+  font-size: 30px;
+  border-top-color: #d2d2d5;
+}
+
+.moto-specs-card .detalle-cta {
+  margin-top: 14px;
+  font-size: 27px;
+  padding: 14px 16px;
+}
+
+@media (max-width: 1100px) {
+  .moto-hero-block {
+    min-height: 440px;
+  }
+
+  .moto-floating-content-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .moto-description-card h2 {
+    font-size: 34px;
+  }
+
+  .moto-description-card p,
+  .moto-specs-card .detalle-data-row {
+    font-size: 24px;
+  }
+
+  .moto-specs-card h3 {
+    font-size: 28px;
+  }
+}
+
+@media (max-width: 768px) {
+  .moto-floating-title {
+    position: static;
+    margin-bottom: 10px;
+    font-size: 34px;
+  }
+
+  .moto-hero-block {
+    min-height: auto;
+    padding-top: 6px;
+  }
+
+  .moto-hero-image-wrap {
+    min-height: 290px;
+  }
+
+  .moto-hero-image-wrap img {
+    width: 100%;
+    max-height: 330px;
+  }
+
+  .moto-toggle-center {
+    margin-top: 6px;
+    font-size: 22px;
+  }
+
+  .moto-cuotas-label {
+    font-size: 20px;
+  }
+
+  .moto-cuotas-value {
+    font-size: 44px;
+  }
+
+  .moto-precio-desde {
+    font-size: 24px;
+    padding: 8px 12px;
+  }
+
+  .moto-description-card h2 {
+    font-size: 30px;
+  }
+
+  .moto-description-card p,
+  .moto-specs-card .detalle-data-row {
+    font-size: 18px;
+  }
+
+  .moto-specs-card h3 {
+    font-size: 24px;
+  }
+
+  .moto-specs-card .detalle-cta {
+    font-size: 18px;
   }
 }

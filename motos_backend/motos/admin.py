@@ -59,8 +59,10 @@ class MotoAdmin(admin.ModelAdmin):
         "anio",
         "stock",
         "precio",
+        "precio_lista",
         "permite_variante_maletas",
         "precio_con_maletas",
+        "precio_lista_con_maletas",
         "estado",
         "activa",
     )

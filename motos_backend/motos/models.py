@@ -35,6 +35,7 @@ class Moto(models.Model):
     slug = models.SlugField(unique=True)
     descripcion = models.TextField(blank=True)
     precio = models.DecimalField(max_digits=12, decimal_places=2)
+    precio_lista = models.DecimalField(max_digits=12, decimal_places=2, default=0)
     anio = models.IntegerField()
     color = models.CharField(max_length=60, blank=True)
     stock = models.IntegerField(default=0)
@@ -52,6 +53,7 @@ class Moto(models.Model):
     imagen_principal = models.ImageField(upload_to="motos/", blank=True, null=True)
     permite_variante_maletas = models.BooleanField(default=False)
     precio_con_maletas = models.DecimalField(max_digits=12, decimal_places=2, null=True, blank=True)
+    precio_lista_con_maletas = models.DecimalField(max_digits=12, decimal_places=2, null=True, blank=True)
     imagen_con_maletas = models.ImageField(upload_to="motos/", blank=True, null=True)
 
     es_destacada = models.BooleanField(default=False)

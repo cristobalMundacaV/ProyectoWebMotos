@@ -85,14 +85,27 @@ export default function MotoDetalle() {
   const categoria = moto.categoria_nombre || "-";
   const marca = moto.marca_nombre || "-";
   const cilindrada = moto.cilindrada ? `${moto.cilindrada}cc` : "-";
+
   const tieneVarianteMaletas = Boolean(
     moto.permite_variante_maletas && moto.precio_con_maletas && moto.imagen_con_maletas
   );
+
   const imagenActual =
     tieneVarianteMaletas && varianteConMaletas ? moto.imagen_con_maletas : moto.imagen_principal;
-  const precioActual =
+
+  const precioDesdeActual =
     tieneVarianteMaletas && varianteConMaletas ? moto.precio_con_maletas : moto.precio;
+
+  const precioListaActual =
+    tieneVarianteMaletas && varianteConMaletas
+      ? moto.precio_lista_con_maletas || moto.precio_lista || moto.precio_con_maletas
+      : moto.precio_lista || moto.precio;
+
+  const cuota24 = Math.round(Number(precioListaActual || 0) / 24);
   const etiquetaVariante = varianteConMaletas ? "con maletas" : "sin maletas";
+
+  const formatPrice = (value) => `$${Number(value || 0).toLocaleString("es-CL")}`;
+
   const whatsappHref = buildWhatsAppUrl(
     telefonoContacto,
     `Hola quiero cotizar la moto ${modelo}${tieneVarianteMaletas ? ` (${etiquetaVariante})` : ""}`
@@ -111,63 +124,60 @@ export default function MotoDetalle() {
           <span>{modelo}</span>
         </div>
 
-        <h1 className="detalle-title">{modelo}</h1>
+        <section className="moto-hero-block">
+          <h1 className="moto-floating-title">{modelo}</h1>
 
-        <section className="detalle-layout">
-          <div className="detalle-image-wrap">
+          <div className="moto-hero-image-wrap">
             <img src={buildMediaUrl(imagenActual)} alt={`${modelo} ${etiquetaVariante}`} />
           </div>
 
-          <aside className="detalle-side">
-            {tieneVarianteMaletas && (
-              <label className="detalle-toggle-maletas">
-                <input
-                  type="checkbox"
-                  checked={varianteConMaletas}
-                  onChange={(event) => setVarianteConMaletas(event.target.checked)}
-                />
-                {varianteConMaletas ? "Con maletas" : "Sin maletas"}
-              </label>
-            )}
+          {tieneVarianteMaletas && (
+            <label className="detalle-toggle-maletas moto-toggle-center">
+              <input
+                type="checkbox"
+                checked={varianteConMaletas}
+                onChange={(event) => setVarianteConMaletas(event.target.checked)}
+              />
+              {varianteConMaletas ? "Con maletas" : "Sin maletas"}
+            </label>
+          )}
+        </section>
 
-            <p className="detalle-price">${Number(precioActual).toLocaleString("es-CL")}</p>
+        <section className="moto-pricing-block">
+          <p className="moto-cuotas-label">24 CUOTAS SIN INTERES DE</p>
+          <p className="moto-cuotas-value">{formatPrice(cuota24)}</p>
+          <p className="moto-precio-desde">PRECIO DESDE {formatPrice(precioDesdeActual)}</p>
+        </section>
 
-            <div className="detalle-side-cards">
-              <div className="detalle-data-card">
-                <h3>Especificaciones</h3>
-                <div className="detalle-data-row">
-                  <span>Categoría</span>
-                  <span>{categoria}</span>
-                </div>
-                <div className="detalle-data-row">
-                  <span>Marca</span>
-                  <span>{marca}</span>
-                </div>
-                <div className="detalle-data-row">
-                  <span>Modelo</span>
-                  <span>{modelo}</span>
-                </div>
-                <div className="detalle-data-row">
-                  <span>Cilindrada</span>
-                  <span>{cilindrada}</span>
-                </div>
-              </div>
+        <section className="moto-floating-content-grid">
+          <article className="moto-description-card">
+            <h2>Descripcion</h2>
+            <p>{descripcion}</p>
+          </article>
+
+          <aside className="moto-specs-card">
+            <h3>Especificaciones</h3>
+            <div className="detalle-data-row">
+              <span>Categoria</span>
+              <span>{categoria}</span>
+            </div>
+            <div className="detalle-data-row">
+              <span>Marca</span>
+              <span>{marca}</span>
+            </div>
+            <div className="detalle-data-row">
+              <span>Modelo</span>
+              <span>{modelo}</span>
+            </div>
+            <div className="detalle-data-row">
+              <span>Cilindrada</span>
+              <span>{cilindrada}</span>
             </div>
 
-            <a
-              className="detalle-cta"
-              href={whatsappHref || "#"}
-              target="_blank"
-              rel="noreferrer"
-            >
+            <a className="detalle-cta" href={whatsappHref || "#"} target="_blank" rel="noreferrer">
               COTIZAR POR WHATSAPP
             </a>
           </aside>
-        </section>
-
-        <section className="detalle-description">
-          <h2>Descripción</h2>
-          <p>{descripcion}</p>
         </section>
       </main>
     </div>
