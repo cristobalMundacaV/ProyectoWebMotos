@@ -40,7 +40,7 @@ export default function Login() {
     }
 
     if (target.validity.tooShort) {
-      target.setCustomValidity("La contrasena debe tener al menos 8 caracteres.");
+      target.setCustomValidity("La contraseña debe tener al menos 8 caracteres.");
     }
   };
 
@@ -162,7 +162,7 @@ export default function Login() {
               onInput={clearValidationMessage}
             />
 
-            <label htmlFor="password">Contrasena</label>
+            <label htmlFor="password">Contraseña</label>
             <div className="password-field">
               <input
                 id="password"
@@ -186,7 +186,7 @@ export default function Login() {
                 type="button"
                 className="toggle-password"
                 onClick={() => setShowPassword((prev) => !prev)}
-                aria-label={showPassword ? "Ocultar contrasena" : "Mostrar contrasena"}
+                aria-label={showPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
               >
                 {showPassword ? "Ocultar" : "Ver"}
               </button>
@@ -224,11 +224,11 @@ export default function Login() {
                   <label>
                     <input type="checkbox" name="remember" /> Recordarme
                   </label>
-                  <Link to="/">Olvidaste tu contrasena?</Link>
+                  <Link to="/">¿Olvidaste tu contraseña?</Link>
                 </div>
 
                 <div className="login-register">
-                  No tienes cuenta?{" "}
+                  ¿No tienes cuenta?{" "}
                   <button type="button" className="register-link" onClick={() => setMode("register")}>
                     Registrate
                   </button>
@@ -238,7 +238,7 @@ export default function Login() {
 
             {mode === "register" && (
               <div className="login-register">
-                Ya tienes cuenta?{" "}
+                ¿Ya tienes cuenta?{" "}
                 <button type="button" className="register-link" onClick={() => setMode("login")}>
                   Inicia sesion
                 </button>

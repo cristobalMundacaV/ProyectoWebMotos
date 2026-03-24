@@ -121,6 +121,10 @@ def _first_day_of_month(value: date) -> date:
     return value.replace(day=1)
 
 
+def _last_day_of_month(value: date) -> date:
+    return _add_months(_first_day_of_month(value), 1) - timedelta(days=1)
+
+
 def _add_months(value: date, months: int) -> date:
     month_index = (value.year * 12 + (value.month - 1)) + months
     year = month_index // 12
@@ -654,10 +658,22 @@ class DashboardSummaryAnalyticsAPIView(APIView):
             growth_pct = 0.0
             growth_label = "sin_actividad"
 
-        # Ocupacion real del periodo (reservadas vs capacidad disponible).
-        reservadas_qs = mant_qs.exclude(estado=Mantencion.ESTADO_CANCELADA)
+        # Ocupacion real del taller.
+        # Para "este mes" se mide capacidad restante (hoy -> fin de mes),
+        # alineado con el calendario de disponibilidad.
+        if period == "this_month":
+            ocupacion_start = today
+            ocupacion_end = _last_day_of_month(today)
+        else:
+            ocupacion_start = start
+            ocupacion_end = end
+
+        reservadas_qs = Mantencion.objects.filter(
+            fecha_ingreso__gte=ocupacion_start,
+            fecha_ingreso__lte=ocupacion_end,
+        ).exclude(estado=Mantencion.ESTADO_CANCELADA)
         horas_reservadas = reservadas_qs.count()
-        capacity_by_hour, total_capacity = _compute_capacity_by_hour(start, end)
+        capacity_by_hour, total_capacity = _compute_capacity_by_hour(ocupacion_start, ocupacion_end)
         ocupacion_pct = round((horas_reservadas / total_capacity) * 100, 2) if total_capacity else 0.0
         horas_restantes = max(total_capacity - horas_reservadas, 0)
 
