@@ -9,9 +9,46 @@ const REFRESH_TOKEN_KEY = "authRefreshToken";
 const ACCESS_TOKEN_KEY = "authToken";
 const USER_KEY = "authUser";
 
+const PUBLIC_GET_PATHS = new Set([
+  "/motos/",
+  "/motos/categorias/",
+  "/motos/marcas/",
+  "/motos/modelos/",
+  "/tienda/productos/",
+  "/tienda/categorias/",
+  "/tienda/motos-compatibles/",
+  "/tienda/contacto/",
+]);
+
+function normalizeRequestPath(url = "") {
+  if (!url) return "";
+  if (/^https?:\/\//i.test(url)) {
+    try {
+      return new URL(url).pathname;
+    } catch {
+      return url;
+    }
+  }
+  return url.startsWith("/") ? url : `/${url}`;
+}
+
+function shouldAttachAuthHeader(config) {
+  const token = localStorage.getItem(ACCESS_TOKEN_KEY);
+  if (!token) return false;
+
+  const method = String(config?.method || "get").toLowerCase();
+  const path = normalizeRequestPath(config?.url);
+
+  if (method === "get" && PUBLIC_GET_PATHS.has(path)) {
+    return false;
+  }
+
+  return true;
+}
+
 api.interceptors.request.use((config) => {
   const token = localStorage.getItem(ACCESS_TOKEN_KEY);
-  if (token) {
+  if (token && shouldAttachAuthHeader(config)) {
     config.headers.Authorization = `Bearer ${token}`;
   }
   return config;
