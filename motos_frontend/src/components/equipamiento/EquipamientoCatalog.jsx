@@ -3,6 +3,8 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { buildMediaUrl } from "../../services/apiConfig";
 import {
   deleteProductoAdmin,
+  getAccesoriosMotosMeta,
+  getAccesoriosRiderMeta,
   getCategoriasProducto,
   getMotosCompatibles,
   getProductos,
@@ -43,6 +45,14 @@ function formatTitleCase(value) {
     .replace(/\b([a-záéíóúñü])/g, (match) => match.toLocaleUpperCase("es-CL"));
 }
 
+function normalizeText(value) {
+  return String(value || "")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .trim()
+    .toLowerCase();
+}
+
 export default function EquipamientoCatalog({ variant = "accesorios" }) {
   const ITEMS_PER_PAGE = 16;
   const { title, breadcrumb, tipoApi, showModeloCompatible } = getConfig(variant);
@@ -62,6 +72,7 @@ export default function EquipamientoCatalog({ variant = "accesorios" }) {
 
   const [editingProducto, setEditingProducto] = useState(null);
   const [editForm, setEditForm] = useState(null);
+  const [editOptions, setEditOptions] = useState({ subcategorias: [], marcas: [] });
   const [savingEdit, setSavingEdit] = useState(false);
   const [editError, setEditError] = useState("");
   const [editImagePreview, setEditImagePreview] = useState("");
@@ -80,14 +91,19 @@ export default function EquipamientoCatalog({ variant = "accesorios" }) {
 
     async function loadFiltros() {
       try {
-        const [categoriasRes, motosRes] = await Promise.all([
+        const [categoriasRes, motosRes, metaRes] = await Promise.all([
           getCategoriasProducto({ tipo: tipoApi }),
           showModeloCompatible ? getMotosCompatibles({ tipo: tipoApi }) : Promise.resolve([]),
+          tipoApi === "accesorios" ? getAccesoriosMotosMeta() : getAccesoriosRiderMeta(),
         ]);
 
         if (!isMounted) return;
         setCategorias(categoriasRes);
         setMotosCompatibles(motosRes);
+        setEditOptions({
+          subcategorias: Array.isArray(metaRes?.subcategorias) ? metaRes.subcategorias : [],
+          marcas: Array.isArray(metaRes?.marcas) ? metaRes.marcas : [],
+        });
       } catch {
         if (!isMounted) return;
         setError("No se pudieron cargar los filtros");
@@ -256,8 +272,17 @@ export default function EquipamientoCatalog({ variant = "accesorios" }) {
     if (editImagePreview) URL.revokeObjectURL(editImagePreview);
     setEditImagePreview("");
 
+    const selectedSubcategoria =
+      editOptions.subcategorias.find(
+        (item) => normalizeText(item.nombre) === normalizeText(producto.subcategoria_nombre)
+      ) || null;
+    const selectedMarca =
+      editOptions.marcas.find((item) => normalizeText(item.nombre) === normalizeText(producto.marca_nombre)) || null;
+
     setEditingProducto(producto);
     setEditForm({
+      subcategoria: selectedSubcategoria ? String(selectedSubcategoria.id) : "",
+      marca: selectedMarca ? String(selectedMarca.id) : "",
       nombre: producto.nombre || "",
       descripcion: producto.descripcion || "",
       precio: String(parsePrecioEntero(producto.precio)),
@@ -336,6 +361,12 @@ export default function EquipamientoCatalog({ variant = "accesorios" }) {
       return;
     }
 
+    if (!editForm.subcategoria || !editForm.marca) {
+      setEditError("La categoria y la marca son obligatorias.");
+      setSavingEdit(false);
+      return;
+    }
+
     if (Number.isNaN(precioEntero) || Number.isNaN(stockNumero)) {
       setEditError("Los datos ingresados no son validos.");
       setSavingEdit(false);
@@ -343,6 +374,8 @@ export default function EquipamientoCatalog({ variant = "accesorios" }) {
     }
 
     const payload = new FormData();
+    payload.append("subcategoria", editForm.subcategoria);
+    payload.append("marca", editForm.marca);
     payload.append("nombre", editForm.nombre.trim());
     payload.append("descripcion", editForm.descripcion || "");
     payload.append("precio", String(precioEntero));
@@ -626,6 +659,30 @@ export default function EquipamientoCatalog({ variant = "accesorios" }) {
             </div>
 
             <form className="equip-edit-form" onSubmit={handleEditProductoSubmit}>
+              <label>
+                Categoria *
+                <select name="subcategoria" value={editForm.subcategoria} onChange={handleEditInputChange} required>
+                  <option value="">Selecciona una categoria</option>
+                  {editOptions.subcategorias.map((subcategoria) => (
+                    <option key={subcategoria.id} value={subcategoria.id}>
+                      {formatTitleCase(subcategoria.nombre)}
+                    </option>
+                  ))}
+                </select>
+              </label>
+
+              <label>
+                Marca *
+                <select name="marca" value={editForm.marca} onChange={handleEditInputChange} required>
+                  <option value="">Selecciona una marca</option>
+                  {editOptions.marcas.map((marca) => (
+                    <option key={marca.id} value={marca.id}>
+                      {marca.nombre}
+                    </option>
+                  ))}
+                </select>
+              </label>
+
               <label className="equip-edit-span-2">
                 Nombre *
                 <input name="nombre" value={editForm.nombre} onChange={handleEditInputChange} maxLength={150} required />
