@@ -451,7 +451,11 @@ export default function AdminPanel() {
   useEffect(() => {
     if (
       activeSection !== "mantenciones_solicitudes" &&
-      activeSection !== "mantenciones_fichas"
+      activeSection !== "mantenciones_fichas" &&
+      activeSection !== "mantenciones_historicas" &&
+      activeSection !== "taller_mantenciones_dia" &&
+      activeSection !== "taller_en_taller" &&
+      activeSection !== "taller_por_entregar"
     ) return;
     let isMounted = true;
     setMantencionesLoading(true);

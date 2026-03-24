@@ -116,10 +116,10 @@ const navigationGroups = [
     items: [
       { label: "Indumentaria Rider", kind: "heading" },
       { label: "Crear indumentaria rider", value: "accesorios_rider" },
-      { label: "Lista indumentaria rider", to: "/indumentaria" },
+      { label: "Ver catalogo", to: "/indumentaria" },
       { label: "Accesorios de moto", kind: "heading" },
       { label: "Crear accesorios de moto", value: "accesorios_motos" },
-      { label: "Lista accesorios de moto", to: "/accesorios" },
+      { label: "Ver catalogo", to: "/accesorios" },
     ],
   },
   {
@@ -127,7 +127,16 @@ const navigationGroups = [
     icon: "mantenciones",
     items: [
       { label: "Solicitudes de Mantencion", value: "mantenciones_solicitudes" },
-      { label: "Fichas de Mantencion", value: "mantenciones_fichas" },
+      { label: "Fichas Historicas", value: "mantenciones_historicas" },
+    ],
+  },
+  {
+    label: "Taller",
+    icon: "mantenciones",
+    items: [
+      { label: "Etapa de Diagnostico", value: "taller_mantenciones_dia" },
+      { label: "Motos en Taller", value: "taller_en_taller" },
+      { label: "Por Entregar", value: "taller_por_entregar" },
     ],
   },
   {

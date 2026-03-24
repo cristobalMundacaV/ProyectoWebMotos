@@ -9,8 +9,8 @@ class PerfilUsuario(models.Model):
     ROL_CLIENTE = "cliente"
 
     ROL_CHOICES = [
-        (ROL_SUPERADMIN, "Superadmin"),
-        (ROL_ADMIN, "Admin"),
+        (ROL_SUPERADMIN, "Super Admin"),
+        (ROL_ADMIN, "Administrador"),
         (ROL_ENCARGADO, "Encargado"),
         (ROL_CLIENTE, "Cliente"),
     ]

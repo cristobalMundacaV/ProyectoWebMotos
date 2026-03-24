@@ -44,11 +44,28 @@ export async function consultarMantencionesPorRut(rut) {
   return response.data;
 }
 
+export async function consultarMisMantenciones() {
+  const response = await getWithFallback(
+    "/mantenciones/consulta/cliente/",
+    "/mantenciones/consulta/cliente/"
+  );
+  return response.data;
+}
+
 export async function cancelarMantencionPorRut(mantencionId, rut) {
   const response = await postWithFallback(
     `/mantenciones/consulta/${mantencionId}/cancelar/`,
     `/mantenciones/consulta/${mantencionId}/cancelar/`,
     { rut }
+  );
+  return response.data;
+}
+
+export async function cancelarMiMantencion(mantencionId) {
+  const response = await postWithFallback(
+    `/mantenciones/consulta/cliente/${mantencionId}/cancelar/`,
+    `/mantenciones/consulta/cliente/${mantencionId}/cancelar/`,
+    {}
   );
   return response.data;
 }

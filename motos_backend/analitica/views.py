@@ -162,6 +162,21 @@ def _period_bounds(period: str, today: date) -> tuple[date, date, str]:
     return start, today, "day"
 
 
+def _previous_period_bounds(period: str, start: date, end: date) -> tuple[date, date]:
+    normalized = (period or "this_month").strip().lower()
+
+    # Para "este mes", comparamos siempre contra el mes calendario anterior completo.
+    if normalized == "this_month":
+        previous_month_start = _add_months(_first_day_of_month(start), -1)
+        previous_month_end = start - timedelta(days=1)
+        return previous_month_start, previous_month_end
+
+    prev_end = start - timedelta(days=1)
+    span_days = max((end - start).days + 1, 1)
+    prev_start = prev_end - timedelta(days=span_days - 1)
+    return prev_start, prev_end
+
+
 def _bucket_start(value: date, group_by: str) -> date:
     if group_by == "week":
         return value - timedelta(days=value.weekday())
@@ -611,9 +626,7 @@ class DashboardSummaryAnalyticsAPIView(APIView):
         if cached is not None:
             return Response(cached, status=status.HTTP_200_OK)
 
-        prev_end = start - timedelta(days=1)
-        span_days = max((end - start).days + 1, 1)
-        prev_start = prev_end - timedelta(days=span_days - 1)
+        prev_start, prev_end = _previous_period_bounds(period, start, end)
 
         catalog_qs = CatalogoEvento.objects.filter(
             tipo_evento=CatalogoEvento.EVENTO_VISTA_DETALLE,

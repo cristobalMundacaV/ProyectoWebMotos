@@ -70,6 +70,15 @@ function formatShortDate(iso) {
   }).format(value);
 }
 
+function formatDateDMY(iso) {
+  const raw = String(iso || "").trim();
+  const parts = raw.split("-");
+  if (parts.length === 3 && parts[0] && parts[1] && parts[2]) {
+    return `${parts[2]}/${parts[1]}/${parts[0]}`;
+  }
+  return raw || "-";
+}
+
 function getPeriodSubtitle(period, range) {
   const start = range?.start || "";
   const end = range?.end || "";
@@ -86,6 +95,15 @@ function formatMantenciones(value) {
   const total = Number(value || 0);
   if (total === 1) return "1 mantencion";
   return `${total} mantenciones`;
+}
+
+function formatServiceLabel(value) {
+  const clean = String(value || "")
+    .replace(/[_-]+/g, " ")
+    .trim()
+    .toLowerCase();
+  if (!clean) return "-";
+  return clean.charAt(0).toUpperCase() + clean.slice(1);
 }
 
 export default function ResumenPage() {
@@ -174,7 +192,7 @@ export default function ResumenPage() {
   const servicios = useMemo(
     () =>
       (summary?.servicios || []).map((item) => ({
-        label: item.tipo_mantencion,
+        label: formatServiceLabel(item.tipo_mantencion),
         value: item.total,
       })),
     [summary?.servicios]
@@ -230,10 +248,10 @@ export default function ResumenPage() {
         <KpiCard
           title="Crecimiento vs periodo anterior"
           value={kpis.growth_label === "nuevo_periodo_activo" ? "Nuevo periodo activo" : `${kpis.growth_pct ?? 0}%`}
-          subtitle="Comparacion del mismo largo temporal"
+          subtitle="Comparacion contra periodo global anterior"
           trend={kpis.growth_label === "nuevo_periodo_activo" ? null : Number(kpis.growth_pct ?? 0)}
           valueBadge
-          supportText={`Rango previo: ${summary?.previous_range?.start || "-"} a ${summary?.previous_range?.end || "-"}`}
+          supportText={`Rango previo: ${formatDateDMY(summary?.previous_range?.start)} a ${formatDateDMY(summary?.previous_range?.end)}`}
           loading={loading}
         />
         <GaugeKpiCard

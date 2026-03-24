@@ -1494,22 +1494,34 @@
   color: #111827;
 }
 
+.admin-mantencion-estado-select.estado-ingresada {
+  background: #fff2cc;
+  border-color: #fcd34d;
+  color: #854d0e;
+}
+
+.admin-mantencion-estado-select.estado-aceptada {
+  background: #dcfce7;
+  border-color: #86efac;
+  color: #166534;
+}
+
 .admin-mantencion-estado-select.estado-en-revision {
-  background: #eaf2ff;
-  border-color: #8fb5ff;
+  background: #dbeafe;
+  border-color: #93c5fd;
   color: #1d4ed8;
 }
 
 .admin-mantencion-estado-select.estado-en-proceso {
-  background: #fff4db;
-  border-color: #f0bf67;
-  color: #9a6700;
+  background: #ede9fe;
+  border-color: #c4b5fd;
+  color: #6d28d9;
 }
 
 .admin-mantencion-estado-select.estado-esperando-repuestos {
-  background: #fef3c7;
-  border-color: #f59e0b;
-  color: #92400e;
+  background: #ffedd5;
+  border-color: #fdba74;
+  color: #c2410c;
 }
 
 .admin-mantencion-estado-select.estado-finalizada {
@@ -1519,19 +1531,19 @@
 }
 
 .admin-mantencion-estado-select.estado-entregada {
-  background: #d1fae5;
-  border-color: #10b981;
-  color: #065f46;
+  background: #ccfbf1;
+  border-color: #99f6e4;
+  color: #0f766e;
 }
 
 .admin-mantencion-estado-select.estado-cancelada {
   background: #fee2e2;
-  border-color: #f87171;
-  color: #991b1b;
+  border-color: #fca5a5;
+  color: #b91c1c;
 }
 
 .admin-mantencion-estado-select.estado-no-asistio {
-  background: #f1f5f9;
+  background: #e5e7eb;
   border-color: #cbd5e1;
   color: #475569;
 }
@@ -1709,6 +1721,28 @@
   border-color: #0f6e6e;
   background: #e6fffb;
   color: #0f6e6e;
+}
+
+.admin-mantencion-historico-filter {
+  display: grid;
+  gap: 4px;
+  min-width: 240px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  color: #475569;
+  text-transform: uppercase;
+}
+
+.admin-mantencion-historico-filter select {
+  min-height: 40px;
+  border: 1px solid #d0d7e3;
+  border-radius: 10px;
+  background: #fff;
+  color: #0f172a;
+  padding: 8px 10px;
+  font-size: 0.9rem;
+  font-weight: 600;
 }
 
 .admin-mantencion-fichas-layout {
@@ -2305,6 +2339,9 @@
 .admin-horarios-slot-list {
   display: grid;
   gap: 10px;
+  max-height: 500px;
+  overflow-y: auto;
+  padding-right: 4px;
 }
 
 .admin-horarios-slot-item {
@@ -2811,6 +2848,10 @@
     width: 100%;
   }
 
+  .admin-mantencion-historico-filter {
+    min-width: min(320px, 100%);
+  }
+
   .admin-mantencion-control-cell label,
   .admin-mantencion-control-cell input,
   .admin-mantencion-control-cell select {
@@ -2987,6 +3028,11 @@
   .admin-mantencion-tab {
     flex: 1 1 calc(50% - 4px);
     text-align: center;
+  }
+
+  .admin-mantencion-historico-filter {
+    width: 100%;
+    min-width: 0;
   }
 
   .admin-mantencion-ficha-mobile-picker {
