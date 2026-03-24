@@ -1,5 +1,5 @@
 ﻿import { Link, useNavigate } from "react-router-dom";
-import { buildMediaUrl } from "../../services/apiConfig";
+import { buildFallbackImageDataUrl, buildMediaUrl } from "../../services/apiConfig";
 import "../../styles/motos.css";
 
 /** Tarjeta reutilizable que muestra el resumen de una moto en el catalogo */
@@ -11,7 +11,7 @@ export default function MotoCard({
   showAdminOverlayActions = true,
   showBottomDeleteAction = false,
 }) {
-  const fallbackImage = "https://via.placeholder.com/600x600?text=Sin+Imagen";
+  const fallbackImage = buildFallbackImageDataUrl({ width: 600, height: 600, text: "Sin Imagen" });
   const navigate = useNavigate();
   const formatUppercase = (value) => String(value || "-").toUpperCase();
   const modelo = moto.modelo || moto.nombre;

@@ -1,6 +1,6 @@
 ﻿import { Link } from "react-router-dom";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { buildMediaUrl } from "../../services/apiConfig";
+import { buildFallbackImageDataUrl, buildMediaUrl } from "../../services/apiConfig";
 import {
   deleteProductoAdmin,
   getAccesoriosMotosMeta,
@@ -80,6 +80,7 @@ export default function EquipamientoCatalog({ variant = "accesorios" }) {
   const [deleteCandidate, setDeleteCandidate] = useState(null);
   const [deletingProducto, setDeletingProducto] = useState(false);
   const editFileInputRef = useRef(null);
+  const fallbackImage = buildFallbackImageDataUrl({ width: 600, height: 600, text: "Sin Imagen" });
 
   useEffect(() => {
     const token = getStoredToken();
@@ -552,10 +553,14 @@ export default function EquipamientoCatalog({ variant = "accesorios" }) {
                     src={
                       producto.imagen_principal
                         ? buildMediaUrl(producto.imagen_principal)
-                        : "https://via.placeholder.com/600x600?text=Sin+Imagen"
+                        : fallbackImage
                     }
                     alt={producto.nombre}
                     loading="lazy"
+                    onError={(event) => {
+                      event.currentTarget.onerror = null;
+                      event.currentTarget.src = fallbackImage;
+                    }}
                   />
                   {isAdmin && (
                     <div className="equip-admin-actions">

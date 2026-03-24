@@ -1,12 +1,12 @@
 ﻿import { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { buildMediaUrl } from "../../services/apiConfig";
+import { buildFallbackImageDataUrl, buildMediaUrl } from "../../services/apiConfig";
 import { deleteProductoAdmin, getProductos } from "../../services/productosService";
 import { getStoredToken, getStoredUser, hasAdminAccess } from "../../services/authService";
 import "../../styles/home.css";
 
 export default function IndumentariaDestacada() {
-  const fallbackImage = "https://via.placeholder.com/600x600?text=Sin+Imagen";
+  const fallbackImage = buildFallbackImageDataUrl({ width: 600, height: 600, text: "Sin Imagen" });
   const navigate = useNavigate();
   const [productos, setProductos] = useState([]);
   const [loading, setLoading] = useState(true);

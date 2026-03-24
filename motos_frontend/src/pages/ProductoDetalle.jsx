@@ -1,6 +1,6 @@
 import { useParams, Link } from "react-router-dom";
 import { useEffect, useState } from "react";
-import { buildMediaUrl } from "../services/apiConfig";
+import { buildFallbackImageDataUrl, buildMediaUrl } from "../services/apiConfig";
 import { getProductoBySlug, getContactoPublico } from "../services/productosService";
 import { trackCatalogView } from "../services/analyticsService";
 import { buildWhatsAppUrl } from "../services/contactoUtils";
@@ -18,6 +18,7 @@ export default function ProductoDetalle() {
   });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const fallbackImage = buildFallbackImageDataUrl({ width: 900, height: 600, text: "Sin Imagen" });
 
   useEffect(() => {
     let isMounted = true;
@@ -114,9 +115,13 @@ export default function ProductoDetalle() {
               src={
                 producto.imagen_principal
                   ? buildMediaUrl(producto.imagen_principal)
-                  : "https://via.placeholder.com/900x600?text=Sin+Imagen"
+                  : fallbackImage
               }
               alt={nombre}
+              onError={(event) => {
+                event.currentTarget.onerror = null;
+                event.currentTarget.src = fallbackImage;
+              }}
             />
           </div>
 
