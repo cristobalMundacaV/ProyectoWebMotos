@@ -8,6 +8,12 @@ const ESTADO_OPTIONS = [
   { value: "finalizada", label: "Finalizada" },
   { value: "entregada", label: "Entregada" },
   { value: "cancelada", label: "Cancelada" },
+  { value: "no_asistio", label: "No asistio" },
+];
+
+const SOLICITUDES_TABS = [
+  { value: "por_aceptar", label: "Por Aceptar", estado: "ingresada" },
+  { value: "pendiente_ingreso", label: "Pendiente Ingreso", estado: "aceptada" },
 ];
 
 const WEEK_DAYS = ["Lun", "Mar", "Mie", "Jue", "Vie", "Sab", "Dom"];
@@ -23,7 +29,10 @@ function statusLabel(value) {
   const option = ESTADO_OPTIONS.find((item) => item.value === value);
   if (value === "ingresada") return "Por aceptar";
   if (value === "aceptada") return "Aceptada";
-  return option?.label || value || "-";
+  if (option?.label) return option.label;
+  if (!value) return "-";
+  const clean = String(value).replace(/[_-]+/g, " ").trim();
+  return clean.charAt(0).toUpperCase() + clean.slice(1);
 }
 
 function getStatusPillClass(value) {
@@ -35,6 +44,7 @@ function getStatusPillClass(value) {
   if (value === "finalizada") return "status-finalizada";
   if (value === "entregada") return "status-entregada";
   if (value === "cancelada") return "status-cancelada";
+  if (value === "no_asistio") return "status-no-asistio";
   return "";
 }
 
@@ -51,6 +61,7 @@ function getEstadoClass(value) {
   if (value === "finalizada") return "estado-finalizada";
   if (value === "entregada") return "estado-entregada";
   if (value === "cancelada") return "estado-cancelada";
+  if (value === "no_asistio") return "estado-no-asistio";
   return "";
 }
 
@@ -142,6 +153,7 @@ export default function MantencionesPage({
   const [editsById, setEditsById] = useState({});
   const [selectedSolicitudId, setSelectedSolicitudId] = useState(null);
   const [selectedFichaId, setSelectedFichaId] = useState(null);
+  const [solicitudesTab, setSolicitudesTab] = useState("por_aceptar");
   const [mobilePickerOpen, setMobilePickerOpen] = useState({
     solicitudes: false,
     fichas: false,
@@ -290,7 +302,11 @@ export default function MantencionesPage({
     });
   }, [activeSection]);
 
-  const solicitudes = useMemo(
+  useEffect(() => {
+    setSelectedSolicitudId(null);
+  }, [solicitudesTab]);
+
+  const solicitudesBase = useMemo(
     () =>
       mantenciones
         .filter((item) => item.estado === "ingresada" || item.estado === "aceptada")
@@ -302,6 +318,16 @@ export default function MantencionesPage({
         ),
     [mantenciones]
   );
+
+  const solicitudes = useMemo(() => {
+    const selectedTab = SOLICITUDES_TABS.find((tab) => tab.value === solicitudesTab) || SOLICITUDES_TABS[0];
+    return solicitudesBase.filter((item) => item.estado === selectedTab.estado);
+  }, [solicitudesBase, solicitudesTab]);
+
+  const solicitudesEmptyText = useMemo(() => {
+    if (solicitudesTab === "pendiente_ingreso") return "No hay solicitudes pendientes de ingreso.";
+    return "No hay solicitudes por aceptar.";
+  }, [solicitudesTab]);
 
   const fichasMantencion = useMemo(
     () =>
@@ -709,7 +735,26 @@ export default function MantencionesPage({
       <section className="admin-content-grid admin-content-grid-mantenciones admin-content-grid-mantenciones-fichas">
         <article className="admin-panel-card">
           <div className="admin-card-header">
-            <h2>Solicitudes de mantencion</h2>
+            <div className="admin-mantencion-solicitudes-head">
+              <h2>Solicitudes de mantencion</h2>
+              <div className="admin-mantencion-tabs" role="tablist" aria-label="Filtros de solicitudes">
+                {SOLICITUDES_TABS.map((tab) => {
+                  const isActive = solicitudesTab === tab.value;
+                  return (
+                    <button
+                      key={tab.value}
+                      type="button"
+                      role="tab"
+                      aria-selected={isActive}
+                      className={isActive ? "admin-mantencion-tab active" : "admin-mantencion-tab"}
+                      onClick={() => setSolicitudesTab(tab.value)}
+                    >
+                      {tab.label}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
             <button type="button" className="admin-primary-action" onClick={onRefresh}>
               Actualizar
             </button>
@@ -720,10 +765,10 @@ export default function MantencionesPage({
               solicitudes,
               selectedSolicitud?.id,
               setSelectedSolicitudId,
-              "No hay solicitudes pendientes.",
+              solicitudesEmptyText,
               "solicitudes"
             )}
-            {renderFichaList(solicitudes, selectedSolicitud?.id, setSelectedSolicitudId, "No hay solicitudes pendientes.")}
+            {renderFichaList(solicitudes, selectedSolicitud?.id, setSelectedSolicitudId, solicitudesEmptyText)}
             <div className="admin-mantencion-ficha-detail">{renderFichaDetail(selectedSolicitud, "solicitudes")}</div>
           </div>
         </article>
@@ -763,7 +808,7 @@ export default function MantencionesPage({
       <section className="admin-content-grid admin-content-grid-mantenciones">
         <article className="admin-panel-card">
           <div className="admin-card-header">
-            <h2>Horarios operativos</h2>
+            <h2>Horario de la Semana</h2>
             <button
               type="button"
               className="admin-primary-action"
@@ -918,7 +963,7 @@ export default function MantencionesPage({
               );
             })}
 
-            {!horariosLoading && horarios.length === 0 && <p className="admin-empty">No hay horarios operativos configurados.</p>}
+            {!horariosLoading && horarios.length === 0 && <p className="admin-empty">No hay horario de la semana configurado.</p>}
             {horariosLoading && <p className="admin-empty">Cargando horarios...</p>}
           </div>
         </article>

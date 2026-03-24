@@ -1530,6 +1530,12 @@
   color: #991b1b;
 }
 
+.admin-mantencion-estado-select.estado-no-asistio {
+  background: #f1f5f9;
+  border-color: #cbd5e1;
+  color: #475569;
+}
+
 .admin-mantencion-actions {
   display: grid;
   justify-items: stretch;
@@ -1617,6 +1623,11 @@
   color: #b91c1c;
 }
 
+.admin-status-pill.status-no-asistio {
+  background: #e5e7eb;
+  color: #475569;
+}
+
 .admin-mantencion-value {
   font-size: 0.92rem;
   font-weight: 700;
@@ -1662,6 +1673,42 @@
   width: 100%;
   min-height: calc(100vh - 170px);
   min-width: 0;
+}
+
+.admin-mantencion-solicitudes-head {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+
+.admin-mantencion-tabs {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.admin-mantencion-tab {
+  border: 1px solid #d5dbe4;
+  background: #ffffff;
+  color: #334155;
+  border-radius: 999px;
+  padding: 8px 12px;
+  font-size: 0.84rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.admin-mantencion-tab:hover {
+  border-color: #94a3b8;
+}
+
+.admin-mantencion-tab.active {
+  border-color: #0f6e6e;
+  background: #e6fffb;
+  color: #0f6e6e;
 }
 
 .admin-mantencion-fichas-layout {
@@ -2760,6 +2807,10 @@
     width: 100%;
   }
 
+  .admin-mantencion-solicitudes-head {
+    width: 100%;
+  }
+
   .admin-mantencion-control-cell label,
   .admin-mantencion-control-cell input,
   .admin-mantencion-control-cell select {
@@ -2927,6 +2978,15 @@
   .admin-mantencion-ficha-blocks,
   .admin-mantencion-ficha-controls {
     grid-template-columns: 1fr;
+  }
+
+  .admin-mantencion-tabs {
+    width: 100%;
+  }
+
+  .admin-mantencion-tab {
+    flex: 1 1 calc(50% - 4px);
+    text-align: center;
   }
 
   .admin-mantencion-ficha-mobile-picker {
