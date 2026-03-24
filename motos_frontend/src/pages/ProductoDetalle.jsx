@@ -4,6 +4,7 @@ import { buildMediaUrl } from "../services/apiConfig";
 import { getProductoBySlug, getContactoPublico } from "../services/productosService";
 import { trackCatalogView } from "../services/analyticsService";
 import { buildWhatsAppUrl } from "../services/contactoUtils";
+import { INSTAGRAM_PROFILE_URL } from "../services/socialLinks";
 import Navbar from "../components/layout/Navbar";
 import "../styles/detalle.css";
 
@@ -120,9 +121,7 @@ export default function ProductoDetalle() {
           </div>
 
           <aside className="detalle-side">
-            <p className="detalle-price">
-              ${Number(producto.precio || 0).toLocaleString("es-CL")}
-            </p>
+            <p className="detalle-price">${Number(producto.precio || 0).toLocaleString("es-CL")}</p>
 
             <div className="detalle-side-cards">
               <div className="detalle-data-card">
@@ -143,18 +142,22 @@ export default function ProductoDetalle() {
 
               <div className="detalle-contact-card">
                 <h3>Contactanos</h3>
-                <p>Instagram: {contacto.instagram || "No definido"}</p>
+                <p>
+                  Instagram:{" "}
+                  {contacto.instagram ? (
+                    <a href={INSTAGRAM_PROFILE_URL} target="_blank" rel="noreferrer">
+                      {contacto.instagram}
+                    </a>
+                  ) : (
+                    "No definido"
+                  )}
+                </p>
                 <p>{contacto.telefono || "No definido"}</p>
                 <p>{contacto.ubicacion || "No definido"}</p>
               </div>
             </div>
 
-            <a
-              className="detalle-cta"
-              href={whatsappHref || "#"}
-              target="_blank"
-              rel="noreferrer"
-            >
+            <a className="detalle-cta" href={whatsappHref || "#"} target="_blank" rel="noreferrer">
               COTIZAR POR WHATSAPP
             </a>
           </aside>

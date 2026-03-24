@@ -1,5 +1,6 @@
-﻿import { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { getContactoPublico } from "../../services/productosService";
+import { INSTAGRAM_PROFILE_URL } from "../../services/socialLinks";
 import "../../styles/home.css";
 
 function buildGeoLabel(address) {
@@ -91,7 +92,15 @@ export default function Contacto() {
       <div className="contacto-box">
         <div>
           <h3>Instagram</h3>
-          <p>{contacto.instagram || "No definido"}</p>
+          <p>
+            {contacto.instagram ? (
+              <a href={INSTAGRAM_PROFILE_URL} target="_blank" rel="noreferrer">
+                {contacto.instagram}
+              </a>
+            ) : (
+              "No definido"
+            )}
+          </p>
         </div>
         <div>
           <h3>Telefono</h3>
