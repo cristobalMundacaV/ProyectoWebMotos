@@ -65,6 +65,19 @@
   gap: 10px;
 }
 
+.detalle-toggle-maletas {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.detalle-toggle-maletas input {
+  width: 18px;
+  height: 18px;
+}
+
 .detalle-price {
   color: #b20808;
   font-size: 44px;

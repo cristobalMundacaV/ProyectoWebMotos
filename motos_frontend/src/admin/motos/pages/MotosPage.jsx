@@ -41,6 +41,7 @@ export default function MotosPage({
   motoImageInputKey,
   onMotoInputChange,
   onMotoPrecioInputChange,
+  onMotoPrecioConMaletasInputChange,
   onMotoSubmit,
   onMotoEdit,
   onMotoDelete,
@@ -480,6 +481,30 @@ export default function MotosPage({
               />
             </label>
 
+            <label className="admin-form-check admin-form-check-compact">
+              <input
+                type="checkbox"
+                name="permite_variante_maletas"
+                checked={Boolean(motoForm.permite_variante_maletas)}
+                onChange={onMotoInputChange}
+              />
+              Habilitar variante con maletas
+            </label>
+
+            <label>
+              Precio con maletas {motoForm.permite_variante_maletas ? "*" : "(opcional)"}
+              <input
+                type="text"
+                name="precio_con_maletas"
+                value={formatPrecio(motoForm.precio_con_maletas)}
+                onChange={onMotoPrecioConMaletasInputChange}
+                inputMode="decimal"
+                placeholder="Ej: 7.990.000"
+                disabled={!motoForm.permite_variante_maletas}
+                required={Boolean(motoForm.permite_variante_maletas)}
+              />
+            </label>
+
             <label className="admin-form-span-2">
               Imagen principal (opcional)
               <input
@@ -488,6 +513,19 @@ export default function MotosPage({
                 name="imagen_principal"
                 accept="image/*"
                 onChange={onMotoInputChange}
+              />
+            </label>
+
+            <label className="admin-form-span-2">
+              Imagen con maletas {motoForm.permite_variante_maletas ? "*" : "(opcional)"}
+              <input
+                key={`moto-maletas-image-${motoImageInputKey}`}
+                type="file"
+                name="imagen_con_maletas"
+                accept="image/*"
+                onChange={onMotoInputChange}
+                disabled={!motoForm.permite_variante_maletas}
+                required={Boolean(motoForm.permite_variante_maletas)}
               />
             </label>
 
@@ -528,6 +566,7 @@ export default function MotosPage({
                   <span className="admin-row-label">Tipo</span>
                   <strong>{formatCategoryLabel(moto.categoria_nombre)}</strong>
                   <span>{moto.anio} | Orden: {moto.orden_carrusel ?? 1}</span>
+                  <span>{moto.permite_variante_maletas ? "Variante: con/sin maletas" : "Variante: no aplica"}</span>
                 </div>
                 <div className="admin-row-actions admin-recent-moto-actions">
                   <button type="button" className="admin-row-action-btn edit" title="Editar" onClick={() => onMotoEdit?.(moto)}>

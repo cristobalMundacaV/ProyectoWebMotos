@@ -11,6 +11,7 @@ import "../styles/detalle.css";
 export default function MotoDetalle() {
   const { slug } = useParams();
   const [moto, setMoto] = useState(null);
+  const [varianteConMaletas, setVarianteConMaletas] = useState(false);
   const [telefonoContacto, setTelefonoContacto] = useState("+56 9 1234 5678");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -57,6 +58,10 @@ export default function MotoDetalle() {
     };
   }, [slug]);
 
+  useEffect(() => {
+    setVarianteConMaletas(false);
+  }, [moto?.id]);
+
   if (loading) {
     return <p className="detalle-loading">Cargando detalle...</p>;
   }
@@ -80,7 +85,18 @@ export default function MotoDetalle() {
   const categoria = moto.categoria_nombre || "-";
   const marca = moto.marca_nombre || "-";
   const cilindrada = moto.cilindrada ? `${moto.cilindrada}cc` : "-";
-  const whatsappHref = buildWhatsAppUrl(telefonoContacto, `Hola quiero cotizar la moto ${modelo}`);
+  const tieneVarianteMaletas = Boolean(
+    moto.permite_variante_maletas && moto.precio_con_maletas && moto.imagen_con_maletas
+  );
+  const imagenActual =
+    tieneVarianteMaletas && varianteConMaletas ? moto.imagen_con_maletas : moto.imagen_principal;
+  const precioActual =
+    tieneVarianteMaletas && varianteConMaletas ? moto.precio_con_maletas : moto.precio;
+  const etiquetaVariante = varianteConMaletas ? "con maletas" : "sin maletas";
+  const whatsappHref = buildWhatsAppUrl(
+    telefonoContacto,
+    `Hola quiero cotizar la moto ${modelo}${tieneVarianteMaletas ? ` (${etiquetaVariante})` : ""}`
+  );
 
   return (
     <div className="detalle-page detalle-moto-page">
@@ -99,11 +115,22 @@ export default function MotoDetalle() {
 
         <section className="detalle-layout">
           <div className="detalle-image-wrap">
-            <img src={buildMediaUrl(moto.imagen_principal)} alt={modelo} />
+            <img src={buildMediaUrl(imagenActual)} alt={`${modelo} ${etiquetaVariante}`} />
           </div>
 
           <aside className="detalle-side">
-            <p className="detalle-price">${Number(moto.precio).toLocaleString("es-CL")}</p>
+            {tieneVarianteMaletas && (
+              <label className="detalle-toggle-maletas">
+                <input
+                  type="checkbox"
+                  checked={varianteConMaletas}
+                  onChange={(event) => setVarianteConMaletas(event.target.checked)}
+                />
+                {varianteConMaletas ? "Con maletas" : "Sin maletas"}
+              </label>
+            )}
+
+            <p className="detalle-price">${Number(precioActual).toLocaleString("es-CL")}</p>
 
             <div className="detalle-side-cards">
               <div className="detalle-data-card">

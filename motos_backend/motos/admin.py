@@ -52,7 +52,18 @@ class ModeloMotoAdmin(admin.ModelAdmin):
 
 @admin.register(Moto)
 class MotoAdmin(admin.ModelAdmin):
-    list_display = ("id", "marca", "modelo_moto", "anio", "stock", "precio", "estado", "activa")
+    list_display = (
+        "id",
+        "marca",
+        "modelo_moto",
+        "anio",
+        "stock",
+        "precio",
+        "permite_variante_maletas",
+        "precio_con_maletas",
+        "estado",
+        "activa",
+    )
     list_filter = ("estado", "activa", "es_destacada", "marca", "modelo_moto")
     search_fields = ("modelo", "slug", "marca__nombre", "modelo_moto__nombre_modelo")
     autocomplete_fields = ("marca", "modelo_moto")

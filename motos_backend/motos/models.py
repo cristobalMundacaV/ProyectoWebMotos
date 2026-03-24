@@ -50,6 +50,9 @@ class Moto(models.Model):
     )
 
     imagen_principal = models.ImageField(upload_to="motos/", blank=True, null=True)
+    permite_variante_maletas = models.BooleanField(default=False)
+    precio_con_maletas = models.DecimalField(max_digits=12, decimal_places=2, null=True, blank=True)
+    imagen_con_maletas = models.ImageField(upload_to="motos/", blank=True, null=True)
 
     es_destacada = models.BooleanField(default=False)
     orden_carrusel = models.PositiveIntegerField(default=1)

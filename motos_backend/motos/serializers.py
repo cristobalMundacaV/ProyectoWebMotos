@@ -131,6 +131,18 @@ class MotoSerializer(serializers.ModelSerializer):
         modelo_moto = attrs.get("modelo_moto")
         marca = attrs.get("marca") or getattr(self.instance, "marca", None)
         modelo = (attrs.get("modelo") or "").strip()
+        permite_variante_maletas = attrs.get(
+            "permite_variante_maletas",
+            getattr(self.instance, "permite_variante_maletas", False),
+        )
+        precio_con_maletas = attrs.get(
+            "precio_con_maletas",
+            getattr(self.instance, "precio_con_maletas", None),
+        )
+        imagen_con_maletas = attrs.get(
+            "imagen_con_maletas",
+            getattr(self.instance, "imagen_con_maletas", None),
+        )
         attrs["modelo"] = modelo
 
         if modelo_moto and marca and modelo_moto.marca_id != marca.id:
@@ -138,6 +150,20 @@ class MotoSerializer(serializers.ModelSerializer):
 
         if not modelo_moto and not modelo:
             raise serializers.ValidationError({"modelo_id": "Debes seleccionar un modelo o ingresar un nombre de modelo."})
+
+        if permite_variante_maletas and precio_con_maletas in (None, ""):
+            raise serializers.ValidationError(
+                {"precio_con_maletas": "Debes indicar el precio con maletas cuando la variante esta habilitada."}
+            )
+
+        if permite_variante_maletas and not imagen_con_maletas:
+            raise serializers.ValidationError(
+                {"imagen_con_maletas": "Debes subir una imagen con maletas cuando la variante esta habilitada."}
+            )
+
+        if not permite_variante_maletas:
+            attrs["precio_con_maletas"] = None
+            attrs["imagen_con_maletas"] = None
 
         return attrs
 
@@ -218,6 +244,9 @@ class MotoSerializer(serializers.ModelSerializer):
             "slug",
             "descripcion",
             "precio",
+            "permite_variante_maletas",
+            "precio_con_maletas",
+            "imagen_con_maletas",
             "cilindrada",
             "cilindrada_input",
             "anio",

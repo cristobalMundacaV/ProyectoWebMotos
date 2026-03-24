@@ -65,6 +65,8 @@ const initialMotoForm = {
   slug: "",
   descripcion: "",
   precio: "",
+  permite_variante_maletas: false,
+  precio_con_maletas: "",
   anio: "",
   color: "",
   stock: "0",
@@ -73,6 +75,7 @@ const initialMotoForm = {
   orden_carrusel: "1",
   activa: true,
   imagen_principal: null,
+  imagen_con_maletas: null,
 };
 
 const initialModeloMotoForm = {
@@ -850,6 +853,9 @@ export default function AdminPanel() {
     setMotoForm((prev) => ({
       ...prev,
       [name]: type === "checkbox" ? checked : type === "file" ? files?.[0] || null : value,
+      ...(name === "permite_variante_maletas" && !checked
+        ? { precio_con_maletas: "", imagen_con_maletas: null }
+        : {}),
       ...(name === "marca" ? { modelo: "", slug: "" } : {}),
       ...(name === "modelo"
         ? {
@@ -871,6 +877,16 @@ export default function AdminPanel() {
     setMotoForm((prev) => ({
       ...prev,
       precio: precioNormalizado,
+    }));
+  }
+
+  function handleMotoPrecioConMaletasInputChange(event) {
+    clearInvalidFieldStyle(event.target);
+    const precioNormalizado = normalizePrecioInput(event.target.value);
+
+    setMotoForm((prev) => ({
+      ...prev,
+      precio_con_maletas: precioNormalizado,
     }));
   }
 
@@ -903,6 +919,9 @@ export default function AdminPanel() {
       const nextForm = {
         ...prev.form,
         [name]: nextValue,
+        ...(name === "permite_variante_maletas" && !nextValue
+          ? { precio_con_maletas: "", imagen_con_maletas: null }
+          : {}),
         ...(name === "marca" ? { modelo: "", slug: "" } : {}),
         ...(name === "modelo"
           ? {
@@ -934,6 +953,21 @@ export default function AdminPanel() {
         form: {
           ...prev.form,
           precio: precioNormalizado,
+        },
+      };
+    });
+  }
+
+  function handleMotoEditPrecioConMaletasInputChange(event) {
+    clearInvalidFieldStyle(event.target);
+    const precioNormalizado = normalizePrecioInput(event.target.value);
+    setMotoEditModal((prev) => {
+      if (!prev) return prev;
+      return {
+        ...prev,
+        form: {
+          ...prev.form,
+          precio_con_maletas: precioNormalizado,
         },
       };
     });
@@ -981,6 +1015,10 @@ export default function AdminPanel() {
     payload.append("slug", selectedModelo?.slug || form.slug);
     payload.append("descripcion", form.descripcion);
     payload.append("precio", form.precio);
+    payload.append("permite_variante_maletas", String(Boolean(form.permite_variante_maletas)));
+    if (form.permite_variante_maletas && form.precio_con_maletas) {
+      payload.append("precio_con_maletas", form.precio_con_maletas);
+    }
     payload.append("anio", form.anio);
     payload.append("color", form.color || "");
     payload.append("stock", form.stock);
@@ -990,6 +1028,9 @@ export default function AdminPanel() {
     payload.append("activa", String(form.activa));
     if (form.imagen_principal) {
       payload.append("imagen_principal", form.imagen_principal);
+    }
+    if (form.imagen_con_maletas) {
+      payload.append("imagen_con_maletas", form.imagen_con_maletas);
     }
     return payload;
   }
@@ -1654,6 +1695,8 @@ export default function AdminPanel() {
         slug: moto.slug || "",
         descripcion: moto.descripcion || "",
         precio: normalizePrecioFromApi(moto.precio),
+        permite_variante_maletas: Boolean(moto.permite_variante_maletas),
+        precio_con_maletas: normalizePrecioFromApi(moto.precio_con_maletas),
         anio: String(moto.anio ?? ""),
         color: moto.color || "",
         stock: String(moto.stock ?? "0"),
@@ -1662,6 +1705,7 @@ export default function AdminPanel() {
         orden_carrusel: String(moto.orden_carrusel ?? "1"),
         activa: moto.activa !== false,
         imagen_principal: null,
+        imagen_con_maletas: null,
       },
     });
   }
@@ -2390,6 +2434,7 @@ export default function AdminPanel() {
             motoImageInputKey={motoImageInputKey}
             onMotoInputChange={handleMotoInputChange}
             onMotoPrecioInputChange={handleMotoPrecioInputChange}
+            onMotoPrecioConMaletasInputChange={handleMotoPrecioConMaletasInputChange}
             onMotoSubmit={handleMotoSubmit}
             onMotoEdit={handleMotoEdit}
             onMotoDelete={handleMotoDelete}
@@ -2665,6 +2710,29 @@ export default function AdminPanel() {
                     />
                   </label>
 
+                  <label className="admin-form-check admin-form-check-compact">
+                    <input
+                      type="checkbox"
+                      name="permite_variante_maletas"
+                      checked={Boolean(motoEditModal.form.permite_variante_maletas)}
+                      onChange={handleMotoEditInputChange}
+                    />
+                    Habilitar variante con maletas
+                  </label>
+
+                  <label>
+                    Precio con maletas {motoEditModal.form.permite_variante_maletas ? "*" : "(opcional)"}
+                    <input
+                      type="text"
+                      name="precio_con_maletas"
+                      value={formatPrecioDisplay(motoEditModal.form.precio_con_maletas)}
+                      onChange={handleMotoEditPrecioConMaletasInputChange}
+                      inputMode="decimal"
+                      disabled={!motoEditModal.form.permite_variante_maletas}
+                      required={Boolean(motoEditModal.form.permite_variante_maletas)}
+                    />
+                  </label>
+
                   <label>
                     {"A\u00f1o *"}
                     <select
@@ -2754,6 +2822,19 @@ export default function AdminPanel() {
                     {motoEditModal.imageFileName && (
                       <span className="admin-selected-file-name">{motoEditModal.imageFileName}</span>
                     )}
+                  </label>
+
+                  <label className="admin-form-span-2">
+                    Imagen con maletas {motoEditModal.form.permite_variante_maletas ? "*" : "(opcional)"}
+                    <input
+                      key={`moto-edit-image-maletas-${motoEditModal.imageInputKey}`}
+                      type="file"
+                      name="imagen_con_maletas"
+                      accept="image/*"
+                      onChange={handleMotoEditInputChange}
+                      disabled={!motoEditModal.form.permite_variante_maletas}
+                      required={Boolean(motoEditModal.form.permite_variante_maletas)}
+                    />
                   </label>
 
                   {motoEditModal.imagePreviewUrl && (
