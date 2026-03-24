@@ -28,7 +28,7 @@ function formatDate(value) {
 function statusLabel(value) {
   const option = ESTADO_OPTIONS.find((item) => item.value === value);
   if (value === "ingresada") return "Por aceptar";
-  if (value === "aceptada") return "Aceptada";
+  if (value === "aceptada") return "Pendiente ingreso";
   if (option?.label) return option.label;
   if (!value) return "-";
   const clean = String(value).replace(/[_-]+/g, " ").trim();
