@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+锘縤mport { useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import Navbar from "../components/layout/Navbar";
 import Footer from "../components/layout/Footer";
@@ -9,7 +9,7 @@ import { deleteMoto, getMotoAdminMeta, updateMoto } from "../services/motosServi
 import { getStoredToken, getStoredUser, hasAdminAccess } from "../services/authService";
 import "../styles/catalogo-motos.css";
 
-/** Catalogo completo de motos con filtros y edicion para admins */
+/** Cat谩logo completo de motos con filtros y edici贸n para admins */
 export default function CatalogoMotos() {
   const ITEMS_PER_PAGE = 16;
   const { motos, setMotos, loading, error } = useMotos();
@@ -177,7 +177,7 @@ export default function CatalogoMotos() {
       categoria: resolveSelectId(moto.categoria, moto.categoria_nombre, meta.categorias),
       modelo: moto.modelo || moto.nombre || "",
       slug: moto.slug || "",
-      descripcion: moto.descripcion || "",
+      Descripci贸n: moto.Descripci贸n || "",
       precio: String(parsePrecioEntero(moto.precio)),
       cilindrada: String(moto.cilindrada ?? ""),
       anio: String(moto.anio ?? ""),
@@ -264,7 +264,7 @@ export default function CatalogoMotos() {
     payload.append("categoria", editForm.categoria);
     payload.append("modelo", editForm.modelo);
     payload.append("slug", editForm.slug);
-    payload.append("descripcion", editForm.descripcion);
+    payload.append("Descripci贸n", editForm.Descripci贸n);
     payload.append("precio", editForm.precio);
     payload.append("cilindrada", editForm.cilindrada);
     payload.append("anio", editForm.anio);
@@ -550,7 +550,7 @@ export default function CatalogoMotos() {
           <section className="moto-edit-modal" onClick={(event) => event.stopPropagation()}>
             <div className="moto-edit-header">
               <div>
-                <p className="moto-edit-kicker">Edicion de moto</p>
+                <p className="moto-edit-kicker">Edici贸n de moto</p>
                 <h3>{editingMoto.modelo || editingMoto.nombre}</h3>
               </div>
               <button
@@ -579,7 +579,7 @@ export default function CatalogoMotos() {
               <label>
                 Categoria *
                 <select name="categoria" value={editForm.categoria} onChange={handleEditInputChange} required>
-                  <option value="">Selecciona una categoria</option>
+                  <option value="">Selecciona una categor铆a</option>
                   {meta.categorias.map((categoria) => (
                     <option key={categoria.id} value={categoria.id}>
                       {categoria.nombre}
@@ -600,10 +600,10 @@ export default function CatalogoMotos() {
               </label>
 
               <label className="moto-edit-span-2">
-                Descripcion
+                Descripci贸n
                 <textarea
-                  name="descripcion"
-                  value={editForm.descripcion}
+                  name="Descripci贸n"
+                  value={editForm.Descripci贸n}
                   onChange={handleEditInputChange}
                   rows={4}
                 />
@@ -634,7 +634,7 @@ export default function CatalogoMotos() {
               </label>
 
               <label>
-                A駉 *
+                {"A\u00f1o *"}
                 <input
                   type="number"
                   name="anio"
@@ -676,7 +676,7 @@ export default function CatalogoMotos() {
                     Examinar...
                   </button>
                   <span className="moto-edit-file-name">
-                    {editForm.imagen_principal?.name || "No se ha seleccionado ning鷑 archivo."}
+                    {editForm.imagen_principal?.name || "No se ha seleccionado ning煤n archivo."}
                   </span>
                 </div>
               </label>
@@ -728,7 +728,7 @@ export default function CatalogoMotos() {
           <section className="moto-delete-modal" onClick={(event) => event.stopPropagation()}>
             <img src="/images/informacion.png" alt="Informacion" className="moto-delete-modal-image" />
             <p className="moto-delete-modal-text">
-              縀stas seguro que quieres eliminar {deleteCandidate.modelo || deleteCandidate.nombre}?
+              驴Estas seguro que quieres eliminar {deleteCandidate.modelo || deleteCandidate.nombre}?
             </p>
             <div className="moto-delete-modal-actions">
               <button type="button" className="btn-back" onClick={closeDeleteModal} disabled={deletingMoto}>
@@ -746,6 +746,7 @@ export default function CatalogoMotos() {
     </div>
   );
 }
+
 
 
 

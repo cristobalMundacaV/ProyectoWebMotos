@@ -149,7 +149,7 @@ export default function AdminTopbar({
                       Editar perfil
                     </button>
                     <button type="button" className="admin-user-btn danger" onClick={onLogout}>
-                      Cerrar sesion
+                      Cerrar sesión
                     </button>
                   </div>
                 </div>

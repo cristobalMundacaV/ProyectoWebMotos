@@ -301,7 +301,7 @@ export default function AdminSidebar({ activeSection, onChangeSection, className
             Ver sitio
           </button>
           <button type="button" className="admin-sidebar-link admin-sidebar-link-danger" onClick={onLogout}>
-            Cerrar sesion
+            Cerrar sesión
           </button>
         </div>
       </div>

@@ -94,7 +94,7 @@ export default function Login() {
         <article className="login-card">
           <img src="/images/logo.svg" alt="Delanoe Motos" className="login-logo" />
           <h1>Bienvenido</h1>
-          <p>{mode === "login" ? "Inicia sesion para continuar" : "Crea tu cuenta para continuar"}</p>
+          <p>{mode === "login" ? "Inicia sesión para continuar" : "Crea tu cuenta para continuar"}</p>
 
           <form className="login-form" onSubmit={handleSubmit}>
             {mode === "register" && (
@@ -194,7 +194,7 @@ export default function Login() {
 
             {mode === "register" && (
               <>
-                <label htmlFor="confirm_password">Confirmar contrasena</label>
+                <label htmlFor="confirm_password">Confirmar contraseña</label>
                 <input
                   id="confirm_password"
                   name="confirm_password"
@@ -240,7 +240,7 @@ export default function Login() {
               <div className="login-register">
                 ¿Ya tienes cuenta?{" "}
                 <button type="button" className="register-link" onClick={() => setMode("login")}>
-                  Inicia sesion
+                  Inicia sesión
                 </button>
               </div>
             )}

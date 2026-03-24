@@ -143,7 +143,7 @@ export default function Navbar() {
           <div className="nav-mobile-session">
             {user ? (
               <button type="button" className="btn-nav btn-nav-logout" onClick={handleLogout}>
-                Cerrar sesion
+                Cerrar sesión
               </button>
             ) : (
               <Link className="btn-nav btn-nav-subtle" to="/login" onClick={() => setIsMenuOpen(false)}>
@@ -165,7 +165,7 @@ export default function Navbar() {
               <span className="nav-username">{user.username}</span>
             </div>
             <button type="button" className="btn-nav btn-nav-logout nav-user-logout-desktop" onClick={handleLogout}>
-              Cerrar sesion
+              Cerrar sesión
             </button>
           </div>
         ) : (

@@ -261,11 +261,11 @@ function translateBackendMessage(message) {
   if (maxLengthMatch) return `Este campo no puede superar ${maxLengthMatch[1]} caracteres.`;
   if (normalized.includes("already exists")) return "Ya existe un registro con ese valor.";
   if (normalized.includes("slug")) return "El slug ya existe. Cambia el nombre para generar uno diferente.";
-  if (normalized.includes("not found")) return "No se encontro el recurso solicitado.";
+  if (normalized.includes("not found")) return "No se encontró el recurso solicitado.";
   if (normalized.includes("invalid")) return "El dato ingresado no es valido.";
   if (normalized.includes("must be a number")) return "Debe ingresar un numero valido.";
   if (normalized.includes("permission denied")) return "No tienes permisos para realizar esta accion.";
-  if (normalized.includes("authentication credentials were not provided")) return "Debes iniciar sesion para continuar.";
+  if (normalized.includes("authentication credentials were not provided")) return "Debes iniciar sesión para continuar.";
 
   return text;
 }
@@ -630,7 +630,7 @@ export default function AdminPanel() {
 
   async function handleTopbarProfileSave(payload) {
     if (!currentUser?.id) {
-      pushToast("No se encontro la sesion del usuario.", "error");
+      pushToast("No se encontró la sesión del usuario.", "error");
       return false;
     }
     if (!currentUser?.rol) {
@@ -2524,7 +2524,7 @@ export default function AdminPanel() {
               <section className="admin-entity-modal admin-moto-edit-modal" onClick={(event) => event.stopPropagation()}>
                 <div className="admin-entity-modal-header">
                   <div>
-                    <p className="admin-entity-modal-kicker">Edicion de moto</p>
+                    <p className="admin-entity-modal-kicker">Edición de moto</p>
                     <h3>{motoEditModal.modelName || "Editar moto"}</h3>
                   </div>
                   <button type="button" onClick={closeMotoEditModal} disabled={motoEditSaving}>
@@ -2718,7 +2718,7 @@ export default function AdminPanel() {
               <section className="admin-entity-modal admin-moto-edit-modal" onClick={(event) => event.stopPropagation()}>
                 <div className="admin-entity-modal-header">
                   <div>
-                    <p className="admin-entity-modal-kicker">Edicion de producto</p>
+                    <p className="admin-entity-modal-kicker">Edición de producto</p>
                     <h3>{accesorioRiderEditModal.title}</h3>
                   </div>
                   <button type="button" onClick={closeAccesorioRiderEditModal} disabled={accesorioRiderEditSaving}>
@@ -2872,7 +2872,7 @@ export default function AdminPanel() {
               <section className="admin-entity-modal" onClick={(event) => event.stopPropagation()}>
                 <div className="admin-entity-modal-header">
                   <div>
-                    <p className="admin-entity-modal-kicker">Edicion de usuario</p>
+                    <p className="admin-entity-modal-kicker">Edición de usuario</p>
                     <h3>Editar usuario</h3>
                   </div>
                   <button type="button" onClick={closeAdminUserEditModal} disabled={adminUserModalSaving}>
@@ -2986,7 +2986,7 @@ export default function AdminPanel() {
               <section className="admin-entity-modal admin-entity-modal-compact" onClick={(event) => event.stopPropagation()}>
                 <div className="admin-entity-modal-header">
                   <div>
-                    <p className="admin-entity-modal-kicker">Edicion administrativa</p>
+                    <p className="admin-entity-modal-kicker">Edición administrativa</p>
                     <h3>Editar {getEntityKindLabel(entityEditModal.kind)}</h3>
                   </div>
                   <button
