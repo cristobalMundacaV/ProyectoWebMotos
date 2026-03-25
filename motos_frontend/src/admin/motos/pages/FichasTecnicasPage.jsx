@@ -2,6 +2,7 @@
 import {
   createTipoAtributo,
   createValorAtributoMoto,
+  getMotos,
   getTiposAtributo,
   getValoresAtributoMoto,
   updateValorAtributoMoto,
@@ -131,6 +132,37 @@ function isBooleanToggleCandidate({ sectionName, itemName, currentValue }) {
   const placeholder = getFichaItemPlaceholder(itemName).trim().toLowerCase();
   const isSiDefault = placeholder === "si";
   return isSiDefault || isTruthyToggleValue(currentValue) || isFalsyToggleValue(currentValue);
+}
+
+function isDuplicateCreationError(err) {
+  const message =
+    err?.response?.data?.detail ||
+    err?.response?.data?.nombre?.[0] ||
+    err?.response?.data?.non_field_errors?.[0] ||
+    err?.message ||
+    "";
+  const normalized = String(message).toLowerCase();
+  return (
+    normalized.includes("already exists") ||
+    normalized.includes("ya existe") ||
+    normalized.includes("unique") ||
+    normalized.includes("must make a unique set") ||
+    normalized.includes("uq_valoratributomoto_moto_tipoatributo_nombre")
+  );
+}
+
+function mergeDraftPreservingUnsavedChanges(refreshedList, prevDraftById) {
+  const nextDraft = {};
+  normalizeArray(refreshedList).forEach((item) => {
+    const itemId = item?.id;
+    const serverValue = normalizeText(item?.valor);
+    if (Object.prototype.hasOwnProperty.call(prevDraftById, itemId)) {
+      nextDraft[itemId] = normalizeText(prevDraftById[itemId]);
+    } else {
+      nextDraft[itemId] = serverValue;
+    }
+  });
+  return nextDraft;
 }
 
 export default function FichasTecnicasPage({ activeSection, motos = [] }) {
@@ -438,11 +470,7 @@ export default function FichasTecnicasPage({ activeSection, motos = [] }) {
       const refreshedRows = await getValoresAtributoMoto({ moto: selectedMoto.id });
       const refreshedList = normalizeArray(refreshedRows);
       setValores(refreshedList);
-      const nextDraft = {};
-      refreshedList.forEach((item) => {
-        nextDraft[item.id] = normalizeText(item.valor);
-      });
-      setDraftById(nextDraft);
+      setDraftById((prevDraft) => mergeDraftPreservingUnsavedChanges(refreshedList, prevDraft));
 
       setNewItemName("");
       setNewItemValue("");
@@ -471,12 +499,16 @@ export default function FichasTecnicasPage({ activeSection, motos = [] }) {
       const shouldFallbackToLegacy = statusCode === 400;
 
       if (shouldFallbackToLegacy) {
-        const motoIds = normalizeArray(motosDisponibles).map((moto) => moto?.id).filter(Boolean);
+        const allMotos = await getMotos();
+        const motosUniverse =
+          normalizeArray(allMotos).length > 0 ? normalizeArray(allMotos) : normalizeArray(motosDisponibles);
+        const motoIds = motosUniverse.map((moto) => moto?.id).filter(Boolean);
         const createdRows = [];
         const skippedRows = [];
         const failedRows = [];
 
         for (const motoId of motoIds) {
+          let createError = null;
           try {
             const created = await createValorAtributoMoto({
               moto: motoId,
@@ -486,37 +518,79 @@ export default function FichasTecnicasPage({ activeSection, motos = [] }) {
               orden: nextOrden,
             });
             createdRows.push(created);
-          } catch (legacyErr) {
-            const message =
-              legacyErr?.response?.data?.detail ||
-              legacyErr?.response?.data?.nombre?.[0] ||
-              legacyErr?.response?.data?.non_field_errors?.[0] ||
-              legacyErr?.message ||
-              "Error desconocido";
+            continue;
+          } catch (legacyErrFirst) {
+            createError = legacyErrFirst;
+          }
 
-            const normalizedMessage = String(message).toLowerCase();
-            const isDuplicate =
-              normalizedMessage.includes("already exists") ||
-              normalizedMessage.includes("ya existe") ||
-              normalizedMessage.includes("unique") ||
-              normalizedMessage.includes("uq_valoratributomoto_moto_tipoatributo_nombre");
+          if (isDuplicateCreationError(createError)) {
+            skippedRows.push({
+              motoId,
+              message:
+                createError?.response?.data?.detail ||
+                createError?.response?.data?.non_field_errors?.[0] ||
+                createError?.message ||
+                "Duplicado",
+            });
+            continue;
+          }
 
-            if (isDuplicate) {
-              skippedRows.push({ motoId, message: String(message) });
-            } else {
-              failedRows.push({ motoId, message: String(message) });
+          // Reintento de robustez para errores intermitentes.
+          try {
+            const createdRetry = await createValorAtributoMoto({
+              moto: motoId,
+              tipo_atributo: tipoAtributoId,
+              nombre: itemName,
+              valor: itemValue,
+              orden: nextOrden,
+            });
+            createdRows.push(createdRetry);
+            continue;
+          } catch (legacyErrRetry) {
+            if (isDuplicateCreationError(legacyErrRetry)) {
+              skippedRows.push({
+                motoId,
+                message:
+                  legacyErrRetry?.response?.data?.detail ||
+                  legacyErrRetry?.response?.data?.non_field_errors?.[0] ||
+                  legacyErrRetry?.message ||
+                  "Duplicado",
+              });
+              continue;
             }
+
+            // Verificacion final: si el item quedo creado igual, se considera sincronizado.
+            try {
+              const motoRows = await getValoresAtributoMoto({ moto: motoId });
+              const existsAfterError = normalizeArray(motoRows).some(
+                (row) =>
+                  Number(row?.tipo_atributo) === Number(tipoAtributoId) &&
+                  normalizeItemKey(row?.nombre) === normalizeItemKey(itemName)
+              );
+              if (existsAfterError) {
+                skippedRows.push({ motoId, message: "Ya existia o se creo previamente." });
+                continue;
+              }
+            } catch {
+              // Si falla esta verificacion, se registra el error original de retry.
+            }
+
+            failedRows.push({
+              motoId,
+              message:
+                legacyErrRetry?.response?.data?.detail ||
+                legacyErrRetry?.response?.data?.nombre?.[0] ||
+                legacyErrRetry?.response?.data?.non_field_errors?.[0] ||
+                legacyErrRetry?.message ||
+                "Error desconocido",
+            });
           }
         }
 
         const refreshedRows = await getValoresAtributoMoto({ moto: selectedMoto.id });
         const refreshedList = normalizeArray(refreshedRows);
         setValores(refreshedList);
-        const nextDraft = {};
-        refreshedList.forEach((item) => {
-          nextDraft[item.id] = normalizeText(item.valor);
-        });
-        setDraftById(nextDraft);
+        setDraftById((prevDraft) => mergeDraftPreservingUnsavedChanges(refreshedList, prevDraft));
         setNewItemName("");
         setNewItemValue("");
         setShowCreateItemModal(false);
@@ -527,8 +601,9 @@ export default function FichasTecnicasPage({ activeSection, motos = [] }) {
             "success"
           );
         } else {
+          const firstFailure = failedRows[0];
           showToast(
-            `Sincronizacion parcial: ${createdRows.length} creados, ${skippedRows.length} ya existian y ${failedRows.length} con error.`,
+            `Sincronizacion parcial: ${createdRows.length} creados, ${skippedRows.length} ya existian y ${failedRows.length} con error. Primer fallo en moto ${firstFailure?.motoId}: ${firstFailure?.message}`,
             "error"
           );
         }
