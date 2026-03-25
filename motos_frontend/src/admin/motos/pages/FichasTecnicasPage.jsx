@@ -11,6 +11,7 @@ function normalizeText(value) {
 
 export default function FichasTecnicasPage({ activeSection, motos = [] }) {
   const [selectedMotoId, setSelectedMotoId] = useState("");
+  const [selectedSectionName, setSelectedSectionName] = useState("");
   const [valores, setValores] = useState([]);
   const [draftById, setDraftById] = useState({});
   const [loading, setLoading] = useState(false);
@@ -99,6 +100,21 @@ export default function FichasTecnicasPage({ activeSection, motos = [] }) {
     () => motosDisponibles.find((moto) => String(moto.id) === String(selectedMotoId)) || null,
     [motosDisponibles, selectedMotoId]
   );
+
+  const selectedSection = useMemo(() => {
+    if (groupedSections.length === 0) return null;
+    return groupedSections.find((section) => section.nombre === selectedSectionName) || groupedSections[0];
+  }, [groupedSections, selectedSectionName]);
+
+  useEffect(() => {
+    if (groupedSections.length === 0) {
+      setSelectedSectionName("");
+      return;
+    }
+    if (!groupedSections.some((section) => section.nombre === selectedSectionName)) {
+      setSelectedSectionName(groupedSections[0].nombre);
+    }
+  }, [groupedSections, selectedSectionName]);
 
   const hasChanges = useMemo(
     () =>
@@ -191,15 +207,33 @@ export default function FichasTecnicasPage({ activeSection, motos = [] }) {
 
                 {!loading && groupedSections.length > 0 && (
                   <div className="admin-ficha-sections">
-                    {groupedSections.map((section) => (
-                      <section key={section.nombre} className="admin-ficha-section-card">
+                    <div className="admin-ficha-section-tabs admin-mantencion-tabs" role="tablist" aria-label="Secciones de ficha tecnica">
+                      {groupedSections.map((section) => {
+                        const isActive = section.nombre === selectedSection?.nombre;
+                        return (
+                          <button
+                            key={section.nombre}
+                            type="button"
+                            className={isActive ? "admin-mantencion-tab active" : "admin-mantencion-tab"}
+                            onClick={() => setSelectedSectionName(section.nombre)}
+                            role="tab"
+                            aria-selected={isActive}
+                          >
+                            {section.nombre}
+                          </button>
+                        );
+                      })}
+                    </div>
+
+                    {selectedSection && (
+                      <section key={selectedSection.nombre} className="admin-ficha-section-card">
                         <header className="admin-ficha-section-head">
-                          <h4>{section.nombre}</h4>
-                          <span>{section.items.length} items</span>
+                          <h4>{selectedSection.nombre}</h4>
+                          <span>{selectedSection.items.length} items</span>
                         </header>
 
                         <div className="admin-ficha-items-grid">
-                          {section.items.map((item) => (
+                          {selectedSection.items.map((item) => (
                             <label key={item.id} className="admin-ficha-item-field">
                               <span>{item.nombre}</span>
                               <input
@@ -211,7 +245,7 @@ export default function FichasTecnicasPage({ activeSection, motos = [] }) {
                           ))}
                         </div>
                       </section>
-                    ))}
+                    )}
                   </div>
                 )}
 

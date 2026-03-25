@@ -2127,6 +2127,10 @@
   padding-right: 2px;
 }
 
+.admin-ficha-section-tabs {
+  margin-bottom: 2px;
+}
+
 .admin-ficha-section-card {
   border: 1px solid #e5e7eb;
   border-radius: 12px;
