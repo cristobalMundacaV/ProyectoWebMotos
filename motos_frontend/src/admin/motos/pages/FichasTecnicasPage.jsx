@@ -9,6 +9,62 @@ function normalizeText(value) {
   return String(value ?? "");
 }
 
+const FICHA_PLACEHOLDER_BY_ITEM = {
+  tipo: "Motor de 4 cilindros en linea, 16 valvulas y doble arbol de levas (DOHC)",
+  refrigeracion: "Liquida",
+  alimentacion: "EFI inyeccion electronica",
+  "diametro x carrera": "67 mm x 47 mm",
+  cilindrada: "662,8 cc",
+  "relacion de compresion": "11,8:1",
+  "potencia maxima": "99 HP (74 kW) / 11500 rpm",
+  "par maximo": "64 Nm / 10000 rpm",
+  embrague: "Tipo antirrebote",
+  cambio: "6 velocidades",
+  "consumo homologado": "5,5 L/100 km",
+  bateria: "12V 10AH",
+  chasis: "Perimetral de acero",
+  "suspension delantera": "Horquilla invertida KYB de 43 mm",
+  "suspension trasera": "Monoamortiguador central",
+  "neumatico delantero": "120/70 ZR17",
+  "neumatico trasero": "180/55 ZR17",
+  "freno delantero": "Doble disco, pinza fija de cuatro pistones, diametro de disco de 298 mm",
+  "freno trasero": "Disco de 240 mm con pinza Nissin de 1 piston",
+  abs: "Doble via",
+  largo: "2090 mm",
+  ancho: "950 mm",
+  alto: "1210 mm",
+  "distancia entre ejes": "1450 mm",
+  "distancia al suelo": "130 mm",
+  "altura asiento": "800 mm ajustable",
+  "peso neto": "215 kg",
+  "capacidad deposito": "15,5 L",
+  "velocidad maxima": "235 km/h",
+  "iluminacion led": "Si",
+  "instrumentacion tft a color": "Si",
+  "sistema de frenos brembo y nissin": "Si",
+  "sistema de control de traccion": "Si",
+  "sistema quick shift": "Si",
+  "toma usb": "Si",
+  "dos modos de conduccion": "Si",
+  "computadora de viaje": "Si",
+  "launch control": "Si",
+  "accionamiento valvula de salida de escape": "Si",
+  frenos: "Brembo / Nissin",
+};
+
+function normalizeItemKey(value) {
+  return String(value || "")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .trim()
+    .toLowerCase();
+}
+
+function getFichaItemPlaceholder(itemName) {
+  const key = normalizeItemKey(itemName);
+  return FICHA_PLACEHOLDER_BY_ITEM[key] || `Ingresar valor para ${itemName}`;
+}
+
 export default function FichasTecnicasPage({ activeSection, motos = [] }) {
   const [selectedMotoId, setSelectedMotoId] = useState("");
   const [selectedSectionName, setSelectedSectionName] = useState("");
@@ -239,7 +295,7 @@ export default function FichasTecnicasPage({ activeSection, motos = [] }) {
                               <input
                                 value={normalizeText(draftById[item.id])}
                                 onChange={(event) => handleDraftChange(item.id, event.target.value)}
-                                placeholder={`Ingresar valor para ${item.nombre}`}
+                                placeholder={getFichaItemPlaceholder(item.nombre)}
                               />
                             </label>
                           ))}
