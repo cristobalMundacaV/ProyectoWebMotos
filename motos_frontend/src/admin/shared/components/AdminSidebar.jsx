@@ -203,8 +203,6 @@ const navigationGroups = [
     icon: "fichas_tecnicas",
     items: [
       { label: "Resumen general", value: "fichas_resumen" },
-      { label: "Secciones", value: "fichas_secciones" },
-      { label: "Items", value: "fichas_items" },
     ],
   },
   {

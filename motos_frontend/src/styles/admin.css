@@ -2289,6 +2289,32 @@
 
 .admin-ficha-save-actions {
   margin: 0;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 10px;
+}
+
+.admin-ficha-outline-action {
+  border: 1px solid #0f6e6e;
+  background: #ffffff;
+  color: #0f6e6e;
+  border-radius: 999px;
+  padding: 10px 16px;
+  font-weight: 800;
+  cursor: pointer;
+  transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+}
+
+.admin-ficha-outline-action:hover:not(:disabled) {
+  background: #ecfeff;
+  border-color: #0e5c5c;
+  color: #0e5c5c;
+}
+
+.admin-ficha-outline-action:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
 }
 
 .admin-ficha-modal-overlay {
@@ -2388,6 +2414,16 @@
 
   .admin-ficha-modal-actions {
     flex-direction: column-reverse;
+  }
+
+  .admin-ficha-save-actions {
+    flex-direction: column-reverse;
+    align-items: stretch;
+  }
+
+  .admin-ficha-save-actions .admin-primary-action,
+  .admin-ficha-save-actions .admin-ficha-outline-action {
+    width: 100%;
   }
 
   .admin-ficha-modal-actions button {

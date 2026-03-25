@@ -1,5 +1,11 @@
 import { useEffect, useMemo, useState } from "react";
-import { createTipoAtributo, getTiposAtributo, getValoresAtributoMoto, updateValorAtributoMoto } from "../services/motosAdminService";
+import {
+  createTipoAtributo,
+  createValorAtributoMoto,
+  getTiposAtributo,
+  getValoresAtributoMoto,
+  updateValorAtributoMoto,
+} from "../services/motosAdminService";
 import AdminToastStack from "../../shared/components/AdminToastStack";
 
 function normalizeArray(value) {
@@ -133,6 +139,10 @@ export default function FichasTecnicasPage({ activeSection, motos = [] }) {
   const [creatingSection, setCreatingSection] = useState(false);
   const [showCreateSectionModal, setShowCreateSectionModal] = useState(false);
   const [newSectionName, setNewSectionName] = useState("");
+  const [creatingItem, setCreatingItem] = useState(false);
+  const [showCreateItemModal, setShowCreateItemModal] = useState(false);
+  const [newItemName, setNewItemName] = useState("");
+  const [newItemValue, setNewItemValue] = useState("");
   const [toasts, setToasts] = useState([]);
 
   function dismissToast(id) {
@@ -205,6 +215,7 @@ export default function FichasTecnicasPage({ activeSection, motos = [] }) {
         map.set(key, {
           nombre: key,
           orden: Number(tipo.orden ?? 9999),
+          tipoAtributoId: tipo.id ?? null,
           items: [],
         });
       }
@@ -216,8 +227,12 @@ export default function FichasTecnicasPage({ activeSection, motos = [] }) {
         map.set(key, {
           nombre: key,
           orden: Number(item.tipo_atributo_orden ?? 9999),
+          tipoAtributoId: item.tipo_atributo ?? null,
           items: [],
         });
+      }
+      if (!map.get(key).tipoAtributoId && item.tipo_atributo) {
+        map.get(key).tipoAtributoId = item.tipo_atributo;
       }
       map.get(key).items.push(item);
     });
@@ -363,6 +378,65 @@ export default function FichasTecnicasPage({ activeSection, motos = [] }) {
     }
   }
 
+  async function handleCreateItem(event) {
+    event.preventDefault();
+    if (creatingItem || !selectedMoto || !selectedSection) return;
+
+    const itemName = normalizeText(newItemName).trim();
+    const itemValue = normalizeText(newItemValue).trim();
+    if (!itemName) return;
+
+    const existsInSection = normalizeArray(selectedSection.items).some(
+      (item) => normalizeItemKey(item.nombre) === normalizeItemKey(itemName)
+    );
+    if (existsInSection) {
+      showToast("Ya existe un item con ese nombre en esta seccion.", "error");
+      return;
+    }
+
+    const tipoAtributoId =
+      selectedSection.tipoAtributoId ||
+      normalizeArray(tiposAtributo).find(
+        (tipo) => normalizeItemKey(tipo.nombre) === normalizeItemKey(selectedSection.nombre)
+      )?.id;
+
+    if (!tipoAtributoId) {
+      showToast("No se encontro la seccion activa para crear el item.", "error");
+      return;
+    }
+
+    const nextOrden =
+      normalizeArray(selectedSection.items).reduce((max, item) => Math.max(max, Number(item.orden || 0)), 0) + 1;
+
+    try {
+      setCreatingItem(true);
+      const created = await createValorAtributoMoto({
+        moto: selectedMoto.id,
+        tipo_atributo: tipoAtributoId,
+        nombre: itemName,
+        valor: itemValue,
+        orden: nextOrden,
+      });
+
+      setValores((prev) => [...prev, created]);
+      setDraftById((prev) => ({ ...prev, [created.id]: normalizeText(created.valor) }));
+      setNewItemName("");
+      setNewItemValue("");
+      setShowCreateItemModal(false);
+      showToast(`Item creado: ${created?.nombre || itemName}.`, "success");
+    } catch (err) {
+      const backendMessage =
+        err?.response?.data?.detail ||
+        err?.response?.data?.nombre?.[0] ||
+        err?.response?.data?.non_field_errors?.[0] ||
+        err?.message ||
+        "No se pudo crear el item.";
+      showToast(String(backendMessage), "error");
+    } finally {
+      setCreatingItem(false);
+    }
+  }
+
   if (!isFichaSection) return null;
 
   return (
@@ -504,6 +578,14 @@ export default function FichasTecnicasPage({ activeSection, motos = [] }) {
                 <div className="admin-mantencion-ficha-actions admin-ficha-save-actions">
                   <button
                     type="button"
+                    className="admin-ficha-outline-action"
+                    onClick={() => setShowCreateItemModal(true)}
+                    disabled={loading || !selectedSection || !selectedMoto}
+                  >
+                    Agregar item
+                  </button>
+                  <button
+                    type="button"
                     className="admin-primary-action admin-mantencion-action-btn admin-mantencion-save-btn"
                     onClick={handleSave}
                     disabled={!hasChanges || saving || loading || groupedSections.length === 0}
@@ -576,6 +658,82 @@ export default function FichasTecnicasPage({ activeSection, motos = [] }) {
                   disabled={creatingSection || normalizeText(newSectionName).trim().length < 2}
                 >
                   {creatingSection ? "Creando..." : "Crear seccion"}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {showCreateItemModal && (
+        <div
+          className="admin-ficha-modal-overlay"
+          role="presentation"
+          onClick={() => {
+            if (creatingItem) return;
+            setShowCreateItemModal(false);
+          }}
+        >
+          <div
+            className="admin-ficha-modal"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="create-item-title"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <div className="admin-ficha-modal-head">
+              <h3 id="create-item-title">Nuevo item</h3>
+              <button
+                type="button"
+                onClick={() => setShowCreateItemModal(false)}
+                disabled={creatingItem}
+                aria-label="Cerrar modal"
+              >
+                X
+              </button>
+            </div>
+
+            <form className="admin-ficha-modal-form" onSubmit={handleCreateItem}>
+              <p>
+                Agrega un item nuevo a la seccion <strong>{selectedSection?.nombre || "-"}</strong>.
+              </p>
+
+              <label>
+                Nombre del item
+                <input
+                  value={newItemName}
+                  onChange={(event) => setNewItemName(event.target.value)}
+                  placeholder="Ej: Control de estabilidad"
+                  autoFocus
+                  disabled={creatingItem}
+                />
+              </label>
+
+              <label>
+                Valor inicial (opcional)
+                <input
+                  value={newItemValue}
+                  onChange={(event) => setNewItemValue(event.target.value)}
+                  placeholder="Ej: Si / 120 HP / N/A"
+                  disabled={creatingItem}
+                />
+              </label>
+
+              <div className="admin-ficha-modal-actions">
+                <button
+                  type="button"
+                  className="admin-ficha-outline-action"
+                  onClick={() => setShowCreateItemModal(false)}
+                  disabled={creatingItem}
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="submit"
+                  className="admin-primary-action"
+                  disabled={creatingItem || normalizeText(newItemName).trim().length < 2}
+                >
+                  {creatingItem ? "Creando..." : "Crear item"}
                 </button>
               </div>
             </form>
