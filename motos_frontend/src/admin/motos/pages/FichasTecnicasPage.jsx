@@ -232,33 +232,30 @@ export default function FichasTecnicasPage({ activeSection, motos = [] }) {
     );
 
     try {
-      const results = await Promise.allSettled(
-        changed.map((item) =>
-          updateValorAtributoMoto(item.id, { valor: normalizeText(draftById[item.id]) })
-        )
-      );
-
       const successUpdates = [];
       const failed = [];
 
-      results.forEach((result, index) => {
-        if (result.status === "fulfilled") {
-          successUpdates.push(result.value);
-          return;
+      // Guardado secuencial para evitar fallos intermitentes por saturacion en servidor.
+      for (const item of changed) {
+        try {
+          const updated = await updateValorAtributoMoto(item.id, {
+            valor: normalizeText(draftById[item.id]),
+          });
+          successUpdates.push(updated);
+        } catch (err) {
+          const backendMessage =
+            err?.response?.data?.detail ||
+            err?.response?.data?.valor?.[0] ||
+            err?.response?.data?.non_field_errors?.[0] ||
+            err?.message ||
+            "Error desconocido";
+
+          failed.push({
+            item: item?.nombre || `ID ${item?.id ?? "?"}`,
+            message: String(backendMessage),
+          });
         }
-
-        const target = changed[index];
-        const backendMessage =
-          result.reason?.response?.data?.detail ||
-          result.reason?.response?.data?.valor?.[0] ||
-          result.reason?.message ||
-          "Error desconocido";
-
-        failed.push({
-          item: target?.nombre || `ID ${target?.id ?? "?"}`,
-          message: String(backendMessage),
-        });
-      });
+      }
 
       if (successUpdates.length > 0) {
         const updatedById = new Map(successUpdates.map((item) => [item.id, item]));
@@ -274,7 +271,7 @@ export default function FichasTecnicasPage({ activeSection, motos = [] }) {
         );
       } else {
         showToast(
-          `Se guardaron ${successUpdates.length} items y fallaron ${failed.length}. Primer error: ${failed[0].item}`,
+          `Se guardaron ${successUpdates.length} items y fallaron ${failed.length}. Primer error: ${failed[0].item}: ${failed[0].message}`,
           "error"
         );
       }
