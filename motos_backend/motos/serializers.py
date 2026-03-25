@@ -399,3 +399,9 @@ class ValorAtributoMotoSerializer(serializers.ModelSerializer):
             "valor",
             "orden",
         ]
+        extra_kwargs = {
+            "valor": {
+                "required": False,
+                "allow_blank": True,
+            },
+        }
