@@ -738,6 +738,7 @@ export default function AdminPanel() {
       }
       return translateBackendMessage(raw);
     }
+    if (data.error) return translateBackendMessage(data.error);
     if (data.detail) return translateBackendMessage(data.detail);
 
     const [firstError] = Object.values(data).find((value) => Array.isArray(value) && value.length) || [];
