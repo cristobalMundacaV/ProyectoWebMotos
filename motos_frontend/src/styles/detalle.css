@@ -594,6 +594,79 @@
   padding: 11px 14px;
 }
 
+.moto-tech-specs {
+  max-width: 1080px;
+  margin: 10px auto 36px;
+}
+
+.moto-tech-title {
+  margin: 0 0 14px;
+  font-size: clamp(30px, 3vw, 44px);
+  font-weight: 900;
+  line-height: 1.05;
+}
+
+.moto-tech-empty {
+  margin: 0;
+  background: #e8e8ea;
+  border: 1px solid #d6d6da;
+  border-radius: 10px;
+  padding: 12px 14px;
+  font-size: 16px;
+  color: #2f3744;
+}
+
+.moto-tech-section + .moto-tech-section {
+  margin-top: 8px;
+}
+
+.moto-tech-section-head {
+  width: 100%;
+  border: none;
+  background: #e8e8ea;
+  color: #0b0b0d;
+  padding: 14px 18px;
+  font-size: 34px;
+  font-weight: 900;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  cursor: pointer;
+  text-align: left;
+}
+
+.moto-tech-section-head.is-open {
+  background: #ffe800;
+}
+
+.moto-tech-section-body {
+  background: #efefef;
+}
+
+.moto-tech-row {
+  display: grid;
+  grid-template-columns: minmax(210px, 0.9fr) minmax(0, 1.1fr);
+  gap: 16px;
+  align-items: center;
+  padding: 14px 18px;
+}
+
+.moto-tech-row.is-alt {
+  background: #e8e8ea;
+}
+
+.moto-tech-label {
+  font-size: 18px;
+  font-weight: 800;
+  color: #0b0f1a;
+}
+
+.moto-tech-value {
+  font-size: 18px;
+  color: #101728;
+}
+
 @media (max-width: 1100px) {
   .moto-hero-block {
     min-height: 440px;
@@ -614,6 +687,30 @@
 
   .moto-specs-card h3 {
     font-size: 28px;
+  }
+
+  .moto-tech-specs {
+    max-width: 100%;
+    margin-bottom: 24px;
+  }
+
+  .moto-tech-title {
+    font-size: clamp(26px, 3.2vw, 36px);
+  }
+
+  .moto-tech-section-head {
+    font-size: 28px;
+  }
+
+  .moto-tech-row {
+    grid-template-columns: 1fr;
+    gap: 6px;
+    padding: 12px 14px;
+  }
+
+  .moto-tech-label,
+  .moto-tech-value {
+    font-size: 16px;
   }
 }
 
@@ -696,5 +793,28 @@
 
   .moto-specs-card .detalle-cta {
     font-size: 18px;
+  }
+
+  .moto-tech-title {
+    font-size: 24px;
+    margin-bottom: 10px;
+  }
+
+  .moto-tech-section + .moto-tech-section {
+    margin-top: 6px;
+  }
+
+  .moto-tech-section-head {
+    padding: 11px 12px;
+    font-size: 20px;
+  }
+
+  .moto-tech-row {
+    padding: 10px 12px;
+  }
+
+  .moto-tech-label,
+  .moto-tech-value {
+    font-size: 14px;
   }
 }

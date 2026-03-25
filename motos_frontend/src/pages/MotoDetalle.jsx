@@ -1,7 +1,7 @@
 import { useParams, Link } from "react-router-dom";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { buildMediaUrl } from "../services/apiConfig";
-import { getMotoBySlug } from "../services/motosService";
+import { getMotoBySlug, getMotoFichaTecnica } from "../services/motosService";
 import { getContactoPublico } from "../services/productosService";
 import { trackCatalogView } from "../services/analyticsService";
 import { buildWhatsAppUrl } from "../services/contactoUtils";
@@ -11,6 +11,8 @@ import "../styles/detalle.css";
 export default function MotoDetalle() {
   const { slug } = useParams();
   const [moto, setMoto] = useState(null);
+  const [seccionesFicha, setSeccionesFicha] = useState([]);
+  const [openTechSection, setOpenTechSection] = useState("");
   const [varianteConMaletas, setVarianteConMaletas] = useState(false);
   const [telefonoContacto, setTelefonoContacto] = useState("+56 9 1234 5678");
   const [loading, setLoading] = useState(true);
@@ -23,9 +25,19 @@ export default function MotoDetalle() {
       setError("");
       try {
         const [motoData, contactoData] = await Promise.all([getMotoBySlug(slug), getContactoPublico()]);
+        let fichaData = null;
+
+        if (motoData?.id) {
+          try {
+            fichaData = await getMotoFichaTecnica(motoData.id);
+          } catch {
+            fichaData = null;
+          }
+        }
 
         if (!isMounted) return;
         setMoto(motoData);
+        setSeccionesFicha(Array.isArray(fichaData?.secciones_ficha) ? fichaData.secciones_ficha : []);
         if (contactoData?.telefono) {
           setTelefonoContacto(contactoData.telefono);
         }
@@ -61,6 +73,30 @@ export default function MotoDetalle() {
   useEffect(() => {
     setVarianteConMaletas(false);
   }, [moto?.id]);
+
+  useEffect(() => {
+    if (!Array.isArray(seccionesFicha) || seccionesFicha.length === 0) {
+      setOpenTechSection("");
+      return;
+    }
+    setOpenTechSection(seccionesFicha[0]?.nombre || "");
+  }, [moto?.id, seccionesFicha]);
+
+  const seccionesFichaOrdenadas = useMemo(
+    () =>
+      (Array.isArray(seccionesFicha) ? seccionesFicha : [])
+        .map((section) => ({
+          ...section,
+          orden: Number(section?.orden ?? 999),
+          items: (Array.isArray(section?.items) ? section.items : [])
+            .map((item) => ({ ...item, orden: Number(item?.orden ?? 999) }))
+            .sort((a, b) => a.orden - b.orden || String(a?.nombre || "").localeCompare(String(b?.nombre || ""), "es")),
+        }))
+        .sort((a, b) => a.orden - b.orden || String(a?.nombre || "").localeCompare(String(b?.nombre || ""), "es")),
+    [seccionesFicha]
+  );
+
+  const tieneFichaTecnica = seccionesFichaOrdenadas.length > 0;
 
   if (loading) {
     return <p className="detalle-loading">Cargando detalle...</p>;
@@ -182,6 +218,47 @@ export default function MotoDetalle() {
               COTIZAR POR WHATSAPP
             </a>
           </aside>
+        </section>
+
+        <section className="moto-tech-specs">
+          <h2 className="moto-tech-title">ESPECIFICACIONES TECNICAS</h2>
+
+          {!tieneFichaTecnica && (
+            <p className="moto-tech-empty">No hay ficha tecnica disponible para este modelo.</p>
+          )}
+
+          {tieneFichaTecnica &&
+            seccionesFichaOrdenadas.map((seccion) => {
+              const isOpen = openTechSection === seccion.nombre;
+              const icon = isOpen ? "-" : "+";
+              return (
+                <article key={seccion.nombre} className="moto-tech-section">
+                  <button
+                    type="button"
+                    className={isOpen ? "moto-tech-section-head is-open" : "moto-tech-section-head"}
+                    onClick={() => setOpenTechSection(isOpen ? "" : seccion.nombre)}
+                    aria-expanded={isOpen}
+                  >
+                    <span>{String(seccion.nombre || "").toUpperCase()}</span>
+                    <span>{icon}</span>
+                  </button>
+
+                  {isOpen && (
+                    <div className="moto-tech-section-body">
+                      {(Array.isArray(seccion.items) ? seccion.items : []).map((item, index) => (
+                        <div
+                          key={`${seccion.nombre}-${item.nombre}-${index}`}
+                          className={index % 2 === 1 ? "moto-tech-row is-alt" : "moto-tech-row"}
+                        >
+                          <span className="moto-tech-label">{item.nombre}</span>
+                          <span className="moto-tech-value">{item.valor || "-"}</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </article>
+              );
+            })}
         </section>
       </main>
     </div>
