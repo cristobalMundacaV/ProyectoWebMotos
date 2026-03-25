@@ -733,6 +733,7 @@ export default function AdminPanel() {
       marca: "Marca",
       modelo: "Modelo",
       modelo_id: "Modelo",
+      modelo_moto: "Modelo",
       slug: "Slug",
       precio: "Precio",
       precio_lista: "Precio de lista",

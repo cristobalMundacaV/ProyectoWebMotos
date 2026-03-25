@@ -311,6 +311,12 @@ class MotoSerializer(serializers.ModelSerializer):
             "marca_nombre",
             "categoria_nombre",
         ]
+        extra_kwargs = {
+            # El alta/edicion debe entrar por `modelo_id` (source="modelo_moto").
+            # Dejamos `modelo_moto` solo de lectura para evitar el error:
+            # "modelo_moto: Este campo es requerido."
+            "modelo_moto": {"read_only": True},
+        }
 
 
 class ItemFichaTecnicaSerializer(serializers.ModelSerializer):
