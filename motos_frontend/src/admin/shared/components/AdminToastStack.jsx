@@ -18,7 +18,7 @@ export default function AdminToastStack({ toasts, onDismiss }) {
           }
         >
           <span className="admin-toast-icon" aria-hidden="true">
-            {toast.variant === "error" ? "!" : "OK"}
+            {toast.variant === "error" ? "!" : ""}
           </span>
           <span>{toast.message}</span>
           <button type="button" onClick={() => onDismiss(toast.id)} aria-label="Cerrar notificacion">
