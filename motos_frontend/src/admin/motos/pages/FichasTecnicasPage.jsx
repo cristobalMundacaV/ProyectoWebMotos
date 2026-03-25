@@ -232,16 +232,52 @@ export default function FichasTecnicasPage({ activeSection, motos = [] }) {
     );
 
     try {
-      const updates = await Promise.all(
+      const results = await Promise.allSettled(
         changed.map((item) =>
           updateValorAtributoMoto(item.id, { valor: normalizeText(draftById[item.id]) })
         )
       );
-      const updatedById = new Map(updates.map((item) => [item.id, item]));
-      setValores((prev) => prev.map((item) => updatedById.get(item.id) || item));
-      showToast(`Ficha tecnica guardada. Se actualizaron ${updates.length} items.`, "success");
-    } catch {
-      showToast("No se pudieron guardar los cambios de la ficha tecnica.", "error");
+
+      const successUpdates = [];
+      const failed = [];
+
+      results.forEach((result, index) => {
+        if (result.status === "fulfilled") {
+          successUpdates.push(result.value);
+          return;
+        }
+
+        const target = changed[index];
+        const backendMessage =
+          result.reason?.response?.data?.detail ||
+          result.reason?.response?.data?.valor?.[0] ||
+          result.reason?.message ||
+          "Error desconocido";
+
+        failed.push({
+          item: target?.nombre || `ID ${target?.id ?? "?"}`,
+          message: String(backendMessage),
+        });
+      });
+
+      if (successUpdates.length > 0) {
+        const updatedById = new Map(successUpdates.map((item) => [item.id, item]));
+        setValores((prev) => prev.map((item) => updatedById.get(item.id) || item));
+      }
+
+      if (failed.length === 0) {
+        showToast(`Ficha tecnica guardada. Se actualizaron ${successUpdates.length} items.`, "success");
+      } else if (successUpdates.length === 0) {
+        showToast(
+          `No se pudo guardar la ficha tecnica. Error en ${failed[0].item}: ${failed[0].message}`,
+          "error"
+        );
+      } else {
+        showToast(
+          `Se guardaron ${successUpdates.length} items y fallaron ${failed.length}. Primer error: ${failed[0].item}`,
+          "error"
+        );
+      }
     } finally {
       setSaving(false);
     }
