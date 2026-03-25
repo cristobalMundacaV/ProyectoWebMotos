@@ -47,15 +47,36 @@ class ModeloMotoSerializer(serializers.ModelSerializer):
 
     def validate(self, attrs):
         nombre_modelo = (attrs.get("nombre_modelo") or getattr(self.instance, "nombre_modelo", "")).strip()
+        marca = attrs.get("marca", getattr(self.instance, "marca", None))
         categoria = attrs.get("categoria", getattr(self.instance, "categoria", None))
         cilindrada = attrs.get("cilindrada", getattr(self.instance, "cilindrada", None))
         if not nombre_modelo:
             raise serializers.ValidationError({"nombre": "El nombre del modelo es obligatorio."})
-        if not categoria:
+        if marca and nombre_modelo:
+            duplicate_qs = ModeloMoto.objects.filter(
+                marca=marca,
+                nombre_modelo__iexact=nombre_modelo,
+            )
+            if self.instance:
+                duplicate_qs = duplicate_qs.exclude(pk=self.instance.pk)
+            if duplicate_qs.exists():
+                raise serializers.ValidationError(
+                    {"nombre": "Ya existe un modelo con ese nombre para esta marca."}
+                )
+        is_create = self.instance is None
+        if is_create:
+            if not categoria:
+                raise serializers.ValidationError({"categoria": "La categoria del modelo es obligatoria."})
+            if cilindrada in (None, ""):
+                raise serializers.ValidationError({"cilindrada": "La cilindrada del modelo es obligatoria."})
+
+        # En updates parciales, solo validar categoria/cilindrada si vienen en el payload.
+        if "categoria" in attrs and not categoria:
             raise serializers.ValidationError({"categoria": "La categoria del modelo es obligatoria."})
-        if cilindrada in (None, ""):
+        if "cilindrada" in attrs and cilindrada in (None, ""):
             raise serializers.ValidationError({"cilindrada": "La cilindrada del modelo es obligatoria."})
-        if int(cilindrada) <= 0:
+
+        if cilindrada not in (None, "") and int(cilindrada) <= 0:
             raise serializers.ValidationError({"cilindrada": "La cilindrada debe ser mayor a 0."})
         attrs["nombre_modelo"] = nombre_modelo
         if not attrs.get("slug"):

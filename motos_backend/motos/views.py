@@ -1,4 +1,5 @@
-﻿from django.db.models import Q
+﻿from django.db import IntegrityError
+from django.db.models import Q
 from django.db.models.deletion import ProtectedError
 from rest_framework import status
 from rest_framework.decorators import api_view, authentication_classes, permission_classes
@@ -165,7 +166,13 @@ def modelos_moto(request):
 
     serializer = ModeloMotoSerializer(data=request.data)
     serializer.is_valid(raise_exception=True)
-    serializer.save()
+    try:
+        serializer.save()
+    except IntegrityError:
+        return Response(
+            {"detail": "No se pudo crear el modelo. Ya existe uno con esos datos."},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
     return Response(serializer.data, status=status.HTTP_201_CREATED)
 
 
@@ -193,7 +200,13 @@ def modelos_moto_detalle(request, modelo_id):
 
     serializer = ModeloMotoSerializer(modelo, data=request.data, partial=True)
     serializer.is_valid(raise_exception=True)
-    updated_modelo = serializer.save()
+    try:
+        updated_modelo = serializer.save()
+    except IntegrityError:
+        return Response(
+            {"detail": "No se pudo actualizar el modelo. Ya existe uno con ese nombre para esta marca."},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
     Moto.objects.filter(modelo_moto=updated_modelo).update(modelo=updated_modelo.nombre_modelo)
     return Response(ModeloMotoSerializer(updated_modelo).data)
 
@@ -460,3 +473,7 @@ def valor_atributo_moto_detalle(request, valor_id):
     serializer.is_valid(raise_exception=True)
     serializer.save()
     return Response(serializer.data)
+
+
+
+
