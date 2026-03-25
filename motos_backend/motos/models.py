@@ -90,7 +90,7 @@ class ValorAtributoMoto(models.Model):
         related_name="valores_moto",
     )
     nombre = models.CharField(max_length=120, default="")
-    valor = models.TextField()
+    valor = models.TextField(blank=True, default="")
     orden = models.PositiveIntegerField(default=1)
 
     class Meta:

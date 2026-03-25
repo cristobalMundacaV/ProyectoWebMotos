@@ -97,6 +97,25 @@ function getFichaItemPlaceholder(itemName) {
   return FICHA_PLACEHOLDER_BY_ITEM[key] || `Ingresar valor para ${itemName}`;
 }
 
+function isTruthyToggleValue(value) {
+  const normalized = normalizeText(value).trim().toLowerCase();
+  return ["si", "true", "1", "on", "activo"].includes(normalized);
+}
+
+function isFalsyToggleValue(value) {
+  const normalized = normalizeText(value).trim().toLowerCase();
+  return ["", "no", "false", "0", "off", "inactivo"].includes(normalized);
+}
+
+function isBooleanToggleCandidate({ sectionName, itemName, currentValue }) {
+  const section = normalizeText(sectionName).trim().toUpperCase();
+  if (section !== "EQUIPAMIENTO") return false;
+
+  const placeholder = getFichaItemPlaceholder(itemName).trim().toLowerCase();
+  const isSiDefault = placeholder === "si";
+  return isSiDefault || isTruthyToggleValue(currentValue) || isFalsyToggleValue(currentValue);
+}
+
 export default function FichasTecnicasPage({ activeSection, motos = [] }) {
   const [selectedMotoId, setSelectedMotoId] = useState("");
   const [selectedSectionName, setSelectedSectionName] = useState("");
@@ -366,11 +385,40 @@ export default function FichasTecnicasPage({ activeSection, motos = [] }) {
                             {selectedSection.items.map((item) => (
                               <label key={item.id} className="admin-ficha-item-field">
                                 <span>{item.nombre}</span>
-                                <input
-                                  value={normalizeText(draftById[item.id])}
-                                  onChange={(event) => handleDraftChange(item.id, event.target.value)}
-                                  placeholder={getFichaItemPlaceholder(item.nombre)}
-                                />
+                                {isBooleanToggleCandidate({
+                                  sectionName: selectedSection.nombre,
+                                  itemName: item.nombre,
+                                  currentValue: draftById[item.id],
+                                }) ? (
+                                  <button
+                                    type="button"
+                                    className={
+                                      isTruthyToggleValue(draftById[item.id])
+                                        ? "admin-ficha-toggle is-on"
+                                        : "admin-ficha-toggle is-off"
+                                    }
+                                    onClick={() =>
+                                      handleDraftChange(
+                                        item.id,
+                                        isTruthyToggleValue(draftById[item.id]) ? "" : "Si"
+                                      )
+                                    }
+                                    aria-pressed={isTruthyToggleValue(draftById[item.id])}
+                                  >
+                                    <span className="admin-ficha-toggle-pill" aria-hidden="true">
+                                      <span className="admin-ficha-toggle-dot" />
+                                    </span>
+                                    <span className="admin-ficha-toggle-label">
+                                      {isTruthyToggleValue(draftById[item.id]) ? "ACTIVO" : "SIN DEFINIR"}
+                                    </span>
+                                  </button>
+                                ) : (
+                                  <input
+                                    value={normalizeText(draftById[item.id])}
+                                    onChange={(event) => handleDraftChange(item.id, event.target.value)}
+                                    placeholder={getFichaItemPlaceholder(item.nombre)}
+                                  />
+                                )}
                               </label>
                             ))}
                           </div>

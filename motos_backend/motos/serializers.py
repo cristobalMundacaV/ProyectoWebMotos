@@ -386,6 +386,7 @@ class TipoAtributoSerializer(serializers.ModelSerializer):
 class ValorAtributoMotoSerializer(serializers.ModelSerializer):
     tipo_atributo_nombre = serializers.CharField(source="tipo_atributo.nombre", read_only=True)
     tipo_atributo_orden = serializers.IntegerField(source="tipo_atributo.orden", read_only=True)
+    valor = serializers.CharField(required=False, allow_blank=True, default="")
 
     class Meta:
         model = ValorAtributoMoto
@@ -399,9 +400,3 @@ class ValorAtributoMotoSerializer(serializers.ModelSerializer):
             "valor",
             "orden",
         ]
-        extra_kwargs = {
-            "valor": {
-                "required": False,
-                "allow_blank": True,
-            },
-        }

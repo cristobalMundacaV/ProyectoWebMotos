@@ -2214,6 +2214,65 @@
   color: #0f172a;
 }
 
+.admin-ficha-toggle {
+  width: 100%;
+  min-height: 38px;
+  border: 1px solid #d7dce3;
+  border-radius: 10px;
+  background: #ffffff;
+  padding: 8px 10px;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  transition: border-color 0.2s ease, background-color 0.2s ease;
+}
+
+.admin-ficha-toggle-pill {
+  width: 34px;
+  height: 20px;
+  border-radius: 999px;
+  border: 2px solid #111827;
+  display: inline-flex;
+  align-items: center;
+  padding: 1px;
+  background: #fff;
+  transition: background-color 0.2s ease;
+}
+
+.admin-ficha-toggle-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #111827;
+  transition: transform 0.2s ease, background-color 0.2s ease;
+}
+
+.admin-ficha-toggle-label {
+  font-size: 0.82rem;
+  font-weight: 800;
+  color: #334155;
+  letter-spacing: 0.01em;
+}
+
+.admin-ficha-toggle.is-on {
+  border-color: #86efac;
+  background: #f0fdf4;
+}
+
+.admin-ficha-toggle.is-on .admin-ficha-toggle-pill {
+  background: #111827;
+}
+
+.admin-ficha-toggle.is-on .admin-ficha-toggle-dot {
+  background: #ffffff;
+  transform: translateX(14px);
+}
+
+.admin-ficha-toggle.is-on .admin-ficha-toggle-label {
+  color: #166534;
+}
+
 .admin-ficha-save-actions {
   margin: 0;
 }
