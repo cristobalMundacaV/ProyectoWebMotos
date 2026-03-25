@@ -423,15 +423,15 @@
 
 /* Nuevo layout detalle motos */
 .detalle-moto-page .detalle-main {
-  max-width: 1780px;
-  padding-left: 28px;
-  padding-right: 28px;
+  max-width: 1540px;
+  padding-left: 20px;
+  padding-right: 20px;
 }
 
 .moto-hero-block {
   position: relative;
-  min-height: 540px;
-  padding-top: 20px;
+  min-height: 460px;
+  padding-top: 14px;
 }
 
 .moto-floating-title {
@@ -439,21 +439,21 @@
   top: 10px;
   left: 8px;
   margin: 0;
-  font-size: clamp(36px, 4.2vw, 56px);
+  font-size: clamp(30px, 3.4vw, 46px);
   line-height: 1;
   font-weight: 900;
   letter-spacing: 0.5px;
 }
 
 .moto-hero-image-wrap {
-  min-height: 470px;
+  min-height: 390px;
   display: grid;
   place-items: center;
 }
 
 .moto-hero-image-wrap img {
-  width: min(96vw, 1180px);
-  max-height: 620px;
+  width: min(92vw, 940px);
+  max-height: 480px;
   object-fit: contain;
 }
 
@@ -477,15 +477,15 @@
   border: none;
   background: transparent;
   color: #0a0a0a;
-  font-size: clamp(32px, 2.6vw, 50px);
+  font-size: clamp(24px, 2.1vw, 36px);
   font-weight: 900;
   letter-spacing: 0.3px;
   cursor: pointer;
 }
 
 .moto-variant-pill {
-  width: 52px;
-  height: 31px;
+  width: 42px;
+  height: 26px;
   border-radius: 999px;
   border: 4px solid #0a0a0a;
   display: inline-flex;
@@ -495,8 +495,8 @@
 }
 
 .moto-variant-dot {
-  width: 16px;
-  height: 16px;
+  width: 13px;
+  height: 13px;
   border-radius: 50%;
   background: #0a0a0a;
   transition: transform 0.2s ease;
@@ -508,7 +508,7 @@
 
 .moto-variant-toggle.is-on .moto-variant-dot {
   background: #ffffff;
-  transform: translateX(17px);
+  transform: translateX(13px);
 }
 
 .moto-variant-label {
@@ -516,21 +516,21 @@
 }
 
 .moto-pricing-block {
-  margin: 8px auto 28px;
-  width: min(520px, 100%);
+  margin: 6px auto 20px;
+  width: min(430px, 100%);
   text-align: center;
 }
 
 .moto-cuotas-label {
   margin: 0 0 4px;
-  font-size: 33px;
+  font-size: 24px;
   font-weight: 900;
   letter-spacing: 0.4px;
 }
 
 .moto-cuotas-value {
   margin: 0 0 10px;
-  font-size: clamp(44px, 5.2vw, 74px);
+  font-size: clamp(38px, 4.1vw, 56px);
   line-height: 1;
   font-weight: 900;
 }
@@ -540,8 +540,8 @@
   display: inline-block;
   background: #ffe800;
   color: #0d0d0d;
-  padding: 8px 18px;
-  font-size: clamp(24px, 2.4vw, 40px);
+  padding: 7px 14px;
+  font-size: clamp(22px, 2vw, 32px);
   line-height: 1.1;
   font-weight: 900;
 }
@@ -549,7 +549,7 @@
 .moto-floating-content-grid {
   display: grid;
   grid-template-columns: minmax(0, 1.7fr) minmax(0, 1fr);
-  gap: 20px;
+  gap: 14px;
   align-items: start;
   margin-top: 8px;
   margin-bottom: 28px;
@@ -560,38 +560,38 @@
   background: rgba(255, 255, 255, 0.58);
   border: 1px solid #d6d6d8;
   border-radius: 14px;
-  padding: 16px 18px;
+  padding: 12px 14px;
   backdrop-filter: blur(2px);
 }
 
 .moto-description-card h2 {
   margin: 0 0 10px;
-  font-size: 40px;
+  font-size: 28px;
   font-weight: 900;
 }
 
 .moto-description-card p {
   margin: 0;
-  font-size: 25px;
-  line-height: 1.32;
+  font-size: 18px;
+  line-height: 1.35;
 }
 
 .moto-specs-card h3 {
   margin: 0;
-  font-size: 33px;
+  font-size: 26px;
   font-weight: 900;
   padding: 0 0 8px;
 }
 
 .moto-specs-card .detalle-data-row {
-  font-size: 30px;
+  font-size: 20px;
   border-top-color: #d2d2d5;
 }
 
 .moto-specs-card .detalle-cta {
   margin-top: 14px;
-  font-size: 27px;
-  padding: 14px 16px;
+  font-size: 18px;
+  padding: 11px 14px;
 }
 
 @media (max-width: 1100px) {
