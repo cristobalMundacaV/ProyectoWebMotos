@@ -594,6 +594,45 @@
   padding: 11px 14px;
 }
 
+.moto-impact-specs {
+  display: grid;
+  gap: 16px;
+}
+
+.moto-impact-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px 16px;
+}
+
+.moto-impact-item {
+  border-left: 1px solid #d2d4da;
+  padding: 8px 0 8px 14px;
+}
+
+.moto-impact-item h3 {
+  margin: 0;
+  font-size: clamp(26px, 2.5vw, 42px);
+  line-height: 1.05;
+  font-weight: 900;
+  text-transform: uppercase;
+  color: #090e1d;
+}
+
+.moto-impact-item p {
+  margin: 3px 0 0;
+  font-size: 16px;
+  color: #3f4756;
+  letter-spacing: 0.02em;
+}
+
+.moto-impact-specs .detalle-cta {
+  width: 100%;
+  max-width: 420px;
+  justify-self: end;
+  margin-top: 0;
+}
+
 .moto-tech-specs {
   max-width: 1080px;
   margin: 10px auto 36px;
@@ -687,6 +726,23 @@
 
   .moto-specs-card h3 {
     font-size: 28px;
+  }
+
+  .moto-impact-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .moto-impact-item h3 {
+    font-size: clamp(24px, 5.4vw, 38px);
+  }
+
+  .moto-impact-item p {
+    font-size: 15px;
+  }
+
+  .moto-impact-specs .detalle-cta {
+    justify-self: stretch;
+    max-width: none;
   }
 
   .moto-tech-specs {
@@ -793,6 +849,22 @@
 
   .moto-specs-card .detalle-cta {
     font-size: 18px;
+  }
+
+  .moto-impact-grid {
+    gap: 8px;
+  }
+
+  .moto-impact-item {
+    padding-left: 10px;
+  }
+
+  .moto-impact-item h3 {
+    font-size: 28px;
+  }
+
+  .moto-impact-item p {
+    font-size: 14px;
   }
 
   .moto-tech-title {

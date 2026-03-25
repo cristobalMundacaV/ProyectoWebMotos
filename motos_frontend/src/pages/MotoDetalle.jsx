@@ -8,6 +8,14 @@ import { buildWhatsAppUrl } from "../services/contactoUtils";
 import Navbar from "../components/layout/Navbar";
 import "../styles/detalle.css";
 
+function normalizeLabel(value) {
+  return String(value || "")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .trim()
+    .toLowerCase();
+}
+
 export default function MotoDetalle() {
   const { slug } = useParams();
   const [moto, setMoto] = useState(null);
@@ -97,6 +105,23 @@ export default function MotoDetalle() {
   );
 
   const tieneFichaTecnica = seccionesFichaOrdenadas.length > 0;
+  const fichaItemsMap = useMemo(() => {
+    const map = new Map();
+    seccionesFichaOrdenadas.forEach((section) => {
+      (section.items || []).forEach((item) => {
+        map.set(normalizeLabel(item.nombre), item.valor || "-");
+      });
+    });
+    return map;
+  }, [seccionesFichaOrdenadas]);
+
+  function getFichaValue(...labels) {
+    for (const label of labels) {
+      const value = fichaItemsMap.get(normalizeLabel(label));
+      if (value && String(value).trim()) return String(value).trim();
+    }
+    return "-";
+  }
 
   if (loading) {
     return <p className="detalle-loading">Cargando detalle...</p>;
@@ -117,10 +142,6 @@ export default function MotoDetalle() {
     descripcionRaw && descripcionRaw !== modelo
       ? descripcionRaw
       : "Motocicleta ideal para ciudad y aventura, con excelente equilibrio entre potencia, comodidad y estilo.";
-
-  const categoria = moto.categoria_nombre || "-";
-  const marca = moto.marca_nombre || "-";
-  const cilindrada = moto.cilindrada ? `${moto.cilindrada}cc` : "-";
 
   const tieneVarianteMaletas = Boolean(
     moto.permite_variante_maletas && moto.precio_con_maletas && moto.imagen_con_maletas
@@ -146,6 +167,13 @@ export default function MotoDetalle() {
     telefonoContacto,
     `Hola quiero cotizar la moto ${modelo}${tieneVarianteMaletas ? ` (${etiquetaVariante})` : ""}`
   );
+
+  const metricasFicha = [
+    { value: getFichaValue("Potencia Maxima"), label: "Potencia Maxima" },
+    { value: getFichaValue("Par maximo"), label: "Par maximo" },
+    { value: getFichaValue("Consumo homologado"), label: "Consumo homologado" },
+    { value: getFichaValue("Frenos", "Sistema de frenos Brembo y Nissin"), label: "Frenos" },
+  ];
 
   return (
     <div className="detalle-page detalle-moto-page">
@@ -195,25 +223,15 @@ export default function MotoDetalle() {
             <p>{descripcion}</p>
           </article>
 
-          <aside className="moto-specs-card">
-            <h3>Especificaciones</h3>
-            <div className="detalle-data-row">
-              <span>Categoria</span>
-              <span>{categoria}</span>
+          <aside className="moto-impact-specs">
+            <div className="moto-impact-grid">
+              {metricasFicha.map((item) => (
+                <article key={item.label} className="moto-impact-item">
+                  <h3>{item.value}</h3>
+                  <p>{item.label}</p>
+                </article>
+              ))}
             </div>
-            <div className="detalle-data-row">
-              <span>Marca</span>
-              <span>{marca}</span>
-            </div>
-            <div className="detalle-data-row">
-              <span>Modelo</span>
-              <span>{modelo}</span>
-            </div>
-            <div className="detalle-data-row">
-              <span>Cilindrada</span>
-              <span>{cilindrada}</span>
-            </div>
-
             <a className="detalle-cta" href={whatsappHref || "#"} target="_blank" rel="noreferrer">
               COTIZAR POR WHATSAPP
             </a>

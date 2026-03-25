@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { getValoresAtributoMoto, updateValorAtributoMoto } from "../services/motosAdminService";
+import AdminToastStack from "../../shared/components/AdminToastStack";
 
 function normalizeArray(value) {
   return Array.isArray(value) ? value : [];
@@ -73,7 +74,19 @@ export default function FichasTecnicasPage({ activeSection, motos = [] }) {
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
-  const [success, setSuccess] = useState("");
+  const [toasts, setToasts] = useState([]);
+
+  function dismissToast(id) {
+    setToasts((prev) => prev.filter((toast) => toast.id !== id));
+  }
+
+  function showToast(message, variant = "success") {
+    const id = `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
+    setToasts((prev) => [...prev, { id, message, variant }]);
+    window.setTimeout(() => {
+      setToasts((prev) => prev.filter((toast) => toast.id !== id));
+    }, 3500);
+  }
 
   const isFichaSection =
     activeSection === "fichas_resumen" ||
@@ -96,7 +109,6 @@ export default function FichasTecnicasPage({ activeSection, motos = [] }) {
     setLoading(true);
     setSaving(false);
     setError("");
-    setSuccess("");
 
     getValoresAtributoMoto({ moto: selectedMotoId })
       .then((rows) => {
@@ -180,14 +192,12 @@ export default function FichasTecnicasPage({ activeSection, motos = [] }) {
 
   function handleDraftChange(id, value) {
     setDraftById((prev) => ({ ...prev, [id]: value }));
-    if (success) setSuccess("");
   }
 
   async function handleSave() {
     if (!hasChanges || saving) return;
     setSaving(true);
     setError("");
-    setSuccess("");
 
     const changed = normalizeArray(valores).filter(
       (item) => normalizeText(item.valor) !== normalizeText(draftById[item.id])
@@ -201,9 +211,9 @@ export default function FichasTecnicasPage({ activeSection, motos = [] }) {
       );
       const updatedById = new Map(updates.map((item) => [item.id, item]));
       setValores((prev) => prev.map((item) => updatedById.get(item.id) || item));
-      setSuccess(`Ficha tecnica guardada. Se actualizaron ${updates.length} items.`);
+      showToast(`Ficha tecnica guardada. Se actualizaron ${updates.length} items.`, "success");
     } catch {
-      setError("No se pudieron guardar los cambios de la ficha tecnica.");
+      showToast("No se pudieron guardar los cambios de la ficha tecnica.", "error");
     } finally {
       setSaving(false);
     }
@@ -213,6 +223,8 @@ export default function FichasTecnicasPage({ activeSection, motos = [] }) {
 
   return (
     <section className="admin-content-grid admin-content-grid-mantenciones admin-content-grid-mantenciones-fichas">
+      <AdminToastStack toasts={toasts} onDismiss={dismissToast} />
+
       <article className="admin-panel-card">
         <div className="admin-card-header">
           <h2>Fichas tecnicas</h2>
@@ -308,7 +320,6 @@ export default function FichasTecnicasPage({ activeSection, motos = [] }) {
                 )}
 
                 {error && <p className="admin-form-error">{error}</p>}
-                {success && <p className="admin-form-success">{success}</p>}
 
                 <div className="admin-mantencion-ficha-actions admin-ficha-save-actions">
                   <button
