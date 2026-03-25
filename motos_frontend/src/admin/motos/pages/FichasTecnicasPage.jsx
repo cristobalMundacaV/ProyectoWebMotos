@@ -2,7 +2,6 @@
 import {
   createTipoAtributo,
   createValorAtributoMoto,
-  getMotos,
   getTiposAtributo,
   getValoresAtributoMoto,
   updateValorAtributoMoto,
@@ -181,18 +180,9 @@ export default function FichasTecnicasPage({ activeSection, motos = [] }) {
   }, [motosDisponibles, motoSearch]);
 
   useEffect(() => {
-    if (!isFichaSection) return;
-    if (selectedMotoId) return;
-    if (motosDisponibles.length === 0) return;
-    setSelectedMotoId(String(motosDisponibles[0].id));
-  }, [isFichaSection, selectedMotoId, motosDisponibles]);
-
-  useEffect(() => {
     if (!selectedMotoId) return;
     if (filteredMotos.some((moto) => String(moto.id) === String(selectedMotoId))) return;
-    if (filteredMotos.length > 0) {
-      setSelectedMotoId(String(filteredMotos[0].id));
-    }
+    setSelectedMotoId("");
   }, [filteredMotos, selectedMotoId]);
 
   useEffect(() => {
@@ -434,80 +424,53 @@ export default function FichasTecnicasPage({ activeSection, motos = [] }) {
 
     try {
       setCreatingItem(true);
-      const allMotos = await getMotos();
-      const motosUniverse = normalizeArray(allMotos).length > 0 ? normalizeArray(allMotos) : normalizeArray(motosDisponibles);
-      const motoIds = motosUniverse.map((moto) => moto?.id).filter(Boolean);
+      const result = await createValorAtributoMoto({
+        global: true,
+        tipo_atributo: tipoAtributoId,
+        nombre: itemName,
+        valor: itemValue,
+        orden: nextOrden,
+      });
 
-      const createdRows = [];
-      const failedRows = [];
-      const skippedRows = [];
-
-      for (const motoId of motoIds) {
-        try {
-          const created = await createValorAtributoMoto({
-            moto: motoId,
-            tipo_atributo: tipoAtributoId,
-            nombre: itemName,
-            valor: itemValue,
-            orden: nextOrden,
-          });
-          createdRows.push(created);
-        } catch (err) {
-          const message =
-            err?.response?.data?.detail ||
-            err?.response?.data?.nombre?.[0] ||
-            err?.response?.data?.non_field_errors?.[0] ||
-            err?.message ||
-            "Error desconocido";
-
-          const normalizedMessage = String(message).toLowerCase();
-          const isDuplicate =
-            normalizedMessage.includes("already exists") ||
-            normalizedMessage.includes("ya existe") ||
-            normalizedMessage.includes("unique") ||
-            normalizedMessage.includes("uq_valoratributomoto_moto_tipoatributo_nombre");
-
-          if (isDuplicate) {
-            skippedRows.push({ motoId, message: String(message) });
-          } else {
-            failedRows.push({ motoId, message: String(message) });
-          }
-        }
-      }
-
-      const createdForSelected = createdRows.find(
-        (row) => String(row?.moto) === String(selectedMoto.id)
-      );
-      if (createdForSelected) {
-        setValores((prev) => [...prev, createdForSelected]);
-        setDraftById((prev) => ({
-          ...prev,
-          [createdForSelected.id]: normalizeText(createdForSelected.valor),
-        }));
-      }
+      const refreshedRows = await getValoresAtributoMoto({ moto: selectedMoto.id });
+      const refreshedList = normalizeArray(refreshedRows);
+      setValores(refreshedList);
+      const nextDraft = {};
+      refreshedList.forEach((item) => {
+        nextDraft[item.id] = normalizeText(item.valor);
+      });
+      setDraftById(nextDraft);
 
       setNewItemName("");
       setNewItemValue("");
       setShowCreateItemModal(false);
 
-      if (createdRows.length > 0 && failedRows.length === 0) {
+      const createdCount = Number(result?.created_count ?? 0);
+      const skippedCount = Number(result?.skipped_count ?? 0);
+      const failedCount = Number(result?.failed_count ?? 0);
+
+      if (failedCount === 0) {
         showToast(
-          skippedRows.length > 0
-            ? `Item global sincronizado: ${createdRows.length} creados y ${skippedRows.length} ya existian.`
-            : `Item global creado en ${createdRows.length} modelos: ${itemName}.`,
+          skippedCount > 0
+            ? `Item global sincronizado: ${createdCount} creados y ${skippedCount} ya existian.`
+            : `Item global creado en ${createdCount} modelos.`,
           "success"
         );
-      } else if (createdRows.length > 0) {
-        showToast(
-          `Item creado en ${createdRows.length} modelos, ${skippedRows.length} ya existian y ${failedRows.length} fallaron.`,
-          "error"
-        );
       } else {
+        const firstFailure = result?.failed?.[0]?.error;
         showToast(
-          `No se pudo crear el item global. Primer error: ${failedRows[0]?.message || "Error desconocido"}`,
+          `Item global parcial: ${createdCount} creados, ${skippedCount} ya existian, ${failedCount} con error.${firstFailure ? ` Primer error: ${firstFailure}` : ""}`,
           "error"
         );
       }
+    } catch (err) {
+      const backendMessage =
+        err?.response?.data?.detail ||
+        err?.response?.data?.nombre?.[0] ||
+        err?.response?.data?.non_field_errors?.[0] ||
+        err?.message ||
+        "No se pudo crear el item global.";
+      showToast(String(backendMessage), "error");
     } finally {
       setCreatingItem(false);
     }
@@ -564,7 +527,9 @@ export default function FichasTecnicasPage({ activeSection, motos = [] }) {
           </aside>
 
           <div className="admin-mantencion-ficha-detail admin-ficha-form-panel">
-            {!selectedMoto && <p className="admin-empty">Selecciona una moto para editar su ficha tecnica.</p>}
+            {!selectedMoto && (
+              <p className="admin-empty">Seleccione una ficha tecnica para empezar.</p>
+            )}
 
             {selectedMoto && (
               <>

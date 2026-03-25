@@ -373,6 +373,67 @@ def valores_atributo_moto(request):
             status=status.HTTP_403_FORBIDDEN,
         )
 
+    global_mode = str(request.data.get("global", "")).strip().lower() in ("1", "true", "si", "yes")
+    if global_mode:
+        tipo_atributo_id = request.data.get("tipo_atributo")
+        nombre = str(request.data.get("nombre") or "").strip()
+        valor = str(request.data.get("valor") or "")
+        orden_raw = request.data.get("orden", 1)
+
+        try:
+            orden = int(orden_raw)
+        except (TypeError, ValueError):
+            orden = 1
+
+        if not tipo_atributo_id:
+            return Response(
+                {"detail": "El tipo_atributo es obligatorio para crear item global."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        if not nombre:
+            return Response(
+                {"detail": "El nombre del item es obligatorio."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        tipo_atributo = TipoAtributo.objects.filter(id=tipo_atributo_id).first()
+        if not tipo_atributo:
+            return Response({"detail": "Seccion no encontrada."}, status=status.HTTP_404_NOT_FOUND)
+
+        created_count = 0
+        skipped_count = 0
+        failed = []
+
+        for moto in Moto.objects.only("id").order_by("id"):
+            try:
+                _, created = ValorAtributoMoto.objects.get_or_create(
+                    moto_id=moto.id,
+                    tipo_atributo_id=tipo_atributo.id,
+                    nombre=nombre,
+                    defaults={"valor": valor, "orden": orden},
+                )
+                if created:
+                    created_count += 1
+                else:
+                    skipped_count += 1
+            except Exception as exc:
+                failed.append({"moto_id": moto.id, "error": str(exc)})
+
+        failed_count = len(failed)
+        response_status = status.HTTP_201_CREATED if failed_count == 0 else status.HTTP_207_MULTI_STATUS
+        return Response(
+            {
+                "mode": "global",
+                "nombre": nombre,
+                "tipo_atributo": tipo_atributo.id,
+                "created_count": created_count,
+                "skipped_count": skipped_count,
+                "failed_count": failed_count,
+                "failed": failed[:5],
+            },
+            status=response_status,
+        )
+
     serializer = ValorAtributoMotoSerializer(data=request.data)
     serializer.is_valid(raise_exception=True)
     serializer.save()
