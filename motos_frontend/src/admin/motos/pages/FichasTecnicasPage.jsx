@@ -247,7 +247,7 @@ export default function FichasTecnicasPage({ activeSection, motos = [] }) {
 
             {selectedMoto && (
               <>
-                <div className="admin-mantencion-ficha-head">
+                <div className="admin-ficha-model-head">
                   <h3>{selectedMoto.modelo || "Ficha tecnica"}</h3>
                   <span className="admin-status-pill status-aceptada">
                     {selectedMoto.marca_nombre || "MOTO"}
@@ -262,7 +262,7 @@ export default function FichasTecnicasPage({ activeSection, motos = [] }) {
                 )}
 
                 {!loading && groupedSections.length > 0 && (
-                  <div className="admin-ficha-sections">
+                  <>
                     <div className="admin-ficha-section-tabs admin-mantencion-tabs" role="tablist" aria-label="Secciones de ficha tecnica">
                       {groupedSections.map((section) => {
                         const isActive = section.nombre === selectedSection?.nombre;
@@ -281,28 +281,30 @@ export default function FichasTecnicasPage({ activeSection, motos = [] }) {
                       })}
                     </div>
 
-                    {selectedSection && (
-                      <section key={selectedSection.nombre} className="admin-ficha-section-card">
-                        <header className="admin-ficha-section-head">
-                          <h4>{selectedSection.nombre}</h4>
-                          <span>{selectedSection.items.length} items</span>
-                        </header>
+                    <div className="admin-ficha-sections">
+                      {selectedSection && (
+                        <section key={selectedSection.nombre} className="admin-ficha-section-card">
+                          <header className="admin-ficha-section-head">
+                            <h4>{selectedSection.nombre}</h4>
+                            <span>{selectedSection.items.length} items</span>
+                          </header>
 
-                        <div className="admin-ficha-items-grid">
-                          {selectedSection.items.map((item) => (
-                            <label key={item.id} className="admin-ficha-item-field">
-                              <span>{item.nombre}</span>
-                              <input
-                                value={normalizeText(draftById[item.id])}
-                                onChange={(event) => handleDraftChange(item.id, event.target.value)}
-                                placeholder={getFichaItemPlaceholder(item.nombre)}
-                              />
-                            </label>
-                          ))}
-                        </div>
-                      </section>
-                    )}
-                  </div>
+                          <div className="admin-ficha-items-grid">
+                            {selectedSection.items.map((item) => (
+                              <label key={item.id} className="admin-ficha-item-field">
+                                <span>{item.nombre}</span>
+                                <input
+                                  value={normalizeText(draftById[item.id])}
+                                  onChange={(event) => handleDraftChange(item.id, event.target.value)}
+                                  placeholder={getFichaItemPlaceholder(item.nombre)}
+                                />
+                              </label>
+                            ))}
+                          </div>
+                        </section>
+                      )}
+                    </div>
+                  </>
                 )}
 
                 {error && <p className="admin-form-error">{error}</p>}

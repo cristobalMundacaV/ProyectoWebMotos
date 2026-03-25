@@ -2115,20 +2115,34 @@
 
 .admin-ficha-form-panel {
   display: grid;
-  gap: 14px;
+  gap: 12px;
   align-content: start;
+  grid-auto-rows: max-content;
 }
 
 .admin-ficha-sections {
   display: grid;
-  gap: 12px;
+  gap: 10px;
   max-height: 60vh;
   overflow: auto;
   padding-right: 2px;
 }
 
 .admin-ficha-section-tabs {
-  margin-bottom: 2px;
+  margin: 0 0 2px;
+}
+
+.admin-ficha-model-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  margin: 0;
+}
+
+.admin-ficha-model-head h3 {
+  margin: 0;
+  font-size: 1.28rem;
 }
 
 .admin-ficha-section-card {
