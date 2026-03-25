@@ -27,9 +27,11 @@ export default function CatalogoMotos() {
   const [savingEdit, setSavingEdit] = useState(false);
   const [editError, setEditError] = useState("");
   const [editImagePreview, setEditImagePreview] = useState("");
+  const [editImageMaletasPreview, setEditImageMaletasPreview] = useState("");
   const [deleteCandidate, setDeleteCandidate] = useState(null);
   const [deletingMoto, setDeletingMoto] = useState(false);
   const editFileInputRef = useRef(null);
+  const editMaletasFileInputRef = useRef(null);
   const formatTitleCase = (value) =>
     String(value || "-")
       .trim()
@@ -71,8 +73,9 @@ export default function CatalogoMotos() {
   useEffect(() => {
     return () => {
       if (editImagePreview) URL.revokeObjectURL(editImagePreview);
+      if (editImageMaletasPreview) URL.revokeObjectURL(editImageMaletasPreview);
     };
-  }, [editImagePreview]);
+  }, [editImagePreview, editImageMaletasPreview]);
 
   useEffect(() => {
     if (!editingMoto && !deleteCandidate) return undefined;
@@ -85,7 +88,9 @@ export default function CatalogoMotos() {
         setEditForm(null);
         setEditError("");
         if (editImagePreview) URL.revokeObjectURL(editImagePreview);
+        if (editImageMaletasPreview) URL.revokeObjectURL(editImageMaletasPreview);
         setEditImagePreview("");
+        setEditImageMaletasPreview("");
       }
 
       if (deleteCandidate && !deletingMoto) {
@@ -95,7 +100,7 @@ export default function CatalogoMotos() {
 
     window.addEventListener("keydown", onEsc);
     return () => window.removeEventListener("keydown", onEsc);
-  }, [editingMoto, savingEdit, editImagePreview, deleteCandidate, deletingMoto]);
+  }, [editingMoto, savingEdit, editImagePreview, editImageMaletasPreview, deleteCandidate, deletingMoto]);
 
   function buildSlug(value) {
     return (value || "")
@@ -170,6 +175,7 @@ export default function CatalogoMotos() {
   function openEditModal(moto) {
     setEditError("");
     setEditImagePreview("");
+    setEditImageMaletasPreview("");
 
     setEditingMoto(moto);
     setEditForm({
@@ -179,6 +185,12 @@ export default function CatalogoMotos() {
       slug: moto.slug || "",
       descripcion: moto.descripcion || "",
       precio: String(parsePrecioEntero(moto.precio)),
+      precio_lista: String(parsePrecioEntero(moto.precio_lista || moto.precio)),
+      permite_variante_maletas: Boolean(moto.permite_variante_maletas),
+      precio_con_maletas: String(parsePrecioEntero(moto.precio_con_maletas)),
+      precio_lista_con_maletas: String(
+        parsePrecioEntero(moto.precio_lista_con_maletas || moto.precio_lista || moto.precio_con_maletas)
+      ),
       cilindrada: String(moto.cilindrada ?? ""),
       anio: String(moto.anio ?? ""),
       stock: String(moto.stock ?? 0),
@@ -186,6 +198,7 @@ export default function CatalogoMotos() {
       es_destacada: Boolean(moto.es_destacada),
       activa: moto.activa !== false,
       imagen_principal: null,
+      imagen_con_maletas: null,
     });
   }
 
@@ -196,7 +209,9 @@ export default function CatalogoMotos() {
     setEditForm(null);
     setEditError("");
     if (editImagePreview) URL.revokeObjectURL(editImagePreview);
+    if (editImageMaletasPreview) URL.revokeObjectURL(editImageMaletasPreview);
     setEditImagePreview("");
+    setEditImageMaletasPreview("");
   }
 
   function handleEditInputChange(event) {
@@ -218,14 +233,38 @@ export default function CatalogoMotos() {
       if (name === "precio") {
         nextForm.precio = normalizePrecioInput(value);
       }
+      if (name === "precio_lista") {
+        nextForm.precio_lista = normalizePrecioInput(value);
+      }
+      if (name === "precio_con_maletas") {
+        nextForm.precio_con_maletas = normalizePrecioInput(value);
+      }
+      if (name === "precio_lista_con_maletas") {
+        nextForm.precio_lista_con_maletas = normalizePrecioInput(value);
+      }
+      if (name === "permite_variante_maletas" && !checked) {
+        nextForm.precio_con_maletas = "";
+        nextForm.precio_lista_con_maletas = "";
+        nextForm.imagen_con_maletas = null;
+        if (editImageMaletasPreview) {
+          URL.revokeObjectURL(editImageMaletasPreview);
+          setEditImageMaletasPreview("");
+        }
+      }
 
       return nextForm;
     });
 
-    if (type === "file") {
+    if (type === "file" && name === "imagen_principal") {
       if (editImagePreview) URL.revokeObjectURL(editImagePreview);
       const file = files?.[0];
       setEditImagePreview(file ? URL.createObjectURL(file) : "");
+    }
+
+    if (type === "file" && name === "imagen_con_maletas") {
+      if (editImageMaletasPreview) URL.revokeObjectURL(editImageMaletasPreview);
+      const file = files?.[0];
+      setEditImageMaletasPreview(file ? URL.createObjectURL(file) : "");
     }
   }
 
@@ -267,6 +306,14 @@ export default function CatalogoMotos() {
     payload.append("slug", editForm.slug);
     payload.append("descripcion", editForm.descripcion || "");
     payload.append("precio", editForm.precio);
+    payload.append("precio_lista", editForm.precio_lista);
+    payload.append("permite_variante_maletas", String(Boolean(editForm.permite_variante_maletas)));
+    if (editForm.permite_variante_maletas && editForm.precio_con_maletas) {
+      payload.append("precio_con_maletas", editForm.precio_con_maletas);
+    }
+    if (editForm.permite_variante_maletas && editForm.precio_lista_con_maletas) {
+      payload.append("precio_lista_con_maletas", editForm.precio_lista_con_maletas);
+    }
     payload.append("cilindrada", editForm.cilindrada);
     payload.append("anio", editForm.anio);
     payload.append("stock", editForm.stock);
@@ -276,6 +323,9 @@ export default function CatalogoMotos() {
 
     if (editForm.imagen_principal) {
       payload.append("imagen_principal", editForm.imagen_principal);
+    }
+    if (editForm.imagen_con_maletas) {
+      payload.append("imagen_con_maletas", editForm.imagen_con_maletas);
     }
 
     try {
@@ -362,6 +412,9 @@ export default function CatalogoMotos() {
   const previewSrc =
     editImagePreview ||
     (editingMoto?.imagen_principal ? buildMediaUrl(editingMoto.imagen_principal) : "");
+  const previewMaletasSrc =
+    editImageMaletasPreview ||
+    (editingMoto?.imagen_con_maletas ? buildMediaUrl(editingMoto.imagen_con_maletas) : "");
   const activeFiltersCount =
     selectedMarcas.length +
     selectedCategorias.length +
@@ -660,6 +713,56 @@ export default function CatalogoMotos() {
               </label>
 
               <label>
+                Precio de lista *
+                <input
+                  name="precio_lista"
+                  value={formatPrecioInput(editForm.precio_lista)}
+                  onChange={handleEditInputChange}
+                  inputMode="decimal"
+                  placeholder="Ej: 9.990.000"
+                  required
+                />
+              </label>
+
+              <label className="moto-edit-check">
+                <input
+                  type="checkbox"
+                  name="permite_variante_maletas"
+                  checked={Boolean(editForm.permite_variante_maletas)}
+                  onChange={handleEditInputChange}
+                />
+                Habilitar variante con maletas
+              </label>
+
+              {editForm.permite_variante_maletas && (
+                <label>
+                  Precio con maletas *
+                  <input
+                    name="precio_con_maletas"
+                    value={formatPrecioInput(editForm.precio_con_maletas)}
+                    onChange={handleEditInputChange}
+                    inputMode="decimal"
+                    placeholder="Ej: 9.990.000"
+                    required
+                  />
+                </label>
+              )}
+
+              {editForm.permite_variante_maletas && (
+                <label>
+                  Precio de lista con maletas *
+                  <input
+                    name="precio_lista_con_maletas"
+                    value={formatPrecioInput(editForm.precio_lista_con_maletas)}
+                    onChange={handleEditInputChange}
+                    inputMode="decimal"
+                    placeholder="Ej: 11.490.000"
+                    required
+                  />
+                </label>
+              )}
+
+              <label>
                 Orden carrusel *
                 <input
                   type="number"
@@ -695,10 +798,46 @@ export default function CatalogoMotos() {
                 </div>
               </label>
 
-              {previewSrc ? (
-                <div className="moto-edit-preview moto-edit-span-2">
-                  <p>Vista previa</p>
-                  <img src={previewSrc} alt={editingMoto.modelo || "Moto"} />
+              {editForm.permite_variante_maletas && (
+                <label className="moto-edit-span-2">
+                  Imagen con maletas *
+                  <div className="moto-edit-file-picker">
+                    <input
+                      ref={editMaletasFileInputRef}
+                      className="moto-edit-file-hidden"
+                      type="file"
+                      name="imagen_con_maletas"
+                      accept="image/*"
+                      onChange={handleEditInputChange}
+                    />
+                    <button
+                      type="button"
+                      className="moto-edit-file-btn"
+                      onClick={() => editMaletasFileInputRef.current?.click()}
+                    >
+                      Examinar...
+                    </button>
+                    <span className="moto-edit-file-name">
+                      {editForm.imagen_con_maletas?.name || "No se ha seleccionado ningún archivo."}
+                    </span>
+                  </div>
+                </label>
+              )}
+
+              {(previewSrc || previewMaletasSrc) ? (
+                <div className="moto-edit-preview-grid moto-edit-span-2">
+                  {previewSrc ? (
+                    <div className="moto-edit-preview">
+                      <p>Vista previa principal</p>
+                      <img src={previewSrc} alt={`${editingMoto.modelo || "Moto"} principal`} />
+                    </div>
+                  ) : null}
+                  {previewMaletasSrc ? (
+                    <div className="moto-edit-preview">
+                      <p>Vista previa con maletas</p>
+                      <img src={previewMaletasSrc} alt={`${editingMoto.modelo || "Moto"} con maletas`} />
+                    </div>
+                  ) : null}
                 </div>
               ) : null}
 

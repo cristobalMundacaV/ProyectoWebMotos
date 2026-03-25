@@ -2,6 +2,7 @@ from django.utils.text import slugify
 from rest_framework import serializers
 
 from catalogo.models import CategoriaMoto, Marca
+from .ficha_defaults import ensure_moto_ficha_defaults
 from .models import (
     ItemFichaTecnica,
     ModeloMoto,
@@ -233,7 +234,9 @@ class MotoSerializer(serializers.ModelSerializer):
         modelo_moto = self._ensure_modelo_moto(validated_data)
         if modelo_moto:
             validated_data["modelo"] = modelo_moto.nombre_modelo
-        return super().create(validated_data)
+        moto = super().create(validated_data)
+        ensure_moto_ficha_defaults(moto)
+        return moto
 
     def update(self, instance, validated_data):
         validated_data.pop("_legacy_categoria", None)

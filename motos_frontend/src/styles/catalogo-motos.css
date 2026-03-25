@@ -376,6 +376,12 @@
   background: #eef1f5;
 }
 
+.moto-edit-preview-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 12px;
+}
+
 .moto-edit-file-picker {
   min-height: 42px;
   border: 1px solid #cfd5df;
