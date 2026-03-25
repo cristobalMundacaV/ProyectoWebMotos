@@ -2,6 +2,7 @@
 import {
   createTipoAtributo,
   createValorAtributoMoto,
+  getMotos,
   getTiposAtributo,
   getValoresAtributoMoto,
   updateValorAtributoMoto,
@@ -433,12 +434,13 @@ export default function FichasTecnicasPage({ activeSection, motos = [] }) {
 
     try {
       setCreatingItem(true);
-      const motoIds = normalizeArray(motosDisponibles)
-        .map((moto) => moto?.id)
-        .filter(Boolean);
+      const allMotos = await getMotos();
+      const motosUniverse = normalizeArray(allMotos).length > 0 ? normalizeArray(allMotos) : normalizeArray(motosDisponibles);
+      const motoIds = motosUniverse.map((moto) => moto?.id).filter(Boolean);
 
       const createdRows = [];
       const failedRows = [];
+      const skippedRows = [];
 
       for (const motoId of motoIds) {
         try {
@@ -458,7 +460,18 @@ export default function FichasTecnicasPage({ activeSection, motos = [] }) {
             err?.message ||
             "Error desconocido";
 
-          failedRows.push({ motoId, message: String(message) });
+          const normalizedMessage = String(message).toLowerCase();
+          const isDuplicate =
+            normalizedMessage.includes("already exists") ||
+            normalizedMessage.includes("ya existe") ||
+            normalizedMessage.includes("unique") ||
+            normalizedMessage.includes("uq_valoratributomoto_moto_tipoatributo_nombre");
+
+          if (isDuplicate) {
+            skippedRows.push({ motoId, message: String(message) });
+          } else {
+            failedRows.push({ motoId, message: String(message) });
+          }
         }
       }
 
@@ -479,12 +492,14 @@ export default function FichasTecnicasPage({ activeSection, motos = [] }) {
 
       if (createdRows.length > 0 && failedRows.length === 0) {
         showToast(
-          `Item global creado en ${createdRows.length} modelos: ${itemName}.`,
+          skippedRows.length > 0
+            ? `Item global sincronizado: ${createdRows.length} creados y ${skippedRows.length} ya existian.`
+            : `Item global creado en ${createdRows.length} modelos: ${itemName}.`,
           "success"
         );
       } else if (createdRows.length > 0) {
         showToast(
-          `Item creado en ${createdRows.length} modelos y ${failedRows.length} no se pudieron actualizar.`,
+          `Item creado en ${createdRows.length} modelos, ${skippedRows.length} ya existian y ${failedRows.length} fallaron.`,
           "error"
         );
       } else {
