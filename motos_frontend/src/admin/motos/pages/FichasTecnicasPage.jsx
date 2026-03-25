@@ -41,6 +41,34 @@ const FICHA_PLACEHOLDER_BY_ITEM = {
   "capacidad deposito": "15,5 L",
   "velocidad maxima": "235 km/h",
   "iluminacion led": "Si",
+  "display 100% digital": "Si",
+  "cuentakilometros total y parcial": "Si",
+  "parabrisas regulable en altura": "Si",
+  "medidor de combustible": "Si",
+  "indicador de averia de inyeccion": "Si",
+  "indicador de averia del abs bosch": "Si",
+  "indicador de marcha engranada": "Si",
+  "pantalla tft": "Si",
+  "indicador de temperatura alta de motor": "Si",
+  "sensor de presion neumaticos": "Si",
+  "iluminacion full led": "Si",
+  "arranque sin llave": "Si",
+  "control crucero": "Si",
+  "cubre punos": "Si",
+  bluetooth: "Si",
+  "calefaccion en asiento": "Si",
+  "calefaccion en punos": "Si",
+  "toma 12v, usb y usb-c": "Si",
+  "camara frontal": "Si",
+  "tcs desconectable": "Si",
+  "parrilla trasera": "Si",
+  "neblineros integrados": "Si",
+  "defensas laterales": "Si",
+  "juego de herramientas": "Si",
+  "faros auxiliares": "Si",
+  "interruptor de caballete lateral": "Si",
+  radar: "Si",
+  "anti shimmy": "Si",
   "instrumentacion tft a color": "Si",
   "sistema de frenos brembo y nissin": "Si",
   "sistema de control de traccion": "Si",
@@ -73,7 +101,6 @@ export default function FichasTecnicasPage({ activeSection, motos = [] }) {
   const [draftById, setDraftById] = useState({});
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
-  const [error, setError] = useState("");
   const [toasts, setToasts] = useState([]);
 
   function dismissToast(id) {
@@ -108,7 +135,6 @@ export default function FichasTecnicasPage({ activeSection, motos = [] }) {
     let mounted = true;
     setLoading(true);
     setSaving(false);
-    setError("");
 
     getValoresAtributoMoto({ moto: selectedMotoId })
       .then((rows) => {
@@ -125,7 +151,7 @@ export default function FichasTecnicasPage({ activeSection, motos = [] }) {
         if (!mounted) return;
         setValores([]);
         setDraftById({});
-        setError("No se pudieron cargar los items de ficha tecnica para esta moto.");
+        showToast("No se pudieron cargar los items de ficha tecnica para esta moto.", "error");
       })
       .finally(() => {
         if (mounted) setLoading(false);
@@ -197,7 +223,6 @@ export default function FichasTecnicasPage({ activeSection, motos = [] }) {
   async function handleSave() {
     if (!hasChanges || saving) return;
     setSaving(true);
-    setError("");
 
     const changed = normalizeArray(valores).filter(
       (item) => normalizeText(item.valor) !== normalizeText(draftById[item.id])
@@ -318,8 +343,6 @@ export default function FichasTecnicasPage({ activeSection, motos = [] }) {
                     </div>
                   </>
                 )}
-
-                {error && <p className="admin-form-error">{error}</p>}
 
                 <div className="admin-mantencion-ficha-actions admin-ficha-save-actions">
                   <button

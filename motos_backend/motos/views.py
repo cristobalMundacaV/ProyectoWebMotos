@@ -8,6 +8,7 @@ from rest_framework_simplejwt.authentication import JWTAuthentication
 
 from catalogo.models import CategoriaMoto, Marca
 from clientes.permissions import has_admin_access
+from .ficha_defaults import ensure_moto_ficha_defaults
 from .models import ModeloMoto, Moto, TipoAtributo, ValorAtributoMoto
 from .serializers import (
     CategoriaMotoSerializer,
@@ -352,6 +353,10 @@ def tipo_atributo_detalle(request, tipo_id):
 def valores_atributo_moto(request):
     if request.method == "GET":
         moto_id = request.GET.get("moto")
+        if moto_id:
+            moto = Moto.objects.filter(id=moto_id).first()
+            if moto:
+                ensure_moto_ficha_defaults(moto)
         queryset = ValorAtributoMoto.objects.select_related("moto", "tipo_atributo").order_by(
             "tipo_atributo__orden",
             "orden",

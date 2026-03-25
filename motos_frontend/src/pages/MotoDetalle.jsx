@@ -16,6 +16,11 @@ function normalizeLabel(value) {
     .toLowerCase();
 }
 
+function hasEnteredValue(value) {
+  const normalized = String(value ?? "").trim();
+  return Boolean(normalized) && normalized !== "-";
+}
+
 export default function MotoDetalle() {
   const { slug } = useParams();
   const [moto, setMoto] = useState(null);
@@ -87,7 +92,7 @@ export default function MotoDetalle() {
       setOpenTechSection("");
       return;
     }
-    setOpenTechSection(seccionesFicha[0]?.nombre || "");
+    setOpenTechSection("");
   }, [moto?.id, seccionesFicha]);
 
   const seccionesFichaOrdenadas = useMemo(
@@ -104,23 +109,44 @@ export default function MotoDetalle() {
     [seccionesFicha]
   );
 
-  const tieneFichaTecnica = seccionesFichaOrdenadas.length > 0;
+  const seccionesFichaConValores = useMemo(
+    () =>
+      seccionesFichaOrdenadas
+        .map((section) => ({
+          ...section,
+          items: (Array.isArray(section.items) ? section.items : []).filter((item) => hasEnteredValue(item.valor)),
+        }))
+        .filter((section) => section.items.length > 0),
+    [seccionesFichaOrdenadas]
+  );
+
+  useEffect(() => {
+    if (seccionesFichaConValores.length === 0) {
+      setOpenTechSection("");
+      return;
+    }
+    if (!seccionesFichaConValores.some((section) => section.nombre === openTechSection)) {
+      setOpenTechSection(seccionesFichaConValores[0].nombre);
+    }
+  }, [seccionesFichaConValores, openTechSection]);
+
+  const tieneFichaTecnica = seccionesFichaConValores.length > 0;
   const fichaItemsMap = useMemo(() => {
     const map = new Map();
-    seccionesFichaOrdenadas.forEach((section) => {
+    seccionesFichaConValores.forEach((section) => {
       (section.items || []).forEach((item) => {
-        map.set(normalizeLabel(item.nombre), item.valor || "-");
+        map.set(normalizeLabel(item.nombre), String(item.valor || "").trim());
       });
     });
     return map;
-  }, [seccionesFichaOrdenadas]);
+  }, [seccionesFichaConValores]);
 
   function getFichaValue(...labels) {
     for (const label of labels) {
       const value = fichaItemsMap.get(normalizeLabel(label));
-      if (value && String(value).trim()) return String(value).trim();
+      if (hasEnteredValue(value)) return String(value).trim();
     }
-    return "-";
+    return "";
   }
 
   if (loading) {
@@ -173,7 +199,7 @@ export default function MotoDetalle() {
     { value: getFichaValue("Par maximo"), label: "Par maximo" },
     { value: getFichaValue("Consumo homologado"), label: "Consumo homologado" },
     { value: getFichaValue("Frenos", "Sistema de frenos Brembo y Nissin"), label: "Frenos" },
-  ];
+  ].filter((item) => hasEnteredValue(item.value));
 
   return (
     <div className="detalle-page detalle-moto-page">
@@ -224,14 +250,16 @@ export default function MotoDetalle() {
           </article>
 
           <aside className="moto-impact-specs">
-            <div className="moto-impact-grid">
-              {metricasFicha.map((item) => (
-                <article key={item.label} className="moto-impact-item">
-                  <h3>{item.value}</h3>
-                  <p>{item.label}</p>
-                </article>
-              ))}
-            </div>
+            {metricasFicha.length > 0 && (
+              <div className="moto-impact-grid">
+                {metricasFicha.map((item) => (
+                  <article key={item.label} className="moto-impact-item">
+                    <h3>{item.value}</h3>
+                    <p>{item.label}</p>
+                  </article>
+                ))}
+              </div>
+            )}
             <a className="detalle-cta" href={whatsappHref || "#"} target="_blank" rel="noreferrer">
               COTIZAR POR WHATSAPP
             </a>
@@ -246,7 +274,7 @@ export default function MotoDetalle() {
           )}
 
           {tieneFichaTecnica &&
-            seccionesFichaOrdenadas.map((seccion) => {
+            seccionesFichaConValores.map((seccion) => {
               const isOpen = openTechSection === seccion.nombre;
               const icon = isOpen ? "-" : "+";
               return (
@@ -269,7 +297,7 @@ export default function MotoDetalle() {
                           className={index % 2 === 1 ? "moto-tech-row is-alt" : "moto-tech-row"}
                         >
                           <span className="moto-tech-label">{item.nombre}</span>
-                          <span className="moto-tech-value">{item.valor || "-"}</span>
+                          <span className="moto-tech-value">{item.valor}</span>
                         </div>
                       ))}
                     </div>

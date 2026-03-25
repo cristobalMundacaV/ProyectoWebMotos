@@ -1,6 +1,15 @@
+import { createPortal } from "react-dom";
+
 export default function AdminToastStack({ toasts, onDismiss }) {
-  return (
-    <div className="admin-toast-stack" aria-live="polite" aria-atomic="true">
+  if (!Array.isArray(toasts) || toasts.length === 0) return null;
+
+  const content = (
+    <div
+      className="admin-toast-stack"
+      aria-live="polite"
+      aria-atomic="true"
+      style={{ position: "fixed", top: "84px", right: "22px", zIndex: 4000 }}
+    >
       {toasts.map((toast) => (
         <div
           key={toast.id}
@@ -19,4 +28,7 @@ export default function AdminToastStack({ toasts, onDismiss }) {
       ))}
     </div>
   );
+
+  if (typeof document === "undefined") return content;
+  return createPortal(content, document.body);
 }
