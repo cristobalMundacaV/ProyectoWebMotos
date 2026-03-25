@@ -125,6 +125,9 @@ function isBooleanToggleCandidate({ sectionName, itemName, currentValue }) {
   const section = normalizeText(sectionName).trim().toUpperCase();
   if (section !== "EQUIPAMIENTO") return false;
 
+  const itemKey = normalizeItemKey(itemName);
+  if (itemKey === "frenos") return false;
+
   const placeholder = getFichaItemPlaceholder(itemName).trim().toLowerCase();
   const isSiDefault = placeholder === "si";
   return isSiDefault || isTruthyToggleValue(currentValue) || isFalsyToggleValue(currentValue);
@@ -464,6 +467,74 @@ export default function FichasTecnicasPage({ activeSection, motos = [] }) {
         );
       }
     } catch (err) {
+      const statusCode = Number(err?.response?.status || 0);
+      const shouldFallbackToLegacy = statusCode === 400;
+
+      if (shouldFallbackToLegacy) {
+        const motoIds = normalizeArray(motosDisponibles).map((moto) => moto?.id).filter(Boolean);
+        const createdRows = [];
+        const skippedRows = [];
+        const failedRows = [];
+
+        for (const motoId of motoIds) {
+          try {
+            const created = await createValorAtributoMoto({
+              moto: motoId,
+              tipo_atributo: tipoAtributoId,
+              nombre: itemName,
+              valor: itemValue,
+              orden: nextOrden,
+            });
+            createdRows.push(created);
+          } catch (legacyErr) {
+            const message =
+              legacyErr?.response?.data?.detail ||
+              legacyErr?.response?.data?.nombre?.[0] ||
+              legacyErr?.response?.data?.non_field_errors?.[0] ||
+              legacyErr?.message ||
+              "Error desconocido";
+
+            const normalizedMessage = String(message).toLowerCase();
+            const isDuplicate =
+              normalizedMessage.includes("already exists") ||
+              normalizedMessage.includes("ya existe") ||
+              normalizedMessage.includes("unique") ||
+              normalizedMessage.includes("uq_valoratributomoto_moto_tipoatributo_nombre");
+
+            if (isDuplicate) {
+              skippedRows.push({ motoId, message: String(message) });
+            } else {
+              failedRows.push({ motoId, message: String(message) });
+            }
+          }
+        }
+
+        const refreshedRows = await getValoresAtributoMoto({ moto: selectedMoto.id });
+        const refreshedList = normalizeArray(refreshedRows);
+        setValores(refreshedList);
+        const nextDraft = {};
+        refreshedList.forEach((item) => {
+          nextDraft[item.id] = normalizeText(item.valor);
+        });
+        setDraftById(nextDraft);
+        setNewItemName("");
+        setNewItemValue("");
+        setShowCreateItemModal(false);
+
+        if (failedRows.length === 0) {
+          showToast(
+            `Item sincronizado en modo compatible: ${createdRows.length} creados y ${skippedRows.length} ya existian.`,
+            "success"
+          );
+        } else {
+          showToast(
+            `Sincronizacion parcial: ${createdRows.length} creados, ${skippedRows.length} ya existian y ${failedRows.length} con error.`,
+            "error"
+          );
+        }
+        return;
+      }
+
       const backendMessage =
         err?.response?.data?.detail ||
         err?.response?.data?.nombre?.[0] ||
