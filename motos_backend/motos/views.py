@@ -206,10 +206,12 @@ def modelos_moto_detalle(request, modelo_id):
             )
         return Response(status=status.HTTP_204_NO_CONTENT)
 
-    serializer = ModeloMotoSerializer(modelo, data=request.data, partial=True)
-    serializer.is_valid(raise_exception=True)
     try:
+        serializer = ModeloMotoSerializer(modelo, data=request.data, partial=True)
+        serializer.is_valid(raise_exception=True)
         updated_modelo = serializer.save()
+        Moto.objects.filter(modelo_moto=updated_modelo).update(modelo=updated_modelo.nombre_modelo)
+        return Response(ModeloMotoSerializer(updated_modelo).data)
     except IntegrityError:
         return Response(
             {"detail": "No se pudo actualizar el modelo. Ya existe uno con ese nombre para esta marca."},
@@ -221,8 +223,6 @@ def modelos_moto_detalle(request, modelo_id):
             {"detail": "No se pudo actualizar el modelo.", "error": str(exc)},
             status=status.HTTP_400_BAD_REQUEST,
         )
-    Moto.objects.filter(modelo_moto=updated_modelo).update(modelo=updated_modelo.nombre_modelo)
-    return Response(ModeloMotoSerializer(updated_modelo).data)
 
 
 @api_view(["GET", "POST"])
