@@ -21,7 +21,7 @@ export default function CatalogoMotos() {
   const [currentPage, setCurrentPage] = useState(1);
   const [isFiltersOpen, setIsFiltersOpen] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
-  const [meta, setMeta] = useState({ marcas: [], categorias: [] });
+  const [meta, setMeta] = useState({ marcas: [], categorias: [], modelos: [] });
   const [editingMoto, setEditingMoto] = useState(null);
   const [editForm, setEditForm] = useState(null);
   const [savingEdit, setSavingEdit] = useState(false);
@@ -57,12 +57,13 @@ export default function CatalogoMotos() {
         setMeta({
           marcas: Array.isArray(response?.marcas) ? response.marcas : [],
           categorias: Array.isArray(response?.categorias) ? response.categorias : [],
+          modelos: Array.isArray(response?.modelos) ? response.modelos : [],
         });
       })
       .catch((metaError) => {
         console.error("Error loading moto admin metadata:", metaError);
         if (!isMounted) return;
-        setMeta({ marcas: [], categorias: [] });
+        setMeta({ marcas: [], categorias: [], modelos: [] });
       });
 
     return () => {
@@ -177,11 +178,19 @@ export default function CatalogoMotos() {
     setEditImagePreview("");
     setEditImageMaletasPreview("");
 
+    const resolvedModeloId =
+      String(moto.modelo_ref ?? moto.modelo_id ?? "") ||
+      resolveSelectId(
+        null,
+        moto.modelo || moto.nombre || "",
+        meta.modelos.filter((item) => String(item.marca) === String(moto.marca))
+      );
+
     setEditingMoto(moto);
     setEditForm({
       marca: resolveSelectId(moto.marca, moto.marca_nombre, meta.marcas),
       categoria: resolveSelectId(moto.categoria, moto.categoria_nombre, meta.categorias),
-      modelo: moto.modelo || moto.nombre || "",
+      modelo: resolvedModeloId,
       slug: moto.slug || "",
       descripcion: moto.descripcion || "",
       precio: String(parsePrecioEntero(moto.precio)),
@@ -226,8 +235,13 @@ export default function CatalogoMotos() {
         [name]: nextValue,
       };
 
+      if (name === "marca") {
+        nextForm.modelo = "";
+      }
+
       if (name === "modelo") {
-        nextForm.slug = buildSlug(value);
+        const selectedModelo = meta.modelos.find((item) => String(item.id) === String(nextValue));
+        nextForm.slug = buildSlug(selectedModelo?.slug || selectedModelo?.nombre || "");
       }
 
       if (name === "precio") {
@@ -299,11 +313,19 @@ export default function CatalogoMotos() {
     setSavingEdit(true);
     setEditError("");
 
+    const selectedModelo = meta.modelos.find((item) => String(item.id) === String(editForm.modelo));
+    if (!selectedModelo) {
+      setEditError("Debes seleccionar un modelo valido para actualizar la moto.");
+      setSavingEdit(false);
+      return;
+    }
+
     const payload = new FormData();
     payload.append("marca", editForm.marca);
     payload.append("categoria", editForm.categoria);
-    payload.append("modelo", editForm.modelo);
-    payload.append("slug", editForm.slug);
+    payload.append("modelo_id", String(selectedModelo.id));
+    payload.append("modelo", selectedModelo.nombre || "");
+    payload.append("slug", selectedModelo.slug || editForm.slug);
     payload.append("descripcion", editForm.descripcion || "");
     payload.append("precio", editForm.precio);
     payload.append("precio_lista", editForm.precio_lista);
@@ -645,13 +667,21 @@ export default function CatalogoMotos() {
 
               <label>
                 Modelo *
-                <input
+                <select
                   name="modelo"
                   value={editForm.modelo}
                   onChange={handleEditInputChange}
-                  maxLength={150}
                   required
-                />
+                >
+                  <option value="">Selecciona un modelo</option>
+                  {meta.modelos
+                    .filter((modelo) => String(modelo.marca) === String(editForm.marca))
+                    .map((modelo) => (
+                      <option key={modelo.id} value={modelo.id}>
+                        {modelo.nombre} {modelo.marca_nombre ? `(${modelo.marca_nombre})` : ""}
+                      </option>
+                    ))}
+                </select>
               </label>
 
               <label className="moto-edit-span-2">

@@ -160,6 +160,15 @@ class MotoSerializer(serializers.ModelSerializer):
         if not modelo_moto and not modelo:
             raise serializers.ValidationError({"modelo_id": "Debes seleccionar un modelo o ingresar un nombre de modelo."})
 
+        # En edicion de moto no se debe crear un modelo nuevo por error de tipeo.
+        # El cambio de nombre/categoria/cilindrada del modelo debe gestionarse desde el mantenedor de modelos.
+        if self.instance and not modelo_moto:
+            current_modelo = str(getattr(self.instance, "modelo", "") or "").strip()
+            if modelo and normalize_uppercase_label(modelo) != normalize_uppercase_label(current_modelo):
+                raise serializers.ValidationError(
+                    {"modelo_id": "Para cambiar el modelo, selecciona uno existente desde la lista de modelos."}
+                )
+
         if precio_lista in (None, ""):
             raise serializers.ValidationError({"precio_lista": "Debes indicar el precio de lista."})
 
