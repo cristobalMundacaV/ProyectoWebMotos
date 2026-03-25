@@ -2130,6 +2130,21 @@
 
 .admin-ficha-section-tabs {
   margin: 0 0 2px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: nowrap;
+  justify-content: flex-start;
+  width: 100%;
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding-bottom: 2px;
+}
+
+.admin-ficha-section-tabs .admin-mantencion-tab {
+  flex: 0 0 auto;
+  white-space: nowrap;
+  text-align: center;
 }
 
 .admin-ficha-model-head {
