@@ -1104,9 +1104,6 @@ export default function AdminPanel() {
       payload.append("precio_lista_con_maletas", form.precio_lista_con_maletas);
     }
     payload.append("anio", form.anio);
-    payload.append("color", form.color || "");
-    payload.append("stock", form.stock);
-    payload.append("estado", form.estado || "disponible");
     payload.append("es_destacada", String(form.es_destacada));
     payload.append("orden_carrusel", form.orden_carrusel || "1");
     payload.append("activa", String(form.activa));
@@ -2850,7 +2847,8 @@ export default function AdminPanel() {
                         value={formatPrecioDisplay(motoEditModal.form.precio_con_maletas)}
                         onChange={handleMotoEditPrecioConMaletasInputChange}
                         inputMode="decimal"
-                        required
+                        required={Boolean(motoEditModal.form.permite_variante_maletas)}
+                        disabled={!motoEditModal.form.permite_variante_maletas}
                       />
                     </label>
                   )}
@@ -2864,7 +2862,8 @@ export default function AdminPanel() {
                         value={formatPrecioDisplay(motoEditModal.form.precio_lista_con_maletas)}
                         onChange={handleMotoEditPrecioListaConMaletasInputChange}
                         inputMode="decimal"
-                        required
+                        required={Boolean(motoEditModal.form.permite_variante_maletas)}
+                        disabled={!motoEditModal.form.permite_variante_maletas}
                       />
                     </label>
                   )}
@@ -2886,66 +2885,6 @@ export default function AdminPanel() {
                     </select>
                   </label>
 
-                  <label>
-                    Color (opcional)
-                    <select
-                      name="color"
-                      value={motoEditModal.form.color}
-                      onChange={handleMotoEditInputChange}
-                    >
-                      <option value="">Selecciona un color</option>
-                      {MOTO_COLOR_PALETTE.map((color) => (
-                        <option key={color} value={color}>
-                          {color}
-                        </option>
-                      ))}
-                      {motoEditModal.form.color && !MOTO_COLOR_PALETTE.includes(motoEditModal.form.color) && (
-                        <option value={motoEditModal.form.color}>
-                          {`Color actual: ${motoEditModal.form.color}`}
-                        </option>
-                      )}
-                    </select>
-                  </label>
-
-                  <label>
-                    Stock *
-                    <input
-                      type="number"
-                      name="stock"
-                      value={motoEditModal.form.stock}
-                      onChange={handleMotoEditInputChange}
-                      min="0"
-                      required
-                    />
-                  </label>
-
-                  <label>
-                    Estado *
-                    <select
-                      name="estado"
-                      value={motoEditModal.form.estado}
-                      onChange={handleMotoEditInputChange}
-                      required
-                    >
-                      <option value="disponible">Disponible</option>
-                      <option value="reservada">Reservada</option>
-                      <option value="vendida">Vendida</option>
-                      <option value="inactiva">Inactiva</option>
-                    </select>
-                  </label>
-
-                  <label>
-                    Orden carrusel *
-                    <input
-                      type="number"
-                      name="orden_carrusel"
-                      value={motoEditModal.form.orden_carrusel}
-                      onChange={handleMotoEditInputChange}
-                      min="1"
-                      required
-                    />
-                  </label>
-
                   <label className="admin-form-span-2">
                     Imagen principal
                     <input
@@ -2961,6 +2900,20 @@ export default function AdminPanel() {
                   </label>
 
                   {motoEditModal.form.permite_variante_maletas && (
+                    <label>
+                      Orden carrusel *
+                      <input
+                        type="number"
+                        name="orden_carrusel"
+                        value={motoEditModal.form.orden_carrusel}
+                        onChange={handleMotoEditInputChange}
+                        min="1"
+                        required
+                      />
+                    </label>
+                  )}
+
+                  {motoEditModal.form.permite_variante_maletas && (
                     <label className="admin-form-span-2">
                       Imagen con maletas *
                       <input
@@ -2969,6 +2922,8 @@ export default function AdminPanel() {
                         name="imagen_con_maletas"
                         accept="image/*"
                         onChange={handleMotoEditInputChange}
+                        required={Boolean(motoEditModal.form.permite_variante_maletas)}
+                        disabled={!motoEditModal.form.permite_variante_maletas}
                       />
                       {motoEditModal.imageMaletasFileName && (
                         <span className="admin-selected-file-name">{motoEditModal.imageMaletasFileName}</span>

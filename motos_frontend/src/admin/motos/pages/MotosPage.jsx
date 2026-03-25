@@ -1,19 +1,6 @@
 import { useEffect, useState } from "react";
 import AdminPagination, { paginateItems } from "../../shared/components/AdminPagination";
 
-const MOTO_COLOR_PALETTE = [
-  { value: "Negro" },
-  { value: "Blanco" },
-  { value: "Rojo" },
-  { value: "Azul" },
-  { value: "Verde" },
-  { value: "Amarillo" },
-  { value: "Naranjo" },
-  { value: "Gris" },
-  { value: "Plateado" },
-  { value: "Dorado" },
-];
-
 export default function MotosPage({
   activeSection,
   loading,
@@ -445,45 +432,6 @@ export default function MotosPage({
             </label>
 
             <label>
-              Color (opcional)
-              <select name="color" value={motoForm.color} onChange={onMotoInputChange}>
-                <option value="">Selecciona un color</option>
-                {MOTO_COLOR_PALETTE.map((color) => (
-                  <option key={color.value} value={color.value}>
-                    {color.value}
-                  </option>
-                ))}
-              </select>
-            </label>
-
-            <label>
-              Stock *
-              <input type="number" name="stock" value={motoForm.stock} onChange={onMotoInputChange} min="0" required />
-            </label>
-
-            <label>
-              Estado *
-              <select name="estado" value={motoForm.estado} onChange={onMotoInputChange} required>
-                <option value="disponible">Disponible</option>
-                <option value="reservada">Reservada</option>
-                <option value="vendida">Vendida</option>
-                <option value="inactiva">Inactiva</option>
-              </select>
-            </label>
-
-            <label>
-              Orden carrusel *
-              <input
-                type="number"
-                name="orden_carrusel"
-                value={motoForm.orden_carrusel}
-                onChange={onMotoInputChange}
-                min="1"
-                required
-              />
-            </label>
-
-            <label>
               Precio de lista *
               <input
                 type="text"
@@ -508,6 +456,20 @@ export default function MotosPage({
 
             {motoForm.permite_variante_maletas && (
               <label>
+                Orden carrusel *
+                <input
+                  type="number"
+                  name="orden_carrusel"
+                  value={motoForm.orden_carrusel}
+                  onChange={onMotoInputChange}
+                  min="1"
+                  required
+                />
+              </label>
+            )}
+
+            {motoForm.permite_variante_maletas && (
+              <label>
                 Precio con maletas *
                 <input
                   type="text"
@@ -516,7 +478,8 @@ export default function MotosPage({
                   onChange={onMotoPrecioConMaletasInputChange}
                   inputMode="decimal"
                   placeholder="Ej: 7.990.000"
-                  required
+                  required={Boolean(motoForm.permite_variante_maletas)}
+                  disabled={!motoForm.permite_variante_maletas}
                 />
               </label>
             )}
@@ -531,7 +494,8 @@ export default function MotosPage({
                   onChange={onMotoPrecioListaConMaletasInputChange}
                   inputMode="decimal"
                   placeholder="Ej: 11.990.000"
-                  required
+                  required={Boolean(motoForm.permite_variante_maletas)}
+                  disabled={!motoForm.permite_variante_maletas}
                 />
               </label>
             )}
@@ -556,7 +520,8 @@ export default function MotosPage({
                   name="imagen_con_maletas"
                   accept="image/*"
                   onChange={onMotoInputChange}
-                  required
+                  required={Boolean(motoForm.permite_variante_maletas)}
+                  disabled={!motoForm.permite_variante_maletas}
                 />
               </label>
             )}
