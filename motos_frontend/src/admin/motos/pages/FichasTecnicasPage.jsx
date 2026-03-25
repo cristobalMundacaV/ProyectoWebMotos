@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+﻿import { useEffect, useMemo, useState } from "react";
 import {
   createTipoAtributo,
   createValorAtributoMoto,
@@ -105,7 +105,9 @@ function getFichaItemPlaceholder(itemName) {
 
 function getFichaItemLabel(itemName) {
   const key = normalizeItemKey(itemName);
-  if (key === "cubre punos") return "Cubre Puños";
+  if (key.includes("punos")) {
+    return String(itemName || "").replace(/punos/gi, "pu\u00f1os");
+  }
   return itemName;
 }
 
@@ -143,6 +145,7 @@ export default function FichasTecnicasPage({ activeSection, motos = [] }) {
   const [showCreateItemModal, setShowCreateItemModal] = useState(false);
   const [newItemName, setNewItemName] = useState("");
   const [newItemValue, setNewItemValue] = useState("");
+  const [motoSearch, setMotoSearch] = useState("");
   const [toasts, setToasts] = useState([]);
 
   function dismissToast(id) {
@@ -164,12 +167,32 @@ export default function FichasTecnicasPage({ activeSection, motos = [] }) {
 
   const motosDisponibles = useMemo(() => normalizeArray(motos), [motos]);
 
+  const filteredMotos = useMemo(() => {
+    const term = normalizeItemKey(motoSearch);
+    if (!term) return motosDisponibles;
+
+    return motosDisponibles.filter((moto) => {
+      const modelo = normalizeItemKey(moto.modelo);
+      const marca = normalizeItemKey(moto.marca_nombre);
+      const categoria = normalizeItemKey(moto.categoria_nombre);
+      return modelo.includes(term) || marca.includes(term) || categoria.includes(term);
+    });
+  }, [motosDisponibles, motoSearch]);
+
   useEffect(() => {
     if (!isFichaSection) return;
     if (selectedMotoId) return;
     if (motosDisponibles.length === 0) return;
     setSelectedMotoId(String(motosDisponibles[0].id));
   }, [isFichaSection, selectedMotoId, motosDisponibles]);
+
+  useEffect(() => {
+    if (!selectedMotoId) return;
+    if (filteredMotos.some((moto) => String(moto.id) === String(selectedMotoId))) return;
+    if (filteredMotos.length > 0) {
+      setSelectedMotoId(String(filteredMotos[0].id));
+    }
+  }, [filteredMotos, selectedMotoId]);
 
   useEffect(() => {
     if (!isFichaSection || !selectedMotoId) return;
@@ -390,7 +413,7 @@ export default function FichasTecnicasPage({ activeSection, motos = [] }) {
       (item) => normalizeItemKey(item.nombre) === normalizeItemKey(itemName)
     );
     if (existsInSection) {
-      showToast("Ya existe un item con ese nombre en esta seccion.", "error");
+      showToast("Ese item ya existe en esta seccion para este modelo.", "error");
       return;
     }
 
@@ -410,28 +433,66 @@ export default function FichasTecnicasPage({ activeSection, motos = [] }) {
 
     try {
       setCreatingItem(true);
-      const created = await createValorAtributoMoto({
-        moto: selectedMoto.id,
-        tipo_atributo: tipoAtributoId,
-        nombre: itemName,
-        valor: itemValue,
-        orden: nextOrden,
-      });
+      const motoIds = normalizeArray(motosDisponibles)
+        .map((moto) => moto?.id)
+        .filter(Boolean);
 
-      setValores((prev) => [...prev, created]);
-      setDraftById((prev) => ({ ...prev, [created.id]: normalizeText(created.valor) }));
+      const createdRows = [];
+      const failedRows = [];
+
+      for (const motoId of motoIds) {
+        try {
+          const created = await createValorAtributoMoto({
+            moto: motoId,
+            tipo_atributo: tipoAtributoId,
+            nombre: itemName,
+            valor: itemValue,
+            orden: nextOrden,
+          });
+          createdRows.push(created);
+        } catch (err) {
+          const message =
+            err?.response?.data?.detail ||
+            err?.response?.data?.nombre?.[0] ||
+            err?.response?.data?.non_field_errors?.[0] ||
+            err?.message ||
+            "Error desconocido";
+
+          failedRows.push({ motoId, message: String(message) });
+        }
+      }
+
+      const createdForSelected = createdRows.find(
+        (row) => String(row?.moto) === String(selectedMoto.id)
+      );
+      if (createdForSelected) {
+        setValores((prev) => [...prev, createdForSelected]);
+        setDraftById((prev) => ({
+          ...prev,
+          [createdForSelected.id]: normalizeText(createdForSelected.valor),
+        }));
+      }
+
       setNewItemName("");
       setNewItemValue("");
       setShowCreateItemModal(false);
-      showToast(`Item creado: ${created?.nombre || itemName}.`, "success");
-    } catch (err) {
-      const backendMessage =
-        err?.response?.data?.detail ||
-        err?.response?.data?.nombre?.[0] ||
-        err?.response?.data?.non_field_errors?.[0] ||
-        err?.message ||
-        "No se pudo crear el item.";
-      showToast(String(backendMessage), "error");
+
+      if (createdRows.length > 0 && failedRows.length === 0) {
+        showToast(
+          `Item global creado en ${createdRows.length} modelos: ${itemName}.`,
+          "success"
+        );
+      } else if (createdRows.length > 0) {
+        showToast(
+          `Item creado en ${createdRows.length} modelos y ${failedRows.length} no se pudieron actualizar.`,
+          "error"
+        );
+      } else {
+        showToast(
+          `No se pudo crear el item global. Primer error: ${failedRows[0]?.message || "Error desconocido"}`,
+          "error"
+        );
+      }
     } finally {
       setCreatingItem(false);
     }
@@ -446,12 +507,21 @@ export default function FichasTecnicasPage({ activeSection, motos = [] }) {
       <article className="admin-panel-card">
         <div className="admin-card-header">
           <h2>Fichas tecnicas</h2>
-          <span>Modelos a la izquierda y formulario editable a la derecha</span>
+          <div className="admin-ficha-toolbar">
+            <span>Modelos a la izquierda y formulario editable a la derecha</span>
+            <input
+              type="search"
+              value={motoSearch}
+              onChange={(event) => setMotoSearch(event.target.value)}
+              placeholder="Buscar modelo, marca o categoria..."
+              aria-label="Buscar modelo en fichas tecnicas"
+            />
+          </div>
         </div>
 
         <div className="admin-mantencion-fichas-layout admin-ficha-layout">
           <aside className="admin-mantencion-fichas-list admin-ficha-motos-list">
-            {motosDisponibles.map((moto) => {
+            {filteredMotos.map((moto) => {
               const isActive = String(moto.id) === String(selectedMotoId);
               return (
                 <button
@@ -469,7 +539,13 @@ export default function FichasTecnicasPage({ activeSection, motos = [] }) {
                 </button>
               );
             })}
-            {motosDisponibles.length === 0 && <p className="admin-empty">No hay motos disponibles.</p>}
+            {filteredMotos.length === 0 && (
+              <p className="admin-empty">
+                {motosDisponibles.length === 0
+                  ? "No hay motos disponibles."
+                  : "No se encontraron modelos con esa busqueda."}
+              </p>
+            )}
           </aside>
 
           <div className="admin-mantencion-ficha-detail admin-ficha-form-panel">
@@ -646,7 +722,7 @@ export default function FichasTecnicasPage({ activeSection, motos = [] }) {
               <div className="admin-ficha-modal-actions">
                 <button
                   type="button"
-                  className="admin-secondary-action"
+                  className="admin-ficha-outline-action"
                   onClick={() => setShowCreateSectionModal(false)}
                   disabled={creatingSection}
                 >
@@ -695,7 +771,8 @@ export default function FichasTecnicasPage({ activeSection, motos = [] }) {
 
             <form className="admin-ficha-modal-form" onSubmit={handleCreateItem}>
               <p>
-                Agrega un item nuevo a la seccion <strong>{selectedSection?.nombre || "-"}</strong>.
+                Agrega un item nuevo a la seccion <strong>{selectedSection?.nombre || "-"}</strong>. Este item se
+                creara para todos los modelos.
               </p>
 
               <label>
@@ -710,7 +787,7 @@ export default function FichasTecnicasPage({ activeSection, motos = [] }) {
               </label>
 
               <label>
-                Valor inicial (opcional)
+                Recomendacion (opcional)
                 <input
                   value={newItemValue}
                   onChange={(event) => setNewItemValue(event.target.value)}
@@ -743,3 +820,5 @@ export default function FichasTecnicasPage({ activeSection, motos = [] }) {
     </section>
   );
 }
+
+
