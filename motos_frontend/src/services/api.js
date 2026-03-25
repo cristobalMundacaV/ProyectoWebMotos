@@ -57,7 +57,14 @@ api.interceptors.request.use((config) => {
 api.interceptors.response.use(
   (response) => response,
   async (error) => {
-    console.error("API request failed:", error);
+    const errorCode = error?.code || "";
+    const isCanceled =
+      errorCode === "ERR_CANCELED" ||
+      errorCode === "ECONNABORTED" ||
+      String(error?.message || "").toLowerCase().includes("aborted");
+    if (!isCanceled) {
+      console.error("API request failed:", error);
+    }
 
     const originalRequest = error?.config;
     const status = error?.response?.status;

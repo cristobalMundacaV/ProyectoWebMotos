@@ -97,7 +97,11 @@ export async function createModeloMoto(payload) {
 }
 
 export async function updateModeloMoto(id, payload) {
-  const res = await api.patch(`/motos/modelos/${id}/`, payload);
+  const normalizedPayload = { ...(payload || {}) };
+  if (normalizedPayload.nombre && !normalizedPayload.nombre_modelo) {
+    normalizedPayload.nombre_modelo = normalizedPayload.nombre;
+  }
+  const res = await api.patch(`/motos/modelos/${id}/`, normalizedPayload);
   return res.data;
 }
 

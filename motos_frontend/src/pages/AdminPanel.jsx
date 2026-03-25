@@ -731,7 +731,13 @@ export default function AdminPanel() {
   function getErrorText(error, fallback = "No se pudo completar la solicitud.") {
     const data = error?.response?.data;
     if (!data) return fallback;
-    if (typeof data === "string") return translateBackendMessage(data);
+    if (typeof data === "string") {
+      const raw = String(data).trim();
+      if (/^\s*<!doctype html>/i.test(raw) || /<html/i.test(raw)) {
+        return "Error interno del servidor. Intenta nuevamente en unos segundos.";
+      }
+      return translateBackendMessage(raw);
+    }
     if (data.detail) return translateBackendMessage(data.detail);
 
     const [firstError] = Object.values(data).find((value) => Array.isArray(value) && value.length) || [];
@@ -1457,7 +1463,7 @@ export default function AdminPanel() {
         }));
         pushToast("Categoria actualizada correctamente.", "success");
       } else if (entityEditModal.kind === "modelo_moto") {
-        const modelPayload = { nombre, slug };
+        const modelPayload = { nombre };
         if (entityEditModal.marca) {
           modelPayload.marca = entityEditModal.marca;
         }
