@@ -85,6 +85,7 @@ class ModeloMotoSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = ModeloMoto
+        validators = []
         fields = [
             "id",
             "marca",
