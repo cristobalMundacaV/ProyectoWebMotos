@@ -1298,6 +1298,9 @@ export default function AdminPanel() {
       id: item.id,
       nombre: normalizedNombre,
       slug: item.slug || "",
+      marca: item.marca ?? item.marca_id ?? null,
+      categoria: item.categoria ?? item.categoria_id ?? null,
+      cilindrada: item.cilindrada ?? null,
     });
   }
 
@@ -1454,7 +1457,17 @@ export default function AdminPanel() {
         }));
         pushToast("Categoria actualizada correctamente.", "success");
       } else if (entityEditModal.kind === "modelo_moto") {
-        const updated = await updateModeloMoto(entityEditModal.id, { nombre, slug });
+        const modelPayload = { nombre, slug };
+        if (entityEditModal.marca) {
+          modelPayload.marca = entityEditModal.marca;
+        }
+        if (entityEditModal.categoria !== null && entityEditModal.categoria !== undefined) {
+          modelPayload.categoria = entityEditModal.categoria;
+        }
+        if (entityEditModal.cilindrada !== null && entityEditModal.cilindrada !== undefined && entityEditModal.cilindrada !== "") {
+          modelPayload.cilindrada = entityEditModal.cilindrada;
+        }
+        const updated = await updateModeloMoto(entityEditModal.id, modelPayload);
         setModelosMotosAdmin((prev) => prev.map((item) => (item.id === entityEditModal.id ? updated : item)));
         setMotoMeta((prev) => ({
           ...prev,

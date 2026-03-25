@@ -1,6 +1,7 @@
 ﻿from django.db import IntegrityError
 from django.db.models import Q
 from django.db.models.deletion import ProtectedError
+import logging
 from rest_framework import status
 from rest_framework.decorators import api_view, authentication_classes, permission_classes
 from rest_framework.permissions import IsAuthenticated
@@ -23,6 +24,7 @@ from .serializers import (
 
 
 ACCESORIOS_CATEGORY_SLUGS = ["accesorios-para-la-moto", "accesorios"]
+logger = logging.getLogger(__name__)
 
 
 def _filter_marcas_por_tipo(queryset, tipo):
@@ -173,6 +175,12 @@ def modelos_moto(request):
             {"detail": "No se pudo crear el modelo. Ya existe uno con esos datos."},
             status=status.HTTP_400_BAD_REQUEST,
         )
+    except Exception as exc:
+        logger.exception("Error inesperado al crear modelo de moto")
+        return Response(
+            {"detail": "No se pudo crear el modelo.", "error": str(exc)},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
     return Response(serializer.data, status=status.HTTP_201_CREATED)
 
 
@@ -205,6 +213,12 @@ def modelos_moto_detalle(request, modelo_id):
     except IntegrityError:
         return Response(
             {"detail": "No se pudo actualizar el modelo. Ya existe uno con ese nombre para esta marca."},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+    except Exception as exc:
+        logger.exception("Error inesperado al actualizar modelo de moto id=%s", modelo_id)
+        return Response(
+            {"detail": "No se pudo actualizar el modelo.", "error": str(exc)},
             status=status.HTTP_400_BAD_REQUEST,
         )
     Moto.objects.filter(modelo_moto=updated_modelo).update(modelo=updated_modelo.nombre_modelo)
