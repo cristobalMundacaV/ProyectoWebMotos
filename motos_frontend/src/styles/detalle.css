@@ -548,7 +548,7 @@
 
 .moto-floating-content-grid {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: minmax(0, 1.7fr) minmax(0, 1fr);
   gap: 20px;
   align-items: start;
   margin-top: 8px;
@@ -566,14 +566,14 @@
 
 .moto-description-card h2 {
   margin: 0 0 10px;
-  font-size: 44px;
+  font-size: 40px;
   font-weight: 900;
 }
 
 .moto-description-card p {
   margin: 0;
-  font-size: 34px;
-  line-height: 1.4;
+  font-size: 25px;
+  line-height: 1.32;
 }
 
 .moto-specs-card h3 {
@@ -604,12 +604,12 @@
   }
 
   .moto-description-card h2 {
-    font-size: 34px;
+    font-size: 32px;
   }
 
   .moto-description-card p,
   .moto-specs-card .detalle-data-row {
-    font-size: 24px;
+    font-size: 21px;
   }
 
   .moto-specs-card h3 {
@@ -682,12 +682,12 @@
   }
 
   .moto-description-card h2 {
-    font-size: 30px;
+    font-size: 28px;
   }
 
   .moto-description-card p,
   .moto-specs-card .detalle-data-row {
-    font-size: 18px;
+    font-size: 17px;
   }
 
   .moto-specs-card h3 {
