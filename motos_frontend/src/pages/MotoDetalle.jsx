@@ -21,6 +21,12 @@ function hasEnteredValue(value) {
   return Boolean(normalized) && normalized !== "-";
 }
 
+function formatFichaItemLabel(itemName) {
+  const key = normalizeLabel(itemName);
+  if (key === "cubre punos") return "Cubre Puños";
+  return itemName;
+}
+
 export default function MotoDetalle() {
   const { slug } = useParams();
   const [moto, setMoto] = useState(null);
@@ -123,6 +129,10 @@ export default function MotoDetalle() {
   useEffect(() => {
     if (seccionesFichaConValores.length === 0) {
       setOpenTechSection("");
+      return;
+    }
+    // Permite que el usuario cierre todas las secciones sin auto-reapertura.
+    if (openTechSection === "") {
       return;
     }
     if (!seccionesFichaConValores.some((section) => section.nombre === openTechSection)) {
@@ -296,7 +306,7 @@ export default function MotoDetalle() {
                           key={`${seccion.nombre}-${item.nombre}-${index}`}
                           className={index % 2 === 1 ? "moto-tech-row is-alt" : "moto-tech-row"}
                         >
-                          <span className="moto-tech-label">{item.nombre}</span>
+                          <span className="moto-tech-label">{formatFichaItemLabel(item.nombre)}</span>
                           <span className="moto-tech-value">{item.valor}</span>
                         </div>
                       ))}

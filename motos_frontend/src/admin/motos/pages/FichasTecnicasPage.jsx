@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { getValoresAtributoMoto, updateValorAtributoMoto } from "../services/motosAdminService";
+import { createTipoAtributo, getTiposAtributo, getValoresAtributoMoto, updateValorAtributoMoto } from "../services/motosAdminService";
 import AdminToastStack from "../../shared/components/AdminToastStack";
 
 function normalizeArray(value) {
@@ -97,6 +97,12 @@ function getFichaItemPlaceholder(itemName) {
   return FICHA_PLACEHOLDER_BY_ITEM[key] || `Ingresar valor para ${itemName}`;
 }
 
+function getFichaItemLabel(itemName) {
+  const key = normalizeItemKey(itemName);
+  if (key === "cubre punos") return "Cubre Puños";
+  return itemName;
+}
+
 function isTruthyToggleValue(value) {
   const normalized = normalizeText(value).trim().toLowerCase();
   return ["si", "true", "1", "on", "activo"].includes(normalized);
@@ -120,9 +126,13 @@ export default function FichasTecnicasPage({ activeSection, motos = [] }) {
   const [selectedMotoId, setSelectedMotoId] = useState("");
   const [selectedSectionName, setSelectedSectionName] = useState("");
   const [valores, setValores] = useState([]);
+  const [tiposAtributo, setTiposAtributo] = useState([]);
   const [draftById, setDraftById] = useState({});
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [creatingSection, setCreatingSection] = useState(false);
+  const [showCreateSectionModal, setShowCreateSectionModal] = useState(false);
+  const [newSectionName, setNewSectionName] = useState("");
   const [toasts, setToasts] = useState([]);
 
   function dismissToast(id) {
@@ -158,10 +168,11 @@ export default function FichasTecnicasPage({ activeSection, motos = [] }) {
     setLoading(true);
     setSaving(false);
 
-    getValoresAtributoMoto({ moto: selectedMotoId })
-      .then((rows) => {
+    Promise.all([getValoresAtributoMoto({ moto: selectedMotoId }), getTiposAtributo()])
+      .then(([rows, tipos]) => {
         if (!mounted) return;
         const list = normalizeArray(rows);
+        setTiposAtributo(normalizeArray(tipos));
         setValores(list);
         const nextDraft = {};
         list.forEach((item) => {
@@ -171,6 +182,7 @@ export default function FichasTecnicasPage({ activeSection, motos = [] }) {
       })
       .catch(() => {
         if (!mounted) return;
+        setTiposAtributo([]);
         setValores([]);
         setDraftById({});
         showToast("No se pudieron cargar los items de ficha tecnica para esta moto.", "error");
@@ -186,6 +198,18 @@ export default function FichasTecnicasPage({ activeSection, motos = [] }) {
 
   const groupedSections = useMemo(() => {
     const map = new Map();
+
+    normalizeArray(tiposAtributo).forEach((tipo) => {
+      const key = tipo.nombre || "GENERAL";
+      if (!map.has(key)) {
+        map.set(key, {
+          nombre: key,
+          orden: Number(tipo.orden ?? 9999),
+          items: [],
+        });
+      }
+    });
+
     normalizeArray(valores).forEach((item) => {
       const key = item.tipo_atributo_nombre || "GENERAL";
       if (!map.has(key)) {
@@ -210,7 +234,7 @@ export default function FichasTecnicasPage({ activeSection, motos = [] }) {
       .sort((a, b) => a.orden - b.orden || a.nombre.localeCompare(b.nombre, "es"));
 
     return sections;
-  }, [valores]);
+  }, [valores, tiposAtributo]);
 
   const selectedMoto = useMemo(
     () => motosDisponibles.find((moto) => String(moto.id) === String(selectedMotoId)) || null,
@@ -240,6 +264,46 @@ export default function FichasTecnicasPage({ activeSection, motos = [] }) {
 
   function handleDraftChange(id, value) {
     setDraftById((prev) => ({ ...prev, [id]: value }));
+  }
+
+  async function handleCreateSection(event) {
+    event.preventDefault();
+    const nombre = normalizeText(newSectionName).trim();
+    if (!nombre || creatingSection) return;
+
+    const exists = groupedSections.some(
+      (section) => normalizeItemKey(section.nombre) === normalizeItemKey(nombre)
+    );
+    if (exists) {
+      showToast("Ya existe una seccion con ese nombre.", "error");
+      return;
+    }
+
+    const nextOrden = groupedSections.reduce((max, section) => Math.max(max, Number(section.orden || 0)), 0) + 1;
+
+    try {
+      setCreatingSection(true);
+      const created = await createTipoAtributo({
+        nombre,
+        orden: nextOrden,
+        activo: true,
+      });
+      setTiposAtributo((prev) => [...prev, created]);
+      setSelectedSectionName(created?.nombre || nombre);
+      setNewSectionName("");
+      setShowCreateSectionModal(false);
+      showToast(`Seccion creada: ${created?.nombre || nombre}.`, "success");
+    } catch (err) {
+      const backendMessage =
+        err?.response?.data?.detail ||
+        err?.response?.data?.nombre?.[0] ||
+        err?.response?.data?.slug?.[0] ||
+        err?.message ||
+        "No se pudo crear la seccion.";
+      showToast(String(backendMessage), "error");
+    } finally {
+      setCreatingSection(false);
+    }
   }
 
   async function handleSave() {
@@ -371,6 +435,15 @@ export default function FichasTecnicasPage({ activeSection, motos = [] }) {
                           </button>
                         );
                       })}
+                      <button
+                        type="button"
+                        className="admin-mantencion-tab admin-ficha-add-tab"
+                        onClick={() => setShowCreateSectionModal(true)}
+                        aria-label="Agregar nueva seccion"
+                        title="Agregar nueva seccion"
+                      >
+                        +
+                      </button>
                     </div>
 
                     <div className="admin-ficha-sections">
@@ -384,7 +457,7 @@ export default function FichasTecnicasPage({ activeSection, motos = [] }) {
                           <div className="admin-ficha-items-grid">
                             {selectedSection.items.map((item) => (
                               <label key={item.id} className="admin-ficha-item-field">
-                                <span>{item.nombre}</span>
+                                <span>{getFichaItemLabel(item.nombre)}</span>
                                 {isBooleanToggleCandidate({
                                   sectionName: selectedSection.nombre,
                                   itemName: item.nombre,
@@ -443,6 +516,72 @@ export default function FichasTecnicasPage({ activeSection, motos = [] }) {
           </div>
         </div>
       </article>
+
+      {showCreateSectionModal && (
+        <div
+          className="admin-ficha-modal-overlay"
+          role="presentation"
+          onClick={() => {
+            if (creatingSection) return;
+            setShowCreateSectionModal(false);
+          }}
+        >
+          <div
+            className="admin-ficha-modal"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="create-section-title"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <div className="admin-ficha-modal-head">
+              <h3 id="create-section-title">Nueva seccion</h3>
+              <button
+                type="button"
+                onClick={() => setShowCreateSectionModal(false)}
+                disabled={creatingSection}
+                aria-label="Cerrar modal"
+              >
+                X
+              </button>
+            </div>
+
+            <form
+              className="admin-ficha-modal-form"
+              onSubmit={handleCreateSection}
+            >
+              <p>Ingresa el nombre de la nueva seccion para crear una pestana adicional.</p>
+              <label>
+                Nombre de la seccion
+                <input
+                  value={newSectionName}
+                  onChange={(event) => setNewSectionName(event.target.value)}
+                  placeholder="Ej: Seguridad"
+                  autoFocus
+                  disabled={creatingSection}
+                />
+              </label>
+
+              <div className="admin-ficha-modal-actions">
+                <button
+                  type="button"
+                  className="admin-secondary-action"
+                  onClick={() => setShowCreateSectionModal(false)}
+                  disabled={creatingSection}
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="submit"
+                  className="admin-primary-action"
+                  disabled={creatingSection || normalizeText(newSectionName).trim().length < 2}
+                >
+                  {creatingSection ? "Creando..." : "Crear seccion"}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </section>
   );
 }
