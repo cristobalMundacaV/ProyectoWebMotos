@@ -2105,6 +2105,93 @@
   overflow: hidden;
 }
 
+.admin-ficha-layout {
+  min-height: calc(100vh - 230px);
+}
+
+.admin-ficha-motos-list {
+  max-height: 72vh;
+}
+
+.admin-ficha-form-panel {
+  display: grid;
+  gap: 14px;
+  align-content: start;
+}
+
+.admin-ficha-sections {
+  display: grid;
+  gap: 12px;
+  max-height: 60vh;
+  overflow: auto;
+  padding-right: 2px;
+}
+
+.admin-ficha-section-card {
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  background: #f8fafc;
+  padding: 10px;
+  display: grid;
+  gap: 10px;
+}
+
+.admin-ficha-section-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.admin-ficha-section-head h4 {
+  margin: 0;
+  font-size: 0.98rem;
+}
+
+.admin-ficha-section-head span {
+  color: #64748b;
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+.admin-ficha-items-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.admin-ficha-item-field {
+  display: grid;
+  gap: 6px;
+}
+
+.admin-ficha-item-field span {
+  font-size: 0.82rem;
+  color: #334155;
+  font-weight: 700;
+}
+
+.admin-ficha-item-field input {
+  width: 100%;
+  min-height: 38px;
+  border: 1px solid #d7dce3;
+  border-radius: 10px;
+  background: #fff;
+  padding: 8px 10px;
+  font: inherit;
+  color: #0f172a;
+}
+
+.admin-ficha-save-actions {
+  margin: 0;
+}
+
+@media (max-width: 980px) {
+  .admin-ficha-items-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
 .admin-mantencion-ficha-head {
   display: flex;
   align-items: center;

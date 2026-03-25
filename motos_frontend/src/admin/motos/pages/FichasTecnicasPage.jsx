@@ -1,188 +1,238 @@
 import { useEffect, useMemo, useState } from "react";
-import { getMotoFichaTecnica } from "../services/motosAdminService";
+import { getValoresAtributoMoto, updateValorAtributoMoto } from "../services/motosAdminService";
 
 function normalizeArray(value) {
   return Array.isArray(value) ? value : [];
 }
 
+function normalizeText(value) {
+  return String(value ?? "");
+}
+
 export default function FichasTecnicasPage({ activeSection, motos = [] }) {
   const [selectedMotoId, setSelectedMotoId] = useState("");
-  const [ficha, setFicha] = useState(null);
-  const [loadingFicha, setLoadingFicha] = useState(false);
-  const [errorFicha, setErrorFicha] = useState("");
+  const [valores, setValores] = useState([]);
+  const [draftById, setDraftById] = useState({});
+  const [loading, setLoading] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
+
+  const isFichaSection =
+    activeSection === "fichas_resumen" ||
+    activeSection === "fichas_secciones" ||
+    activeSection === "fichas_items";
 
   const motosDisponibles = useMemo(() => normalizeArray(motos), [motos]);
 
   useEffect(() => {
-    if (!selectedMotoId && motosDisponibles.length > 0) {
-      setSelectedMotoId(String(motosDisponibles[0].id));
-    }
-  }, [motosDisponibles, selectedMotoId]);
+    if (!isFichaSection) return;
+    if (selectedMotoId) return;
+    if (motosDisponibles.length === 0) return;
+    setSelectedMotoId(String(motosDisponibles[0].id));
+  }, [isFichaSection, selectedMotoId, motosDisponibles]);
 
   useEffect(() => {
-    const isFichaSection =
-      activeSection === "fichas_resumen" ||
-      activeSection === "fichas_secciones" ||
-      activeSection === "fichas_items";
     if (!isFichaSection || !selectedMotoId) return;
 
     let mounted = true;
-    setLoadingFicha(true);
-    setErrorFicha("");
+    setLoading(true);
+    setSaving(false);
+    setError("");
+    setSuccess("");
 
-    getMotoFichaTecnica(selectedMotoId)
-      .then((payload) => {
+    getValoresAtributoMoto({ moto: selectedMotoId })
+      .then((rows) => {
         if (!mounted) return;
-        setFicha(payload || null);
+        const list = normalizeArray(rows);
+        setValores(list);
+        const nextDraft = {};
+        list.forEach((item) => {
+          nextDraft[item.id] = normalizeText(item.valor);
+        });
+        setDraftById(nextDraft);
       })
       .catch(() => {
         if (!mounted) return;
-        setFicha(null);
-        setErrorFicha("No se pudo cargar la ficha tecnica de la moto seleccionada.");
+        setValores([]);
+        setDraftById({});
+        setError("No se pudieron cargar los items de ficha tecnica para esta moto.");
       })
       .finally(() => {
-        if (mounted) setLoadingFicha(false);
+        if (mounted) setLoading(false);
       });
 
     return () => {
       mounted = false;
     };
-  }, [activeSection, selectedMotoId]);
+  }, [isFichaSection, selectedMotoId]);
 
-  if (
-    activeSection !== "fichas_resumen" &&
-    activeSection !== "fichas_secciones" &&
-    activeSection !== "fichas_items"
-  ) {
-    return null;
-  }
+  const groupedSections = useMemo(() => {
+    const map = new Map();
+    normalizeArray(valores).forEach((item) => {
+      const key = item.tipo_atributo_nombre || "GENERAL";
+      if (!map.has(key)) {
+        map.set(key, {
+          nombre: key,
+          orden: Number(item.tipo_atributo_orden ?? 9999),
+          items: [],
+        });
+      }
+      map.get(key).items.push(item);
+    });
 
-  const secciones = normalizeArray(ficha?.secciones_ficha);
-  const itemsFlat = secciones.flatMap((seccion) =>
-    normalizeArray(seccion?.items).map((item) => ({
-      seccion: seccion?.nombre || "-",
-      seccion_orden: seccion?.orden ?? 0,
-      nombre: item?.nombre || "-",
-      valor: item?.valor || "-",
-      orden: item?.orden ?? 0,
-    }))
+    const sections = Array.from(map.values())
+      .map((section) => ({
+        ...section,
+        items: section.items.sort(
+          (a, b) =>
+            Number(a.orden ?? 0) - Number(b.orden ?? 0) ||
+            String(a.nombre || "").localeCompare(String(b.nombre || ""), "es")
+        ),
+      }))
+      .sort((a, b) => a.orden - b.orden || a.nombre.localeCompare(b.nombre, "es"));
+
+    return sections;
+  }, [valores]);
+
+  const selectedMoto = useMemo(
+    () => motosDisponibles.find((moto) => String(moto.id) === String(selectedMotoId)) || null,
+    [motosDisponibles, selectedMotoId]
   );
 
-  const totalItems = itemsFlat.length;
+  const hasChanges = useMemo(
+    () =>
+      normalizeArray(valores).some((item) => normalizeText(item.valor) !== normalizeText(draftById[item.id])),
+    [valores, draftById]
+  );
+
+  function handleDraftChange(id, value) {
+    setDraftById((prev) => ({ ...prev, [id]: value }));
+    if (success) setSuccess("");
+  }
+
+  async function handleSave() {
+    if (!hasChanges || saving) return;
+    setSaving(true);
+    setError("");
+    setSuccess("");
+
+    const changed = normalizeArray(valores).filter(
+      (item) => normalizeText(item.valor) !== normalizeText(draftById[item.id])
+    );
+
+    try {
+      const updates = await Promise.all(
+        changed.map((item) =>
+          updateValorAtributoMoto(item.id, { valor: normalizeText(draftById[item.id]) })
+        )
+      );
+      const updatedById = new Map(updates.map((item) => [item.id, item]));
+      setValores((prev) => prev.map((item) => updatedById.get(item.id) || item));
+      setSuccess(`Ficha tecnica guardada. Se actualizaron ${updates.length} items.`);
+    } catch {
+      setError("No se pudieron guardar los cambios de la ficha tecnica.");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  if (!isFichaSection) return null;
 
   return (
-    <section className="admin-content-grid lower">
+    <section className="admin-content-grid admin-content-grid-mantenciones admin-content-grid-mantenciones-fichas">
       <article className="admin-panel-card">
         <div className="admin-card-header">
           <h2>Fichas tecnicas</h2>
-          <span>Gestion visual por submodulos</span>
+          <span>Modelos a la izquierda y formulario editable a la derecha</span>
         </div>
 
-        <form className="admin-moto-form admin-inline-submit-form" onSubmit={(event) => event.preventDefault()}>
-          <label>
-            Moto
-            <select value={selectedMotoId} onChange={(event) => setSelectedMotoId(event.target.value)}>
-              {motosDisponibles.map((moto) => (
-                <option key={moto.id} value={moto.id}>
-                  {moto.modelo} {moto.marca_nombre ? `(${moto.marca_nombre})` : ""}
-                </option>
-              ))}
-            </select>
-          </label>
-        </form>
+        <div className="admin-mantencion-fichas-layout admin-ficha-layout">
+          <aside className="admin-mantencion-fichas-list admin-ficha-motos-list">
+            {motosDisponibles.map((moto) => {
+              const isActive = String(moto.id) === String(selectedMotoId);
+              return (
+                <button
+                  key={moto.id}
+                  type="button"
+                  className={isActive ? "admin-mantencion-ficha-item active" : "admin-mantencion-ficha-item"}
+                  onClick={() => setSelectedMotoId(String(moto.id))}
+                >
+                  <div className="admin-mantencion-ficha-item-top">
+                    <strong>{moto.modelo || "-"}</strong>
+                    <span className="admin-status-pill status-aceptada">MODELO</span>
+                  </div>
+                  <span>{moto.marca_nombre || "Sin marca"}</span>
+                  <small>{moto.categoria_nombre || "Sin categoria"}</small>
+                </button>
+              );
+            })}
+            {motosDisponibles.length === 0 && <p className="admin-empty">No hay motos disponibles.</p>}
+          </aside>
+
+          <div className="admin-mantencion-ficha-detail admin-ficha-form-panel">
+            {!selectedMoto && <p className="admin-empty">Selecciona una moto para editar su ficha tecnica.</p>}
+
+            {selectedMoto && (
+              <>
+                <div className="admin-mantencion-ficha-head">
+                  <h3>{selectedMoto.modelo || "Ficha tecnica"}</h3>
+                  <span className="admin-status-pill status-aceptada">
+                    {selectedMoto.marca_nombre || "MOTO"}
+                  </span>
+                </div>
+
+                {loading && <p className="admin-empty">Cargando items de ficha tecnica...</p>}
+                {!loading && groupedSections.length === 0 && (
+                  <p className="admin-empty">
+                    Esta moto no tiene items de ficha tecnica. Ejecuta migraciones o revisa la carga inicial.
+                  </p>
+                )}
+
+                {!loading && groupedSections.length > 0 && (
+                  <div className="admin-ficha-sections">
+                    {groupedSections.map((section) => (
+                      <section key={section.nombre} className="admin-ficha-section-card">
+                        <header className="admin-ficha-section-head">
+                          <h4>{section.nombre}</h4>
+                          <span>{section.items.length} items</span>
+                        </header>
+
+                        <div className="admin-ficha-items-grid">
+                          {section.items.map((item) => (
+                            <label key={item.id} className="admin-ficha-item-field">
+                              <span>{item.nombre}</span>
+                              <input
+                                value={normalizeText(draftById[item.id])}
+                                onChange={(event) => handleDraftChange(item.id, event.target.value)}
+                                placeholder={`Ingresar valor para ${item.nombre}`}
+                              />
+                            </label>
+                          ))}
+                        </div>
+                      </section>
+                    ))}
+                  </div>
+                )}
+
+                {error && <p className="admin-form-error">{error}</p>}
+                {success && <p className="admin-form-success">{success}</p>}
+
+                <div className="admin-mantencion-ficha-actions admin-ficha-save-actions">
+                  <button
+                    type="button"
+                    className="admin-primary-action admin-mantencion-action-btn admin-mantencion-save-btn"
+                    onClick={handleSave}
+                    disabled={!hasChanges || saving || loading || groupedSections.length === 0}
+                  >
+                    {saving ? "Guardando..." : "Guardar cambios"}
+                  </button>
+                </div>
+              </>
+            )}
+          </div>
+        </div>
       </article>
-
-      {loadingFicha && (
-        <article className="admin-panel-card">
-          <p className="admin-empty">Cargando ficha tecnica...</p>
-        </article>
-      )}
-
-      {!loadingFicha && errorFicha && (
-        <article className="admin-panel-card">
-          <p className="admin-empty">{errorFicha}</p>
-        </article>
-      )}
-
-      {!loadingFicha && !errorFicha && activeSection === "fichas_resumen" && (
-        <article className="admin-panel-card">
-          <div className="admin-card-header">
-            <h2>Resumen de ficha tecnica</h2>
-            <span>{ficha?.modelo || "Moto"} </span>
-          </div>
-          <div className="admin-table">
-            <div className="admin-table-row admin-table-row-two-cols admin-recent-simple-row">
-              <div className="admin-entity-name-cell admin-recent-simple-main">
-                <strong>Secciones</strong>
-              </div>
-              <div className="admin-entity-name-cell admin-recent-simple-main">
-                <strong>{secciones.length}</strong>
-              </div>
-            </div>
-            <div className="admin-table-row admin-table-row-two-cols admin-recent-simple-row">
-              <div className="admin-entity-name-cell admin-recent-simple-main">
-                <strong>Items tecnicos</strong>
-              </div>
-              <div className="admin-entity-name-cell admin-recent-simple-main">
-                <strong>{totalItems}</strong>
-              </div>
-            </div>
-          </div>
-        </article>
-      )}
-
-      {!loadingFicha && !errorFicha && activeSection === "fichas_secciones" && (
-        <article className="admin-panel-card">
-          <div className="admin-card-header">
-            <h2>Secciones de la ficha</h2>
-            <span>{secciones.length} secciones</span>
-          </div>
-          <div className="admin-table">
-            {secciones.map((seccion) => (
-              <div key={`${seccion.nombre}-${seccion.orden}`} className="admin-table-row admin-table-row-two-cols admin-recent-simple-row">
-                <div className="admin-entity-name-cell admin-recent-simple-main">
-                  <strong>{seccion.nombre}</strong>
-                  <span>Orden: {seccion.orden}</span>
-                </div>
-                <div className="admin-entity-name-cell admin-recent-simple-main">
-                  <span>{normalizeArray(seccion.items).length} items</span>
-                </div>
-              </div>
-            ))}
-            {secciones.length === 0 && <p className="admin-empty">Esta moto aun no tiene secciones de ficha tecnica.</p>}
-          </div>
-        </article>
-      )}
-
-      {!loadingFicha && !errorFicha && activeSection === "fichas_items" && (
-        <article className="admin-panel-card">
-          <div className="admin-card-header">
-            <h2>Items de ficha tecnica</h2>
-            <span>{itemsFlat.length} items</span>
-          </div>
-          <div className="admin-table">
-            {itemsFlat.map((item) => (
-              <div key={`${item.seccion}-${item.nombre}-${item.orden}`} className="admin-table-row admin-moto-table-row">
-                <div className="admin-moto-table-cell">
-                  <span className="admin-row-label">Seccion</span>
-                  <strong>{item.seccion}</strong>
-                  <span>Orden seccion: {item.seccion_orden}</span>
-                </div>
-                <div className="admin-moto-table-cell">
-                  <span className="admin-row-label">Item</span>
-                  <strong>{item.nombre}</strong>
-                  <span>Orden item: {item.orden}</span>
-                </div>
-                <div className="admin-moto-table-cell">
-                  <span className="admin-row-label">Valor</span>
-                  <strong>{item.valor}</strong>
-                </div>
-              </div>
-            ))}
-            {itemsFlat.length === 0 && <p className="admin-empty">No hay items cargados para esta moto.</p>}
-          </div>
-        </article>
-      )}
     </section>
   );
 }
