@@ -395,7 +395,7 @@ export default function MotosPage({
                 <option value="">Selecciona un modelo</option>
                 {modelosFiltrados.map((modelo) => (
                   <option key={modelo.id} value={modelo.id}>
-                    {modelo.nombre} {modelo.marca_nombre ? `(${modelo.marca_nombre})` : ""}
+                    {modelo.nombre}
                   </option>
                 ))}
               </select>
@@ -454,7 +454,7 @@ export default function MotosPage({
               Habilitar variante con maletas
             </label>
 
-            {motoForm.permite_variante_maletas && (
+            {motoForm.es_destacada && (
               <label>
                 Orden carrusel *
                 <input
@@ -463,7 +463,7 @@ export default function MotosPage({
                   value={motoForm.orden_carrusel}
                   onChange={onMotoInputChange}
                   min="1"
-                  required
+                  required={Boolean(motoForm.es_destacada)}
                 />
               </label>
             )}

@@ -729,6 +729,19 @@ export default function AdminPanel() {
   }
 
   function getErrorText(error, fallback = "No se pudo completar la solicitud.") {
+    const fieldLabels = {
+      marca: "Marca",
+      modelo: "Modelo",
+      modelo_id: "Modelo",
+      slug: "Slug",
+      precio: "Precio",
+      precio_lista: "Precio de lista",
+      precio_con_maletas: "Precio con maletas",
+      precio_lista_con_maletas: "Precio de lista con maletas",
+      imagen_con_maletas: "Imagen con maletas",
+      anio: "Anio",
+      orden_carrusel: "Orden carrusel",
+    };
     const data = error?.response?.data;
     if (!data) return fallback;
     if (typeof data === "string") {
@@ -740,6 +753,14 @@ export default function AdminPanel() {
     }
     if (data.error) return translateBackendMessage(data.error);
     if (data.detail) return translateBackendMessage(data.detail);
+
+    const firstFieldEntry = Object.entries(data).find(([, value]) => Array.isArray(value) && value.length);
+    if (firstFieldEntry) {
+      const [fieldName, fieldErrors] = firstFieldEntry;
+      const translated = translateBackendMessage(fieldErrors[0]);
+      const label = fieldLabels[fieldName] || fieldName;
+      return `${label}: ${translated}`;
+    }
 
     const [firstError] = Object.values(data).find((value) => Array.isArray(value) && value.length) || [];
     return translateBackendMessage(firstError) || fallback;
@@ -795,7 +816,12 @@ export default function AdminPanel() {
     const invalidFields = fields.filter((field) => !field.checkValidity());
     invalidFields.forEach((field) => field.classList.add("admin-field-invalid"));
     const firstInvalid = invalidFields[0];
-    const message = firstInvalid?.validationMessage || "Completa los campos obligatorios.";
+    const labelText = firstInvalid?.closest("label")?.childNodes?.[0]?.textContent?.trim();
+    const message = firstInvalid?.validationMessage
+      ? labelText
+        ? `${labelText}: ${firstInvalid.validationMessage}`
+        : firstInvalid.validationMessage
+      : "Completa los campos obligatorios.";
     pushToast(message, "error");
     firstInvalid?.focus();
     return false;
@@ -865,6 +891,7 @@ export default function AdminPanel() {
       ...(name === "permite_variante_maletas" && !checked
         ? { precio_con_maletas: "", precio_lista_con_maletas: "", imagen_con_maletas: null }
         : {}),
+      ...(name === "es_destacada" && !checked ? { orden_carrusel: "1" } : {}),
       ...(name === "marca" ? { modelo: "", slug: "" } : {}),
       ...(name === "modelo"
         ? {
@@ -969,6 +996,7 @@ export default function AdminPanel() {
         ...(name === "permite_variante_maletas" && !nextValue
           ? { precio_con_maletas: "", precio_lista_con_maletas: "", imagen_con_maletas: null }
           : {}),
+        ...(name === "es_destacada" && !nextValue ? { orden_carrusel: "1" } : {}),
         ...(name === "marca" ? { modelo: "", slug: "" } : {}),
         ...(name === "modelo"
           ? {
@@ -1089,10 +1117,14 @@ export default function AdminPanel() {
   function buildMotoPayload(form) {
     const payload = new FormData();
     const selectedModelo = motoMeta.modelos.find((item) => String(item.id) === String(form.modelo));
+    const modeloNombre = selectedModelo?.nombre || "";
+    const modeloSlug = selectedModelo?.slug || form.slug || limitSlug(buildSlug(modeloNombre), 50);
     payload.append("marca", form.marca);
-    payload.append("modelo_id", form.modelo);
-    payload.append("modelo", selectedModelo?.nombre || "");
-    payload.append("slug", selectedModelo?.slug || form.slug);
+    if (form.modelo) {
+      payload.append("modelo_id", String(form.modelo));
+    }
+    payload.append("modelo", modeloNombre);
+    payload.append("slug", modeloSlug);
     payload.append("descripcion", form.descripcion);
     payload.append("precio", form.precio);
     payload.append("precio_lista", form.precio_lista);
@@ -1105,7 +1137,9 @@ export default function AdminPanel() {
     }
     payload.append("anio", form.anio);
     payload.append("es_destacada", String(form.es_destacada));
-    payload.append("orden_carrusel", form.orden_carrusel || "1");
+    if (form.es_destacada) {
+      payload.append("orden_carrusel", form.orden_carrusel || "1");
+    }
     payload.append("activa", String(form.activa));
     if (form.imagen_principal) {
       payload.append("imagen_principal", form.imagen_principal);
@@ -2788,7 +2822,7 @@ export default function AdminPanel() {
                       <option value="">Selecciona un modelo</option>
                       {motoEditModelosFiltrados.map((modelo) => (
                         <option key={modelo.id} value={modelo.id}>
-                          {modelo.nombre} {modelo.marca_nombre ? `(${modelo.marca_nombre})` : ""}
+                          {modelo.nombre}
                         </option>
                       ))}
                     </select>
@@ -2899,7 +2933,7 @@ export default function AdminPanel() {
                     )}
                   </label>
 
-                  {motoEditModal.form.permite_variante_maletas && (
+                  {motoEditModal.form.es_destacada && (
                     <label>
                       Orden carrusel *
                       <input
@@ -2908,7 +2942,7 @@ export default function AdminPanel() {
                         value={motoEditModal.form.orden_carrusel}
                         onChange={handleMotoEditInputChange}
                         min="1"
-                        required
+                        required={Boolean(motoEditModal.form.es_destacada)}
                       />
                     </label>
                   )}
