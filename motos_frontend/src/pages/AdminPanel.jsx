@@ -71,14 +71,13 @@ const initialMotoForm = {
   precio_lista_con_maletas: "",
   anio: "",
   color: "",
-  stock: "0",
   estado: "disponible",
   es_destacada: false,
   orden_carrusel: "1",
   activa: true,
   imagen_principal: null,
   imagen_con_maletas: null,
-  video_presentacion: "",
+  video_presentacion: null,
 };
 
 const initialModeloMotoForm = {
@@ -1128,7 +1127,9 @@ export default function AdminPanel() {
     payload.append("modelo", modeloNombre);
     payload.append("slug", modeloSlug);
     payload.append("descripcion", form.descripcion);
-    payload.append("video_presentacion", String(form.video_presentacion || "").trim());
+    if (form.video_presentacion) {
+      payload.append("video_presentacion", form.video_presentacion);
+    }
     payload.append("precio", form.precio);
     payload.append("precio_lista", form.precio_lista);
     payload.append("permite_variante_maletas", String(Boolean(form.permite_variante_maletas)));
@@ -1837,14 +1838,13 @@ export default function AdminPanel() {
         precio_lista_con_maletas: normalizePrecioFromApi(moto.precio_lista_con_maletas),
         anio: String(moto.anio ?? ""),
         color: moto.color || "",
-        stock: String(moto.stock ?? "0"),
         estado: moto.estado || "disponible",
         es_destacada: Boolean(moto.es_destacada),
         orden_carrusel: String(moto.orden_carrusel ?? "1"),
         activa: moto.activa !== false,
         imagen_principal: null,
         imagen_con_maletas: null,
-        video_presentacion: moto.video_presentacion || "",
+        video_presentacion: null,
       },
     });
   }
@@ -2845,11 +2845,10 @@ export default function AdminPanel() {
                   <label className="admin-form-span-2">
                     Video de presentacion (opcional)
                     <input
-                      type="url"
+                      type="file"
                       name="video_presentacion"
-                      value={motoEditModal.form.video_presentacion || ""}
+                      accept="video/*"
                       onChange={handleMotoEditInputChange}
-                      placeholder="https://www.youtube.com/watch?v=..."
                     />
                   </label>
 

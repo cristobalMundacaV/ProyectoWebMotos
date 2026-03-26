@@ -301,7 +301,6 @@ class MotoSerializer(serializers.ModelSerializer):
             "cilindrada_input",
             "anio",
             "color",
-            "stock",
             "estado",
             "imagen_principal",
             "video_presentacion",

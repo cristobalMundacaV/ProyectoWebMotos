@@ -409,11 +409,10 @@ export default function MotosPage({
             <label className="admin-form-span-2">
               Video de presentacion (opcional)
               <input
-                type="url"
+                type="file"
                 name="video_presentacion"
-                value={motoForm.video_presentacion || ""}
+                accept="video/*"
                 onChange={onMotoInputChange}
-                placeholder="https://www.youtube.com/watch?v=..."
               />
             </label>
 

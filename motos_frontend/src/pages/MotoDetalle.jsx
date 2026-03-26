@@ -27,54 +27,6 @@ function formatFichaItemLabel(itemName) {
   return itemName;
 }
 
-function resolveVideoPresentation(sourceUrl) {
-  const urlRaw = String(sourceUrl || "").trim();
-  if (!urlRaw) return null;
-
-  const isDirectVideo = /\.(mp4|webm|ogg|mov)(\?.*)?$/i.test(urlRaw);
-  if (isDirectVideo) {
-    return { kind: "video", src: urlRaw };
-  }
-
-  try {
-    const parsed = new URL(urlRaw);
-    const host = parsed.hostname.replace(/^www\./i, "").toLowerCase();
-
-    if (host.includes("youtube.com") || host.includes("youtu.be")) {
-      let youtubeId = "";
-      if (host.includes("youtu.be")) {
-        youtubeId = parsed.pathname.replace("/", "").trim();
-      } else if (parsed.pathname.startsWith("/shorts/")) {
-        youtubeId = parsed.pathname.split("/shorts/")[1]?.split("/")[0] || "";
-      } else if (parsed.pathname.startsWith("/embed/")) {
-        youtubeId = parsed.pathname.split("/embed/")[1]?.split("/")[0] || "";
-      } else {
-        youtubeId = parsed.searchParams.get("v") || "";
-      }
-
-      if (youtubeId) {
-        return { kind: "iframe", src: `https://www.youtube.com/embed/${youtubeId}` };
-      }
-    }
-
-    if (host.includes("vimeo.com")) {
-      const segments = parsed.pathname.split("/").filter(Boolean);
-      const vimeoId = segments.find((segment) => /^\d+$/.test(segment)) || "";
-      if (vimeoId) {
-        return { kind: "iframe", src: `https://player.vimeo.com/video/${vimeoId}` };
-      }
-    }
-  } catch {
-    return null;
-  }
-
-  if (/\/embed\//i.test(urlRaw) || /player\./i.test(urlRaw)) {
-    return { kind: "iframe", src: urlRaw };
-  }
-
-  return null;
-}
-
 export default function MotoDetalle() {
   const { slug } = useParams();
   const [moto, setMoto] = useState(null);
@@ -258,7 +210,7 @@ export default function MotoDetalle() {
     { value: getFichaValue("Consumo homologado"), label: "Consumo homologado" },
     { value: getFichaValue("Frenos", "Sistema de frenos Brembo y Nissin"), label: "Frenos" },
   ].filter((item) => hasEnteredValue(item.value));
-  const videoPresentation = resolveVideoPresentation(moto.video_presentacion);
+  const videoPresentationUrl = buildMediaUrl(moto.video_presentacion);
 
   return (
     <div className="detalle-page detalle-moto-page">
@@ -325,28 +277,15 @@ export default function MotoDetalle() {
           </aside>
         </section>
 
-        {videoPresentation && (
+        {videoPresentationUrl && (
           <section className="moto-video-section">
-            {videoPresentation.kind === "video" ? (
-              <video
-                className="moto-video-player"
-                controls
-                preload="metadata"
-                playsInline
-                src={videoPresentation.src}
-              />
-            ) : (
-              <div className="moto-video-embed-wrap">
-                <iframe
-                  className="moto-video-embed"
-                  src={videoPresentation.src}
-                  title={`Video de ${modelo}`}
-                  loading="lazy"
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                  allowFullScreen
-                />
-              </div>
-            )}
+            <video
+              className="moto-video-player"
+              controls
+              preload="metadata"
+              playsInline
+              src={videoPresentationUrl}
+            />
           </section>
         )}
 

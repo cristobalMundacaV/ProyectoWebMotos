@@ -202,7 +202,6 @@ export default function CatalogoMotos() {
       ),
       cilindrada: String(moto.cilindrada ?? ""),
       anio: String(moto.anio ?? ""),
-      stock: String(moto.stock ?? 0),
       orden_carrusel: String(moto.orden_carrusel ?? 1),
       es_destacada: Boolean(moto.es_destacada),
       activa: moto.activa !== false,
@@ -338,7 +337,6 @@ export default function CatalogoMotos() {
     }
     payload.append("cilindrada", editForm.cilindrada);
     payload.append("anio", editForm.anio);
-    payload.append("stock", editForm.stock);
     payload.append("orden_carrusel", editForm.orden_carrusel || "1");
     payload.append("es_destacada", String(editForm.es_destacada));
     payload.append("activa", String(editForm.activa));
@@ -726,18 +724,6 @@ export default function CatalogoMotos() {
                   value={editForm.anio}
                   onChange={handleEditInputChange}
                   min="1900"
-                  required
-                />
-              </label>
-
-              <label>
-                Stock *
-                <input
-                  type="number"
-                  name="stock"
-                  value={editForm.stock}
-                  onChange={handleEditInputChange}
-                  min="0"
                   required
                 />
               </label>
