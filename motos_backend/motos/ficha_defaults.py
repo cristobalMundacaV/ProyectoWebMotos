@@ -189,7 +189,9 @@ def ensure_moto_ficha_defaults(moto):
             moto=moto,
             tipo_atributo=tipo,
             nombre=row["nombre"],
-            valor=row["valor"] or "",
+            # Una moto sin ficha definida no debe heredar valores activos desde
+            # otras motos. Los items nuevos parten siempre "sin definir".
+            valor="",
             orden=row["orden"] or 1,
         )
         existing_keys.add(key)
