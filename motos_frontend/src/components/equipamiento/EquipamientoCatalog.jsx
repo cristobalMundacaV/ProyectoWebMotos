@@ -31,13 +31,6 @@ function getConfig(variant) {
   };
 }
 
-function getImageFileName(path) {
-  if (!path) return "";
-  const normalized = String(path).split("?")[0];
-  const segments = normalized.split("/");
-  return segments[segments.length - 1] || "";
-}
-
 function formatTitleCase(value) {
   return String(value || "")
     .trim()
@@ -77,7 +70,7 @@ export default function EquipamientoCatalog({ variant = "accesorios" }) {
   const [editOptions, setEditOptions] = useState({ subcategorias: [], marcas: [] });
   const [savingEdit, setSavingEdit] = useState(false);
   const [editError, setEditError] = useState("");
-  const [editImagePreview, setEditImagePreview] = useState("");
+  const [editNewImagePreviews, setEditNewImagePreviews] = useState([]);
   const [deleteCandidate, setDeleteCandidate] = useState(null);
   const [deletingProducto, setDeletingProducto] = useState(false);
   const editFileInputRef = useRef(null);
@@ -162,9 +155,11 @@ export default function EquipamientoCatalog({ variant = "accesorios" }) {
 
   useEffect(() => {
     return () => {
-      if (editImagePreview) URL.revokeObjectURL(editImagePreview);
+      editNewImagePreviews.forEach((preview) => {
+        if (preview?.url) URL.revokeObjectURL(preview.url);
+      });
     };
-  }, [editImagePreview]);
+  }, [editNewImagePreviews]);
 
   useEffect(() => {
     if (!editingProducto && !deleteCandidate) return undefined;
@@ -283,8 +278,10 @@ export default function EquipamientoCatalog({ variant = "accesorios" }) {
 
   function openEditModal(producto) {
     setEditError("");
-    if (editImagePreview) URL.revokeObjectURL(editImagePreview);
-    setEditImagePreview("");
+    editNewImagePreviews.forEach((preview) => {
+      if (preview?.url) URL.revokeObjectURL(preview.url);
+    });
+    setEditNewImagePreviews([]);
 
     const subcategorias = Array.isArray(editOptions?.subcategorias) ? editOptions.subcategorias : [];
     const marcas = Array.isArray(editOptions?.marcas) ? editOptions.marcas : [];
@@ -304,6 +301,15 @@ export default function EquipamientoCatalog({ variant = "accesorios" }) {
       es_destacado: Boolean(producto.es_destacado),
       activo: producto.activo !== false,
       imagenes_galeria: [],
+      imagenes_actuales: Array.isArray(producto.imagenes)
+        ? producto.imagenes
+            .filter((item) => item?.id && item?.imagen)
+            .map((item) => ({
+              id: item.id,
+              imagen: item.imagen,
+            }))
+        : [],
+      imagenes_eliminar: [],
     });
   }
 
@@ -312,8 +318,10 @@ export default function EquipamientoCatalog({ variant = "accesorios" }) {
     setEditingProducto(null);
     setEditForm(null);
     setEditError("");
-    if (editImagePreview) URL.revokeObjectURL(editImagePreview);
-    setEditImagePreview("");
+    editNewImagePreviews.forEach((preview) => {
+      if (preview?.url) URL.revokeObjectURL(preview.url);
+    });
+    setEditNewImagePreviews([]);
   }
 
   function handleEditInputChange(event) {
@@ -335,10 +343,60 @@ export default function EquipamientoCatalog({ variant = "accesorios" }) {
     });
 
     if (type === "file" && name === "imagenes_galeria") {
-      if (editImagePreview) URL.revokeObjectURL(editImagePreview);
-      const file = files?.[0] || null;
-      setEditImagePreview(file ? URL.createObjectURL(file) : "");
+      setEditNewImagePreviews((prev) => {
+        prev.forEach((preview) => {
+          if (preview?.url) URL.revokeObjectURL(preview.url);
+        });
+        const fileList = Array.from(files || []);
+        return fileList.map((file, index) => ({
+          id: `${file.name}-${index}-${file.lastModified || Date.now()}`,
+          name: file.name,
+          url: URL.createObjectURL(file),
+        }));
+      });
     }
+  }
+
+  function removeExistingImage(imageId) {
+    setEditForm((prev) => {
+      if (!prev) return prev;
+      const idStr = String(imageId);
+      const nextCurrent = (Array.isArray(prev.imagenes_actuales) ? prev.imagenes_actuales : []).filter(
+        (imageItem) => String(imageItem.id) !== idStr
+      );
+      const nextDelete = Array.isArray(prev.imagenes_eliminar) ? [...prev.imagenes_eliminar] : [];
+      if (!nextDelete.includes(idStr)) nextDelete.push(idStr);
+      return {
+        ...prev,
+        imagenes_actuales: nextCurrent,
+        imagenes_eliminar: nextDelete,
+      };
+    });
+  }
+
+  function removeNewImage(previewId) {
+    setEditForm((prev) => {
+      if (!prev) return prev;
+      const currentFiles = Array.isArray(prev.imagenes_galeria) ? prev.imagenes_galeria : [];
+      const paired = editNewImagePreviews.map((preview, index) => ({ preview, file: currentFiles[index] }));
+      const filtered = paired.filter((entry) => entry.preview?.id !== previewId);
+      return {
+        ...prev,
+        imagenes_galeria: filtered.map((entry) => entry.file).filter(Boolean),
+      };
+    });
+
+    setEditNewImagePreviews((prev) => {
+      const next = [];
+      prev.forEach((preview) => {
+        if (preview?.id === previewId) {
+          if (preview?.url) URL.revokeObjectURL(preview.url);
+          return;
+        }
+        next.push(preview);
+      });
+      return next;
+    });
   }
 
   function openDeleteModal(producto) {
@@ -408,6 +466,8 @@ export default function EquipamientoCatalog({ variant = "accesorios" }) {
       payload.append("imagen_principal", primaryImageFromGallery);
     }
     galleryFiles.forEach((file) => payload.append("imagenes", file));
+    const deleteImageIds = Array.isArray(editForm.imagenes_eliminar) ? editForm.imagenes_eliminar : [];
+    deleteImageIds.forEach((imageId) => payload.append("imagenes_eliminar", String(imageId)));
 
     try {
       const updated = await updateProductoAdmin(editingProducto.id, payload);
@@ -420,9 +480,6 @@ export default function EquipamientoCatalog({ variant = "accesorios" }) {
     }
   }
 
-  const previewSrc =
-    editImagePreview ||
-    (editingProducto?.imagen_principal ? buildMediaUrl(editingProducto.imagen_principal) : "");
   const activeFiltersCount = selectedCategorias.length + selectedMarcas.length + selectedMotos.length;
 
   function clearFilters() {
@@ -783,17 +840,66 @@ export default function EquipamientoCatalog({ variant = "accesorios" }) {
                   <span className="equip-edit-file-name">
                     {Array.isArray(editForm.imagenes_galeria) && editForm.imagenes_galeria.length > 0
                       ? `${editForm.imagenes_galeria.length} archivos seleccionados.`
-                      : getImageFileName(editingProducto?.imagen_principal) || "No se ha seleccionado ningun archivo."}
+                      : "No se han seleccionado archivos nuevos."}
                   </span>
                 </div>
               </label>
 
-              {previewSrc ? (
-                <div className="equip-edit-preview equip-edit-span-2">
-                  <p>Vista previa</p>
-                  <img src={previewSrc} alt={editingProducto.nombre || "Producto"} />
-                </div>
-              ) : null}
+              <div className="equip-edit-preview equip-edit-span-2">
+                <p>Vista previa</p>
+
+                {Array.isArray(editForm.imagenes_actuales) && editForm.imagenes_actuales.length > 0 && (
+                  <>
+                    <span className="equip-edit-preview-label">Imagenes actuales</span>
+                    <div className="equip-edit-preview-grid">
+                      {editForm.imagenes_actuales.map((imageItem) => (
+                        <div key={imageItem.id} className="equip-edit-preview-item">
+                          <button
+                            type="button"
+                            className="equip-edit-preview-remove"
+                            onClick={() => removeExistingImage(imageItem.id)}
+                            aria-label="Eliminar imagen actual"
+                            title="Eliminar imagen"
+                          >
+                            x
+                          </button>
+                          <img
+                            src={buildMediaUrl(imageItem.imagen)}
+                            alt={`${editingProducto.nombre || "Producto"} ${imageItem.id}`}
+                          />
+                        </div>
+                      ))}
+                    </div>
+                  </>
+                )}
+
+                {editNewImagePreviews.length > 0 && (
+                  <>
+                    <span className="equip-edit-preview-label">Nuevas imagenes a subir</span>
+                    <div className="equip-edit-preview-grid">
+                      {editNewImagePreviews.map((previewItem) => (
+                        <div key={previewItem.id} className="equip-edit-preview-item">
+                          <button
+                            type="button"
+                            className="equip-edit-preview-remove"
+                            onClick={() => removeNewImage(previewItem.id)}
+                            aria-label="Quitar imagen seleccionada"
+                            title="Quitar imagen"
+                          >
+                            x
+                          </button>
+                          <img src={previewItem.url} alt={previewItem.name || "Imagen nueva"} />
+                        </div>
+                      ))}
+                    </div>
+                  </>
+                )}
+
+                {(!Array.isArray(editForm.imagenes_actuales) || editForm.imagenes_actuales.length === 0) &&
+                  editNewImagePreviews.length === 0 && (
+                    <span className="equip-edit-preview-empty">Este producto no tiene imagenes cargadas.</span>
+                  )}
+              </div>
 
               {editError && <p className="equip-edit-error">{editError}</p>}
 

@@ -2,6 +2,7 @@ from rest_framework import status
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from django.db.models import Max, Q
+import re
 
 from catalogo.models import Marca, SubcategoriaProducto
 from clientes.permissions import has_admin_access
@@ -34,6 +35,30 @@ def _save_producto_gallery_files(producto, files):
 	if first_created_image and not producto.imagen_principal:
 		producto.imagen_principal = first_created_image.imagen
 		producto.save(update_fields=["imagen_principal"])
+
+
+def _parse_image_ids(raw_ids):
+	ids = set()
+	for raw_item in raw_ids or []:
+		for match in re.findall(r"\d+", str(raw_item or "")):
+			try:
+				ids.add(int(match))
+			except (TypeError, ValueError):
+				continue
+	return ids
+
+
+def _sync_producto_main_image(producto):
+	if not producto:
+		return
+	main_image_name = str(getattr(producto.imagen_principal, "name", "") or "").strip()
+	if main_image_name:
+		has_main_in_gallery = producto.imagenes.filter(imagen=main_image_name).exists()
+		if has_main_in_gallery:
+			return
+	first_gallery_image = producto.imagenes.order_by("orden", "id").first()
+	producto.imagen_principal = first_gallery_image.imagen if first_gallery_image else None
+	producto.save(update_fields=["imagen_principal"])
 
 
 def _filter_marcas_por_tipo(queryset, tipo):
@@ -255,7 +280,19 @@ def admin_producto_detalle(request, producto_id):
 	serializer = ProductoAdminUpdateSerializer(producto, data=request.data, partial=True)
 	serializer.is_valid(raise_exception=True)
 	serializer.save()
+
+	raw_delete_ids = []
+	if hasattr(request.data, "getlist"):
+		raw_delete_ids.extend(request.data.getlist("imagenes_eliminar"))
+	if request.data.get("imagenes_eliminar"):
+		raw_delete_ids.append(request.data.get("imagenes_eliminar"))
+
+	image_ids_to_delete = _parse_image_ids(raw_delete_ids)
+	if image_ids_to_delete:
+		producto.imagenes.filter(id__in=image_ids_to_delete).delete()
+
 	_save_producto_gallery_files(producto, request.FILES.getlist("imagenes"))
+	_sync_producto_main_image(producto)
 
 	response_serializer = ProductoSerializer(producto)
 	return Response(response_serializer.data)
