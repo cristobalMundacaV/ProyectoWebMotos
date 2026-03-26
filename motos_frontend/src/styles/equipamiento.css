@@ -473,6 +473,7 @@
 }
 
 .equip-edit-form input,
+.equip-edit-form select,
 .equip-edit-form textarea {
   border: 1px solid #cfd5df;
   border-radius: 10px;
@@ -483,6 +484,27 @@
   color: #181f2b;
 }
 
+.equip-edit-form select {
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  cursor: pointer;
+  padding-right: 38px;
+  background-image:
+    linear-gradient(45deg, transparent 50%, #516179 50%),
+    linear-gradient(135deg, #516179 50%, transparent 50%);
+  background-position:
+    calc(100% - 18px) calc(50% - 2px),
+    calc(100% - 12px) calc(50% - 2px);
+  background-size: 6px 6px, 6px 6px;
+  background-repeat: no-repeat;
+}
+
+.equip-edit-form select:hover {
+  border-color: rgba(14, 116, 144, 0.45);
+  background-color: #fcfeff;
+}
+
 .equip-edit-form textarea {
   height: auto;
   min-height: 112px;
@@ -491,9 +513,10 @@
 }
 
 .equip-edit-form input:focus,
+.equip-edit-form select:focus,
 .equip-edit-form textarea:focus {
-  border-color: #2b6dff;
-  box-shadow: 0 0 0 3px rgba(43, 109, 255, 0.14);
+  border-color: #0f766e;
+  box-shadow: 0 0 0 3px rgba(15, 118, 110, 0.16);
   outline: none;
 }
 

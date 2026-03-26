@@ -206,7 +206,7 @@ export default function CatalogoMotos() {
       orden_carrusel: String(moto.orden_carrusel ?? 1),
       es_destacada: Boolean(moto.es_destacada),
       activa: moto.activa !== false,
-      imagen_principal: null,
+      imagenes_galeria: [],
       imagen_con_maletas: null,
       video_presentacion: moto.video_presentacion || "",
     });
@@ -226,7 +226,11 @@ export default function CatalogoMotos() {
 
   function handleEditInputChange(event) {
     const { name, type, checked, value, files } = event.target;
-    const file = type === "file" ? files?.[0] || null : null;
+    const file = type === "file"
+      ? name === "imagenes_galeria"
+        ? Array.from(files || [])
+        : files?.[0] || null
+      : null;
 
     setEditForm((prev) => {
       if (!prev) return prev;
@@ -271,10 +275,10 @@ export default function CatalogoMotos() {
       return nextForm;
     });
 
-    if (type === "file" && name === "imagen_principal") {
+    if (type === "file" && (name === "imagen_principal" || name === "imagenes_galeria")) {
       if (editImagePreview) URL.revokeObjectURL(editImagePreview);
-      const file = files?.[0];
-      setEditImagePreview(file ? URL.createObjectURL(file) : "");
+      const firstFile = name === "imagenes_galeria" ? files?.[0] : files?.[0];
+      setEditImagePreview(firstFile ? URL.createObjectURL(firstFile) : "");
     }
 
     if (type === "file" && name === "imagen_con_maletas") {
@@ -343,9 +347,14 @@ export default function CatalogoMotos() {
     payload.append("es_destacada", String(editForm.es_destacada));
     payload.append("activa", String(editForm.activa));
 
-    if (editForm.imagen_principal) {
-      payload.append("imagen_principal", editForm.imagen_principal);
+    const galleryFiles = Array.isArray(editForm.imagenes_galeria)
+      ? editForm.imagenes_galeria.filter(Boolean)
+      : [];
+    const primaryImageFromGallery = galleryFiles[0] || null;
+    if (primaryImageFromGallery) {
+      payload.append("imagen_principal", primaryImageFromGallery);
     }
+    galleryFiles.forEach((file) => payload.append("imagenes", file));
     if (editForm.imagen_con_maletas) {
       payload.append("imagen_con_maletas", editForm.imagen_con_maletas);
     }
@@ -732,14 +741,15 @@ export default function CatalogoMotos() {
               </label>
 
               <label className="moto-edit-span-2">
-                Imagen principal
+                Imagenes
                 <div className="moto-edit-file-picker">
                   <input
                     ref={editFileInputRef}
                     className="moto-edit-file-hidden"
                     type="file"
-                    name="imagen_principal"
+                    name="imagenes_galeria"
                     accept="image/*"
+                    multiple
                     onChange={handleEditInputChange}
                   />
                   <button
@@ -750,7 +760,9 @@ export default function CatalogoMotos() {
                     Examinar...
                   </button>
                   <span className="moto-edit-file-name">
-                    {editForm.imagen_principal?.name || "No se ha seleccionado ningun archivo."}
+                    {Array.isArray(editForm.imagenes_galeria) && editForm.imagenes_galeria.length > 0
+                      ? `${editForm.imagenes_galeria.length} archivos seleccionados.`
+                      : "No se ha seleccionado ningun archivo."}
                   </span>
                 </div>
               </label>

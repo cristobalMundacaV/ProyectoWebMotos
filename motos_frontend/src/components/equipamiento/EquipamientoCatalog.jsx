@@ -291,7 +291,7 @@ export default function EquipamientoCatalog({ variant = "accesorios" }) {
       precio: String(parsePrecioEntero(producto.precio)),
       es_destacado: Boolean(producto.es_destacado),
       activo: producto.activo !== false,
-      imagen_principal: null,
+      imagenes_galeria: [],
     });
   }
 
@@ -309,16 +309,22 @@ export default function EquipamientoCatalog({ variant = "accesorios" }) {
 
     setEditForm((prev) => {
       if (!prev) return prev;
-      const nextValue = type === "checkbox" ? checked : type === "file" ? files?.[0] || null : value;
+      const nextValue = type === "checkbox"
+        ? checked
+        : type === "file"
+          ? name === "imagenes_galeria"
+            ? Array.from(files || [])
+            : files?.[0] || null
+          : value;
       return {
         ...prev,
         [name]: type === "file" ? nextValue : name === "precio" ? normalizePrecioInput(value) : nextValue,
       };
     });
 
-    if (type === "file") {
+    if (type === "file" && name === "imagenes_galeria") {
       if (editImagePreview) URL.revokeObjectURL(editImagePreview);
-      const file = files?.[0];
+      const file = files?.[0] || null;
       setEditImagePreview(file ? URL.createObjectURL(file) : "");
     }
   }
@@ -382,9 +388,14 @@ export default function EquipamientoCatalog({ variant = "accesorios" }) {
     payload.append("precio", String(precioEntero));
     payload.append("es_destacado", String(Boolean(editForm.es_destacado)));
     payload.append("activo", String(Boolean(editForm.activo)));
-    if (editForm.imagen_principal) {
-      payload.append("imagen_principal", editForm.imagen_principal);
+    const galleryFiles = Array.isArray(editForm.imagenes_galeria)
+      ? editForm.imagenes_galeria.filter(Boolean)
+      : [];
+    const primaryImageFromGallery = galleryFiles[0] || null;
+    if (primaryImageFromGallery) {
+      payload.append("imagen_principal", primaryImageFromGallery);
     }
+    galleryFiles.forEach((file) => payload.append("imagenes", file));
 
     try {
       const updated = await updateProductoAdmin(editingProducto.id, payload);
@@ -710,14 +721,15 @@ export default function EquipamientoCatalog({ variant = "accesorios" }) {
               </label>
 
               <label className="equip-edit-span-2">
-                Imagen principal
+                Imagenes
                 <div className="equip-edit-file-picker">
                   <input
                     ref={editFileInputRef}
                     className="equip-edit-file-hidden"
                     type="file"
-                    name="imagen_principal"
+                    name="imagenes_galeria"
                     accept="image/*"
+                    multiple
                     onChange={handleEditInputChange}
                   />
                   <button
@@ -728,9 +740,9 @@ export default function EquipamientoCatalog({ variant = "accesorios" }) {
                     Examinar...
                   </button>
                   <span className="equip-edit-file-name">
-                    {editForm.imagen_principal?.name ||
-                      getImageFileName(editingProducto?.imagen_principal) ||
-                      "No se ha seleccionado ningun archivo."}
+                    {Array.isArray(editForm.imagenes_galeria) && editForm.imagenes_galeria.length > 0
+                      ? `${editForm.imagenes_galeria.length} archivos seleccionados.`
+                      : getImageFileName(editingProducto?.imagen_principal) || "No se ha seleccionado ningun archivo."}
                   </span>
                 </div>
               </label>
