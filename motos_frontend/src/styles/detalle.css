@@ -646,6 +646,11 @@
   padding-right: 20px;
 }
 
+/* Contacto embebido en vistas de detalle */
+.detalle-page .contacto {
+  background: #efefef;
+}
+
 .moto-hero-block {
   position: relative;
   min-height: 460px;
