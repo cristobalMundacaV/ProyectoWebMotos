@@ -2173,6 +2173,23 @@
   font-size: 1.28rem;
 }
 
+.admin-ficha-model-search {
+  width: min(360px, 100%);
+  min-height: 38px;
+  border: 1px solid #d7dce3;
+  border-radius: 10px;
+  background: #fff;
+  padding: 8px 11px;
+  font: inherit;
+  color: #0f172a;
+}
+
+.admin-ficha-model-search:focus {
+  outline: none;
+  border-color: #0f6e6e;
+  box-shadow: 0 0 0 3px rgba(15, 110, 110, 0.12);
+}
+
 .admin-ficha-toolbar {
   display: grid;
   justify-items: end;
@@ -2318,6 +2335,20 @@
   gap: 10px;
 }
 
+.admin-ficha-save-actions .admin-mantencion-save-btn {
+  background: #16a34a;
+  border: 1px solid #15803d;
+  color: #ffffff;
+}
+
+.admin-ficha-save-actions .admin-mantencion-save-btn:disabled {
+  background: #16a34a;
+  border-color: #15803d;
+  color: #ffffff;
+  opacity: 1;
+  box-shadow: none;
+}
+
 .admin-ficha-outline-action {
   border: 1px solid #0f6e6e;
   background: #ffffff;
@@ -2431,6 +2462,16 @@
 }
 
 @media (max-width: 980px) {
+  .admin-ficha-model-head {
+    width: 100%;
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .admin-ficha-model-search {
+    width: 100%;
+  }
+
   .admin-ficha-items-grid {
     grid-template-columns: 1fr;
   }

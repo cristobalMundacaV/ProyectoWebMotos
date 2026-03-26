@@ -180,7 +180,7 @@ export default function FichasTecnicasPage({ activeSection, motos = [] }) {
   const [showCreateItemModal, setShowCreateItemModal] = useState(false);
   const [newItemName, setNewItemName] = useState("");
   const [newItemValue, setNewItemValue] = useState("");
-  const [motoSearch, setMotoSearch] = useState("");
+  const [fichaSearch, setFichaSearch] = useState("");
   const [toasts, setToasts] = useState([]);
 
   function dismissToast(id) {
@@ -202,23 +202,11 @@ export default function FichasTecnicasPage({ activeSection, motos = [] }) {
 
   const motosDisponibles = useMemo(() => normalizeArray(motos), [motos]);
 
-  const filteredMotos = useMemo(() => {
-    const term = normalizeItemKey(motoSearch);
-    if (!term) return motosDisponibles;
-
-    return motosDisponibles.filter((moto) => {
-      const modelo = normalizeItemKey(moto.modelo);
-      const marca = normalizeItemKey(moto.marca_nombre);
-      const categoria = normalizeItemKey(moto.categoria_nombre);
-      return modelo.includes(term) || marca.includes(term) || categoria.includes(term);
-    });
-  }, [motosDisponibles, motoSearch]);
-
   useEffect(() => {
     if (!selectedMotoId) return;
-    if (filteredMotos.some((moto) => String(moto.id) === String(selectedMotoId))) return;
+    if (motosDisponibles.some((moto) => String(moto.id) === String(selectedMotoId))) return;
     setSelectedMotoId("");
-  }, [filteredMotos, selectedMotoId]);
+  }, [motosDisponibles, selectedMotoId]);
 
   useEffect(() => {
     if (!isFichaSection || !selectedMotoId) return;
@@ -309,6 +297,32 @@ export default function FichasTecnicasPage({ activeSection, motos = [] }) {
     if (groupedSections.length === 0) return null;
     return groupedSections.find((section) => section.nombre === selectedSectionName) || groupedSections[0];
   }, [groupedSections, selectedSectionName]);
+
+  const normalizedFichaSearch = useMemo(() => normalizeItemKey(fichaSearch), [fichaSearch]);
+
+  const displayedSections = useMemo(() => {
+    if (!selectedSection) return [];
+    if (!normalizedFichaSearch) return [selectedSection];
+
+    return groupedSections
+      .map((section) => {
+        const sectionKey = normalizeItemKey(section.nombre);
+        const filteredItems = normalizeArray(section.items).filter((item) => {
+          const itemName = normalizeItemKey(item.nombre);
+          const currentValue = normalizeItemKey(draftById[item.id] ?? item.valor);
+          return (
+            sectionKey.includes(normalizedFichaSearch) ||
+            itemName.includes(normalizedFichaSearch) ||
+            currentValue.includes(normalizedFichaSearch)
+          );
+        });
+        return {
+          ...section,
+          items: filteredItems,
+        };
+      })
+      .filter((section) => section.items.length > 0);
+  }, [selectedSection, normalizedFichaSearch, groupedSections, draftById]);
 
   useEffect(() => {
     if (groupedSections.length === 0) {
@@ -631,21 +645,11 @@ export default function FichasTecnicasPage({ activeSection, motos = [] }) {
       <article className="admin-panel-card">
         <div className="admin-card-header">
           <h2>Fichas tecnicas</h2>
-          <div className="admin-ficha-toolbar">
-            <span>Modelos a la izquierda y formulario editable a la derecha</span>
-            <input
-              type="search"
-              value={motoSearch}
-              onChange={(event) => setMotoSearch(event.target.value)}
-              placeholder="Buscar modelo, marca o categoria..."
-              aria-label="Buscar modelo en fichas tecnicas"
-            />
-          </div>
         </div>
 
         <div className="admin-mantencion-fichas-layout admin-ficha-layout">
           <aside className="admin-mantencion-fichas-list admin-ficha-motos-list">
-            {filteredMotos.map((moto) => {
+            {motosDisponibles.map((moto) => {
               const isActive = String(moto.id) === String(selectedMotoId);
               return (
                 <button
@@ -663,11 +667,9 @@ export default function FichasTecnicasPage({ activeSection, motos = [] }) {
                 </button>
               );
             })}
-            {filteredMotos.length === 0 && (
+            {motosDisponibles.length === 0 && (
               <p className="admin-empty">
-                {motosDisponibles.length === 0
-                  ? "No hay motos disponibles."
-                  : "No se encontraron modelos con esa busqueda."}
+                No hay motos disponibles.
               </p>
             )}
           </aside>
@@ -680,10 +682,17 @@ export default function FichasTecnicasPage({ activeSection, motos = [] }) {
             {selectedMoto && (
               <>
                 <div className="admin-ficha-model-head">
-                  <h3>{selectedMoto.modelo || "Ficha tecnica"}</h3>
-                  <span className="admin-status-pill status-aceptada">
-                    {selectedMoto.marca_nombre || "MOTO"}
-                  </span>
+                  <h3>{`${selectedMoto.modelo || "FICHA TECNICA"} - ${normalizeText(
+                    selectedMoto.marca_nombre || "MOTO"
+                  ).toUpperCase()}`}</h3>
+                  <input
+                    type="search"
+                    className="admin-ficha-model-search"
+                    value={fichaSearch}
+                    onChange={(event) => setFichaSearch(event.target.value)}
+                    placeholder="Buscar item, valor o seccion..."
+                    aria-label="Buscar items de ficha tecnica"
+                  />
                 </div>
 
                 {loading && <p className="admin-empty">Cargando items de ficha tecnica...</p>}
@@ -723,19 +732,19 @@ export default function FichasTecnicasPage({ activeSection, motos = [] }) {
                     </div>
 
                     <div className="admin-ficha-sections">
-                      {selectedSection && (
-                        <section key={selectedSection.nombre} className="admin-ficha-section-card">
+                      {displayedSections.map((section) => (
+                        <section key={section.nombre} className="admin-ficha-section-card">
                           <header className="admin-ficha-section-head">
-                            <h4>{selectedSection.nombre}</h4>
-                            <span>{selectedSection.items.length} items</span>
+                            <h4>{section.nombre}</h4>
+                            <span>{section.items.length} items</span>
                           </header>
 
                           <div className="admin-ficha-items-grid">
-                            {selectedSection.items.map((item) => (
+                            {section.items.map((item) => (
                               <label key={item.id} className="admin-ficha-item-field">
                                 <span>{getFichaItemLabel(item.nombre)}</span>
                                 {isBooleanToggleCandidate({
-                                  sectionName: selectedSection.nombre,
+                                  sectionName: section.nombre,
                                   itemName: item.nombre,
                                   currentValue: draftById[item.id],
                                 }) ? (
@@ -772,6 +781,9 @@ export default function FichasTecnicasPage({ activeSection, motos = [] }) {
                             ))}
                           </div>
                         </section>
+                      ))}
+                      {normalizedFichaSearch && displayedSections.length === 0 && (
+                        <p className="admin-empty">No se encontraron items que coincidan con la busqueda.</p>
                       )}
                     </div>
                   </>
