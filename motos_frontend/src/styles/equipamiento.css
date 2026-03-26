@@ -162,8 +162,8 @@
 
 .equip-grid {
   display: grid;
-  grid-template-columns: 1fr;
-  gap: 12px;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 16px;
   align-content: start;
   align-items: stretch;
 }
@@ -244,12 +244,11 @@
   border: 1px solid #dddddd;
   border-radius: 14px;
   overflow: hidden;
-  padding: 0 0 10px;
+  padding: 0;
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
-  display: flex;
-  flex-direction: column;
-  min-height: 0;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+  display: grid;
+  grid-template-rows: 1fr auto;
   height: 100%;
 }
 
@@ -260,6 +259,7 @@
 .equip-card:hover {
   transform: translateY(-4px);
   box-shadow: 0 16px 38px rgba(0, 0, 0, 0.16);
+  border-color: #cfd5df;
 }
 
 .equip-card-link {
@@ -273,6 +273,7 @@
 }
 
 .equip-card-image {
+  margin: 0;
   aspect-ratio: 1 / 1;
   background: #fff;
   display: grid;
@@ -286,14 +287,15 @@
   width: 100%;
   height: 100%;
   object-fit: contain;
+  object-position: center;
+  display: block;
 }
 
 .equip-card-body {
   display: flex;
   flex-direction: column;
-  min-height: 142px;
+  min-height: 170px;
   padding: 12px;
-  flex: 1;
   gap: 10px;
   justify-content: space-between;
 }
@@ -733,7 +735,7 @@
 
 @media (max-width: 1200px) {
   .equip-grid {
-    grid-template-columns: repeat(3, minmax(180px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
   }
 }
 
@@ -822,7 +824,7 @@
   }
 
   .equip-grid {
-    grid-template-columns: repeat(2, minmax(160px, 1fr));
+    grid-template-columns: repeat(2, minmax(170px, 1fr));
     gap: 10px;
   }
 
@@ -891,7 +893,7 @@
   }
 
   .equip-grid {
-    grid-template-columns: repeat(3, minmax(180px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
     gap: 20px;
   }
 
@@ -905,28 +907,17 @@
 }
 
 .equip-page--accesorios .equip-card {
-  padding: 0;
-  display: flex;
-  flex-direction: column;
   min-height: 430px;
+  grid-template-rows: 250px 1fr;
 }
 
 .equip-page--accesorios .equip-card-image {
   aspect-ratio: auto;
-  height: auto;
-  flex: 0 0 250px;
+  height: 250px;
 }
 
 .equip-page--accesorios .equip-card-body {
   min-height: 180px;
-  max-height: 180px;
-  flex: 0 0 180px;
-  overflow: hidden;
-}
-
-.equip-page--accesorios .equip-card h3 {
-  min-height: 2.5em;
-  max-height: 2.5em;
 }
 
 .equip-page--accesorios .equip-card-bottom {
@@ -936,32 +927,30 @@
 @media (max-width: 560px) {
   .equip-page--accesorios .equip-card {
     min-height: 380px;
+    grid-template-rows: 210px 1fr;
   }
 
   .equip-page--accesorios .equip-card-image {
-    flex-basis: 210px;
+    height: 210px;
   }
 
   .equip-page--accesorios .equip-card-body {
-    min-height: 170px;
-    max-height: 170px;
-    flex-basis: 170px;
+    min-height: 160px;
   }
 }
 
 @media (min-width: 961px) {
   .equip-page--accesorios .equip-card {
     min-height: 460px;
+    grid-template-rows: 280px 1fr;
   }
 
   .equip-page--accesorios .equip-card-image {
-    flex-basis: 280px;
+    height: 280px;
   }
 
   .equip-page--accesorios .equip-card-body {
     min-height: 180px;
-    max-height: 180px;
-    flex-basis: 180px;
   }
 }
 

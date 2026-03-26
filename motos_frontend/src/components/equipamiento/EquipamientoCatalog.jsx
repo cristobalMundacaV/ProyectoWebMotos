@@ -556,7 +556,7 @@ export default function EquipamientoCatalog({ variant = "accesorios" }) {
             const detailPath = `/producto/${producto.slug}`;
             const cardContent = (
               <>
-                <div className="equip-card-image">
+                <figure className="equip-card-image">
                   <img
                     src={
                       producto.imagen_principal
@@ -565,6 +565,10 @@ export default function EquipamientoCatalog({ variant = "accesorios" }) {
                     }
                     alt={producto.nombre}
                     loading="lazy"
+                    decoding="async"
+                    width="800"
+                    height="800"
+                    sizes="(max-width: 560px) 100vw, (max-width: 960px) 50vw, (max-width: 1400px) 33vw, 25vw"
                     onError={(event) => {
                       event.currentTarget.onerror = null;
                       event.currentTarget.src = fallbackImage;
@@ -598,7 +602,7 @@ export default function EquipamientoCatalog({ variant = "accesorios" }) {
                       </button>
                     </div>
                   )}
-                </div>
+                </figure>
                 <div className="equip-card-body">
                   <h3>{formatTitleCase(producto.nombre)}</h3>
                   <div className="equip-card-bottom">
