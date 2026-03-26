@@ -46,8 +46,11 @@ export default function MotosPage({
   const MODELOS_PAGE_SIZE = 6;
   const RECENT_MOTOS_PAGE_SIZE = 7;
   const currentYear = new Date().getFullYear();
-  const MIN_MOTO_YEAR = Math.max(2010, currentYear - 12);
-  const motoYearOptions = Array.from({ length: currentYear - MIN_MOTO_YEAR + 1 }, (_, index) => String(currentYear - index));
+  const MIN_MOTO_YEAR = 1990;
+  const motoYearOptions = Array.from(
+    { length: currentYear - MIN_MOTO_YEAR + 1 },
+    (_, index) => String(MIN_MOTO_YEAR + index)
+  );
   const [tablePages, setTablePages] = useState({
     marcas: 1,
     modelosMoto: 1,
@@ -394,7 +397,7 @@ export default function MotosPage({
               <textarea name="descripcion" value={motoForm.descripcion} onChange={onMotoInputChange} rows={4} />
             </label>
 
-            <label className="admin-form-span-2">
+            <label>
               Video de presentacion (opcional)
               <input
                 type="url"
@@ -402,19 +405,6 @@ export default function MotosPage({
                 value={motoForm.video_presentacion || ""}
                 placeholder="https://..."
                 onChange={onMotoInputChange}
-              />
-            </label>
-
-            <label>
-              Precio *
-              <input
-                type="text"
-                name="precio"
-                value={formatPrecio(motoForm.precio)}
-                onChange={onMotoPrecioInputChange}
-                inputMode="decimal"
-                placeholder="Ej: 5.000.000"
-                required
               />
             </label>
 
@@ -431,6 +421,19 @@ export default function MotosPage({
             </label>
 
             <label>
+              Precio *
+              <input
+                type="text"
+                name="precio"
+                value={formatPrecio(motoForm.precio)}
+                onChange={onMotoPrecioInputChange}
+                inputMode="decimal"
+                placeholder="Ej: 5.000.000"
+                required
+              />
+            </label>
+
+            <label>
               Precio de lista *
               <input
                 type="text"
@@ -443,18 +446,41 @@ export default function MotosPage({
               />
             </label>
 
-            <label className="admin-form-check admin-form-check-compact">
+            <label className="admin-form-span-2">
+              Imagen principal
               <input
-                type="checkbox"
-                name="permite_variante_maletas"
-                checked={Boolean(motoForm.permite_variante_maletas)}
+                key={`moto-image-${motoImageInputKey}`}
+                type="file"
+                name="imagen_principal"
+                accept="image/*"
                 onChange={onMotoInputChange}
               />
-              Habilitar variante con maletas
             </label>
 
+            <div className="admin-moto-checks-row admin-form-span-2">
+              <label className="admin-form-check admin-form-check-compact">
+                <input
+                  type="checkbox"
+                  name="permite_variante_maletas"
+                  checked={Boolean(motoForm.permite_variante_maletas)}
+                  onChange={onMotoInputChange}
+                />
+                Habilitar variante con maletas
+              </label>
+
+              <label className="admin-form-check admin-form-check-compact">
+                <input type="checkbox" name="es_destacada" checked={motoForm.es_destacada} onChange={onMotoInputChange} />
+                Marcar como destacada
+              </label>
+
+              <label className="admin-form-check admin-form-check-compact">
+                <input type="checkbox" name="activa" checked={motoForm.activa} onChange={onMotoInputChange} />
+                Publicar como activa
+              </label>
+            </div>
+
             {motoForm.es_destacada && (
-              <label>
+              <label className="admin-form-span-2">
                 Orden carrusel *
                 <input
                   type="number"
@@ -499,17 +525,6 @@ export default function MotosPage({
               </label>
             )}
 
-            <label className="admin-form-span-2">
-              Imagen principal
-              <input
-                key={`moto-image-${motoImageInputKey}`}
-                type="file"
-                name="imagen_principal"
-                accept="image/*"
-                onChange={onMotoInputChange}
-              />
-            </label>
-
             {motoForm.permite_variante_maletas && (
               <label className="admin-form-span-2">
                 Imagen con maletas *
@@ -525,19 +540,7 @@ export default function MotosPage({
               </label>
             )}
 
-            <div className="admin-form-footer">
-              <div className="admin-form-footer-checks">
-                <label className="admin-form-check admin-form-check-compact">
-                  <input type="checkbox" name="es_destacada" checked={motoForm.es_destacada} onChange={onMotoInputChange} />
-                  Marcar como destacada
-                </label>
-
-                <label className="admin-form-check admin-form-check-compact">
-                  <input type="checkbox" name="activa" checked={motoForm.activa} onChange={onMotoInputChange} />
-                  Publicar como activa
-                </label>
-              </div>
-
+            <div className="admin-form-footer admin-form-footer-single-action">
               <button type="submit" className="admin-primary-action admin-form-footer-submit" disabled={motoSaving}>
                 {motoSaving ? "Guardando..." : "Guardar moto"}
               </button>

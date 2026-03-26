@@ -1276,6 +1276,17 @@
   margin-left: 0;
 }
 
+.admin-form-footer.admin-form-footer-single-action {
+  justify-content: flex-end;
+}
+
+.admin-moto-checks-row {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(180px, 1fr));
+  gap: 10px 16px;
+  align-items: center;
+}
+
 .admin-selected-file-name {
   display: block;
   margin-top: 6px;
@@ -3724,6 +3735,10 @@
     flex-direction: column;
     align-items: flex-start;
     gap: 10px;
+  }
+
+  .admin-moto-checks-row {
+    grid-template-columns: 1fr;
   }
 
   .admin-form-footer-submit {
