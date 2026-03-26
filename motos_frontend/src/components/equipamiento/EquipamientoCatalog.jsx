@@ -289,7 +289,6 @@ export default function EquipamientoCatalog({ variant = "accesorios" }) {
       nombre: producto.nombre || "",
       descripcion: producto.descripcion || "",
       precio: String(parsePrecioEntero(producto.precio)),
-      stock: String(producto.stock ?? 0),
       es_destacado: Boolean(producto.es_destacado),
       activo: producto.activo !== false,
       imagen_principal: null,
@@ -356,7 +355,6 @@ export default function EquipamientoCatalog({ variant = "accesorios" }) {
     setEditError("");
 
     const precioEntero = parsePrecioEntero(editForm.precio);
-    const stockNumero = Number(editForm.stock);
 
     if (!editForm.nombre.trim()) {
       setEditError("El nombre es obligatorio.");
@@ -370,7 +368,7 @@ export default function EquipamientoCatalog({ variant = "accesorios" }) {
       return;
     }
 
-    if (Number.isNaN(precioEntero) || Number.isNaN(stockNumero)) {
+    if (Number.isNaN(precioEntero)) {
       setEditError("Los datos ingresados no son validos.");
       setSavingEdit(false);
       return;
@@ -382,7 +380,6 @@ export default function EquipamientoCatalog({ variant = "accesorios" }) {
     payload.append("nombre", editForm.nombre.trim());
     payload.append("descripcion", editForm.descripcion || "");
     payload.append("precio", String(precioEntero));
-    payload.append("stock", String(stockNumero));
     payload.append("es_destacado", String(Boolean(editForm.es_destacado)));
     payload.append("activo", String(Boolean(editForm.activo)));
     if (editForm.imagen_principal) {
@@ -690,14 +687,9 @@ export default function EquipamientoCatalog({ variant = "accesorios" }) {
                 </select>
               </label>
 
-              <label className="equip-edit-span-2">
+              <label>
                 Nombre *
                 <input name="nombre" value={editForm.nombre} onChange={handleEditInputChange} maxLength={150} required />
-              </label>
-
-              <label className="equip-edit-span-2">
-                Descripcion
-                <textarea name="descripcion" value={editForm.descripcion} onChange={handleEditInputChange} rows={4} />
               </label>
 
               <label>
@@ -712,16 +704,9 @@ export default function EquipamientoCatalog({ variant = "accesorios" }) {
                 />
               </label>
 
-              <label>
-                Stock *
-                <input
-                  type="number"
-                  name="stock"
-                  value={editForm.stock}
-                  onChange={handleEditInputChange}
-                  min="0"
-                  required
-                />
+              <label className="equip-edit-span-2">
+                Descripcion
+                <textarea name="descripcion" value={editForm.descripcion} onChange={handleEditInputChange} rows={4} />
               </label>
 
               <label className="equip-edit-span-2">
