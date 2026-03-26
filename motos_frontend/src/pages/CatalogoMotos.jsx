@@ -494,55 +494,6 @@ export default function CatalogoMotos() {
             <p style={{ textAlign: "center" }}>{error}</p>
           ) : (
             <>
-              <div className="moto-catalog-toolbar">
-                <div className="moto-catalog-toolbar-actions">
-                  <label className="moto-search" htmlFor="moto-search-input">
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      width="16"
-                      height="16"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      aria-hidden="true"
-                    >
-                      <circle cx="11" cy="11" r="8" />
-                      <path d="m21 21-4.3-4.3" />
-                    </svg>
-                    <input
-                      id="moto-search-input"
-                      type="search"
-                      value={searchQuery}
-                      onChange={(event) => setSearchQuery(event.target.value)}
-                      placeholder="Buscar por modelo, marca o categoria..."
-                    />
-                  </label>
-
-                  <div className="moto-order-block">
-                    <label htmlFor="moto-order">Ordenar por</label>
-                    <select id="moto-order" value={order} onChange={(event) => setOrder(event.target.value)}>
-                      <option value="default">Destacados primero</option>
-                      <option value="precio-asc">Precio: menor a mayor</option>
-                      <option value="precio-desc">Precio: mayor a menor</option>
-                      <option value="cilindrada-asc">Cilindrada: menor a mayor</option>
-                      <option value="cilindrada-desc">Cilindrada: mayor a menor</option>
-                      <option value="anio-desc">Mas reciente</option>
-                    </select>
-                  </div>
-
-                  <button
-                    type="button"
-                    className="moto-filter-toggle-btn"
-                    onClick={() => setIsFiltersOpen((prev) => !prev)}
-                  >
-                    Filtros {activeFiltersCount > 0 ? `(${activeFiltersCount})` : ""}
-                  </button>
-                </div>
-              </div>
-
               <button
                 type="button"
                 className={isFiltersOpen ? "moto-filters-backdrop open" : "moto-filters-backdrop"}
@@ -551,121 +502,172 @@ export default function CatalogoMotos() {
               />
 
               <div className="moto-catalog-layout">
-              <aside className={isFiltersOpen ? "moto-catalog-sidebar open" : "moto-catalog-sidebar"}>
-                <div className="moto-sidebar-head">
-                  <h3>Filtros</h3>
-                  <button type="button" onClick={() => setIsFiltersOpen(false)}>
-                    Cerrar
-                  </button>
-                </div>
+                <aside className={isFiltersOpen ? "moto-catalog-sidebar open" : "moto-catalog-sidebar"}>
+                  <div className="moto-sidebar-head">
+                    <h3>Filtros</h3>
+                    <button type="button" onClick={() => setIsFiltersOpen(false)}>
+                      Cerrar
+                    </button>
+                  </div>
 
-                <div className="moto-filter-block">
-                  <h3>Marcas</h3>
-                  <div className="moto-filter-list">
-                    {marcas.map((marca) => (
-                      <label key={marca}>
+                  <div className="moto-filter-block">
+                    <h3>Marcas</h3>
+                    <div className="moto-filter-list">
+                      {marcas.map((marca) => (
+                        <label key={marca}>
+                          <input
+                            type="checkbox"
+                            checked={selectedMarcas.includes(marca)}
+                            onChange={() => toggleMarca(marca)}
+                          />
+                          <span>{formatTitleCase(marca)}</span>
+                        </label>
+                      ))}
+                      {marcas.length === 0 && <p className="moto-filter-empty">Sin marcas</p>}
+                    </div>
+                  </div>
+
+                  <div className="moto-filter-block">
+                    <h3>Categoria de motos</h3>
+                    <div className="moto-filter-list">
+                      {categorias.map((categoria) => (
+                        <label key={categoria}>
+                          <input
+                            type="checkbox"
+                            checked={selectedCategorias.includes(categoria)}
+                            onChange={() => toggleCategoria(categoria)}
+                          />
+                          <span>{formatTitleCase(categoria)}</span>
+                        </label>
+                      ))}
+                      {categorias.length === 0 && <p className="moto-filter-empty">Sin categorias</p>}
+                    </div>
+                  </div>
+
+                  <div className="moto-filter-block">
+                    <h3>Cilindrada</h3>
+                    <div className="moto-range-fields">
+                      <label>
+                        <span>Min cc</span>
                         <input
-                          type="checkbox"
-                          checked={selectedMarcas.includes(marca)}
-                          onChange={() => toggleMarca(marca)}
+                          type="number"
+                          min="0"
+                          value={cilindradaMin}
+                          onChange={(event) => setCilindradaMin(event.target.value)}
+                          placeholder="Ej: 250"
                         />
-                        <span>{formatTitleCase(marca)}</span>
                       </label>
-                    ))}
-                    {marcas.length === 0 && <p className="moto-filter-empty">Sin marcas</p>}
-                  </div>
-                </div>
-
-                <div className="moto-filter-block">
-                  <h3>Categoria de motos</h3>
-                  <div className="moto-filter-list">
-                    {categorias.map((categoria) => (
-                      <label key={categoria}>
+                      <label>
+                        <span>Max cc</span>
                         <input
-                          type="checkbox"
-                          checked={selectedCategorias.includes(categoria)}
-                          onChange={() => toggleCategoria(categoria)}
+                          type="number"
+                          min="0"
+                          value={cilindradaMax}
+                          onChange={(event) => setCilindradaMax(event.target.value)}
+                          placeholder="Ej: 650"
                         />
-                        <span>{formatTitleCase(categoria)}</span>
                       </label>
+                    </div>
+                  </div>
+
+                  {activeFiltersCount > 0 && (
+                    <button type="button" className="moto-clear-filters-btn" onClick={clearFilters}>
+                      Limpiar filtros
+                    </button>
+                  )}
+                </aside>
+
+                <div className="moto-catalog-content">
+                  <div className="moto-catalog-toolbar">
+                    <div className="moto-catalog-toolbar-actions">
+                      <label className="moto-search" htmlFor="moto-search-input">
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          width="16"
+                          height="16"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="2"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          aria-hidden="true"
+                        >
+                          <circle cx="11" cy="11" r="8" />
+                          <path d="m21 21-4.3-4.3" />
+                        </svg>
+                        <input
+                          id="moto-search-input"
+                          type="search"
+                          value={searchQuery}
+                          onChange={(event) => setSearchQuery(event.target.value)}
+                          placeholder="Buscar por modelo, marca o categoria..."
+                        />
+                      </label>
+
+                      <div className="moto-order-block">
+                        <label htmlFor="moto-order">Ordenar por</label>
+                        <select id="moto-order" value={order} onChange={(event) => setOrder(event.target.value)}>
+                          <option value="default">Destacados primero</option>
+                          <option value="precio-asc">Precio: menor a mayor</option>
+                          <option value="precio-desc">Precio: mayor a menor</option>
+                          <option value="cilindrada-asc">Cilindrada: menor a mayor</option>
+                          <option value="cilindrada-desc">Cilindrada: mayor a menor</option>
+                          <option value="anio-desc">Mas reciente</option>
+                        </select>
+                      </div>
+
+                      <button
+                        type="button"
+                        className="moto-filter-toggle-btn"
+                        onClick={() => setIsFiltersOpen((prev) => !prev)}
+                      >
+                        Filtros {activeFiltersCount > 0 ? `(${activeFiltersCount})` : ""}
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="motos-grid">
+                    {paginatedMotos.map((moto) => (
+                      <MotoCard
+                        key={moto.id}
+                        moto={moto}
+                        isAdmin={isAdmin}
+                        onEdit={openEditModal}
+                        onDelete={openDeleteModal}
+                      />
                     ))}
-                    {categorias.length === 0 && <p className="moto-filter-empty">Sin categorias</p>}
+                    {filteredMotos.length === 0 && (
+                      <p className="moto-grid-empty">No hay motos que coincidan con los filtros.</p>
+                    )}
                   </div>
+
+                  {filteredMotos.length > ITEMS_PER_PAGE && (
+                    <div className="moto-pagination">
+                      <button
+                        type="button"
+                        className="moto-page-btn"
+                        onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
+                        disabled={safePage === 1}
+                      >
+                        Anterior
+                      </button>
+
+                      <span className="moto-page-indicator">
+                        Pagina {safePage} de {totalPages}
+                      </span>
+
+                      <button
+                        type="button"
+                        className="moto-page-btn"
+                        onClick={() => setCurrentPage((prev) => Math.min(totalPages, prev + 1))}
+                        disabled={safePage === totalPages}
+                      >
+                        Siguiente
+                      </button>
+                    </div>
+                  )}
                 </div>
-
-                <div className="moto-filter-block">
-                  <h3>Cilindrada</h3>
-                  <div className="moto-range-fields">
-                    <label>
-                      <span>Min cc</span>
-                      <input
-                        type="number"
-                        min="0"
-                        value={cilindradaMin}
-                        onChange={(event) => setCilindradaMin(event.target.value)}
-                        placeholder="Ej: 250"
-                      />
-                    </label>
-                    <label>
-                      <span>Max cc</span>
-                      <input
-                        type="number"
-                        min="0"
-                        value={cilindradaMax}
-                        onChange={(event) => setCilindradaMax(event.target.value)}
-                        placeholder="Ej: 650"
-                      />
-                    </label>
-                  </div>
-                </div>
-
-                {activeFiltersCount > 0 && (
-                  <button type="button" className="moto-clear-filters-btn" onClick={clearFilters}>
-                    Limpiar filtros
-                  </button>
-                )}
-              </aside>
-
-              <div className="motos-grid">
-                {paginatedMotos.map((moto) => (
-                  <MotoCard
-                    key={moto.id}
-                    moto={moto}
-                    isAdmin={isAdmin}
-                    onEdit={openEditModal}
-                    onDelete={openDeleteModal}
-                  />
-                ))}
-                {filteredMotos.length === 0 && (
-                  <p className="moto-grid-empty">No hay motos que coincidan con los filtros.</p>
-                )}
-              </div>
-
-              {filteredMotos.length > ITEMS_PER_PAGE && (
-                <div className="moto-pagination">
-                  <button
-                    type="button"
-                    className="moto-page-btn"
-                    onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
-                    disabled={safePage === 1}
-                  >
-                    Anterior
-                  </button>
-
-                  <span className="moto-page-indicator">
-                    Pagina {safePage} de {totalPages}
-                  </span>
-
-                  <button
-                    type="button"
-                    className="moto-page-btn"
-                    onClick={() => setCurrentPage((prev) => Math.min(totalPages, prev + 1))}
-                    disabled={safePage === totalPages}
-                  >
-                    Siguiente
-                  </button>
-                </div>
-              )}
               </div>
             </>
           )}
