@@ -276,7 +276,7 @@
 .detalle-producto-page .producto-content-grid {
   margin-top: 14px;
   display: grid;
-  grid-template-columns: minmax(0, 1.55fr) minmax(0, 0.85fr);
+  grid-template-columns: minmax(0, 1.15fr) minmax(0, 1.35fr);
   gap: 20px;
   align-items: start;
 }
@@ -301,9 +301,19 @@
 
 .detalle-producto-page .producto-description p {
   margin: 0;
-  font-size: 24px;
+  font-size: 20px;
   line-height: 1.38;
   color: #101014;
+}
+
+.detalle-producto-page .producto-impact-specs {
+  display: grid;
+  gap: 10px;
+}
+
+.detalle-producto-page .producto-impact-specs .moto-impact-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px 16px;
 }
 
 .detalle-producto-page .producto-side-info {
@@ -504,6 +514,10 @@
 
   .detalle-producto-page .producto-description p {
     font-size: 17px;
+  }
+
+  .detalle-producto-page .producto-impact-specs .moto-impact-grid {
+    grid-template-columns: 1fr;
   }
 
   .detalle-producto-page .detalle-data-card h3,

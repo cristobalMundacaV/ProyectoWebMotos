@@ -161,11 +161,24 @@ export default function ProductoDetalle() {
           <p className="detalle-price producto-price">${Number(producto.precio || 0).toLocaleString("es-CL")}</p>
         </section>
 
-        <section className="producto-content-grid producto-content-grid--single">
+        <section className="producto-content-grid">
           <article className="detalle-description producto-description">
             <h2>Descripcion</h2>
             <p>{descripcion}</p>
           </article>
+
+          <aside className="producto-impact-specs">
+            <div className="moto-impact-grid">
+              <article className="moto-impact-item">
+                <h3>{String(producto.marca_nombre || "-").toUpperCase()}</h3>
+                <p>Marca</p>
+              </article>
+              <article className="moto-impact-item">
+                <h3>{String(producto.subcategoria_nombre || "-").toUpperCase()}</h3>
+                <p>Categoria</p>
+              </article>
+            </div>
+          </aside>
         </section>
 
         <Contacto showMapCta quoteMessage={contactoProductoQuoteMessage} />
