@@ -906,21 +906,27 @@
 
 .equip-page--accesorios .equip-card {
   padding: 0;
-  display: grid;
-  grid-template-rows: 260px minmax(170px, 1fr);
+  display: flex;
+  flex-direction: column;
+  min-height: 430px;
 }
 
 .equip-page--accesorios .equip-card-image {
   aspect-ratio: auto;
-  height: 100%;
+  height: auto;
+  flex: 0 0 250px;
 }
 
 .equip-page--accesorios .equip-card-body {
-  min-height: 170px;
+  min-height: 180px;
+  max-height: 180px;
+  flex: 0 0 180px;
+  overflow: hidden;
 }
 
 .equip-page--accesorios .equip-card h3 {
   min-height: 2.5em;
+  max-height: 2.5em;
 }
 
 .equip-page--accesorios .equip-card-bottom {
@@ -928,15 +934,34 @@
 }
 
 @media (max-width: 560px) {
+  .equip-page--accesorios .equip-card {
+    min-height: 380px;
+  }
+
   .equip-page--accesorios .equip-card-image {
-    aspect-ratio: auto;
-    height: 220px;
+    flex-basis: 210px;
+  }
+
+  .equip-page--accesorios .equip-card-body {
+    min-height: 170px;
+    max-height: 170px;
+    flex-basis: 170px;
   }
 }
 
 @media (min-width: 961px) {
   .equip-page--accesorios .equip-card {
-    grid-template-rows: 320px minmax(178px, 1fr);
+    min-height: 460px;
+  }
+
+  .equip-page--accesorios .equip-card-image {
+    flex-basis: 280px;
+  }
+
+  .equip-page--accesorios .equip-card-body {
+    min-height: 180px;
+    max-height: 180px;
+    flex-basis: 180px;
   }
 }
 

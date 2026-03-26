@@ -24,8 +24,8 @@ function getConfig(variant) {
   }
 
   return {
-    title: "Accesorios para la Moto",
-    breadcrumb: "Accesorios para la moto",
+    title: "Accesorios Para Motos",
+    breadcrumb: "Accesorios para motos",
     tipoApi: "accesorios",
     showModeloCompatible: true,
   };
