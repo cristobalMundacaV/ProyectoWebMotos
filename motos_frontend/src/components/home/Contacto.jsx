@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { getContactoPublico } from "../../services/productosService";
+import { buildWhatsAppUrl } from "../../services/contactoUtils";
 import { INSTAGRAM_PROFILE_URL } from "../../services/socialLinks";
 import "../../styles/home.css";
 
@@ -10,7 +11,7 @@ function buildGeoLabel(address) {
   return [city, country].filter(Boolean).join(", ");
 }
 
-export default function Contacto() {
+export default function Contacto({ showMapCta = false }) {
   const [contacto, setContacto] = useState({
     instagram: "@motosnuevamarca",
     telefono: "+56 9 1234 5678",
@@ -20,6 +21,10 @@ export default function Contacto() {
   const ubicacionFinal = contacto.ubicacion || geoUbicacion || "";
   const mapQuery = encodeURIComponent(ubicacionFinal || "Chile");
   const mapSrc = `https://maps.google.com/maps?q=${mapQuery}&z=14&output=embed`;
+  const whatsappHref = buildWhatsAppUrl(
+    contacto.telefono,
+    "Hola, quiero cotizar una moto o producto de Delanoe Motos"
+  );
 
   useEffect(() => {
     let isMounted = true;
@@ -119,6 +124,11 @@ export default function Contacto() {
           referrerPolicy="no-referrer-when-downgrade"
         />
       </div>
+      {showMapCta && (
+        <a className="contacto-whatsapp-cta" href={whatsappHref || "#"} target="_blank" rel="noreferrer">
+          COTIZAR POR WHATSAPP
+        </a>
+      )}
     </section>
   );
 }

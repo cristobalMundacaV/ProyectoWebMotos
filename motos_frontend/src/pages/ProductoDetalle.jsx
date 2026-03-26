@@ -1,18 +1,14 @@
 import { useParams, Link } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { buildFallbackImageDataUrl, buildMediaUrl } from "../services/apiConfig";
-import { getProductoBySlug, getContactoPublico } from "../services/productosService";
+import { getProductoBySlug } from "../services/productosService";
 import { trackCatalogView } from "../services/analyticsService";
-import { buildWhatsAppUrl } from "../services/contactoUtils";
 import Navbar from "../components/layout/Navbar";
 import "../styles/detalle.css";
 
 export default function ProductoDetalle() {
   const { slug } = useParams();
   const [producto, setProducto] = useState(null);
-  const [contacto, setContacto] = useState({
-    telefono: "+56 9 1234 5678",
-  });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [activeImageIndex, setActiveImageIndex] = useState(0);
@@ -24,7 +20,7 @@ export default function ProductoDetalle() {
     async function loadData() {
       setError("");
       try {
-        const [productoData, contactoData] = await Promise.all([getProductoBySlug(slug), getContactoPublico()]);
+        const productoData = await getProductoBySlug(slug);
 
         if (!isMounted) return;
         setActiveImageIndex(0);
@@ -45,11 +41,6 @@ export default function ProductoDetalle() {
           });
         }
 
-        if (contactoData) {
-          setContacto({
-            telefono: contactoData.telefono || "",
-          });
-        }
       } catch (err) {
         console.error("Error loading product detail:", err);
         if (!isMounted) return;
@@ -89,7 +80,6 @@ export default function ProductoDetalle() {
     descripcionRaw && descripcionRaw !== nombre
       ? descripcionRaw
       : "Producto ideal para complementar tu equipamiento rider con calidad y estilo.";
-  const whatsappHref = buildWhatsAppUrl(contacto.telefono, `Hola quiero cotizar el producto ${nombre}`);
 
   const galleryImages = (() => {
     const fromGallery = Array.isArray(producto?.imagenes) ? producto.imagenes : [];
@@ -169,33 +159,11 @@ export default function ProductoDetalle() {
           <p className="detalle-price producto-price">${Number(producto.precio || 0).toLocaleString("es-CL")}</p>
         </section>
 
-        <section className="producto-content-grid">
+        <section className="producto-content-grid producto-content-grid--single">
           <article className="detalle-description producto-description">
             <h2>Descripcion</h2>
             <p>{descripcion}</p>
           </article>
-
-          <aside className="producto-side-info">
-            <div className="detalle-data-card">
-              <h3>Detalles del producto</h3>
-              <div className="detalle-data-row">
-                <span>Categoria</span>
-                <span>{producto.subcategoria_nombre || "-"}</span>
-              </div>
-              <div className="detalle-data-row">
-                <span>Stock</span>
-                <span>{producto.stock ?? 0}</span>
-              </div>
-              <div className="detalle-data-row">
-                <span>Marca</span>
-                <span>{producto.marca_nombre || "-"}</span>
-              </div>
-            </div>
-
-            <a className="detalle-cta" href={whatsappHref || "#"} target="_blank" rel="noreferrer">
-              COTIZAR POR WHATSAPP
-            </a>
-          </aside>
         </section>
       </main>
     </div>

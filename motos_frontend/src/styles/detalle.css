@@ -281,10 +281,15 @@
   align-items: start;
 }
 
+.detalle-producto-page .producto-content-grid--single {
+  grid-template-columns: minmax(0, 1fr);
+}
+
 .detalle-producto-page .producto-description {
   margin: 0;
   max-width: none;
-  padding-right: 28px;
+  padding-right: 0;
+  max-width: 1040px;
 }
 
 .detalle-producto-page .producto-description h2 {

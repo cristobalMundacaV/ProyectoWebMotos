@@ -2,6 +2,7 @@
 import { Link } from "react-router-dom";
 import Navbar from "../components/layout/Navbar";
 import Footer from "../components/layout/Footer";
+import Contacto from "../components/home/Contacto";
 import { useMotos } from "../hooks/useMotos";
 import MotoCard from "../components/motos/MotoCard";
 import { buildMediaUrl } from "../services/apiConfig";
@@ -968,6 +969,7 @@ export default function CatalogoMotos() {
         </div>
       )}
 
+      <Contacto showMapCta />
       <Footer />
     </div>
   );
