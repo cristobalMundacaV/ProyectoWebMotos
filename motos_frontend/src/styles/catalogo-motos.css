@@ -25,16 +25,23 @@
 .moto-catalog-section h2 {
   text-align: left;
   font-size: clamp(1.6rem, 3vw, 2.6rem);
-  margin-bottom: 18px;
+  margin-bottom: 0;
   padding-left: 2px;
+}
+
+.moto-title-block {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 14px;
 }
 
 .moto-catalog-toolbar {
   display: flex;
-  justify-content: space-between;
-  align-items: center;
+  justify-content: flex-end;
+  align-items: flex-start;
   gap: 12px;
-  margin-bottom: 14px;
+  margin-bottom: 16px;
   flex-wrap: wrap;
 }
 
@@ -83,8 +90,8 @@
 }
 
 .moto-results-meta {
-  color: #5a5a5a;
-  font-size: 0.95rem;
+  color: #4b5563;
+  font-size: 1.05rem;
   font-weight: 600;
 }
 
@@ -647,6 +654,10 @@
 }
 
 @media (max-width: 560px) {
+  .moto-title-block {
+    margin-bottom: 10px;
+  }
+
   .moto-catalog-toolbar,
   .moto-catalog-toolbar-actions,
   .moto-order-block,

@@ -484,7 +484,10 @@ export default function CatalogoMotos() {
             <span>/</span>
             <span>Catalogo de Motos</span>
           </div>
-          <h2>Catalogo de Motos</h2>
+          <div className="moto-title-block">
+            <h2>Catalogo de Motos</h2>
+            <p className="moto-results-meta">{filteredMotos.length} motos</p>
+          </div>
           {loading ? (
             <p style={{ textAlign: "center" }}>Cargando...</p>
           ) : error ? (
@@ -492,8 +495,6 @@ export default function CatalogoMotos() {
           ) : (
             <>
               <div className="moto-catalog-toolbar">
-                <p className="moto-results-meta">{filteredMotos.length} motos</p>
-
                 <div className="moto-catalog-toolbar-actions">
                   <label className="moto-search" htmlFor="moto-search-input">
                     <svg
