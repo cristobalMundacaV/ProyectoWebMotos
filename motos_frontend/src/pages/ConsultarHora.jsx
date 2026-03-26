@@ -1,9 +1,12 @@
-import { useEffect, useState } from "react";
+﻿import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import Navbar from "../components/layout/Navbar";
 import Footer from "../components/layout/Footer";
 import { cancelarMantencionPorRut, consultarMantencionesPorRut } from "../services/mantencionesService";
 import "../styles/mantenimiento.css";
+
+const CONSULTA_PAGE_SIZE = 2;
+const CONSULTA_PAGE_WINDOW = 5;
 
 function normalizeRut(rawRut) {
   const cleaned = String(rawRut || "")
@@ -67,16 +70,45 @@ function getErrorText(error, fallback) {
   return fallback;
 }
 
+function buildVisiblePages(currentPage, totalPages) {
+  if (totalPages <= CONSULTA_PAGE_WINDOW) {
+    return Array.from({ length: totalPages }, (_, index) => index + 1);
+  }
+
+  const halfWindow = Math.floor(CONSULTA_PAGE_WINDOW / 2);
+  let start = currentPage - halfWindow;
+  let end = currentPage + halfWindow;
+
+  if (start < 1) {
+    start = 1;
+    end = CONSULTA_PAGE_WINDOW;
+  }
+
+  if (end > totalPages) {
+    end = totalPages;
+    start = totalPages - CONSULTA_PAGE_WINDOW + 1;
+  }
+
+  return Array.from({ length: end - start + 1 }, (_, index) => start + index);
+}
+
 export default function ConsultarHora() {
   const [consultaRut, setConsultaRut] = useState("");
   const [consultaLoading, setConsultaLoading] = useState(false);
   const [consultaError, setConsultaError] = useState("");
   const [consultaSuccess, setConsultaSuccess] = useState("");
   const [consultaResultados, setConsultaResultados] = useState([]);
+  const [consultaCurrentPage, setConsultaCurrentPage] = useState(1);
   const [cancelandoById, setCancelandoById] = useState({});
   const [cancelModalItem, setCancelModalItem] = useState(null);
 
   const isCancelModalSaving = cancelModalItem ? Boolean(cancelandoById[cancelModalItem.id]) : false;
+  const consultaTotalItems = consultaResultados.length;
+  const consultaTotalPages = Math.max(1, Math.ceil(consultaTotalItems / CONSULTA_PAGE_SIZE));
+  const consultaPageSafe = Math.min(consultaCurrentPage, consultaTotalPages);
+  const consultaStart = (consultaPageSafe - 1) * CONSULTA_PAGE_SIZE;
+  const consultaPaginados = consultaResultados.slice(consultaStart, consultaStart + CONSULTA_PAGE_SIZE);
+  const consultaVisiblePages = buildVisiblePages(consultaPageSafe, consultaTotalPages);
 
   useEffect(() => {
     if (!cancelModalItem) return undefined;
@@ -91,6 +123,12 @@ export default function ConsultarHora() {
     return () => window.removeEventListener("keydown", onEsc);
   }, [cancelModalItem, isCancelModalSaving]);
 
+  useEffect(() => {
+    if (consultaCurrentPage > consultaTotalPages) {
+      setConsultaCurrentPage(consultaTotalPages);
+    }
+  }, [consultaCurrentPage, consultaTotalPages]);
+
   async function handleConsultarEstado(event) {
     event.preventDefault();
     if (consultaLoading) return;
@@ -99,6 +137,7 @@ export default function ConsultarHora() {
     if (!normalizedRut || !isValidRut(normalizedRut)) {
       setConsultaError("Ingresa un RUT valido para consultar (ejemplo: 12345678-5).");
       setConsultaResultados([]);
+      setConsultaCurrentPage(1);
       return;
     }
 
@@ -110,11 +149,13 @@ export default function ConsultarHora() {
       const data = await consultarMantencionesPorRut(normalizedRut);
       const results = Array.isArray(data?.results) ? data.results : [];
       setConsultaResultados(results);
+      setConsultaCurrentPage(1);
       if (results.length === 0) {
         setConsultaError("No encontramos horas de mantencion asociadas a ese RUT.");
       }
     } catch {
       setConsultaResultados([]);
+      setConsultaCurrentPage(1);
       setConsultaError("No pudimos consultar el estado de tus horas. Intenta nuevamente.");
     } finally {
       setConsultaLoading(false);
@@ -208,7 +249,7 @@ export default function ConsultarHora() {
 
             {consultaResultados.length > 0 && (
               <div className="mantencion-consulta-list">
-                {consultaResultados.map((item) => (
+                {consultaPaginados.map((item) => (
                   <article
                     key={item.id}
                     className={`mantencion-consulta-card${canCancelMantencion(item.estado) ? " has-action" : ""}`}
@@ -273,6 +314,64 @@ export default function ConsultarHora() {
                     )}
                   </article>
                 ))}
+
+                {consultaTotalPages > 1 && (
+                  <div className="mantencion-consulta-pagination" role="navigation" aria-label="Paginacion de horas">
+                    <div className="mantencion-consulta-pagination-controls">
+                      <button
+                        type="button"
+                        className="mantencion-page-btn ghost"
+                        onClick={() => setConsultaCurrentPage(1)}
+                        disabled={consultaPageSafe === 1}
+                        aria-label="Primera pagina"
+                      >
+                        {"<<"}
+                      </button>
+
+                      <button
+                        type="button"
+                        className="mantencion-page-btn ghost"
+                        onClick={() => setConsultaCurrentPage((prev) => Math.max(1, prev - 1))}
+                        disabled={consultaPageSafe === 1}
+                        aria-label="Pagina anterior"
+                      >
+                        Anterior
+                      </button>
+
+                      {consultaVisiblePages.map((page) => (
+                        <button
+                          key={page}
+                          type="button"
+                          className={page === consultaPageSafe ? "mantencion-page-btn active" : "mantencion-page-btn ghost"}
+                          onClick={() => setConsultaCurrentPage(page)}
+                          aria-current={page === consultaPageSafe ? "page" : undefined}
+                        >
+                          {page}
+                        </button>
+                      ))}
+
+                      <button
+                        type="button"
+                        className="mantencion-page-btn ghost"
+                        onClick={() => setConsultaCurrentPage((prev) => Math.min(consultaTotalPages, prev + 1))}
+                        disabled={consultaPageSafe === consultaTotalPages}
+                        aria-label="Pagina siguiente"
+                      >
+                        Siguiente
+                      </button>
+
+                      <button
+                        type="button"
+                        className="mantencion-page-btn ghost"
+                        onClick={() => setConsultaCurrentPage(consultaTotalPages)}
+                        disabled={consultaPageSafe === consultaTotalPages}
+                        aria-label="Ultima pagina"
+                      >
+                        {">>"}
+                      </button>
+                    </div>
+                  </div>
+                )}
               </div>
             )}
           </section>
@@ -313,3 +412,5 @@ export default function ConsultarHora() {
     </div>
   );
 }
+
+
