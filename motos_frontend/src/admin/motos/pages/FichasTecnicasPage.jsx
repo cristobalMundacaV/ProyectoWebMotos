@@ -1,10 +1,13 @@
-﻿import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   createTipoAtributo,
   createValorAtributoMoto,
+  deleteTipoAtributo,
+  deleteValorAtributoMoto,
   getMotos,
   getTiposAtributo,
   getValoresAtributoMoto,
+  updateTipoAtributo,
   updateValorAtributoMoto,
 } from "../services/motosAdminService";
 import AdminToastStack from "../../shared/components/AdminToastStack";
@@ -181,6 +184,17 @@ export default function FichasTecnicasPage({ activeSection, motos = [] }) {
   const [newItemName, setNewItemName] = useState("");
   const [newItemValue, setNewItemValue] = useState("");
   const [fichaSearch, setFichaSearch] = useState("");
+  const [showManageSectionsModal, setShowManageSectionsModal] = useState(false);
+  const [managingSection, setManagingSection] = useState(false);
+  const [manageSectionId, setManageSectionId] = useState("");
+  const [manageSectionName, setManageSectionName] = useState("");
+  const [showManageItemsModal, setShowManageItemsModal] = useState(false);
+  const [managingItem, setManagingItem] = useState(false);
+  const [manageItemSectionId, setManageItemSectionId] = useState("");
+  const [manageItemId, setManageItemId] = useState("");
+  const [manageItemName, setManageItemName] = useState("");
+  const [manageItemValue, setManageItemValue] = useState("");
+  const [manageItemTypeId, setManageItemTypeId] = useState("");
   const [toasts, setToasts] = useState([]);
 
   function dismissToast(id) {
@@ -208,6 +222,30 @@ export default function FichasTecnicasPage({ activeSection, motos = [] }) {
     setSelectedMotoId("");
   }, [motosDisponibles, selectedMotoId]);
 
+  const reloadFichaData = useCallback(
+    async ({ motoId, preserveDraft = false } = {}) => {
+      const targetMotoId = motoId || selectedMotoId;
+      if (!targetMotoId) return;
+      const [rows, tipos] = await Promise.all([
+        getValoresAtributoMoto({ moto: targetMotoId }),
+        getTiposAtributo(),
+      ]);
+      const list = normalizeArray(rows);
+      setTiposAtributo(normalizeArray(tipos));
+      setValores(list);
+      if (preserveDraft) {
+        setDraftById((prevDraft) => mergeDraftPreservingUnsavedChanges(list, prevDraft));
+        return;
+      }
+      const nextDraft = {};
+      list.forEach((item) => {
+        nextDraft[item.id] = normalizeText(item.valor);
+      });
+      setDraftById(nextDraft);
+    },
+    [selectedMotoId]
+  );
+
   useEffect(() => {
     if (!isFichaSection || !selectedMotoId) return;
 
@@ -215,17 +253,9 @@ export default function FichasTecnicasPage({ activeSection, motos = [] }) {
     setLoading(true);
     setSaving(false);
 
-    Promise.all([getValoresAtributoMoto({ moto: selectedMotoId }), getTiposAtributo()])
-      .then(([rows, tipos]) => {
+    reloadFichaData({ motoId: selectedMotoId })
+      .then(() => {
         if (!mounted) return;
-        const list = normalizeArray(rows);
-        setTiposAtributo(normalizeArray(tipos));
-        setValores(list);
-        const nextDraft = {};
-        list.forEach((item) => {
-          nextDraft[item.id] = normalizeText(item.valor);
-        });
-        setDraftById(nextDraft);
       })
       .catch(() => {
         if (!mounted) return;
@@ -241,7 +271,7 @@ export default function FichasTecnicasPage({ activeSection, motos = [] }) {
     return () => {
       mounted = false;
     };
-  }, [isFichaSection, selectedMotoId]);
+  }, [isFichaSection, selectedMotoId, reloadFichaData]);
 
   const groupedSections = useMemo(() => {
     const map = new Map();
@@ -324,6 +354,34 @@ export default function FichasTecnicasPage({ activeSection, motos = [] }) {
       .filter((section) => section.items.length > 0);
   }, [selectedSection, normalizedFichaSearch, groupedSections, draftById]);
 
+  const sectionOptions = useMemo(
+    () =>
+      normalizeArray(tiposAtributo)
+        .filter((tipo) => tipo?.id)
+        .sort(
+          (a, b) =>
+            Number(a?.orden ?? 9999) - Number(b?.orden ?? 9999) ||
+            String(a?.nombre || "").localeCompare(String(b?.nombre || ""), "es")
+        ),
+    [tiposAtributo]
+  );
+
+  const itemOptionsBySection = useMemo(() => {
+    if (!manageItemSectionId) return [];
+    return normalizeArray(valores)
+      .filter((item) => String(item?.tipo_atributo) === String(manageItemSectionId))
+      .sort(
+        (a, b) =>
+          Number(a?.orden ?? 9999) - Number(b?.orden ?? 9999) ||
+          String(a?.nombre || "").localeCompare(String(b?.nombre || ""), "es")
+      );
+  }, [valores, manageItemSectionId]);
+
+  const selectedManagedItem = useMemo(
+    () => itemOptionsBySection.find((item) => String(item.id) === String(manageItemId)) || null,
+    [itemOptionsBySection, manageItemId]
+  );
+
   useEffect(() => {
     if (groupedSections.length === 0) {
       setSelectedSectionName("");
@@ -333,6 +391,48 @@ export default function FichasTecnicasPage({ activeSection, motos = [] }) {
       setSelectedSectionName(groupedSections[0].nombre);
     }
   }, [groupedSections, selectedSectionName]);
+
+  useEffect(() => {
+    if (!showManageSectionsModal) return;
+    const firstSectionId = sectionOptions[0]?.id ? String(sectionOptions[0].id) : "";
+    setManageSectionId(firstSectionId);
+    setManageSectionName(sectionOptions[0]?.nombre || "");
+  }, [showManageSectionsModal, sectionOptions]);
+
+  useEffect(() => {
+    if (!showManageSectionsModal || !manageSectionId) return;
+    const section = sectionOptions.find((tipo) => String(tipo.id) === String(manageSectionId));
+    setManageSectionName(section?.nombre || "");
+  }, [showManageSectionsModal, manageSectionId, sectionOptions]);
+
+  useEffect(() => {
+    if (!showManageItemsModal) return;
+    const preferredSectionId =
+      selectedSection?.tipoAtributoId && sectionOptions.some((s) => String(s.id) === String(selectedSection.tipoAtributoId))
+        ? String(selectedSection.tipoAtributoId)
+        : sectionOptions[0]?.id
+          ? String(sectionOptions[0].id)
+          : "";
+    setManageItemSectionId(preferredSectionId);
+  }, [showManageItemsModal, selectedSection, sectionOptions]);
+
+  useEffect(() => {
+    if (!showManageItemsModal) return;
+    const firstItemId = itemOptionsBySection[0]?.id ? String(itemOptionsBySection[0].id) : "";
+    setManageItemId(firstItemId);
+  }, [showManageItemsModal, itemOptionsBySection]);
+
+  useEffect(() => {
+    if (!showManageItemsModal || !selectedManagedItem) {
+      setManageItemName("");
+      setManageItemValue("");
+      setManageItemTypeId(manageItemSectionId || "");
+      return;
+    }
+    setManageItemName(selectedManagedItem?.nombre || "");
+    setManageItemValue(selectedManagedItem?.valor || "");
+    setManageItemTypeId(String(selectedManagedItem?.tipo_atributo || manageItemSectionId || ""));
+  }, [showManageItemsModal, selectedManagedItem, manageItemSectionId]);
 
   const hasChanges = useMemo(
     () =>
@@ -636,6 +736,113 @@ export default function FichasTecnicasPage({ activeSection, motos = [] }) {
     }
   }
 
+  async function handleUpdateSectionManager(event) {
+    event.preventDefault();
+    const sectionId = Number(manageSectionId || 0);
+    const nextName = normalizeText(manageSectionName).trim();
+    if (!sectionId || !nextName || managingSection) return;
+
+    try {
+      setManagingSection(true);
+      await updateTipoAtributo(sectionId, { nombre: nextName });
+      await reloadFichaData({ preserveDraft: true });
+      setSelectedSectionName(nextName);
+      showToast("Seccion actualizada correctamente.", "success");
+    } catch (err) {
+      const backendMessage =
+        err?.response?.data?.detail ||
+        err?.response?.data?.nombre?.[0] ||
+        err?.response?.data?.slug?.[0] ||
+        err?.message ||
+        "No se pudo actualizar la seccion.";
+      showToast(String(backendMessage), "error");
+    } finally {
+      setManagingSection(false);
+    }
+  }
+
+  async function handleDeleteSectionManager() {
+    const sectionId = Number(manageSectionId || 0);
+    if (!sectionId || managingSection) return;
+    const selectedSectionOption = sectionOptions.find((item) => Number(item.id) === sectionId);
+    const confirmDelete = window.confirm(
+      `Se eliminara la seccion "${selectedSectionOption?.nombre || "seleccionada"}". Esta accion puede fallar si tiene items asociados.`
+    );
+    if (!confirmDelete) return;
+
+    try {
+      setManagingSection(true);
+      await deleteTipoAtributo(sectionId);
+      await reloadFichaData({ preserveDraft: true });
+      setShowManageSectionsModal(false);
+      showToast("Seccion eliminada correctamente.", "success");
+    } catch (err) {
+      const backendMessage =
+        err?.response?.data?.detail ||
+        err?.response?.data?.non_field_errors?.[0] ||
+        err?.message ||
+        "No se pudo eliminar la seccion.";
+      showToast(String(backendMessage), "error");
+    } finally {
+      setManagingSection(false);
+    }
+  }
+
+  async function handleUpdateItemManager(event) {
+    event.preventDefault();
+    const itemId = Number(manageItemId || 0);
+    const itemName = normalizeText(manageItemName).trim();
+    const itemTypeId = Number(manageItemTypeId || 0);
+    if (!itemId || !itemName || !itemTypeId || managingItem) return;
+
+    try {
+      setManagingItem(true);
+      await updateValorAtributoMoto(itemId, {
+        nombre: itemName,
+        valor: normalizeText(manageItemValue),
+        tipo_atributo: itemTypeId,
+      });
+      await reloadFichaData({ preserveDraft: true });
+      showToast("Item actualizado correctamente.", "success");
+    } catch (err) {
+      const backendMessage =
+        err?.response?.data?.detail ||
+        err?.response?.data?.nombre?.[0] ||
+        err?.response?.data?.valor?.[0] ||
+        err?.response?.data?.non_field_errors?.[0] ||
+        err?.message ||
+        "No se pudo actualizar el item.";
+      showToast(String(backendMessage), "error");
+    } finally {
+      setManagingItem(false);
+    }
+  }
+
+  async function handleDeleteItemManager() {
+    const itemId = Number(manageItemId || 0);
+    if (!itemId || managingItem) return;
+    const confirmDelete = window.confirm(
+      `Se eliminara el item "${selectedManagedItem?.nombre || "seleccionado"}" en esta moto.`
+    );
+    if (!confirmDelete) return;
+
+    try {
+      setManagingItem(true);
+      await deleteValorAtributoMoto(itemId);
+      await reloadFichaData({ preserveDraft: true });
+      showToast("Item eliminado correctamente.", "success");
+    } catch (err) {
+      const backendMessage =
+        err?.response?.data?.detail ||
+        err?.response?.data?.non_field_errors?.[0] ||
+        err?.message ||
+        "No se pudo eliminar el item.";
+      showToast(String(backendMessage), "error");
+    } finally {
+      setManagingItem(false);
+    }
+  }
+
   if (!isFichaSection) return null;
 
   return (
@@ -685,14 +892,34 @@ export default function FichasTecnicasPage({ activeSection, motos = [] }) {
                   <h3>{`${selectedMoto.modelo || "FICHA TECNICA"} - ${normalizeText(
                     selectedMoto.marca_nombre || "MOTO"
                   ).toUpperCase()}`}</h3>
-                  <input
-                    type="search"
-                    className="admin-ficha-model-search"
-                    value={fichaSearch}
-                    onChange={(event) => setFichaSearch(event.target.value)}
-                    placeholder="Buscar item, valor o seccion..."
-                    aria-label="Buscar items de ficha tecnica"
-                  />
+                  <div className="admin-ficha-tools">
+                    <div className="admin-ficha-manage-actions">
+                      <button
+                        type="button"
+                        className="admin-ficha-outline-action"
+                        onClick={() => setShowManageSectionsModal(true)}
+                        disabled={loading || sectionOptions.length === 0}
+                      >
+                        Gestion secciones
+                      </button>
+                      <button
+                        type="button"
+                        className="admin-ficha-outline-action"
+                        onClick={() => setShowManageItemsModal(true)}
+                        disabled={loading || valores.length === 0}
+                      >
+                        Gestion items
+                      </button>
+                    </div>
+                    <input
+                      type="search"
+                      className="admin-ficha-model-search"
+                      value={fichaSearch}
+                      onChange={(event) => setFichaSearch(event.target.value)}
+                      placeholder="Buscar item, valor o seccion..."
+                      aria-label="Buscar items de ficha tecnica"
+                    />
+                  </div>
                 </div>
 
                 {loading && <p className="admin-empty">Cargando items de ficha tecnica...</p>}
@@ -812,6 +1039,203 @@ export default function FichasTecnicasPage({ activeSection, motos = [] }) {
           </div>
         </div>
       </article>
+
+      {showManageSectionsModal && (
+        <div
+          className="admin-ficha-modal-overlay"
+          role="presentation"
+          onClick={() => {
+            if (managingSection) return;
+            setShowManageSectionsModal(false);
+          }}
+        >
+          <div
+            className="admin-ficha-modal"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="manage-section-title"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <div className="admin-ficha-modal-head">
+              <h3 id="manage-section-title">Gestion secciones</h3>
+              <button
+                type="button"
+                onClick={() => setShowManageSectionsModal(false)}
+                disabled={managingSection}
+                aria-label="Cerrar modal"
+              >
+                X
+              </button>
+            </div>
+
+            <form className="admin-ficha-modal-form" onSubmit={handleUpdateSectionManager}>
+              <label>
+                Seccion
+                <select
+                  value={manageSectionId}
+                  onChange={(event) => setManageSectionId(event.target.value)}
+                  disabled={managingSection || sectionOptions.length === 0}
+                >
+                  {sectionOptions.map((section) => (
+                    <option key={section.id} value={section.id}>
+                      {section.nombre}
+                    </option>
+                  ))}
+                </select>
+              </label>
+
+              <label>
+                Nombre de la seccion
+                <input
+                  value={manageSectionName}
+                  onChange={(event) => setManageSectionName(event.target.value)}
+                  placeholder="Ej: Equipamiento avanzado"
+                  disabled={managingSection || !manageSectionId}
+                />
+              </label>
+
+              <div className="admin-ficha-modal-actions admin-ficha-modal-actions-between">
+                <button
+                  type="button"
+                  className="admin-ficha-danger-action"
+                  onClick={handleDeleteSectionManager}
+                  disabled={managingSection || !manageSectionId}
+                >
+                  Eliminar seccion
+                </button>
+                <button
+                  type="submit"
+                  className="admin-primary-action"
+                  disabled={managingSection || normalizeText(manageSectionName).trim().length < 2}
+                >
+                  {managingSection ? "Guardando..." : "Guardar seccion"}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {showManageItemsModal && (
+        <div
+          className="admin-ficha-modal-overlay"
+          role="presentation"
+          onClick={() => {
+            if (managingItem) return;
+            setShowManageItemsModal(false);
+          }}
+        >
+          <div
+            className="admin-ficha-modal"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="manage-item-title"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <div className="admin-ficha-modal-head">
+              <h3 id="manage-item-title">Gestion items</h3>
+              <button
+                type="button"
+                onClick={() => setShowManageItemsModal(false)}
+                disabled={managingItem}
+                aria-label="Cerrar modal"
+              >
+                X
+              </button>
+            </div>
+
+            <form className="admin-ficha-modal-form" onSubmit={handleUpdateItemManager}>
+              <label>
+                Seccion origen
+                <select
+                  value={manageItemSectionId}
+                  onChange={(event) => setManageItemSectionId(event.target.value)}
+                  disabled={managingItem || sectionOptions.length === 0}
+                >
+                  {sectionOptions.map((section) => (
+                    <option key={section.id} value={section.id}>
+                      {section.nombre}
+                    </option>
+                  ))}
+                </select>
+              </label>
+
+              <label>
+                Item
+                <select
+                  value={manageItemId}
+                  onChange={(event) => setManageItemId(event.target.value)}
+                  disabled={managingItem || itemOptionsBySection.length === 0}
+                >
+                  {itemOptionsBySection.map((item) => (
+                    <option key={item.id} value={item.id}>
+                      {item.nombre}
+                    </option>
+                  ))}
+                </select>
+              </label>
+
+              <label>
+                Nombre del item
+                <input
+                  value={manageItemName}
+                  onChange={(event) => setManageItemName(event.target.value)}
+                  placeholder="Ej: Control de traccion"
+                  disabled={managingItem || !manageItemId}
+                />
+              </label>
+
+              <label>
+                Recomendacion / valor
+                <input
+                  value={manageItemValue}
+                  onChange={(event) => setManageItemValue(event.target.value)}
+                  placeholder="Ej: Si / N/A / 85 HP"
+                  disabled={managingItem || !manageItemId}
+                />
+              </label>
+
+              <label>
+                Seccion destino (tipo)
+                <select
+                  value={manageItemTypeId}
+                  onChange={(event) => setManageItemTypeId(event.target.value)}
+                  disabled={managingItem || !manageItemId}
+                >
+                  {sectionOptions.map((section) => (
+                    <option key={section.id} value={section.id}>
+                      {section.nombre}
+                    </option>
+                  ))}
+                </select>
+              </label>
+
+              <div className="admin-ficha-modal-actions admin-ficha-modal-actions-between">
+                <button
+                  type="button"
+                  className="admin-ficha-danger-action"
+                  onClick={handleDeleteItemManager}
+                  disabled={managingItem || !manageItemId}
+                >
+                  Eliminar item
+                </button>
+                <button
+                  type="submit"
+                  className="admin-primary-action"
+                  disabled={
+                    managingItem ||
+                    !manageItemId ||
+                    normalizeText(manageItemName).trim().length < 2 ||
+                    !manageItemTypeId
+                  }
+                >
+                  {managingItem ? "Guardando..." : "Guardar item"}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
 
       {showCreateSectionModal && (
         <div
@@ -958,5 +1382,6 @@ export default function FichasTecnicasPage({ activeSection, motos = [] }) {
     </section>
   );
 }
+
 
 

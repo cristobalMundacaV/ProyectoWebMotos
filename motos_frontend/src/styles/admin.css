@@ -2173,6 +2173,19 @@
   font-size: 1.28rem;
 }
 
+.admin-ficha-tools {
+  display: grid;
+  justify-items: end;
+  gap: 8px;
+}
+
+.admin-ficha-manage-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
 .admin-ficha-model-search {
   width: min(360px, 100%);
   min-height: 38px;
@@ -2449,7 +2462,24 @@
   font: inherit;
 }
 
+.admin-ficha-modal-form select {
+  width: 100%;
+  min-height: 42px;
+  border: 1px solid #d3dce8;
+  border-radius: 10px;
+  background: #ffffff;
+  padding: 10px 12px;
+  color: #0f172a;
+  font: inherit;
+}
+
 .admin-ficha-modal-form input:focus {
+  outline: none;
+  border-color: #0f6e6e;
+  box-shadow: 0 0 0 3px rgba(15, 110, 110, 0.12);
+}
+
+.admin-ficha-modal-form select:focus {
   outline: none;
   border-color: #0f6e6e;
   box-shadow: 0 0 0 3px rgba(15, 110, 110, 0.12);
@@ -2461,11 +2491,50 @@
   gap: 10px;
 }
 
+.admin-ficha-modal-actions-between {
+  justify-content: space-between;
+  align-items: center;
+}
+
+.admin-ficha-danger-action {
+  border: 1px solid #b91c1c;
+  background: #fff1f2;
+  color: #b91c1c;
+  border-radius: 999px;
+  padding: 10px 16px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.admin-ficha-danger-action:hover:not(:disabled) {
+  background: #ffe4e6;
+  border-color: #991b1b;
+  color: #991b1b;
+}
+
+.admin-ficha-danger-action:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
 @media (max-width: 980px) {
   .admin-ficha-model-head {
     width: 100%;
     flex-direction: column;
     align-items: stretch;
+  }
+
+  .admin-ficha-tools {
+    width: 100%;
+    justify-items: stretch;
+  }
+
+  .admin-ficha-manage-actions {
+    justify-content: stretch;
+  }
+
+  .admin-ficha-manage-actions .admin-ficha-outline-action {
+    width: 100%;
   }
 
   .admin-ficha-model-search {
@@ -2487,6 +2556,10 @@
 
   .admin-ficha-modal-actions {
     flex-direction: column-reverse;
+  }
+
+  .admin-ficha-modal-actions-between {
+    align-items: stretch;
   }
 
   .admin-ficha-save-actions {
