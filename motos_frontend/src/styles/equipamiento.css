@@ -244,11 +244,12 @@
   border: 1px solid #dddddd;
   border-radius: 14px;
   overflow: hidden;
-  padding: 0;
+  padding: 0 0 10px;
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
   transition: transform 0.2s ease, box-shadow 0.2s ease;
-  display: grid;
-  grid-template-rows: 260px minmax(170px, 1fr);
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
   height: 100%;
 }
 
@@ -272,7 +273,7 @@
 }
 
 .equip-card-image {
-  height: 100%;
+  aspect-ratio: 1 / 1;
   background: #fff;
   display: grid;
   place-items: center;
@@ -290,8 +291,9 @@
 .equip-card-body {
   display: flex;
   flex-direction: column;
-  min-height: 170px;
+  min-height: 142px;
   padding: 12px;
+  flex: 1;
   gap: 10px;
   justify-content: space-between;
 }
@@ -300,7 +302,7 @@
   font-size: 0.95rem;
   line-height: 1.2;
   margin: 0;
-  min-height: 2.5em;
+  min-height: 2.4em;
   line-clamp: 2;
   display: -webkit-box;
   -webkit-box-orient: vertical;
@@ -314,7 +316,6 @@
   align-items: stretch;
   justify-content: flex-end;
   gap: 10px;
-  margin-top: auto;
 }
 
 .equip-card-price {
@@ -836,7 +837,7 @@
   }
 
   .equip-card-image {
-    height: 220px;
+    aspect-ratio: 1 / 0.86;
   }
 
   .equip-card-price {
@@ -898,12 +899,44 @@
     font-size: 1.02rem;
   }
 
-  .equip-card {
-    grid-template-rows: 320px minmax(178px, 1fr);
-  }
-
   .equip-card-price {
     font-size: 1.75rem;
+  }
+}
+
+.equip-page--accesorios .equip-card {
+  padding: 0;
+  display: grid;
+  grid-template-rows: 260px minmax(170px, 1fr);
+}
+
+.equip-page--accesorios .equip-card-image {
+  aspect-ratio: auto;
+  height: 100%;
+}
+
+.equip-page--accesorios .equip-card-body {
+  min-height: 170px;
+}
+
+.equip-page--accesorios .equip-card h3 {
+  min-height: 2.5em;
+}
+
+.equip-page--accesorios .equip-card-bottom {
+  margin-top: auto;
+}
+
+@media (max-width: 560px) {
+  .equip-page--accesorios .equip-card-image {
+    aspect-ratio: auto;
+    height: 220px;
+  }
+}
+
+@media (min-width: 961px) {
+  .equip-page--accesorios .equip-card {
+    grid-template-rows: 320px minmax(178px, 1fr);
   }
 }
 

@@ -420,7 +420,7 @@ export default function EquipamientoCatalog({ variant = "accesorios" }) {
   }
 
   return (
-    <main className="equip-page">
+    <main className={`equip-page equip-page--${variant}`}>
       <div className="equip-breadcrumb">
         <Link to="/">Home</Link>
         <span>/</span>
