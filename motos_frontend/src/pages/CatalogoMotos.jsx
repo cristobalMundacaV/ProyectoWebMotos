@@ -484,17 +484,18 @@ export default function CatalogoMotos() {
             <span>/</span>
             <span>Catalogo de Motos</span>
           </div>
-          <div className="moto-title-block">
-            <h2>Catalogo de Motos</h2>
-            <p className="moto-results-meta">{filteredMotos.length} motos</p>
-          </div>
           {loading ? (
             <p style={{ textAlign: "center" }}>Cargando...</p>
           ) : error ? (
             <p style={{ textAlign: "center" }}>{error}</p>
           ) : (
             <>
-              <div className="moto-catalog-toolbar">
+              <header className="moto-header">
+                <div className="moto-title-block">
+                  <h2>Catalogo de Motos</h2>
+                  <p className="moto-results-meta">{filteredMotos.length} motos</p>
+                </div>
+
                 <div className="moto-catalog-toolbar-actions">
                   <label className="moto-search" htmlFor="moto-search-input">
                     <svg
@@ -541,7 +542,7 @@ export default function CatalogoMotos() {
                     Filtros {activeFiltersCount > 0 ? `(${activeFiltersCount})` : ""}
                   </button>
                 </div>
-              </div>
+              </header>
 
               <button
                 type="button"

@@ -22,6 +22,14 @@
   color: #7f7f7f;
 }
 
+.moto-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 20px;
+  margin-bottom: 14px;
+}
+
 .moto-catalog-section h2 {
   text-align: left;
   font-size: clamp(1.6rem, 3vw, 2.6rem);
@@ -33,16 +41,7 @@
   display: flex;
   flex-direction: column;
   gap: 6px;
-  margin-bottom: 8px;
-}
-
-.moto-catalog-toolbar {
-  display: flex;
-  justify-content: flex-end;
-  align-items: flex-start;
-  gap: 12px;
-  margin-bottom: 10px;
-  flex-wrap: wrap;
+  margin-bottom: 0;
 }
 
 .moto-catalog-toolbar-actions {
@@ -50,7 +49,8 @@
   grid-template-columns: minmax(260px, 420px);
   gap: 10px;
   justify-items: stretch;
-  justify-self: end;
+  width: min(420px, 100%);
+  margin-left: auto;
 }
 
 .moto-search {
@@ -654,11 +654,12 @@
 }
 
 @media (max-width: 560px) {
-  .moto-title-block {
-    margin-bottom: 10px;
+  .moto-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
   }
 
-  .moto-catalog-toolbar,
   .moto-catalog-toolbar-actions,
   .moto-order-block,
   .moto-search {
@@ -727,10 +728,6 @@
 
   .moto-sidebar-head {
     display: none;
-  }
-
-  .moto-catalog-toolbar {
-    margin-bottom: 18px;
   }
 
   .moto-filter-toggle-btn {
