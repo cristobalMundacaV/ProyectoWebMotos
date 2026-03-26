@@ -108,7 +108,7 @@ export default function ConsultarHora() {
   const [consultaRut, setConsultaRut] = useState("");
   const [consultaLoading, setConsultaLoading] = useState(false);
   const [consultaError, setConsultaError] = useState("");
-  const [consultaSuccess, setConsultaSuccess] = useState("");
+  const [toast, setToast] = useState({ type: "", message: "" });
   const [consultaResultados, setConsultaResultados] = useState([]);
   const [consultaCurrentPage, setConsultaCurrentPage] = useState(1);
   const [cancelandoById, setCancelandoById] = useState({});
@@ -141,6 +141,12 @@ export default function ConsultarHora() {
     }
   }, [consultaCurrentPage, consultaTotalPages]);
 
+  useEffect(() => {
+    if (!toast.message) return undefined;
+    const timer = window.setTimeout(() => setToast({ type: "", message: "" }), 3500);
+    return () => window.clearTimeout(timer);
+  }, [toast.message]);
+
   async function handleConsultarEstado(event) {
     event.preventDefault();
     if (consultaLoading) return;
@@ -155,7 +161,7 @@ export default function ConsultarHora() {
 
     setConsultaLoading(true);
     setConsultaError("");
-    setConsultaSuccess("");
+    setToast({ type: "", message: "" });
 
     try {
       const data = await consultarMantencionesPorRut(normalizedRut);
@@ -196,13 +202,13 @@ export default function ConsultarHora() {
     }
 
     setConsultaError("");
-    setConsultaSuccess("");
+    setToast({ type: "", message: "" });
     setCancelandoById((prev) => ({ ...prev, [item.id]: true }));
 
     try {
       const response = await cancelarMantencionPorRut(item.id, normalizedRut);
       setConsultaResultados((prev) => prev.filter((row) => row.id !== item.id));
-      setConsultaSuccess(response?.detail || "Tu hora fue cancelada correctamente.");
+      setToast({ type: "success", message: response?.detail || "Tu hora fue cancelada correctamente." });
       setCancelModalItem(null);
     } catch (error) {
       setConsultaError(getErrorText(error, "No pudimos cancelar la hora. Intenta nuevamente."));
@@ -216,6 +222,20 @@ export default function ConsultarHora() {
       <Navbar />
 
       <main className="mantencion-page">
+        {toast.message && (
+          <div className={`mantencion-toast mantencion-toast-${toast.type}`} role="status" aria-live="polite">
+            <span>{toast.message}</span>
+            <button
+              type="button"
+              className="mantencion-toast-close"
+              onClick={() => setToast({ type: "", message: "" })}
+              aria-label="Cerrar notificacion"
+            >
+              ×
+            </button>
+          </div>
+        )}
+
         <div className="mantencion-breadcrumb">
           <Link to="/">Home</Link>
           <span>/</span>
@@ -248,7 +268,6 @@ export default function ConsultarHora() {
             </form>
 
             {consultaError && <p className="mantencion-consulta-error">{consultaError}</p>}
-            {consultaSuccess && <p className="mantencion-consulta-success">{consultaSuccess}</p>}
 
             {consultaResultados.length > 0 && (
               <div className="mantencion-consulta-list">

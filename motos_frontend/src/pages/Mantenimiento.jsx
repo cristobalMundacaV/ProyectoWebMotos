@@ -23,7 +23,7 @@ const TIPO_MANTENCION_OPTIONS = [
 
 const WEEK_DAYS = ["Lun", "Mar", "Mie", "Jue", "Vie", "Sab", "Dom"];
 const CURRENT_YEAR = new Date().getFullYear();
-const MIN_MOTO_YEAR = 2000;
+const MIN_MOTO_YEAR = 2020;
 const YEAR_OPTIONS = Array.from({ length: CURRENT_YEAR - MIN_MOTO_YEAR + 1 }, (_, index) => String(CURRENT_YEAR - index));
 
 function getInitialForm() {
