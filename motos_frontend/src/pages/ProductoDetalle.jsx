@@ -4,6 +4,7 @@ import { buildFallbackImageDataUrl, buildMediaUrl } from "../services/apiConfig"
 import { getProductoBySlug } from "../services/productosService";
 import { trackCatalogView } from "../services/analyticsService";
 import Navbar from "../components/layout/Navbar";
+import Contacto from "../components/home/Contacto";
 import "../styles/detalle.css";
 
 export default function ProductoDetalle() {
@@ -165,6 +166,8 @@ export default function ProductoDetalle() {
             <p>{descripcion}</p>
           </article>
         </section>
+
+        <Contacto showMapCta />
       </main>
     </div>
   );

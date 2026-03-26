@@ -1,6 +1,5 @@
 import Navbar from "../components/layout/Navbar";
 import Footer from "../components/layout/Footer";
-import Contacto from "../components/home/Contacto";
 import EquipamientoCatalog from "../components/equipamiento/EquipamientoCatalog";
 
 export default function CatalogoIndumentaria() {
@@ -8,7 +7,6 @@ export default function CatalogoIndumentaria() {
     <div className="page-wrapper">
       <Navbar />
       <EquipamientoCatalog variant="indumentaria" />
-      <Contacto showMapCta />
       <Footer />
     </div>
   );

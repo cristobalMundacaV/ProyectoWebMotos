@@ -6,6 +6,7 @@ import { getContactoPublico } from "../services/productosService";
 import { trackCatalogView } from "../services/analyticsService";
 import { buildWhatsAppUrl } from "../services/contactoUtils";
 import Navbar from "../components/layout/Navbar";
+import Contacto from "../components/home/Contacto";
 import "../styles/detalle.css";
 
 function normalizeLabel(value) {
@@ -414,6 +415,8 @@ export default function MotoDetalle() {
               );
             })}
         </section>
+
+        <Contacto showMapCta />
       </main>
     </div>
   );
