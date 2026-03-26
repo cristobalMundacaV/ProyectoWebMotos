@@ -304,6 +304,7 @@ class MotoSerializer(serializers.ModelSerializer):
             "stock",
             "estado",
             "imagen_principal",
+            "video_presentacion",
             "es_destacada",
             "orden_carrusel",
             "activa",

@@ -406,6 +406,17 @@ export default function MotosPage({
               <textarea name="descripcion" value={motoForm.descripcion} onChange={onMotoInputChange} rows={4} />
             </label>
 
+            <label className="admin-form-span-2">
+              Video de presentacion (opcional)
+              <input
+                type="url"
+                name="video_presentacion"
+                value={motoForm.video_presentacion || ""}
+                onChange={onMotoInputChange}
+                placeholder="https://www.youtube.com/watch?v=..."
+              />
+            </label>
+
             <label>
               Precio *
               <input

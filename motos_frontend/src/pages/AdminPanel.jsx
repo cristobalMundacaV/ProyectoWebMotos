@@ -78,6 +78,7 @@ const initialMotoForm = {
   activa: true,
   imagen_principal: null,
   imagen_con_maletas: null,
+  video_presentacion: "",
 };
 
 const initialModeloMotoForm = {
@@ -1127,6 +1128,7 @@ export default function AdminPanel() {
     payload.append("modelo", modeloNombre);
     payload.append("slug", modeloSlug);
     payload.append("descripcion", form.descripcion);
+    payload.append("video_presentacion", String(form.video_presentacion || "").trim());
     payload.append("precio", form.precio);
     payload.append("precio_lista", form.precio_lista);
     payload.append("permite_variante_maletas", String(Boolean(form.permite_variante_maletas)));
@@ -1842,6 +1844,7 @@ export default function AdminPanel() {
         activa: moto.activa !== false,
         imagen_principal: null,
         imagen_con_maletas: null,
+        video_presentacion: moto.video_presentacion || "",
       },
     });
   }
@@ -2836,6 +2839,17 @@ export default function AdminPanel() {
                       value={motoEditModal.form.descripcion}
                       onChange={handleMotoEditInputChange}
                       rows={4}
+                    />
+                  </label>
+
+                  <label className="admin-form-span-2">
+                    Video de presentacion (opcional)
+                    <input
+                      type="url"
+                      name="video_presentacion"
+                      value={motoEditModal.form.video_presentacion || ""}
+                      onChange={handleMotoEditInputChange}
+                      placeholder="https://www.youtube.com/watch?v=..."
                     />
                   </label>
 
