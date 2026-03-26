@@ -11,7 +11,7 @@ function buildGeoLabel(address) {
   return [city, country].filter(Boolean).join(", ");
 }
 
-export default function Contacto({ showMapCta = false }) {
+export default function Contacto({ showMapCta = false, quoteMessage = "" }) {
   const [contacto, setContacto] = useState({
     instagram: "@motosnuevamarca",
     telefono: "+56 9 1234 5678",
@@ -21,10 +21,9 @@ export default function Contacto({ showMapCta = false }) {
   const ubicacionFinal = contacto.ubicacion || geoUbicacion || "";
   const mapQuery = encodeURIComponent(ubicacionFinal || "Chile");
   const mapSrc = `https://maps.google.com/maps?q=${mapQuery}&z=14&output=embed`;
-  const whatsappHref = buildWhatsAppUrl(
-    contacto.telefono,
-    "Hola, quiero cotizar una moto o producto de Delanoe Motos"
-  );
+  const resolvedQuoteMessage =
+    String(quoteMessage || "").trim() || "Hola, quiero cotizar una moto o producto de Delanoe Motos";
+  const whatsappHref = buildWhatsAppUrl(contacto.telefono, resolvedQuoteMessage);
 
   useEffect(() => {
     let isMounted = true;

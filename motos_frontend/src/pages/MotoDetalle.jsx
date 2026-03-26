@@ -216,6 +216,10 @@ export default function MotoDetalle() {
 
   const cuota24 = Math.round(Number(precioListaActual || 0) / 24);
   const etiquetaVariante = varianteConMaletas ? "con maletas" : "sin maletas";
+  const marcaModeloMoto = [moto.marca_nombre, modelo].filter(Boolean).join(" ").trim();
+  const contactoMotoQuoteMessage = `Hola, quiero cotizar la moto ${
+    marcaModeloMoto || modelo
+  } de Delanoe Motos`;
 
   const formatPrice = (value) => `$${Number(value || 0).toLocaleString("es-CL")}`;
 
@@ -416,7 +420,7 @@ export default function MotoDetalle() {
             })}
         </section>
 
-        <Contacto showMapCta />
+        <Contacto showMapCta quoteMessage={contactoMotoQuoteMessage} />
       </main>
     </div>
   );

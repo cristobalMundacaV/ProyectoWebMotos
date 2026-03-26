@@ -81,6 +81,7 @@ export default function ProductoDetalle() {
     descripcionRaw && descripcionRaw !== nombre
       ? descripcionRaw
       : "Producto ideal para complementar tu equipamiento rider con calidad y estilo.";
+  const contactoProductoQuoteMessage = `Hola, quiero cotizar el producto ${nombre} de Delanoe Motos`;
 
   const galleryImages = (() => {
     const fromGallery = Array.isArray(producto?.imagenes) ? producto.imagenes : [];
@@ -167,7 +168,7 @@ export default function ProductoDetalle() {
           </article>
         </section>
 
-        <Contacto showMapCta />
+        <Contacto showMapCta quoteMessage={contactoProductoQuoteMessage} />
       </main>
     </div>
   );
