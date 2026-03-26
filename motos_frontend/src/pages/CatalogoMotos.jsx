@@ -750,7 +750,7 @@ export default function CatalogoMotos() {
                     Examinar...
                   </button>
                   <span className="moto-edit-file-name">
-                    {editForm.imagen_principal?.name || "No se ha seleccionado ningÃºn archivo."}
+                    {editForm.imagen_principal?.name || "No se ha seleccionado ningun archivo."}
                   </span>
                 </div>
               </label>
@@ -816,7 +816,7 @@ export default function CatalogoMotos() {
               </div>
 
               {editForm.es_destacada && (
-                <label>
+                <label className="moto-edit-span-2">
                   Orden carrusel *
                   <input
                     type="number"
@@ -877,7 +877,7 @@ export default function CatalogoMotos() {
                       Examinar...
                     </button>
                     <span className="moto-edit-file-name">
-                      {editForm.imagen_con_maletas?.name || "No se ha seleccionado ningÃºn archivo."}
+                      {editForm.imagen_con_maletas?.name || "No se ha seleccionado ningun archivo."}
                     </span>
                   </div>
                 </label>
@@ -921,6 +921,7 @@ export default function CatalogoMotos() {
     </div>
   );
 }
+
 
 
 
