@@ -494,6 +494,55 @@ export default function CatalogoMotos() {
             <p style={{ textAlign: "center" }}>{error}</p>
           ) : (
             <>
+              <div className="moto-catalog-toolbar">
+                <div className="moto-catalog-toolbar-actions">
+                  <label className="moto-search" htmlFor="moto-search-input">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="16"
+                      height="16"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      aria-hidden="true"
+                    >
+                      <circle cx="11" cy="11" r="8" />
+                      <path d="m21 21-4.3-4.3" />
+                    </svg>
+                    <input
+                      id="moto-search-input"
+                      type="search"
+                      value={searchQuery}
+                      onChange={(event) => setSearchQuery(event.target.value)}
+                      placeholder="Buscar por modelo, marca o categoria..."
+                    />
+                  </label>
+
+                  <div className="moto-order-block">
+                    <label htmlFor="moto-order">Ordenar por</label>
+                    <select id="moto-order" value={order} onChange={(event) => setOrder(event.target.value)}>
+                      <option value="default">Destacados primero</option>
+                      <option value="precio-asc">Precio: menor a mayor</option>
+                      <option value="precio-desc">Precio: mayor a menor</option>
+                      <option value="cilindrada-asc">Cilindrada: menor a mayor</option>
+                      <option value="cilindrada-desc">Cilindrada: mayor a menor</option>
+                      <option value="anio-desc">Mas reciente</option>
+                    </select>
+                  </div>
+
+                  <button
+                    type="button"
+                    className="moto-filter-toggle-btn"
+                    onClick={() => setIsFiltersOpen((prev) => !prev)}
+                  >
+                    Filtros {activeFiltersCount > 0 ? `(${activeFiltersCount})` : ""}
+                  </button>
+                </div>
+              </div>
+
               <button
                 type="button"
                 className={isFiltersOpen ? "moto-filters-backdrop open" : "moto-filters-backdrop"}
@@ -578,55 +627,6 @@ export default function CatalogoMotos() {
                 </aside>
 
                 <div className="moto-catalog-content">
-                  <div className="moto-catalog-toolbar">
-                    <div className="moto-catalog-toolbar-actions">
-                      <label className="moto-search" htmlFor="moto-search-input">
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          width="16"
-                          height="16"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          stroke="currentColor"
-                          strokeWidth="2"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          aria-hidden="true"
-                        >
-                          <circle cx="11" cy="11" r="8" />
-                          <path d="m21 21-4.3-4.3" />
-                        </svg>
-                        <input
-                          id="moto-search-input"
-                          type="search"
-                          value={searchQuery}
-                          onChange={(event) => setSearchQuery(event.target.value)}
-                          placeholder="Buscar por modelo, marca o categoria..."
-                        />
-                      </label>
-
-                      <div className="moto-order-block">
-                        <label htmlFor="moto-order">Ordenar por</label>
-                        <select id="moto-order" value={order} onChange={(event) => setOrder(event.target.value)}>
-                          <option value="default">Destacados primero</option>
-                          <option value="precio-asc">Precio: menor a mayor</option>
-                          <option value="precio-desc">Precio: mayor a menor</option>
-                          <option value="cilindrada-asc">Cilindrada: menor a mayor</option>
-                          <option value="cilindrada-desc">Cilindrada: mayor a menor</option>
-                          <option value="anio-desc">Mas reciente</option>
-                        </select>
-                      </div>
-
-                      <button
-                        type="button"
-                        className="moto-filter-toggle-btn"
-                        onClick={() => setIsFiltersOpen((prev) => !prev)}
-                      >
-                        Filtros {activeFiltersCount > 0 ? `(${activeFiltersCount})` : ""}
-                      </button>
-                    </div>
-                  </div>
-
                   <div className="motos-grid">
                     {paginatedMotos.map((moto) => (
                       <MotoCard
