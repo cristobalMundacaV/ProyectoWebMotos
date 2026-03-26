@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import AdminPagination, { paginateItems } from "../../shared/components/AdminPagination";
 
 export default function ProductosPage({
@@ -104,6 +104,28 @@ export default function ProductosPage({
     setAccesorioRiderLocalPreview(objectUrl);
     return () => URL.revokeObjectURL(objectUrl);
   }, [accesorioRiderForm.imagen_principal]);
+
+  const accesorioMotoGaleriaPreviewUrls = useMemo(() => {
+    const files = Array.isArray(accesorioMotoForm.imagenes_galeria) ? accesorioMotoForm.imagenes_galeria : [];
+    return files.slice(0, 3).map((file) => URL.createObjectURL(file));
+  }, [accesorioMotoForm.imagenes_galeria]);
+
+  useEffect(() => {
+    return () => {
+      accesorioMotoGaleriaPreviewUrls.forEach((url) => URL.revokeObjectURL(url));
+    };
+  }, [accesorioMotoGaleriaPreviewUrls]);
+
+  const accesorioRiderGaleriaPreviewUrls = useMemo(() => {
+    const files = Array.isArray(accesorioRiderForm.imagenes_galeria) ? accesorioRiderForm.imagenes_galeria : [];
+    return files.slice(0, 3).map((file) => URL.createObjectURL(file));
+  }, [accesorioRiderForm.imagenes_galeria]);
+
+  useEffect(() => {
+    return () => {
+      accesorioRiderGaleriaPreviewUrls.forEach((url) => URL.revokeObjectURL(url));
+    };
+  }, [accesorioRiderGaleriaPreviewUrls]);
 
   if (activeSection === "categorias_acc_rider") {
     const paginatedCategoriasAccRider = paginateItems(
@@ -376,6 +398,25 @@ export default function ProductosPage({
               )}
             </label>
 
+            <label className="admin-form-span-2">
+              Galeria de imagenes (hasta 3 en vista previa)
+              <input
+                key={`acc-moto-gallery-${accesorioMotoImageInputKey}`}
+                type="file"
+                name="imagenes_galeria"
+                accept="image/*"
+                multiple
+                onChange={onAccesorioMotoInputChange}
+              />
+              {accesorioMotoGaleriaPreviewUrls.length > 0 && (
+                <div className="admin-gallery-preview-row">
+                  {accesorioMotoGaleriaPreviewUrls.map((previewUrl, index) => (
+                    <img key={`${previewUrl}-${index}`} src={previewUrl} alt={`Vista previa accesorio moto ${index + 1}`} />
+                  ))}
+                </div>
+              )}
+            </label>
+
             <div className="admin-form-footer">
               <div className="admin-form-footer-checks">
                 <label className="admin-form-check admin-form-check-compact">
@@ -580,6 +621,25 @@ export default function ProductosPage({
                     alt="Vista previa accesorio rider"
                     className="admin-image-preview"
                   />
+                </div>
+              )}
+            </label>
+
+            <label className="admin-form-span-2">
+              Galeria de imagenes (hasta 3 en vista previa)
+              <input
+                key={`acc-rider-gallery-${accesorioRiderImageInputKey}`}
+                type="file"
+                name="imagenes_galeria"
+                accept="image/*"
+                multiple
+                onChange={onAccesorioRiderInputChange}
+              />
+              {accesorioRiderGaleriaPreviewUrls.length > 0 && (
+                <div className="admin-gallery-preview-row">
+                  {accesorioRiderGaleriaPreviewUrls.map((previewUrl, index) => (
+                    <img key={`${previewUrl}-${index}`} src={previewUrl} alt={`Vista previa rider ${index + 1}`} />
+                  ))}
                 </div>
               )}
             </label>

@@ -76,6 +76,7 @@ const initialMotoForm = {
   orden_carrusel: "1",
   activa: true,
   imagen_principal: null,
+  imagenes_galeria: [],
   imagen_con_maletas: null,
   video_presentacion: "",
 };
@@ -119,6 +120,7 @@ const initialAccesorioMotoForm = {
   precio: "",
   stock: "0",
   imagen_principal: null,
+  imagenes_galeria: [],
   es_destacado: false,
   activo: true,
   requiere_compatibilidad: false,
@@ -135,6 +137,7 @@ const initialAccesorioRiderForm = {
   stock: "0",
   orden_carrusel: "1",
   imagen_principal: null,
+  imagenes_galeria: [],
   es_destacado: false,
   activo: true,
 };
@@ -885,9 +888,17 @@ export default function AdminPanel() {
   function handleMotoInputChange(event) {
     clearInvalidFieldStyle(event.target);
     const { name, type, value, checked, files } = event.target;
+    const galleryFiles = type === "file" && name === "imagenes_galeria" ? Array.from(files || []) : null;
     setMotoForm((prev) => ({
       ...prev,
-      [name]: type === "checkbox" ? checked : type === "file" ? files?.[0] || null : value,
+      [name]:
+        type === "checkbox"
+          ? checked
+          : type === "file"
+            ? name === "imagenes_galeria"
+              ? galleryFiles
+              : files?.[0] || null
+            : value,
       ...(name === "permite_variante_maletas" && !checked
         ? { precio_con_maletas: "", precio_lista_con_maletas: "", imagen_con_maletas: null }
         : {}),
@@ -1145,6 +1156,11 @@ export default function AdminPanel() {
     if (form.imagen_principal) {
       payload.append("imagen_principal", form.imagen_principal);
     }
+    if (Array.isArray(form.imagenes_galeria)) {
+      form.imagenes_galeria.forEach((file) => {
+        if (file) payload.append("imagenes", file);
+      });
+    }
     if (form.imagen_con_maletas) {
       payload.append("imagen_con_maletas", form.imagen_con_maletas);
     }
@@ -1173,6 +1189,7 @@ export default function AdminPanel() {
   function handleAccesorioMotoInputChange(event) {
     clearInvalidFieldStyle(event.target);
     const { name, type, value, checked, files } = event.target;
+    const galleryFiles = type === "file" && name === "imagenes_galeria" ? Array.from(files || []) : null;
     setAccesorioMotoForm((prev) => {
       const nextBrandId = name === "marca" ? value : prev.marca;
       const selectedBrand = accesoriosMotosMeta.marcas.find((marca) => String(marca.id) === String(nextBrandId));
@@ -1180,7 +1197,14 @@ export default function AdminPanel() {
       const normalizedValue = name === "nombre" ? forceBrandTokenInName(value, brandName) : value;
       const nextForm = {
         ...prev,
-        [name]: type === "checkbox" ? checked : type === "file" ? files?.[0] || null : normalizedValue,
+        [name]:
+          type === "checkbox"
+            ? checked
+            : type === "file"
+              ? name === "imagenes_galeria"
+                ? galleryFiles
+                : files?.[0] || null
+              : normalizedValue,
         ...(name === "requiere_compatibilidad" && !checked ? { compatibilidad_motos: [] } : {}),
       };
 
@@ -1210,6 +1234,7 @@ export default function AdminPanel() {
   function handleAccesorioRiderInputChange(event) {
     clearInvalidFieldStyle(event.target);
     const { name, type, value, checked, files } = event.target;
+    const galleryFiles = type === "file" && name === "imagenes_galeria" ? Array.from(files || []) : null;
     setAccesorioRiderForm((prev) => {
       const nextBrandId = name === "marca" ? value : prev.marca;
       const selectedBrand = accesoriosRiderMeta.marcas.find((marca) => String(marca.id) === String(nextBrandId));
@@ -1217,7 +1242,14 @@ export default function AdminPanel() {
       const normalizedValue = name === "nombre" ? forceBrandTokenInName(value, brandName) : value;
       const nextForm = {
         ...prev,
-        [name]: type === "checkbox" ? checked : type === "file" ? files?.[0] || null : normalizedValue,
+        [name]:
+          type === "checkbox"
+            ? checked
+            : type === "file"
+              ? name === "imagenes_galeria"
+                ? galleryFiles
+                : files?.[0] || null
+              : normalizedValue,
       };
 
       if (name === "marca" && nextForm.nombre) {
@@ -2072,6 +2104,11 @@ export default function AdminPanel() {
     payload.append("activo", String(accesorioMotoForm.activo));
     payload.append("requiere_compatibilidad", String(accesorioMotoForm.requiere_compatibilidad));
     if (accesorioMotoForm.imagen_principal) payload.append("imagen_principal", accesorioMotoForm.imagen_principal);
+    if (Array.isArray(accesorioMotoForm.imagenes_galeria)) {
+      accesorioMotoForm.imagenes_galeria.forEach((file) => {
+        if (file) payload.append("imagenes", file);
+      });
+    }
     if (accesorioMotoForm.requiere_compatibilidad) {
       accesorioMotoForm.compatibilidad_motos.forEach((motoId) => {
         payload.append("compatibilidad_motos", String(motoId));
@@ -2125,6 +2162,11 @@ export default function AdminPanel() {
     payload.append("es_destacado", String(accesorioRiderForm.es_destacado));
     payload.append("activo", String(accesorioRiderForm.activo));
     if (accesorioRiderForm.imagen_principal) payload.append("imagen_principal", accesorioRiderForm.imagen_principal);
+    if (Array.isArray(accesorioRiderForm.imagenes_galeria)) {
+      accesorioRiderForm.imagenes_galeria.forEach((file) => {
+        if (file) payload.append("imagenes", file);
+      });
+    }
 
     try {
       const nuevoAccesorio = await createAccesorioRider(payload);
@@ -2167,6 +2209,7 @@ export default function AdminPanel() {
       requiere_compatibilidad: Boolean(producto.requiere_compatibilidad),
       compatibilidad_motos: Array.isArray(producto.compatibilidad_motos) ? producto.compatibilidad_motos : [],
       imagen_principal: null,
+      imagenes_galeria: [],
     }));
     setAccesorioMotoImageUrl(buildMediaUrl(producto.imagen_principal) || fallbackImage);
   }

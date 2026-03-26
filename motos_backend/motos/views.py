@@ -1,5 +1,5 @@
 ﻿from django.db import IntegrityError
-from django.db.models import Q
+from django.db.models import Max, Q
 from django.db.models.deletion import ProtectedError
 import logging
 from rest_framework import status
@@ -11,7 +11,7 @@ from rest_framework_simplejwt.authentication import JWTAuthentication
 from catalogo.models import CategoriaMoto, Marca
 from clientes.permissions import has_admin_access
 from .ficha_defaults import ensure_moto_ficha_defaults
-from .models import ModeloMoto, Moto, TipoAtributo, ValorAtributoMoto
+from .models import ImagenMoto, ModeloMoto, Moto, TipoAtributo, ValorAtributoMoto
 from .serializers import (
     CategoriaMotoSerializer,
     MarcaSerializer,
@@ -57,12 +57,25 @@ def _filter_marcas_por_tipo(queryset, tipo):
     return queryset
 
 
+def _save_moto_gallery_files(moto, files):
+    if not moto or not files:
+        return
+    current_max_order = moto.imagenes.aggregate(max_order=Max("orden")).get("max_order") or 0
+    for index, image_file in enumerate(files, start=1):
+        ImagenMoto.objects.create(
+            moto=moto,
+            imagen=image_file,
+            orden=current_max_order + index,
+        )
+
+
 @api_view(["GET", "POST"])
 def lista_motos(request):
     if request.method == "GET":
         motos = (
             Moto.objects.filter(activa=True)
             .select_related("marca", "modelo_moto", "modelo_moto__categoria")
+            .prefetch_related("imagenes")
             .order_by("-es_destacada", "orden_carrusel", "id")
         )
         serializer = MotoSerializer(motos, many=True)
@@ -76,7 +89,8 @@ def lista_motos(request):
 
     serializer = MotoSerializer(data=request.data)
     serializer.is_valid(raise_exception=True)
-    serializer.save()
+    moto = serializer.save()
+    _save_moto_gallery_files(moto, request.FILES.getlist("imagenes"))
     return Response(serializer.data, status=status.HTTP_201_CREATED)
 
 
@@ -98,7 +112,8 @@ def detalle_moto_admin(request, moto_id):
 
     serializer = MotoSerializer(moto, data=request.data, partial=True)
     serializer.is_valid(raise_exception=True)
-    serializer.save()
+    updated_moto = serializer.save()
+    _save_moto_gallery_files(updated_moto, request.FILES.getlist("imagenes"))
     return Response(serializer.data)
 
 
@@ -107,7 +122,7 @@ def detalle_moto_ficha(request, moto_id):
     moto = (
         Moto.objects.filter(id=moto_id, activa=True)
         .select_related("marca", "modelo_moto", "modelo_moto__categoria")
-        .prefetch_related("valores_atributos__tipo_atributo", "secciones_ficha__items")
+        .prefetch_related("imagenes", "valores_atributos__tipo_atributo", "secciones_ficha__items")
         .first()
     )
     if not moto:

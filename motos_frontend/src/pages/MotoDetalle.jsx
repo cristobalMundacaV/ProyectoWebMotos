@@ -36,6 +36,7 @@ export default function MotoDetalle() {
   const [telefonoContacto, setTelefonoContacto] = useState("+56 9 1234 5678");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [activeImageIndex, setActiveImageIndex] = useState(0);
 
   useEffect(() => {
     let isMounted = true;
@@ -92,6 +93,10 @@ export default function MotoDetalle() {
   useEffect(() => {
     setVarianteConMaletas(false);
   }, [moto?.id]);
+
+  useEffect(() => {
+    setActiveImageIndex(0);
+  }, [moto?.id, varianteConMaletas]);
 
   useEffect(() => {
     if (!Array.isArray(seccionesFicha) || seccionesFicha.length === 0) {
@@ -186,6 +191,20 @@ export default function MotoDetalle() {
   const imagenActual =
     tieneVarianteMaletas && varianteConMaletas ? moto.imagen_con_maletas : moto.imagen_principal;
 
+  const galleryImages = (() => {
+    const fromGallery = Array.isArray(moto?.imagenes) ? moto.imagenes : [];
+    const candidates = [
+      buildMediaUrl(imagenActual),
+      ...fromGallery.map((item) => buildMediaUrl(item?.imagen || item)),
+    ]
+      .map((url) => String(url || "").trim())
+      .filter(Boolean);
+    return [...new Set(candidates)];
+  })();
+
+  const activeImageSrc =
+    galleryImages[activeImageIndex] || buildMediaUrl(imagenActual) || "";
+
   const precioDesdeActual =
     tieneVarianteMaletas && varianteConMaletas ? moto.precio_con_maletas : moto.precio;
 
@@ -247,7 +266,44 @@ export default function MotoDetalle() {
           <h1 className="moto-floating-title">{modelo}</h1>
 
           <div className="moto-hero-image-wrap">
-            <img src={buildMediaUrl(imagenActual)} alt={`${modelo} ${etiquetaVariante}`} />
+            <img src={activeImageSrc} alt={`${modelo} ${etiquetaVariante}`} />
+            {galleryImages.length > 1 && (
+              <div className="detalle-gallery-controls">
+                <button
+                  type="button"
+                  className="detalle-gallery-arrow"
+                  aria-label="Imagen anterior"
+                  onClick={() =>
+                    setActiveImageIndex((prev) => (prev === 0 ? galleryImages.length - 1 : prev - 1))
+                  }
+                >
+                  ‹
+                </button>
+                <div className="detalle-gallery-thumbs">
+                  {galleryImages.map((imageSrc, index) => (
+                    <button
+                      key={`${imageSrc}-${index}`}
+                      type="button"
+                      className={index === activeImageIndex ? "detalle-gallery-thumb is-active" : "detalle-gallery-thumb"}
+                      onClick={() => setActiveImageIndex(index)}
+                      aria-label={`Ver imagen ${index + 1}`}
+                    >
+                      <img src={imageSrc} alt={`${modelo} miniatura ${index + 1}`} />
+                    </button>
+                  ))}
+                </div>
+                <button
+                  type="button"
+                  className="detalle-gallery-arrow"
+                  aria-label="Imagen siguiente"
+                  onClick={() =>
+                    setActiveImageIndex((prev) => (prev + 1 >= galleryImages.length ? 0 : prev + 1))
+                  }
+                >
+                  ›
+                </button>
+              </div>
+            )}
           </div>
 
           {tieneVarianteMaletas && (

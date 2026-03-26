@@ -18,6 +18,7 @@ export default function ProductoDetalle() {
   });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [activeImageIndex, setActiveImageIndex] = useState(0);
   const fallbackImage = buildFallbackImageDataUrl({ width: 900, height: 600, text: "Sin Imagen" });
 
   useEffect(() => {
@@ -29,6 +30,7 @@ export default function ProductoDetalle() {
         const [productoData, contactoData] = await Promise.all([getProductoBySlug(slug), getContactoPublico()]);
 
         if (!isMounted) return;
+        setActiveImageIndex(0);
         setProducto(productoData);
         if (productoData) {
           const categoria = (productoData.categoria_nombre || "").toLowerCase();
@@ -94,6 +96,20 @@ export default function ProductoDetalle() {
       : "Producto ideal para complementar tu equipamiento rider con calidad y estilo.";
   const whatsappHref = buildWhatsAppUrl(contacto.telefono, `Hola quiero cotizar el producto ${nombre}`);
 
+  const galleryImages = (() => {
+    const fromGallery = Array.isArray(producto?.imagenes) ? producto.imagenes : [];
+    const candidates = [
+      producto.imagen_principal ? buildMediaUrl(producto.imagen_principal) : "",
+      ...fromGallery.map((item) => buildMediaUrl(item?.imagen || item)),
+    ]
+      .map((url) => String(url || "").trim())
+      .filter(Boolean);
+    const unique = [...new Set(candidates)];
+    return unique.length > 0 ? unique : [fallbackImage];
+  })();
+
+  const activeImageSrc = galleryImages[activeImageIndex] || fallbackImage;
+
   return (
     <div className="detalle-page detalle-producto-page">
       <Navbar />
@@ -112,17 +128,50 @@ export default function ProductoDetalle() {
         <section className="detalle-layout">
           <div className="detalle-image-wrap">
             <img
-              src={
-                producto.imagen_principal
-                  ? buildMediaUrl(producto.imagen_principal)
-                  : fallbackImage
-              }
+              src={activeImageSrc}
               alt={nombre}
               onError={(event) => {
                 event.currentTarget.onerror = null;
                 event.currentTarget.src = fallbackImage;
               }}
             />
+            {galleryImages.length > 1 && (
+              <div className="detalle-gallery-controls">
+                <button
+                  type="button"
+                  className="detalle-gallery-arrow"
+                  aria-label="Imagen anterior"
+                  onClick={() =>
+                    setActiveImageIndex((prev) => (prev === 0 ? galleryImages.length - 1 : prev - 1))
+                  }
+                >
+                  ‹
+                </button>
+                <div className="detalle-gallery-thumbs">
+                  {galleryImages.map((imageSrc, index) => (
+                    <button
+                      key={`${imageSrc}-${index}`}
+                      type="button"
+                      className={index === activeImageIndex ? "detalle-gallery-thumb is-active" : "detalle-gallery-thumb"}
+                      onClick={() => setActiveImageIndex(index)}
+                      aria-label={`Ver imagen ${index + 1}`}
+                    >
+                      <img src={imageSrc} alt={`${nombre} miniatura ${index + 1}`} />
+                    </button>
+                  ))}
+                </div>
+                <button
+                  type="button"
+                  className="detalle-gallery-arrow"
+                  aria-label="Imagen siguiente"
+                  onClick={() =>
+                    setActiveImageIndex((prev) => (prev + 1 >= galleryImages.length ? 0 : prev + 1))
+                  }
+                >
+                  ›
+                </button>
+              </div>
+            )}
           </div>
 
           <aside className="detalle-side">

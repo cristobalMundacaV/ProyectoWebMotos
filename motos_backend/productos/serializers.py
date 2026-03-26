@@ -3,7 +3,7 @@ import re
 
 from catalogo.models import Marca
 
-from .models import CompatibilidadProductoMoto, Producto
+from .models import CompatibilidadProductoMoto, ImagenProducto, Producto
 
 
 def normalize_product_name(value):
@@ -31,7 +31,14 @@ def force_brand_token_in_name(nombre, marca):
     return pattern.sub(brand_name, normalized)
 
 
+class ImagenProductoSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ImagenProducto
+        fields = ["id", "imagen", "texto_alternativo", "orden"]
+
+
 class ProductoSerializer(serializers.ModelSerializer):
+    imagenes = ImagenProductoSerializer(many=True, read_only=True)
     marca_nombre = serializers.CharField(source="marca.nombre", read_only=True)
     categoria_nombre = serializers.CharField(source="subcategoria.categoria.nombre", read_only=True)
     categoria_slug = serializers.CharField(source="subcategoria.categoria.slug", read_only=True)
@@ -48,6 +55,7 @@ class ProductoSerializer(serializers.ModelSerializer):
             "precio",
             "stock",
             "imagen_principal",
+            "imagenes",
             "es_destacado",
             "orden_carrusel",
             "activo",

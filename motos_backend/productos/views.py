@@ -1,12 +1,12 @@
 from rest_framework import status
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
-from django.db.models import Q
+from django.db.models import Max, Q
 
 from catalogo.models import Marca, SubcategoriaProducto
 from clientes.permissions import has_admin_access
 from motos.models import Moto
-from .models import Producto
+from .models import ImagenProducto, Producto
 from .serializers import (
 	ProductoAdminUpdateSerializer,
 	ProductoAccesorioAdminSerializer,
@@ -16,6 +16,18 @@ from .serializers import (
 
 
 ACCESORIOS_CATEGORY_SLUGS = ["accesorios-para-la-moto", "accesorios"]
+
+
+def _save_producto_gallery_files(producto, files):
+	if not producto or not files:
+		return
+	current_max_order = producto.imagenes.aggregate(max_order=Max("orden")).get("max_order") or 0
+	for index, image_file in enumerate(files, start=1):
+		ImagenProducto.objects.create(
+			producto=producto,
+			imagen=image_file,
+			orden=current_max_order + index,
+		)
 
 
 def _filter_marcas_por_tipo(queryset, tipo):
@@ -61,7 +73,7 @@ def lista_productos(request):
 
 	productos = Producto.objects.filter(activo=True).select_related(
 		"subcategoria", "subcategoria__categoria"
-	)
+	).prefetch_related("imagenes")
 	productos = _apply_tipo_filter(productos, tipo)
 
 	if moto_slug:
@@ -143,6 +155,7 @@ def admin_accesorios_motos(request):
 		productos = (
 			Producto.objects.filter(subcategoria__categoria__slug__in=ACCESORIOS_CATEGORY_SLUGS)
 			.select_related("subcategoria", "subcategoria__categoria", "marca")
+			.prefetch_related("imagenes")
 			.order_by("-fecha_creacion")
 		)
 		serializer = ProductoSerializer(productos, many=True)
@@ -155,6 +168,7 @@ def admin_accesorios_motos(request):
 	serializer = ProductoAccesorioAdminSerializer(data=payload)
 	serializer.is_valid(raise_exception=True)
 	producto = serializer.save()
+	_save_producto_gallery_files(producto, request.FILES.getlist("imagenes"))
 
 	response_serializer = ProductoSerializer(producto)
 	return Response(response_serializer.data, status=status.HTTP_201_CREATED)
@@ -201,6 +215,7 @@ def admin_accesorios_rider(request):
 		productos = (
 			Producto.objects.exclude(subcategoria__categoria__slug__in=ACCESORIOS_CATEGORY_SLUGS)
 			.select_related("subcategoria", "subcategoria__categoria", "marca")
+			.prefetch_related("imagenes")
 			.order_by("-es_destacado", "orden_carrusel", "id")
 		)
 		serializer = ProductoSerializer(productos, many=True)
@@ -209,6 +224,7 @@ def admin_accesorios_rider(request):
 	serializer = ProductoAccesorioRiderAdminSerializer(data=request.data)
 	serializer.is_valid(raise_exception=True)
 	producto = serializer.save()
+	_save_producto_gallery_files(producto, request.FILES.getlist("imagenes"))
 
 	response_serializer = ProductoSerializer(producto)
 	return Response(response_serializer.data, status=status.HTTP_201_CREATED)
@@ -233,6 +249,7 @@ def admin_producto_detalle(request, producto_id):
 	serializer = ProductoAdminUpdateSerializer(producto, data=request.data, partial=True)
 	serializer.is_valid(raise_exception=True)
 	serializer.save()
+	_save_producto_gallery_files(producto, request.FILES.getlist("imagenes"))
 
 	response_serializer = ProductoSerializer(producto)
 	return Response(response_serializer.data)

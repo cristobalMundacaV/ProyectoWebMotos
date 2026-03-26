@@ -4,6 +4,7 @@ from rest_framework import serializers
 from catalogo.models import CategoriaMoto, Marca
 from .ficha_defaults import ensure_moto_ficha_defaults
 from .models import (
+    ImagenMoto,
     ItemFichaTecnica,
     ModeloMoto,
     Moto,
@@ -21,6 +22,12 @@ def normalize_title_case_label(value):
     raw = str(value or "").replace("\t", " ")
     parts = [part for part in raw.split() if part]
     return " ".join(part[:1].upper() + part[1:].lower() for part in parts).strip()
+
+
+class ImagenMotoSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ImagenMoto
+        fields = ["id", "imagen", "texto_alternativo", "orden"]
 
 
 class ModeloMotoSerializer(serializers.ModelSerializer):
@@ -105,6 +112,7 @@ class ModeloMotoSerializer(serializers.ModelSerializer):
 
 
 class MotoSerializer(serializers.ModelSerializer):
+    imagenes = ImagenMotoSerializer(many=True, read_only=True)
     marca_nombre = serializers.CharField(source="marca.nombre", read_only=True)
     categoria_nombre = serializers.CharField(source="modelo_moto.categoria.nombre", read_only=True)
     modelo = serializers.CharField(required=False, allow_blank=True)
@@ -299,6 +307,7 @@ class MotoSerializer(serializers.ModelSerializer):
             "color",
             "estado",
             "imagen_principal",
+            "imagenes",
             "video_presentacion",
             "es_destacada",
             "orden_carrusel",

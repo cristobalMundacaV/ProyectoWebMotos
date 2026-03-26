@@ -1393,6 +1393,22 @@
   margin: 0 auto;
 }
 
+.admin-gallery-preview-row {
+  margin-top: 10px;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.admin-gallery-preview-row img {
+  width: 100%;
+  height: 110px;
+  object-fit: cover;
+  border-radius: 10px;
+  border: 1px solid rgba(16, 16, 16, 0.12);
+  background: #f3f5f7;
+}
+
 .admin-moto-dual-preview-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));

@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import AdminPagination, { paginateItems } from "../../shared/components/AdminPagination";
 
 export default function MotosPage({
@@ -89,6 +89,17 @@ export default function MotosPage({
       .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
       .join(" ");
   }
+
+  const motoGaleriaPreviewUrls = useMemo(() => {
+    const files = Array.isArray(motoForm.imagenes_galeria) ? motoForm.imagenes_galeria : [];
+    return files.slice(0, 3).map((file) => URL.createObjectURL(file));
+  }, [motoForm.imagenes_galeria]);
+
+  useEffect(() => {
+    return () => {
+      motoGaleriaPreviewUrls.forEach((url) => URL.revokeObjectURL(url));
+    };
+  }, [motoGaleriaPreviewUrls]);
 
   if (activeSection === "marcas_motos" || activeSection === "marcas_acc_motos" || activeSection === "marcas_acc_rider") {
     const marcas =
@@ -455,6 +466,25 @@ export default function MotosPage({
                 accept="image/*"
                 onChange={onMotoInputChange}
               />
+            </label>
+
+            <label className="admin-form-span-2">
+              Galeria de imagenes (hasta 3 en vista previa)
+              <input
+                key={`moto-gallery-${motoImageInputKey}`}
+                type="file"
+                name="imagenes_galeria"
+                accept="image/*"
+                multiple
+                onChange={onMotoInputChange}
+              />
+              {motoGaleriaPreviewUrls.length > 0 && (
+                <div className="admin-gallery-preview-row">
+                  {motoGaleriaPreviewUrls.map((previewUrl, index) => (
+                    <img key={`${previewUrl}-${index}`} src={previewUrl} alt={`Vista previa moto ${index + 1}`} />
+                  ))}
+                </div>
+              )}
             </label>
 
             <div className="admin-moto-checks-row admin-form-span-2">
