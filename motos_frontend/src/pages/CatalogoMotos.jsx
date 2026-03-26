@@ -32,7 +32,6 @@ export default function CatalogoMotos() {
   const [deletingMoto, setDeletingMoto] = useState(false);
   const editFileInputRef = useRef(null);
   const editMaletasFileInputRef = useRef(null);
-  const editVideoFileInputRef = useRef(null);
   const formatTitleCase = (value) =>
     String(value || "-")
       .trim()
@@ -152,7 +151,9 @@ export default function CatalogoMotos() {
   function getErrorText(error, fallback = "No se pudo guardar la moto.") {
     const data = error?.response?.data;
     if (!data) return fallback;
-    if (typeof data === "string") return data;
+    if (typeof data === "string") {
+      return data;
+    }
     if (data.detail) return data.detail;
 
     const firstArray = Object.values(data).find((value) => Array.isArray(value) && value.length > 0);
@@ -207,7 +208,7 @@ export default function CatalogoMotos() {
       activa: moto.activa !== false,
       imagen_principal: null,
       imagen_con_maletas: null,
-      video_presentacion: null,
+      video_presentacion: moto.video_presentacion || "",
     });
   }
 
@@ -225,11 +226,12 @@ export default function CatalogoMotos() {
 
   function handleEditInputChange(event) {
     const { name, type, checked, value, files } = event.target;
+    const file = type === "file" ? files?.[0] || null : null;
 
     setEditForm((prev) => {
       if (!prev) return prev;
 
-      const nextValue = type === "checkbox" ? checked : type === "file" ? files?.[0] || null : value;
+      const nextValue = type === "checkbox" ? checked : type === "file" ? file : value;
       const nextForm = {
         ...prev,
         [name]: nextValue,
@@ -347,9 +349,7 @@ export default function CatalogoMotos() {
     if (editForm.imagen_con_maletas) {
       payload.append("imagen_con_maletas", editForm.imagen_con_maletas);
     }
-    if (editForm.video_presentacion) {
-      payload.append("video_presentacion", editForm.video_presentacion);
-    }
+    payload.append("video_presentacion", editForm.video_presentacion || "");
 
     try {
       const updated = await updateMoto(editingMoto.id, payload);
@@ -685,6 +685,18 @@ export default function CatalogoMotos() {
                 </select>
               </label>
 
+              <label>
+                {"A\u00f1o *"}
+                <input
+                  type="number"
+                  name="anio"
+                  value={editForm.anio}
+                  onChange={handleEditInputChange}
+                  min="1900"
+                  required
+                />
+              </label>
+
               <label className="moto-edit-span-2">
                 Descripción
                 <textarea
@@ -703,18 +715,6 @@ export default function CatalogoMotos() {
                   onChange={handleEditInputChange}
                   inputMode="decimal"
                   placeholder="Ej: 5.000.000"
-                  required
-                />
-              </label>
-
-              <label>
-                {"A\u00f1o *"}
-                <input
-                  type="number"
-                  name="anio"
-                  value={editForm.anio}
-                  onChange={handleEditInputChange}
-                  min="1900"
                   required
                 />
               </label>
@@ -833,29 +833,13 @@ export default function CatalogoMotos() {
 
               <label className="moto-edit-span-2">
                 Video de presentacion (opcional)
-                <div className="moto-edit-file-picker">
-                  <input
-                    ref={editVideoFileInputRef}
-                    className="moto-edit-file-hidden"
-                    type="file"
-                    name="video_presentacion"
-                    accept="video/*"
-                    onChange={handleEditInputChange}
-                  />
-                  <button
-                    type="button"
-                    className="moto-edit-file-btn"
-                    onClick={() => editVideoFileInputRef.current?.click()}
-                  >
-                    Examinar...
-                  </button>
-                  <span className="moto-edit-file-name">
-                    {editForm.video_presentacion?.name ||
-                      (editingMoto?.video_presentacion
-                        ? String(editingMoto.video_presentacion).split("/").pop()
-                        : "No se ha seleccionado ningun archivo.")}
-                  </span>
-                </div>
+                <input
+                  type="url"
+                  name="video_presentacion"
+                  value={editForm.video_presentacion || ""}
+                  onChange={handleEditInputChange}
+                  placeholder="https://..."
+                />
               </label>
 
               {(previewSrc || previewMaletasSrc) ? (

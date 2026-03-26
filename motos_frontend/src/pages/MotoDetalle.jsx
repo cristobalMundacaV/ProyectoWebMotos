@@ -210,7 +210,25 @@ export default function MotoDetalle() {
     { value: getFichaValue("Consumo homologado"), label: "Consumo homologado" },
     { value: getFichaValue("Frenos", "Sistema de frenos Brembo y Nissin"), label: "Frenos" },
   ].filter((item) => hasEnteredValue(item.value));
-  const videoPresentationUrl = buildMediaUrl(moto.video_presentacion);
+  const rawVideoUrl = String(moto.video_presentacion || "").trim();
+  const videoPresentationUrl = rawVideoUrl ? buildMediaUrl(rawVideoUrl) : "";
+  const isYouTubeUrl = /(?:youtube\.com|youtu\.be)/i.test(videoPresentationUrl);
+  const isVimeoUrl = /vimeo\.com/i.test(videoPresentationUrl);
+  const videoEmbedUrl = (() => {
+    if (!videoPresentationUrl) return "";
+    if (isYouTubeUrl) {
+      const watchMatch = videoPresentationUrl.match(/[?&]v=([^&]+)/i);
+      const shortMatch = videoPresentationUrl.match(/youtu\.be\/([^?&]+)/i);
+      const embedMatch = videoPresentationUrl.match(/youtube\.com\/embed\/([^?&]+)/i);
+      const videoId = watchMatch?.[1] || shortMatch?.[1] || embedMatch?.[1] || "";
+      return videoId ? `https://www.youtube.com/embed/${videoId}` : "";
+    }
+    if (isVimeoUrl) {
+      const idMatch = videoPresentationUrl.match(/vimeo\.com\/(?:video\/)?(\d+)/i);
+      return idMatch?.[1] ? `https://player.vimeo.com/video/${idMatch[1]}` : "";
+    }
+    return "";
+  })();
 
   return (
     <div className="detalle-page detalle-moto-page">
@@ -279,13 +297,24 @@ export default function MotoDetalle() {
 
         {videoPresentationUrl && (
           <section className="moto-video-section">
-            <video
-              className="moto-video-player"
-              controls
-              preload="metadata"
-              playsInline
-              src={videoPresentationUrl}
-            />
+            {videoEmbedUrl ? (
+              <iframe
+                className="moto-video-player"
+                src={videoEmbedUrl}
+                title={`Video de ${modelo}`}
+                loading="lazy"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                allowFullScreen
+              />
+            ) : (
+              <video
+                className="moto-video-player"
+                controls
+                preload="metadata"
+                playsInline
+                src={videoPresentationUrl}
+              />
+            )}
           </section>
         )}
 

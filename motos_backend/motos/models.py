@@ -51,7 +51,7 @@ class Moto(models.Model):
     )
 
     imagen_principal = models.ImageField(upload_to="motos/", blank=True, null=True)
-    video_presentacion = models.FileField(upload_to="motos/videos/", blank=True, null=True)
+    video_presentacion = models.URLField(max_length=500, blank=True, default="")
     permite_variante_maletas = models.BooleanField(default=False)
     precio_con_maletas = models.DecimalField(max_digits=12, decimal_places=2, null=True, blank=True)
     precio_lista_con_maletas = models.DecimalField(max_digits=12, decimal_places=2, null=True, blank=True)
