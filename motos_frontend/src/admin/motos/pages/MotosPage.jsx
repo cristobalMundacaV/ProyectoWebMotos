@@ -45,8 +45,8 @@ export default function MotosPage({
   const PAGE_SIZE = 10;
   const MODELOS_PAGE_SIZE = 6;
   const RECENT_MOTOS_PAGE_SIZE = 7;
-  const MIN_MOTO_YEAR = 2000;
   const currentYear = new Date().getFullYear();
+  const MIN_MOTO_YEAR = Math.max(2010, currentYear - 12);
   const motoYearOptions = Array.from({ length: currentYear - MIN_MOTO_YEAR + 1 }, (_, index) => String(currentYear - index));
   const [tablePages, setTablePages] = useState({
     marcas: 1,

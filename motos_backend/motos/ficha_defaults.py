@@ -1,4 +1,5 @@
 from django.utils.text import slugify
+import unicodedata
 
 from .models import TipoAtributo, ValorAtributoMoto
 
@@ -94,6 +95,15 @@ FICHA_TECNICA_TEMPLATES = [
 
 
 def ensure_moto_ficha_defaults(moto):
+    def normalize_item_name(value):
+        text = str(value or "").strip()
+        if not text:
+            return ""
+        normalized = unicodedata.normalize("NFD", text)
+        without_accents = "".join(ch for ch in normalized if unicodedata.category(ch) != "Mn")
+        return without_accents.casefold()
+
+    # 1) Base minima por plantilla (compatibilidad historica).
     for template in FICHA_TECNICA_TEMPLATES:
         seccion_slug = slugify(template["seccion"]) or f"seccion-{template['orden']}"
         tipo, _ = TipoAtributo.objects.get_or_create(
@@ -120,3 +130,66 @@ def ensure_moto_ficha_defaults(moto):
                     "orden": index,
                 },
             )
+
+    # 2) Sincroniza catalogo global de items (creados en otras motos) para
+    #    que una moto nueva herede todo lo ya existente por seccion.
+    existing_rows = ValorAtributoMoto.objects.filter(moto=moto).values_list(
+        "tipo_atributo_id",
+        "nombre",
+    )
+    existing_keys = {
+        (tipo_id, normalize_item_name(nombre))
+        for tipo_id, nombre in existing_rows
+        if normalize_item_name(nombre)
+    }
+
+    global_rows = (
+        ValorAtributoMoto.objects.select_related("tipo_atributo")
+        .order_by("tipo_atributo__orden", "tipo_atributo_id", "orden", "id")
+        .values(
+            "tipo_atributo_id",
+            "tipo_atributo__slug",
+            "tipo_atributo__nombre",
+            "tipo_atributo__orden",
+            "nombre",
+            "valor",
+            "orden",
+        )
+    )
+
+    seen_global_keys = set()
+    for row in global_rows:
+        item_key = normalize_item_name(row["nombre"])
+        if not item_key:
+            continue
+
+        tipo_id = row["tipo_atributo_id"]
+        key = (tipo_id, item_key)
+        if key in seen_global_keys:
+            continue
+        seen_global_keys.add(key)
+
+        tipo, _ = TipoAtributo.objects.get_or_create(
+            id=tipo_id,
+            defaults={
+                "slug": row["tipo_atributo__slug"] or f"seccion-{tipo_id}",
+                "nombre": row["tipo_atributo__nombre"] or f"SECCION {tipo_id}",
+                "orden": row["tipo_atributo__orden"] or 1,
+                "activo": True,
+            },
+        )
+        if not tipo.activo:
+            tipo.activo = True
+            tipo.save(update_fields=["activo"])
+
+        if key in existing_keys:
+            continue
+
+        ValorAtributoMoto.objects.create(
+            moto=moto,
+            tipo_atributo=tipo,
+            nombre=row["nombre"],
+            valor=row["valor"] or "",
+            orden=row["orden"] or 1,
+        )
+        existing_keys.add(key)

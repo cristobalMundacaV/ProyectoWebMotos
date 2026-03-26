@@ -2454,8 +2454,8 @@ export default function AdminPanel() {
   }
 
   const paginatedAdminUsers = paginateItems(adminUsers, adminUsersPage, 10);
-  const MIN_MOTO_YEAR = 2000;
   const currentYear = new Date().getFullYear();
+  const MIN_MOTO_YEAR = Math.max(2010, currentYear - 12);
   const motoYearOptions = Array.from({ length: currentYear - MIN_MOTO_YEAR + 1 }, (_, index) => String(currentYear - index));
   const motoEditModelosFiltrados = motoEditModal
     ? motoMeta.modelos.filter((modelo) => !motoEditModal.form.marca || String(modelo.marca) === String(motoEditModal.form.marca))
