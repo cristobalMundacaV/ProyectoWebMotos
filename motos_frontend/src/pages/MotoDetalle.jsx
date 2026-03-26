@@ -2,9 +2,7 @@ import { useParams, Link } from "react-router-dom";
 import { useEffect, useMemo, useState } from "react";
 import { buildMediaUrl } from "../services/apiConfig";
 import { getMotoBySlug, getMotoFichaTecnica } from "../services/motosService";
-import { getContactoPublico } from "../services/productosService";
 import { trackCatalogView } from "../services/analyticsService";
-import { buildWhatsAppUrl } from "../services/contactoUtils";
 import Navbar from "../components/layout/Navbar";
 import Contacto from "../components/home/Contacto";
 import "../styles/detalle.css";
@@ -34,7 +32,6 @@ export default function MotoDetalle() {
   const [seccionesFicha, setSeccionesFicha] = useState([]);
   const [openTechSection, setOpenTechSection] = useState("");
   const [varianteConMaletas, setVarianteConMaletas] = useState(false);
-  const [telefonoContacto, setTelefonoContacto] = useState("+56 9 1234 5678");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [activeImageIndex, setActiveImageIndex] = useState(0);
@@ -45,7 +42,7 @@ export default function MotoDetalle() {
     async function loadData() {
       setError("");
       try {
-        const [motoData, contactoData] = await Promise.all([getMotoBySlug(slug), getContactoPublico()]);
+        const motoData = await getMotoBySlug(slug);
         let fichaData = null;
 
         if (motoData?.id) {
@@ -59,9 +56,6 @@ export default function MotoDetalle() {
         if (!isMounted) return;
         setMoto(motoData);
         setSeccionesFicha(Array.isArray(fichaData?.secciones_ficha) ? fichaData.secciones_ficha : []);
-        if (contactoData?.telefono) {
-          setTelefonoContacto(contactoData.telefono);
-        }
         if (motoData) {
           trackCatalogView({
             tipoEntidad: "moto",
@@ -223,11 +217,6 @@ export default function MotoDetalle() {
 
   const formatPrice = (value) => `$${Number(value || 0).toLocaleString("es-CL")}`;
 
-  const whatsappHref = buildWhatsAppUrl(
-    telefonoContacto,
-    `Hola quiero cotizar la moto ${modelo}${tieneVarianteMaletas ? ` (${etiquetaVariante})` : ""}`
-  );
-
   const metricasFicha = [
     { value: getFichaValue("Potencia Maxima"), label: "Potencia Maxima" },
     { value: getFichaValue("Par maximo"), label: "Par maximo" },
@@ -350,9 +339,6 @@ export default function MotoDetalle() {
                 ))}
               </div>
             )}
-            <a className="detalle-cta" href={whatsappHref || "#"} target="_blank" rel="noreferrer">
-              COTIZAR POR WHATSAPP
-            </a>
           </aside>
         </section>
 
