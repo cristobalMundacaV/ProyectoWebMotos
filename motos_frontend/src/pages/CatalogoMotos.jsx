@@ -17,6 +17,7 @@ export default function CatalogoMotos() {
   const [selectedCategorias, setSelectedCategorias] = useState([]);
   const [cilindradaMin, setCilindradaMin] = useState("");
   const [cilindradaMax, setCilindradaMax] = useState("");
+  const [searchQuery, setSearchQuery] = useState("");
   const [order, setOrder] = useState("default");
   const [currentPage, setCurrentPage] = useState(1);
   const [isFiltersOpen, setIsFiltersOpen] = useState(false);
@@ -384,6 +385,12 @@ export default function CatalogoMotos() {
   }, [motos]);
 
   const filteredMotos = useMemo(() => {
+    const normalizedSearch = String(searchQuery || "")
+      .toLowerCase()
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .trim();
+
     let items = motos.filter((moto) => {
       const marcaMatch = selectedMarcas.length === 0 || selectedMarcas.includes(moto.marca_nombre || "");
       const categoriaMatch =
@@ -391,8 +398,15 @@ export default function CatalogoMotos() {
       const cilindrada = parseNumber(moto.cilindrada);
       const minMatch = cilindradaMin === "" || cilindrada >= parseNumber(cilindradaMin);
       const maxMatch = cilindradaMax === "" || cilindrada <= parseNumber(cilindradaMax);
+      const searchable = [moto.modelo, moto.nombre, moto.marca_nombre, moto.categoria_nombre]
+        .filter(Boolean)
+        .join(" ")
+        .toLowerCase()
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "");
+      const searchMatch = normalizedSearch === "" || searchable.includes(normalizedSearch);
 
-      return marcaMatch && categoriaMatch && minMatch && maxMatch;
+      return marcaMatch && categoriaMatch && minMatch && maxMatch && searchMatch;
     });
 
     if (order === "precio-asc") {
@@ -412,7 +426,7 @@ export default function CatalogoMotos() {
     }
 
     return items;
-  }, [motos, selectedMarcas, selectedCategorias, cilindradaMin, cilindradaMax, order]);
+  }, [motos, selectedMarcas, selectedCategorias, cilindradaMin, cilindradaMax, searchQuery, order]);
 
   const totalPages = Math.max(1, Math.ceil(filteredMotos.length / ITEMS_PER_PAGE));
   const safePage = Math.min(currentPage, totalPages);
@@ -423,7 +437,7 @@ export default function CatalogoMotos() {
 
   useEffect(() => {
     setCurrentPage(1);
-  }, [selectedMarcas, selectedCategorias, cilindradaMin, cilindradaMax, order]);
+  }, [selectedMarcas, selectedCategorias, cilindradaMin, cilindradaMax, searchQuery, order]);
 
   useEffect(() => {
     if (currentPage > totalPages) setCurrentPage(totalPages);
@@ -481,6 +495,31 @@ export default function CatalogoMotos() {
                 <p className="moto-results-meta">{filteredMotos.length} motos</p>
 
                 <div className="moto-catalog-toolbar-actions">
+                  <label className="moto-search" htmlFor="moto-search-input">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="16"
+                      height="16"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      aria-hidden="true"
+                    >
+                      <circle cx="11" cy="11" r="8" />
+                      <path d="m21 21-4.3-4.3" />
+                    </svg>
+                    <input
+                      id="moto-search-input"
+                      type="search"
+                      value={searchQuery}
+                      onChange={(event) => setSearchQuery(event.target.value)}
+                      placeholder="Buscar por modelo, marca o categoria..."
+                    />
+                  </label>
+
                   <label className="moto-sort-label">
                     <span>Ordenar por</span>
                     <select value={order} onChange={(event) => setOrder(event.target.value)}>

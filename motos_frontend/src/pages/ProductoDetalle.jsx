@@ -123,10 +123,10 @@ export default function ProductoDetalle() {
           <span>{nombre}</span>
         </div>
 
-        <h1 className="detalle-title detalle-title-producto">{nombre}</h1>
+        <section className="producto-hero-block">
+          <h1 className="detalle-title detalle-title-producto">{nombre}</h1>
 
-        <section className="detalle-layout">
-          <div className="detalle-image-wrap">
+          <div className="producto-hero-image-wrap">
             <img
               src={activeImageSrc}
               alt={nombre}
@@ -135,91 +135,88 @@ export default function ProductoDetalle() {
                 event.currentTarget.src = fallbackImage;
               }}
             />
-            {galleryImages.length > 1 && (
-              <div className="detalle-gallery-controls">
-                <button
-                  type="button"
-                  className="detalle-gallery-arrow"
-                  aria-label="Imagen anterior"
-                  onClick={() =>
-                    setActiveImageIndex((prev) => (prev === 0 ? galleryImages.length - 1 : prev - 1))
-                  }
-                >
-                  ‹
-                </button>
-                <div className="detalle-gallery-thumbs">
-                  {galleryImages.map((imageSrc, index) => (
-                    <button
-                      key={`${imageSrc}-${index}`}
-                      type="button"
-                      className={index === activeImageIndex ? "detalle-gallery-thumb is-active" : "detalle-gallery-thumb"}
-                      onClick={() => setActiveImageIndex(index)}
-                      aria-label={`Ver imagen ${index + 1}`}
-                    >
-                      <img src={imageSrc} alt={`${nombre} miniatura ${index + 1}`} />
-                    </button>
-                  ))}
-                </div>
-                <button
-                  type="button"
-                  className="detalle-gallery-arrow"
-                  aria-label="Imagen siguiente"
-                  onClick={() =>
-                    setActiveImageIndex((prev) => (prev + 1 >= galleryImages.length ? 0 : prev + 1))
-                  }
-                >
-                  ›
-                </button>
-              </div>
-            )}
           </div>
 
-          <aside className="detalle-side">
-            <p className="detalle-price">${Number(producto.precio || 0).toLocaleString("es-CL")}</p>
-
-            <div className="detalle-side-cards">
-              <div className="detalle-data-card">
-                <h3>Precio</h3>
-                <div className="detalle-data-row">
-                  <span>Categoria</span>
-                  <span>{producto.subcategoria_nombre || "-"}</span>
-                </div>
-                <div className="detalle-data-row">
-                  <span>Stock</span>
-                  <span>{producto.stock ?? 0}</span>
-                </div>
-                <div className="detalle-data-row">
-                  <span>Marca</span>
-                  <span>{producto.marca_nombre || "-"}</span>
-                </div>
+          {galleryImages.length > 1 && (
+            <div className="detalle-gallery-controls producto-gallery-controls">
+              <button
+                type="button"
+                className="detalle-gallery-arrow"
+                aria-label="Imagen anterior"
+                onClick={() => setActiveImageIndex((prev) => (prev === 0 ? galleryImages.length - 1 : prev - 1))}
+              >
+                {"<"}
+              </button>
+              <div className="detalle-gallery-thumbs">
+                {galleryImages.map((imageSrc, index) => (
+                  <button
+                    key={`${imageSrc}-${index}`}
+                    type="button"
+                    className={index === activeImageIndex ? "detalle-gallery-thumb is-active" : "detalle-gallery-thumb"}
+                    onClick={() => setActiveImageIndex(index)}
+                    aria-label={`Ver imagen ${index + 1}`}
+                  >
+                    <img src={imageSrc} alt={`${nombre} miniatura ${index + 1}`} />
+                  </button>
+                ))}
               </div>
+              <button
+                type="button"
+                className="detalle-gallery-arrow"
+                aria-label="Imagen siguiente"
+                onClick={() => setActiveImageIndex((prev) => (prev + 1 >= galleryImages.length ? 0 : prev + 1))}
+              >
+                {">"}
+              </button>
+            </div>
+          )}
 
-              <div className="detalle-contact-card">
-                <h3>Contactanos</h3>
-                <p>
-                  Instagram:{" "}
-                  {contacto.instagram ? (
-                    <a href={INSTAGRAM_PROFILE_URL} target="_blank" rel="noreferrer">
-                      {contacto.instagram}
-                    </a>
-                  ) : (
-                    "No definido"
-                  )}
-                </p>
-                <p>{contacto.telefono || "No definido"}</p>
-                <p>{contacto.ubicacion || "No definido"}</p>
+          <p className="detalle-price producto-price">${Number(producto.precio || 0).toLocaleString("es-CL")}</p>
+        </section>
+
+        <section className="producto-content-grid">
+          <article className="detalle-description producto-description">
+            <h2>Descripcion</h2>
+            <p>{descripcion}</p>
+          </article>
+
+          <aside className="producto-side-info">
+            <div className="detalle-data-card">
+              <h3>Detalles del producto</h3>
+              <div className="detalle-data-row">
+                <span>Categoria</span>
+                <span>{producto.subcategoria_nombre || "-"}</span>
               </div>
+              <div className="detalle-data-row">
+                <span>Stock</span>
+                <span>{producto.stock ?? 0}</span>
+              </div>
+              <div className="detalle-data-row">
+                <span>Marca</span>
+                <span>{producto.marca_nombre || "-"}</span>
+              </div>
+            </div>
+
+            <div className="detalle-contact-card">
+              <h3>Contactanos</h3>
+              <p>
+                Instagram:{" "}
+                {contacto.instagram ? (
+                  <a href={INSTAGRAM_PROFILE_URL} target="_blank" rel="noreferrer">
+                    {contacto.instagram}
+                  </a>
+                ) : (
+                  "No definido"
+                )}
+              </p>
+              <p>{contacto.telefono || "No definido"}</p>
+              <p>{contacto.ubicacion || "No definido"}</p>
             </div>
 
             <a className="detalle-cta" href={whatsappHref || "#"} target="_blank" rel="noreferrer">
               COTIZAR POR WHATSAPP
             </a>
           </aside>
-        </section>
-
-        <section className="detalle-description">
-          <h2>Descripcion</h2>
-          <p>{descripcion}</p>
         </section>
       </main>
     </div>

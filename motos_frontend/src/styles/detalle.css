@@ -217,52 +217,122 @@
 }
 
 /* Ajustes visuales para detalle de productos */
+.detalle-producto-page {
+  background: #ffffff;
+}
+
+.detalle-producto-page .detalle-main {
+  max-width: 1320px;
+}
+
 .detalle-producto-page .detalle-title-producto {
-  font-size: 36px;
-  line-height: 1.08;
-  margin-bottom: 18px;
+  margin: 0 0 12px;
+  text-align: center;
+  font-size: clamp(34px, 3.3vw, 48px);
+  line-height: 1.04;
+  font-weight: 900;
 }
 
 .detalle-producto-page .detalle-breadcrumb {
   margin-bottom: 16px;
+  background: #f4f4f5;
 }
 
-.detalle-producto-page .detalle-layout {
-  gap: 18px;
+.detalle-producto-page .producto-hero-block {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
 }
 
-.detalle-producto-page .detalle-price {
-  font-size: 40px;
+.detalle-producto-page .producto-hero-image-wrap {
+  width: min(100%, 980px);
+  min-height: 440px;
+  border-radius: 12px;
+  background: #ffffff;
+  display: grid;
+  place-items: center;
+}
+
+.detalle-producto-page .producto-hero-image-wrap img {
+  width: min(92%, 920px);
+  max-height: 540px;
+  object-fit: contain;
+}
+
+.detalle-producto-page .producto-gallery-controls {
+  margin-top: 0;
+  width: min(100%, 560px);
+}
+
+.detalle-producto-page .producto-price {
+  margin: 2px 0 0;
+  color: #b20808;
+  font-size: clamp(48px, 5.2vw, 74px);
+  font-weight: 900;
+  line-height: 1;
+}
+
+.detalle-producto-page .producto-content-grid {
+  margin-top: 14px;
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
+  gap: 20px;
+  align-items: start;
+}
+
+.detalle-producto-page .producto-description {
+  margin: 0;
+  max-width: none;
+  padding-right: 12px;
+}
+
+.detalle-producto-page .producto-description h2 {
+  font-size: clamp(34px, 3vw, 46px);
+  margin: 0 0 10px;
+  line-height: 1.02;
+  font-weight: 900;
+}
+
+.detalle-producto-page .producto-description p {
+  margin: 0;
+  font-size: 24px;
+  line-height: 1.38;
+  color: #101014;
+}
+
+.detalle-producto-page .producto-side-info {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.detalle-producto-page .detalle-data-card,
+.detalle-producto-page .detalle-contact-card {
+  border-radius: 12px;
+  background: #f3f3f5;
+  border: 1px solid #e5e6ea;
 }
 
 .detalle-producto-page .detalle-data-card h3,
 .detalle-producto-page .detalle-contact-card h3 {
-  font-size: 19px;
+  font-size: 28px;
+  padding: 11px 14px;
+  background: #ebecf0;
 }
 
 .detalle-producto-page .detalle-data-row,
 .detalle-producto-page .detalle-contact-card p {
-  font-size: 18px;
-  padding: 9px 14px;
+  font-size: 22px;
+  padding: 11px 14px;
+  border-top-color: #dcdde1;
 }
 
 .detalle-producto-page .detalle-cta {
-  font-size: 19px;
-  padding: 12px 16px;
-}
-
-.detalle-producto-page .detalle-description {
-  margin-top: 14px;
-}
-
-.detalle-producto-page .detalle-description h2 {
-  font-size: 30px;
-  margin-bottom: 8px;
-}
-
-.detalle-producto-page .detalle-description p {
-  font-size: 17px;
-  line-height: 1.45;
+  font-size: 23px;
+  padding: 14px 18px;
+  border-radius: 12px;
+  font-weight: 900;
 }
 
 .detalle-moto-page .detalle-side-cards {
@@ -282,28 +352,48 @@
     padding: 72px 16px 20px;
   }
 
-  .detalle-title,
-  .detalle-producto-page .detalle-title-producto {
+  .detalle-title {
     font-size: 34px;
   }
 
-  .detalle-price,
-  .detalle-producto-page .detalle-price {
+  .detalle-price {
     font-size: 38px;
   }
 
   .detalle-data-card h3,
-  .detalle-contact-card h3,
-  .detalle-producto-page .detalle-data-card h3,
-  .detalle-producto-page .detalle-contact-card h3 {
+  .detalle-contact-card h3 {
     font-size: 18px;
   }
 
   .detalle-data-row,
-  .detalle-contact-card p,
+  .detalle-contact-card p {
+    font-size: 17px;
+  }
+
+  .detalle-producto-page .producto-hero-image-wrap {
+    min-height: 380px;
+  }
+
+  .detalle-producto-page .producto-hero-image-wrap img {
+    max-height: 500px;
+  }
+
+  .detalle-producto-page .producto-description p {
+    font-size: 21px;
+  }
+
+  .detalle-producto-page .detalle-data-card h3,
+  .detalle-producto-page .detalle-contact-card h3 {
+    font-size: 24px;
+  }
+
   .detalle-producto-page .detalle-data-row,
   .detalle-producto-page .detalle-contact-card p {
-    font-size: 17px;
+    font-size: 20px;
+  }
+
+  .detalle-producto-page .detalle-cta {
+    font-size: 20px;
   }
 }
 
@@ -321,8 +411,7 @@
     grid-template-columns: 1fr;
   }
 
-  .detalle-title,
-  .detalle-producto-page .detalle-title-producto {
+  .detalle-title {
     font-size: 30px;
     margin-bottom: 8px;
   }
@@ -335,49 +424,96 @@
     max-height: 280px;
   }
 
-  .detalle-price,
-  .detalle-producto-page .detalle-price {
+  .detalle-price {
     font-size: 30px;
     margin-bottom: 2px;
   }
 
   .detalle-data-card h3,
-  .detalle-contact-card h3,
-  .detalle-producto-page .detalle-data-card h3,
-  .detalle-producto-page .detalle-contact-card h3 {
+  .detalle-contact-card h3 {
     font-size: 17px;
   }
 
   .detalle-data-row,
-  .detalle-contact-card p,
-  .detalle-producto-page .detalle-data-row,
-  .detalle-producto-page .detalle-contact-card p {
+  .detalle-contact-card p {
     font-size: 15px;
     padding: 8px 12px;
   }
 
-  .detalle-cta,
-  .detalle-producto-page .detalle-cta {
+  .detalle-cta {
     font-size: 16px;
     padding: 11px 14px;
     border-radius: 10px;
   }
 
-  .detalle-description,
-  .detalle-producto-page .detalle-description {
+  .detalle-description {
     margin-top: 8px;
   }
 
-  .detalle-description h2,
-  .detalle-producto-page .detalle-description h2 {
+  .detalle-description h2 {
     font-size: 18px;
     margin-bottom: 6px;
   }
 
-  .detalle-description p,
-  .detalle-producto-page .detalle-description p {
+  .detalle-description p {
     font-size: 15px;
     line-height: 1.5;
+  }
+
+  .detalle-producto-page .detalle-title-producto {
+    font-size: clamp(28px, 5vw, 34px);
+    margin-bottom: 8px;
+  }
+
+  .detalle-producto-page .producto-hero-image-wrap {
+    min-height: 290px;
+    width: 100%;
+  }
+
+  .detalle-producto-page .producto-hero-image-wrap img {
+    width: 96%;
+    max-height: 340px;
+  }
+
+  .detalle-producto-page .producto-gallery-controls {
+    width: min(100%, 420px);
+  }
+
+  .detalle-producto-page .producto-price {
+    font-size: clamp(40px, 8vw, 56px);
+  }
+
+  .detalle-producto-page .producto-content-grid {
+    grid-template-columns: 1fr;
+    gap: 14px;
+    margin-top: 10px;
+  }
+
+  .detalle-producto-page .producto-description {
+    padding-right: 0;
+  }
+
+  .detalle-producto-page .producto-description h2 {
+    font-size: clamp(24px, 6.2vw, 34px);
+  }
+
+  .detalle-producto-page .producto-description p {
+    font-size: 17px;
+  }
+
+  .detalle-producto-page .detalle-data-card h3,
+  .detalle-producto-page .detalle-contact-card h3 {
+    font-size: 20px;
+  }
+
+  .detalle-producto-page .detalle-data-row,
+  .detalle-producto-page .detalle-contact-card p {
+    font-size: 17px;
+  }
+
+  .detalle-producto-page .detalle-cta {
+    font-size: 18px;
+    padding: 12px 14px;
   }
 
   .detalle-moto-page .detalle-description {
@@ -390,16 +526,14 @@
     padding: 66px 10px 14px;
   }
 
-  .detalle-breadcrumb,
-  .detalle-producto-page .detalle-breadcrumb {
+  .detalle-breadcrumb {
     font-size: 13px;
     width: calc(100vw - 20px);
     margin-left: calc(50% - 50vw + 10px);
     margin-bottom: 8px;
   }
 
-  .detalle-title,
-  .detalle-producto-page .detalle-title-producto {
+  .detalle-title {
     font-size: 26px;
     line-height: 1.05;
     margin-bottom: 8px;
@@ -418,8 +552,7 @@
     max-height: 228px;
   }
 
-  .detalle-price,
-  .detalle-producto-page .detalle-price {
+  .detalle-price {
     font-size: 26px;
   }
 
@@ -428,23 +561,18 @@
   }
 
   .detalle-data-card h3,
-  .detalle-contact-card h3,
-  .detalle-producto-page .detalle-data-card h3,
-  .detalle-producto-page .detalle-contact-card h3 {
+  .detalle-contact-card h3 {
     font-size: 15px;
     padding: 9px 11px;
   }
 
   .detalle-data-row,
-  .detalle-contact-card p,
-  .detalle-producto-page .detalle-data-row,
-  .detalle-producto-page .detalle-contact-card p {
+  .detalle-contact-card p {
     font-size: 13px;
     padding: 8px 11px;
   }
 
-  .detalle-cta,
-  .detalle-producto-page .detalle-cta {
+  .detalle-cta {
     font-size: 14px;
     letter-spacing: 0.2px;
     padding: 10px 12px;
@@ -453,13 +581,11 @@
     place-items: center;
   }
 
-  .detalle-description h2,
-  .detalle-producto-page .detalle-description h2 {
+  .detalle-description h2 {
     font-size: 16px;
   }
 
-  .detalle-description p,
-  .detalle-producto-page .detalle-description p {
+  .detalle-description p {
     font-size: 13px;
     line-height: 1.5;
   }
@@ -467,6 +593,45 @@
 .detalle-moto-page .detalle-description {
   margin-top: 14px;
 }
+
+  .detalle-producto-page .detalle-title-producto {
+    font-size: clamp(24px, 8vw, 30px);
+  }
+
+  .detalle-producto-page .producto-hero-image-wrap {
+    min-height: 240px;
+    border-radius: 10px;
+  }
+
+  .detalle-producto-page .producto-hero-image-wrap img {
+    max-height: 280px;
+  }
+
+  .detalle-producto-page .producto-price {
+    font-size: clamp(34px, 10vw, 44px);
+  }
+
+  .detalle-producto-page .producto-description h2 {
+    font-size: 22px;
+  }
+
+  .detalle-producto-page .producto-description p {
+    font-size: 15px;
+  }
+
+  .detalle-producto-page .detalle-data-card h3,
+  .detalle-producto-page .detalle-contact-card h3 {
+    font-size: 18px;
+  }
+
+  .detalle-producto-page .detalle-data-row,
+  .detalle-producto-page .detalle-contact-card p {
+    font-size: 15px;
+  }
+
+  .detalle-producto-page .detalle-cta {
+    font-size: 16px;
+  }
 }
 
 /* Nuevo layout detalle motos */

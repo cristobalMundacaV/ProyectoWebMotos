@@ -45,6 +45,41 @@
   flex-wrap: wrap;
 }
 
+.moto-search {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 40px;
+  min-width: min(340px, 100%);
+  padding: 0 12px;
+  border: 1px solid #cfd5df;
+  border-radius: 10px;
+  background: #fff;
+  color: #475569;
+}
+
+.moto-search svg {
+  color: #64748b;
+  flex-shrink: 0;
+}
+
+.moto-search input {
+  width: 100%;
+  border: none;
+  background: transparent;
+  color: #0f172a;
+  font-size: 0.94rem;
+}
+
+.moto-search input:focus {
+  outline: none;
+}
+
+.moto-search:focus-within {
+  border-color: #94a3b8;
+  box-shadow: 0 0 0 3px rgba(148, 163, 184, 0.2);
+}
+
 .moto-results-meta {
   color: #5a5a5a;
   font-size: 0.95rem;
@@ -609,7 +644,8 @@
 @media (max-width: 560px) {
   .moto-catalog-toolbar,
   .moto-catalog-toolbar-actions,
-  .moto-sort-label {
+  .moto-sort-label,
+  .moto-search {
     width: 100%;
   }
 

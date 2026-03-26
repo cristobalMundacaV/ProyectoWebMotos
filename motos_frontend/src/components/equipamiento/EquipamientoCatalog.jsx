@@ -64,6 +64,7 @@ export default function EquipamientoCatalog({ variant = "accesorios" }) {
   const [selectedCategorias, setSelectedCategorias] = useState([]);
   const [selectedMarcas, setSelectedMarcas] = useState([]);
   const [selectedMotos, setSelectedMotos] = useState([]);
+  const [searchQuery, setSearchQuery] = useState("");
   const [order, setOrder] = useState("release");
   const [currentPage, setCurrentPage] = useState(1);
   const [isFiltersOpen, setIsFiltersOpen] = useState(false);
@@ -179,6 +180,8 @@ export default function EquipamientoCatalog({ variant = "accesorios" }) {
   }, [editingProducto, deleteCandidate, savingEdit, deletingProducto]);
 
   const productosFiltrados = useMemo(() => {
+    const normalizedSearch = normalizeText(searchQuery);
+
     let items = productos.filter((item) => {
       const marcaOk =
         selectedMarcas.length === 0 ||
@@ -186,7 +189,16 @@ export default function EquipamientoCatalog({ variant = "accesorios" }) {
       const categoriaOk =
         selectedCategorias.length === 0 ||
         selectedCategorias.includes(item.subcategoria_nombre);
-      return marcaOk && categoriaOk;
+      const searchable = [
+        item.nombre,
+        item.marca_nombre,
+        item.subcategoria_nombre,
+      ]
+        .filter(Boolean)
+        .map((value) => normalizeText(value))
+        .join(" ");
+      const searchOk = normalizedSearch === "" || searchable.includes(normalizedSearch);
+      return marcaOk && categoriaOk && searchOk;
     });
 
     if (order === "precio-asc") {
@@ -197,7 +209,7 @@ export default function EquipamientoCatalog({ variant = "accesorios" }) {
     }
 
     return items;
-  }, [order, productos, selectedCategorias, selectedMarcas]);
+  }, [order, productos, searchQuery, selectedCategorias, selectedMarcas]);
 
   const marcas = useMemo(() => {
     return [...new Set(productos.map((item) => item.marca_nombre).filter(Boolean))].sort((a, b) =>
@@ -214,7 +226,7 @@ export default function EquipamientoCatalog({ variant = "accesorios" }) {
 
   useEffect(() => {
     setCurrentPage(1);
-  }, [order, selectedCategorias, selectedMarcas, selectedMotos, tipoApi]);
+  }, [order, searchQuery, selectedCategorias, selectedMarcas, selectedMotos, tipoApi]);
 
   useEffect(() => {
     if (currentPage > totalPages) setCurrentPage(totalPages);
@@ -433,6 +445,31 @@ export default function EquipamientoCatalog({ variant = "accesorios" }) {
           <p className="equip-results-meta">{productosFiltrados.length} articulos</p>
         </div>
         <div className="equip-sort-row">
+          <label className="equip-search" htmlFor={`equip-search-${variant}`}>
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              aria-hidden="true"
+            >
+              <circle cx="11" cy="11" r="8" />
+              <path d="m21 21-4.3-4.3" />
+            </svg>
+            <input
+              id={`equip-search-${variant}`}
+              type="search"
+              value={searchQuery}
+              onChange={(event) => setSearchQuery(event.target.value)}
+              placeholder="Buscar por producto, marca o categoria..."
+            />
+          </label>
+
           <label htmlFor="equip-order">Ordenar por</label>
           <select
             id="equip-order"
