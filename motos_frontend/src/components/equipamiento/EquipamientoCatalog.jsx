@@ -527,16 +527,18 @@ export default function EquipamientoCatalog({ variant = "accesorios" }) {
             />
           </label>
 
-          <label htmlFor="equip-order">Ordenar por</label>
-          <select
-            id="equip-order"
-            value={order}
-            onChange={(e) => setOrder(e.target.value)}
-          >
-            <option value="release">Fecha de lanzamiento</option>
-            <option value="precio-asc">Menor precio</option>
-            <option value="precio-desc">Mayor precio</option>
-          </select>
+          <div className="equip-order-block">
+            <label htmlFor="equip-order">Ordenar por</label>
+            <select
+              id="equip-order"
+              value={order}
+              onChange={(e) => setOrder(e.target.value)}
+            >
+              <option value="release">Fecha de lanzamiento</option>
+              <option value="precio-asc">Menor precio</option>
+              <option value="precio-desc">Mayor precio</option>
+            </select>
+          </div>
           <button
             type="button"
             className="equip-filter-toggle-btn equip-filter-toggle-inline"
