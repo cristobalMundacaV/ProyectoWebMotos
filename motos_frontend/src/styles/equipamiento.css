@@ -920,8 +920,10 @@
 }
 
 .equip-page--accesorios .equip-card-image img {
-  width: 100%;
-  height: 100%;
+  width: auto;
+  height: auto;
+  max-width: 88%;
+  max-height: 88%;
   object-fit: contain;
   object-position: center;
 }
