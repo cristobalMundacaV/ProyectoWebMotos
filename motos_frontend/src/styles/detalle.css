@@ -276,7 +276,7 @@
 .detalle-producto-page .producto-content-grid {
   margin-top: 14px;
   display: grid;
-  grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
+  grid-template-columns: minmax(0, 1.55fr) minmax(0, 0.85fr);
   gap: 20px;
   align-items: start;
 }
@@ -284,7 +284,7 @@
 .detalle-producto-page .producto-description {
   margin: 0;
   max-width: none;
-  padding-right: 12px;
+  padding-right: 28px;
 }
 
 .detalle-producto-page .producto-description h2 {

@@ -4,7 +4,6 @@ import { buildFallbackImageDataUrl, buildMediaUrl } from "../services/apiConfig"
 import { getProductoBySlug, getContactoPublico } from "../services/productosService";
 import { trackCatalogView } from "../services/analyticsService";
 import { buildWhatsAppUrl } from "../services/contactoUtils";
-import { INSTAGRAM_PROFILE_URL } from "../services/socialLinks";
 import Navbar from "../components/layout/Navbar";
 import "../styles/detalle.css";
 
@@ -12,9 +11,7 @@ export default function ProductoDetalle() {
   const { slug } = useParams();
   const [producto, setProducto] = useState(null);
   const [contacto, setContacto] = useState({
-    instagram: "@motosnuevamarca",
     telefono: "+56 9 1234 5678",
-    ubicacion: "Tu ciudad, Chile",
   });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -50,9 +47,7 @@ export default function ProductoDetalle() {
 
         if (contactoData) {
           setContacto({
-            instagram: contactoData.instagram || "",
             telefono: contactoData.telefono || "",
-            ubicacion: contactoData.ubicacion || "",
           });
         }
       } catch (err) {
@@ -195,22 +190,6 @@ export default function ProductoDetalle() {
                 <span>Marca</span>
                 <span>{producto.marca_nombre || "-"}</span>
               </div>
-            </div>
-
-            <div className="detalle-contact-card">
-              <h3>Contactanos</h3>
-              <p>
-                Instagram:{" "}
-                {contacto.instagram ? (
-                  <a href={INSTAGRAM_PROFILE_URL} target="_blank" rel="noreferrer">
-                    {contacto.instagram}
-                  </a>
-                ) : (
-                  "No definido"
-                )}
-              </p>
-              <p>{contacto.telefono || "No definido"}</p>
-              <p>{contacto.ubicacion || "No definido"}</p>
             </div>
 
             <a className="detalle-cta" href={whatsappHref || "#"} target="_blank" rel="noreferrer">
