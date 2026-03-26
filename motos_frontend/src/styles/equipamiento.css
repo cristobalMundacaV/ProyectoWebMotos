@@ -244,12 +244,11 @@
   border: 1px solid #dddddd;
   border-radius: 14px;
   overflow: hidden;
-  padding: 0 0 10px;
+  padding: 0;
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
   transition: transform 0.2s ease, box-shadow 0.2s ease;
-  display: flex;
-  flex-direction: column;
-  min-height: 0;
+  display: grid;
+  grid-template-rows: 260px minmax(170px, 1fr);
   height: 100%;
 }
 
@@ -273,7 +272,7 @@
 }
 
 .equip-card-image {
-  aspect-ratio: 1 / 1;
+  height: 100%;
   background: #fff;
   display: grid;
   place-items: center;
@@ -291,9 +290,8 @@
 .equip-card-body {
   display: flex;
   flex-direction: column;
-  min-height: 142px;
-  padding: 12px 12px 12px;
-  flex: 1;
+  min-height: 170px;
+  padding: 12px;
   gap: 10px;
   justify-content: space-between;
 }
@@ -302,7 +300,7 @@
   font-size: 0.95rem;
   line-height: 1.2;
   margin: 0;
-  min-height: 2.4em;
+  min-height: 2.5em;
   line-clamp: 2;
   display: -webkit-box;
   -webkit-box-orient: vertical;
@@ -316,6 +314,7 @@
   align-items: stretch;
   justify-content: flex-end;
   gap: 10px;
+  margin-top: auto;
 }
 
 .equip-card-price {
@@ -837,7 +836,7 @@
   }
 
   .equip-card-image {
-    aspect-ratio: 1 / 0.86;
+    height: 220px;
   }
 
   .equip-card-price {
@@ -897,6 +896,10 @@
 
   .equip-card h3 {
     font-size: 1.02rem;
+  }
+
+  .equip-card {
+    grid-template-rows: 320px minmax(178px, 1fr);
   }
 
   .equip-card-price {
