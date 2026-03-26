@@ -684,6 +684,7 @@ export default function MantencionesPage({
     const readOnly = !isEditable;
     const estadoActual = draft.estado || item.estado;
     const solicitudAceptada = item.estado === "aceptada";
+    const canCancelSolicitud = isSolicitud && (item.estado === "ingresada" || item.estado === "aceptada");
     const estadoOptions = isTallerDia
       ? [
           { value: "aceptada", label: "Por ingreso" },
@@ -845,6 +846,23 @@ export default function MantencionesPage({
               <p>{item.motivo || "-"}</p>
             </article>
             <div className="admin-mantencion-ficha-actions admin-mantencion-ficha-actions-solicitud">
+              {canCancelSolicitud && (
+                <button
+                  type="button"
+                  className="admin-danger-action admin-mantencion-action-btn admin-mantencion-cancel-btn"
+                  disabled={saving}
+                  onClick={() => {
+                    const actionLabel = solicitudAceptada ? "anular este pendiente de ingreso" : "cancelar esta hora";
+                    const confirmed = window.confirm(
+                      `Estas seguro que deseas ${actionLabel}? Esta accion no se puede deshacer.`
+                    );
+                    if (!confirmed) return;
+                    onUpdateMantencion(item.id, { estado: "cancelada" });
+                  }}
+                >
+                  {saving ? "Anulando..." : solicitudAceptada ? "Anular pendiente ingreso" : "Cancelar hora"}
+                </button>
+              )}
               <button
                 type="button"
                 className="admin-primary-action admin-mantencion-action-btn admin-mantencion-accept-btn"

@@ -1820,7 +1820,11 @@ export default function AdminPanel() {
     try {
       const updated = await updateMantencionAdmin(mantencionId, payload);
       setMantenciones((prev) => prev.map((item) => (item.id === mantencionId ? updated : item)));
-      pushToast("Mantencion actualizada correctamente.", "success");
+      if (payload?.estado === "cancelada") {
+        pushToast("Solicitud anulada correctamente.", "success");
+      } else {
+        pushToast("Mantencion actualizada correctamente.", "success");
+      }
     } catch (error) {
       pushToast(getErrorText(error, "No se pudo actualizar la mantencion."), "error");
     } finally {

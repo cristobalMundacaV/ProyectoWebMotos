@@ -1899,6 +1899,15 @@
   background: #15803d;
 }
 
+.admin-mantencion-cancel-btn {
+  background: #dc2626;
+  border-color: #b91c1c;
+}
+
+.admin-mantencion-cancel-btn:hover {
+  background: #b91c1c;
+}
+
 .admin-mantencion-save-btn {
   background: #16a34a;
   border: 1px solid #15803d;
@@ -2734,6 +2743,7 @@
 
 .admin-mantencion-ficha-actions-solicitud {
   margin-bottom: 24px;
+  gap: 10px;
 }
 
 .admin-mantencion-ficha-textarea {
