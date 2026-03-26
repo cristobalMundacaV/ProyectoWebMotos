@@ -52,11 +52,17 @@ def _sync_producto_main_image(producto):
 	if not producto:
 		return
 	main_image_name = str(getattr(producto.imagen_principal, "name", "") or "").strip()
+	first_gallery_image = producto.imagenes.order_by("orden", "id").first()
+
+	# Compatibilidad con productos antiguos que solo tienen imagen_principal
+	# y no registros en galeria: no borrar la imagen al editar metadatos.
+	if not first_gallery_image and main_image_name:
+		return
+
 	if main_image_name:
 		has_main_in_gallery = producto.imagenes.filter(imagen=main_image_name).exists()
 		if has_main_in_gallery:
 			return
-	first_gallery_image = producto.imagenes.order_by("orden", "id").first()
 	producto.imagen_principal = first_gallery_image.imagen if first_gallery_image else None
 	producto.save(update_fields=["imagen_principal"])
 

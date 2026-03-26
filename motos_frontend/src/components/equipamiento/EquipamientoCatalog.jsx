@@ -650,15 +650,18 @@ export default function EquipamientoCatalog({ variant = "accesorios" }) {
 
           {productosPaginados.map((producto) => {
             const detailPath = `/producto/${producto.slug}`;
+            const firstGalleryImage = Array.isArray(producto.imagenes)
+              ? producto.imagenes.find((item) => item?.imagen)?.imagen || ""
+              : "";
+            const cardImageSrc =
+              (producto.imagen_principal && buildMediaUrl(producto.imagen_principal)) ||
+              (firstGalleryImage && buildMediaUrl(firstGalleryImage)) ||
+              fallbackImage;
             const cardContent = (
               <>
                 <figure className="equip-card-image">
                   <img
-                    src={
-                      producto.imagen_principal
-                        ? buildMediaUrl(producto.imagen_principal)
-                        : fallbackImage
-                    }
+                    src={cardImageSrc}
                     alt={producto.nombre}
                     loading="lazy"
                     decoding="async"
