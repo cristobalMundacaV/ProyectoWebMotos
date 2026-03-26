@@ -333,16 +333,6 @@ export default function ProductosPage({
               />
             </label>
 
-            <label className="admin-form-span-2">
-              Descripcion (opcional)
-              <textarea
-                name="descripcion"
-                value={accesorioMotoForm.descripcion}
-                onChange={onAccesorioMotoInputChange}
-                rows={4}
-              />
-            </label>
-
             <label>
               Precio *
               <input
@@ -356,27 +346,13 @@ export default function ProductosPage({
               />
             </label>
 
-            <label>
-              Stock *
-              <input
-                type="number"
-                name="stock"
-                value={accesorioMotoForm.stock}
+            <label className="admin-form-span-2">
+              Descripcion (opcional)
+              <textarea
+                name="descripcion"
+                value={accesorioMotoForm.descripcion}
                 onChange={onAccesorioMotoInputChange}
-                min="0"
-                required
-              />
-            </label>
-
-            <label>
-              Orden carrusel *
-              <input
-                type="number"
-                name="orden_carrusel"
-                value={accesorioRiderForm.orden_carrusel}
-                onChange={onAccesorioRiderInputChange}
-                min="1"
-                required
+                rows={4}
               />
             </label>
 
@@ -423,15 +399,29 @@ export default function ProductosPage({
                 </label>
               </div>
 
-              <button type="submit" className="admin-primary-action admin-form-footer-submit" disabled={accesorioMotoSaving}>
-                {accesorioMotoSaving ? "Guardando..." : editingAccesorioMotoId ? "Actualizar" : "Guardar"}
-              </button>
-              {editingAccesorioMotoId && (
-                <button type="button" className="admin-page-btn ghost" onClick={onCancelAccesorioMotoEdit}>
+                <button type="submit" className="admin-primary-action admin-form-footer-submit" disabled={accesorioMotoSaving}>
+                  {accesorioMotoSaving ? "Guardando..." : editingAccesorioMotoId ? "Actualizar" : "Guardar"}
+                </button>
+                {editingAccesorioMotoId && (
+                  <button type="button" className="admin-page-btn ghost" onClick={onCancelAccesorioMotoEdit}>
                   Cancelar edicion
                 </button>
+                )}
+              </div>
+
+              {accesorioMotoForm.es_destacado && (
+                <label className="admin-form-span-2">
+                  Orden carrusel *
+                  <input
+                    type="number"
+                    name="orden_carrusel"
+                    value={accesorioMotoForm.orden_carrusel}
+                    onChange={onAccesorioMotoInputChange}
+                    min="1"
+                    required={Boolean(accesorioMotoForm.es_destacado)}
+                  />
+                </label>
               )}
-            </div>
 
             {accesorioMotoForm.requiere_compatibilidad && (
               <div className="admin-form-span-2 admin-checkbox-list">
@@ -551,16 +541,6 @@ export default function ProductosPage({
               />
             </label>
 
-            <label className="admin-form-span-2">
-              Descripcion (opcional)
-              <textarea
-                name="descripcion"
-                value={accesorioRiderForm.descripcion}
-                onChange={onAccesorioRiderInputChange}
-                rows={4}
-              />
-            </label>
-
             <label>
               Precio *
               <input
@@ -574,15 +554,13 @@ export default function ProductosPage({
               />
             </label>
 
-            <label>
-              Stock *
-              <input
-                type="number"
-                name="stock"
-                value={accesorioRiderForm.stock}
+            <label className="admin-form-span-2">
+              Descripcion (opcional)
+              <textarea
+                name="descripcion"
+                value={accesorioRiderForm.descripcion}
                 onChange={onAccesorioRiderInputChange}
-                min="0"
-                required
+                rows={4}
               />
             </label>
 

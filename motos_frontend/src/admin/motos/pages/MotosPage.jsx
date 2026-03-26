@@ -49,7 +49,7 @@ export default function MotosPage({
   const MIN_MOTO_YEAR = 1990;
   const motoYearOptions = Array.from(
     { length: currentYear - MIN_MOTO_YEAR + 1 },
-    (_, index) => String(MIN_MOTO_YEAR + index)
+    (_, index) => String(currentYear - index)
   );
   const [tablePages, setTablePages] = useState({
     marcas: 1,

@@ -176,6 +176,13 @@ const navigationGroups = [
     ],
   },
   {
+    label: "Fichas tecnicas",
+    icon: "fichas_tecnicas",
+    items: [
+      { label: "Resumen general", value: "fichas_resumen" },
+    ],
+  },
+  {
     label: "Usuarios",
     icon: "usuarios",
     items: [
@@ -196,13 +203,6 @@ const navigationGroups = [
       { label: "Indumentaria rider", kind: "heading" },
       { label: "Marca", value: "marcas_acc_rider" },
       { label: "Categoria", value: "categorias_acc_rider" },
-    ],
-  },
-  {
-    label: "Fichas tecnicas",
-    icon: "fichas_tecnicas",
-    items: [
-      { label: "Resumen general", value: "fichas_resumen" },
     ],
   },
   {
