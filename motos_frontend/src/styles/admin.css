@@ -2173,13 +2173,7 @@
   font-size: 1.28rem;
 }
 
-.admin-ficha-tools {
-  display: grid;
-  justify-items: end;
-  gap: 8px;
-}
-
-.admin-ficha-manage-actions {
+.admin-ficha-header-actions {
   display: flex;
   gap: 8px;
   flex-wrap: wrap;
@@ -2524,16 +2518,11 @@
     align-items: stretch;
   }
 
-  .admin-ficha-tools {
-    width: 100%;
-    justify-items: stretch;
-  }
-
-  .admin-ficha-manage-actions {
+  .admin-ficha-header-actions {
     justify-content: stretch;
   }
 
-  .admin-ficha-manage-actions .admin-ficha-outline-action {
+  .admin-ficha-header-actions .admin-ficha-outline-action {
     width: 100%;
   }
 
