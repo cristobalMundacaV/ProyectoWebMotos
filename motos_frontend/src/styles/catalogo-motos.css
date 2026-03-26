@@ -428,6 +428,12 @@
   accent-color: #d60000;
 }
 
+.moto-edit-checks-row {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(180px, 1fr));
+  gap: 10px 14px;
+}
+
 .moto-edit-actions {
   display: flex;
   justify-content: flex-end;
@@ -592,6 +598,10 @@
   }
 
   .moto-edit-form {
+    grid-template-columns: 1fr;
+  }
+
+  .moto-edit-checks-row {
     grid-template-columns: 1fr;
   }
 }

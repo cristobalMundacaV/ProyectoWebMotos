@@ -731,56 +731,6 @@ export default function CatalogoMotos() {
                 />
               </label>
 
-              <label className="moto-edit-check">
-                <input
-                  type="checkbox"
-                  name="permite_variante_maletas"
-                  checked={Boolean(editForm.permite_variante_maletas)}
-                  onChange={handleEditInputChange}
-                />
-                Habilitar variante con maletas
-              </label>
-
-              {editForm.permite_variante_maletas && (
-                <label>
-                  Precio con maletas *
-                  <input
-                    name="precio_con_maletas"
-                    value={formatPrecioInput(editForm.precio_con_maletas)}
-                    onChange={handleEditInputChange}
-                    inputMode="decimal"
-                    placeholder="Ej: 9.990.000"
-                    required
-                  />
-                </label>
-              )}
-
-              {editForm.permite_variante_maletas && (
-                <label>
-                  Precio de lista con maletas *
-                  <input
-                    name="precio_lista_con_maletas"
-                    value={formatPrecioInput(editForm.precio_lista_con_maletas)}
-                    onChange={handleEditInputChange}
-                    inputMode="decimal"
-                    placeholder="Ej: 11.490.000"
-                    required
-                  />
-                </label>
-              )}
-
-              <label>
-                Orden carrusel *
-                <input
-                  type="number"
-                  name="orden_carrusel"
-                  value={editForm.orden_carrusel}
-                  onChange={handleEditInputChange}
-                  min="1"
-                  required
-                />
-              </label>
-
               <label className="moto-edit-span-2">
                 Imagen principal
                 <div className="moto-edit-file-picker">
@@ -800,36 +750,10 @@ export default function CatalogoMotos() {
                     Examinar...
                   </button>
                   <span className="moto-edit-file-name">
-                    {editForm.imagen_principal?.name || "No se ha seleccionado ningún archivo."}
+                    {editForm.imagen_principal?.name || "No se ha seleccionado ningÃºn archivo."}
                   </span>
                 </div>
               </label>
-
-              {editForm.permite_variante_maletas && (
-                <label className="moto-edit-span-2">
-                  Imagen con maletas *
-                  <div className="moto-edit-file-picker">
-                    <input
-                      ref={editMaletasFileInputRef}
-                      className="moto-edit-file-hidden"
-                      type="file"
-                      name="imagen_con_maletas"
-                      accept="image/*"
-                      onChange={handleEditInputChange}
-                    />
-                    <button
-                      type="button"
-                      className="moto-edit-file-btn"
-                      onClick={() => editMaletasFileInputRef.current?.click()}
-                    >
-                      Examinar...
-                    </button>
-                    <span className="moto-edit-file-name">
-                      {editForm.imagen_con_maletas?.name || "No se ha seleccionado ningún archivo."}
-                    </span>
-                  </div>
-                </label>
-              )}
 
               <label className="moto-edit-span-2">
                 Video de presentacion (opcional)
@@ -859,25 +783,105 @@ export default function CatalogoMotos() {
                 </div>
               ) : null}
 
-              <label className="moto-edit-check">
-                <input
-                  type="checkbox"
-                  name="es_destacada"
-                  checked={editForm.es_destacada}
-                  onChange={handleEditInputChange}
-                />
-                Destacada
-              </label>
+              <div className="moto-edit-checks-row moto-edit-span-2">
+                <label className="moto-edit-check">
+                  <input
+                    type="checkbox"
+                    name="permite_variante_maletas"
+                    checked={Boolean(editForm.permite_variante_maletas)}
+                    onChange={handleEditInputChange}
+                  />
+                  Habilitar variante con maletas
+                </label>
 
-              <label className="moto-edit-check">
-                <input
-                  type="checkbox"
-                  name="activa"
-                  checked={editForm.activa}
-                  onChange={handleEditInputChange}
-                />
-                Activa
-              </label>
+                <label className="moto-edit-check">
+                  <input
+                    type="checkbox"
+                    name="es_destacada"
+                    checked={editForm.es_destacada}
+                    onChange={handleEditInputChange}
+                  />
+                  Destacada
+                </label>
+
+                <label className="moto-edit-check">
+                  <input
+                    type="checkbox"
+                    name="activa"
+                    checked={editForm.activa}
+                    onChange={handleEditInputChange}
+                  />
+                  Activa
+                </label>
+              </div>
+
+              {editForm.es_destacada && (
+                <label>
+                  Orden carrusel *
+                  <input
+                    type="number"
+                    name="orden_carrusel"
+                    value={editForm.orden_carrusel}
+                    onChange={handleEditInputChange}
+                    min="1"
+                    required={Boolean(editForm.es_destacada)}
+                  />
+                </label>
+              )}
+
+              {editForm.permite_variante_maletas && (
+                <label>
+                  Precio con maletas *
+                  <input
+                    name="precio_con_maletas"
+                    value={formatPrecioInput(editForm.precio_con_maletas)}
+                    onChange={handleEditInputChange}
+                    inputMode="decimal"
+                    placeholder="Ej: 9.990.000"
+                    required
+                  />
+                </label>
+              )}
+
+              {editForm.permite_variante_maletas && (
+                <label>
+                  Precio de lista con maletas *
+                  <input
+                    name="precio_lista_con_maletas"
+                    value={formatPrecioInput(editForm.precio_lista_con_maletas)}
+                    onChange={handleEditInputChange}
+                    inputMode="decimal"
+                    placeholder="Ej: 11.490.000"
+                    required
+                  />
+                </label>
+              )}
+
+              {editForm.permite_variante_maletas && (
+                <label className="moto-edit-span-2">
+                  Imagen con maletas *
+                  <div className="moto-edit-file-picker">
+                    <input
+                      ref={editMaletasFileInputRef}
+                      className="moto-edit-file-hidden"
+                      type="file"
+                      name="imagen_con_maletas"
+                      accept="image/*"
+                      onChange={handleEditInputChange}
+                    />
+                    <button
+                      type="button"
+                      className="moto-edit-file-btn"
+                      onClick={() => editMaletasFileInputRef.current?.click()}
+                    >
+                      Examinar...
+                    </button>
+                    <span className="moto-edit-file-name">
+                      {editForm.imagen_con_maletas?.name || "No se ha seleccionado ningÃºn archivo."}
+                    </span>
+                  </div>
+                </label>
+              )}
 
               {editError && <p className="moto-edit-error">{editError}</p>}
 
