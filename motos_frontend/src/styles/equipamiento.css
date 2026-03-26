@@ -907,7 +907,7 @@
 }
 
 .equip-page--accesorios .equip-card {
-  min-height: 412px;
+  min-height: 398px;
   grid-template-rows: 250px 1fr;
 }
 
@@ -929,16 +929,19 @@
 }
 
 .equip-page--accesorios .equip-card-body {
-  min-height: 162px;
+  min-height: 148px;
+  padding: 10px 12px;
+  gap: 8px;
 }
 
 .equip-page--accesorios .equip-card-bottom {
   margin-top: auto;
+  gap: 8px;
 }
 
 @media (max-width: 560px) {
   .equip-page--accesorios .equip-card {
-    min-height: 362px;
+    min-height: 348px;
     grid-template-rows: 210px 1fr;
   }
 
@@ -948,13 +951,13 @@
   }
 
   .equip-page--accesorios .equip-card-body {
-    min-height: 146px;
+    min-height: 132px;
   }
 }
 
 @media (min-width: 961px) {
   .equip-page--accesorios .equip-card {
-    min-height: 442px;
+    min-height: 428px;
     grid-template-rows: 280px 1fr;
   }
 
@@ -964,7 +967,7 @@
   }
 
   .equip-page--accesorios .equip-card-body {
-    min-height: 162px;
+    min-height: 148px;
   }
 }
 
