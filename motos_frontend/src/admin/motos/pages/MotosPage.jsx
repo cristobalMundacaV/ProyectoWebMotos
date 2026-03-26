@@ -458,20 +458,9 @@ export default function MotosPage({
             </label>
 
             <label className="admin-form-span-2">
-              Imagen principal
+              Imagenes
               <input
-                key={`moto-image-${motoImageInputKey}`}
-                type="file"
-                name="imagen_principal"
-                accept="image/*"
-                onChange={onMotoInputChange}
-              />
-            </label>
-
-            <label className="admin-form-span-2">
-              Galeria de imagenes (hasta 3 en vista previa)
-              <input
-                key={`moto-gallery-${motoImageInputKey}`}
+                key={`moto-images-${motoImageInputKey}`}
                 type="file"
                 name="imagenes_galeria"
                 accept="image/*"

@@ -86,24 +86,26 @@ export default function ProductosPage({
   const [accesorioRiderLocalPreview, setAccesorioRiderLocalPreview] = useState("");
 
   useEffect(() => {
-    if (!(accesorioMotoForm.imagen_principal instanceof File)) {
+    const firstImage = Array.isArray(accesorioMotoForm.imagenes_galeria) ? accesorioMotoForm.imagenes_galeria[0] : null;
+    if (!(firstImage instanceof File)) {
       setAccesorioMotoLocalPreview("");
       return;
     }
-    const objectUrl = URL.createObjectURL(accesorioMotoForm.imagen_principal);
+    const objectUrl = URL.createObjectURL(firstImage);
     setAccesorioMotoLocalPreview(objectUrl);
     return () => URL.revokeObjectURL(objectUrl);
-  }, [accesorioMotoForm.imagen_principal]);
+  }, [accesorioMotoForm.imagenes_galeria]);
 
   useEffect(() => {
-    if (!(accesorioRiderForm.imagen_principal instanceof File)) {
+    const firstImage = Array.isArray(accesorioRiderForm.imagenes_galeria) ? accesorioRiderForm.imagenes_galeria[0] : null;
+    if (!(firstImage instanceof File)) {
       setAccesorioRiderLocalPreview("");
       return;
     }
-    const objectUrl = URL.createObjectURL(accesorioRiderForm.imagen_principal);
+    const objectUrl = URL.createObjectURL(firstImage);
     setAccesorioRiderLocalPreview(objectUrl);
     return () => URL.revokeObjectURL(objectUrl);
-  }, [accesorioRiderForm.imagen_principal]);
+  }, [accesorioRiderForm.imagenes_galeria]);
 
   const accesorioMotoGaleriaPreviewUrls = useMemo(() => {
     const files = Array.isArray(accesorioMotoForm.imagenes_galeria) ? accesorioMotoForm.imagenes_galeria : [];
@@ -379,12 +381,13 @@ export default function ProductosPage({
             </label>
 
             <label className="admin-form-span-2">
-              Imagen principal (opcional)
+              Imagenes
               <input
-                key={`acc-moto-image-${accesorioMotoImageInputKey}`}
+                key={`acc-moto-images-${accesorioMotoImageInputKey}`}
                 type="file"
-                name="imagen_principal"
+                name="imagenes_galeria"
                 accept="image/*"
+                multiple
                 onChange={onAccesorioMotoInputChange}
               />
               {(accesorioMotoLocalPreview || accesorioMotoImageUrl) && (
@@ -396,18 +399,6 @@ export default function ProductosPage({
                   />
                 </div>
               )}
-            </label>
-
-            <label className="admin-form-span-2">
-              Galeria de imagenes (hasta 3 en vista previa)
-              <input
-                key={`acc-moto-gallery-${accesorioMotoImageInputKey}`}
-                type="file"
-                name="imagenes_galeria"
-                accept="image/*"
-                multiple
-                onChange={onAccesorioMotoInputChange}
-              />
               {accesorioMotoGaleriaPreviewUrls.length > 0 && (
                 <div className="admin-gallery-preview-row">
                   {accesorioMotoGaleriaPreviewUrls.map((previewUrl, index) => (
@@ -606,12 +597,13 @@ export default function ProductosPage({
             </label>
 
             <label className="admin-form-span-2">
-              Imagen principal (opcional)
+              Imagenes
               <input
-                key={`acc-rider-image-${accesorioRiderImageInputKey}`}
+                key={`acc-rider-images-${accesorioRiderImageInputKey}`}
                 type="file"
-                name="imagen_principal"
+                name="imagenes_galeria"
                 accept="image/*"
+                multiple
                 onChange={onAccesorioRiderInputChange}
               />
               {(accesorioRiderLocalPreview || accesorioRiderImageUrl) && (
@@ -623,18 +615,6 @@ export default function ProductosPage({
                   />
                 </div>
               )}
-            </label>
-
-            <label className="admin-form-span-2">
-              Galeria de imagenes (hasta 3 en vista previa)
-              <input
-                key={`acc-rider-gallery-${accesorioRiderImageInputKey}`}
-                type="file"
-                name="imagenes_galeria"
-                accept="image/*"
-                multiple
-                onChange={onAccesorioRiderInputChange}
-              />
               {accesorioRiderGaleriaPreviewUrls.length > 0 && (
                 <div className="admin-gallery-preview-row">
                   {accesorioRiderGaleriaPreviewUrls.map((previewUrl, index) => (

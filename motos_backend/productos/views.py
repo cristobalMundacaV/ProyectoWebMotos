@@ -21,13 +21,19 @@ ACCESORIOS_CATEGORY_SLUGS = ["accesorios-para-la-moto", "accesorios"]
 def _save_producto_gallery_files(producto, files):
 	if not producto or not files:
 		return
+	first_created_image = None
 	current_max_order = producto.imagenes.aggregate(max_order=Max("orden")).get("max_order") or 0
 	for index, image_file in enumerate(files, start=1):
-		ImagenProducto.objects.create(
+		created_image = ImagenProducto.objects.create(
 			producto=producto,
 			imagen=image_file,
 			orden=current_max_order + index,
 		)
+		if first_created_image is None:
+			first_created_image = created_image
+	if first_created_image and not producto.imagen_principal:
+		producto.imagen_principal = first_created_image.imagen
+		producto.save(update_fields=["imagen_principal"])
 
 
 def _filter_marcas_por_tipo(queryset, tipo):

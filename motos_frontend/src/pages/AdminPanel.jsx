@@ -969,16 +969,26 @@ export default function AdminPanel() {
       let nextImageMaletasPreviewUrl = prev.imageMaletasPreviewUrl;
       let nextPreviewMaletasIsObjectUrl = prev.previewMaletasIsObjectUrl;
       let nextImageMaletasFileName = prev.imageMaletasFileName;
-      const nextValue = type === "checkbox" ? checked : type === "file" ? files?.[0] || null : value;
+      const galleryFiles = type === "file" && name === "imagenes_galeria" ? Array.from(files || []) : null;
+      const nextValue = type === "checkbox"
+        ? checked
+        : type === "file"
+          ? name === "imagenes_galeria"
+            ? galleryFiles
+            : files?.[0] || null
+          : value;
 
-      if (type === "file" && name === "imagen_principal") {
+      if (type === "file" && (name === "imagen_principal" || name === "imagenes_galeria")) {
         if (prev.previewIsObjectUrl && prev.imagePreviewUrl) {
           URL.revokeObjectURL(prev.imagePreviewUrl);
         }
-        if (nextValue) {
-          nextImagePreviewUrl = URL.createObjectURL(nextValue);
+        const primaryImage = name === "imagenes_galeria"
+          ? (Array.isArray(nextValue) ? nextValue[0] : null)
+          : nextValue;
+        if (primaryImage) {
+          nextImagePreviewUrl = URL.createObjectURL(primaryImage);
           nextPreviewIsObjectUrl = true;
-          nextImageFileName = nextValue.name;
+          nextImageFileName = primaryImage.name;
         } else {
           nextImagePreviewUrl = prev.originalImageUrl || "";
           nextPreviewIsObjectUrl = false;
@@ -1127,6 +1137,10 @@ export default function AdminPanel() {
 
   function buildMotoPayload(form) {
     const payload = new FormData();
+    const galleryFiles = Array.isArray(form.imagenes_galeria)
+      ? form.imagenes_galeria.filter(Boolean)
+      : [];
+    const primaryImageFromGallery = galleryFiles[0] || null;
     const selectedModelo = motoMeta.modelos.find((item) => String(item.id) === String(form.modelo));
     const modeloNombre = selectedModelo?.nombre || "";
     const modeloSlug = selectedModelo?.slug || form.slug || limitSlug(buildSlug(modeloNombre), 50);
@@ -1153,14 +1167,12 @@ export default function AdminPanel() {
       payload.append("orden_carrusel", form.orden_carrusel || "1");
     }
     payload.append("activa", String(form.activa));
-    if (form.imagen_principal) {
-      payload.append("imagen_principal", form.imagen_principal);
+    if (form.imagen_principal || primaryImageFromGallery) {
+      payload.append("imagen_principal", form.imagen_principal || primaryImageFromGallery);
     }
-    if (Array.isArray(form.imagenes_galeria)) {
-      form.imagenes_galeria.forEach((file) => {
-        if (file) payload.append("imagenes", file);
-      });
-    }
+    galleryFiles.forEach((file) => {
+      payload.append("imagenes", file);
+    });
     if (form.imagen_con_maletas) {
       payload.append("imagen_con_maletas", form.imagen_con_maletas);
     }
@@ -1280,20 +1292,30 @@ export default function AdminPanel() {
       let nextImagePreviewUrl = prev.imagePreviewUrl;
       let nextPreviewIsObjectUrl = prev.previewIsObjectUrl;
       let nextImageFileName = prev.imageFileName;
+      const galleryFiles = type === "file" && name === "imagenes_galeria" ? Array.from(files || []) : null;
       const nextBrandId = name === "marca" ? value : prev.form.marca;
       const selectedBrand = accesoriosRiderMeta.marcas.find((marca) => String(marca.id) === String(nextBrandId));
       const brandName = selectedBrand?.nombre || "";
       const normalizedValue = name === "nombre" ? forceBrandTokenInName(value, brandName) : value;
-      const nextValue = type === "checkbox" ? checked : type === "file" ? files?.[0] || null : normalizedValue;
+      const nextValue = type === "checkbox"
+        ? checked
+        : type === "file"
+          ? name === "imagenes_galeria"
+            ? galleryFiles
+            : files?.[0] || null
+          : normalizedValue;
 
       if (type === "file") {
         if (prev.previewIsObjectUrl && prev.imagePreviewUrl) {
           URL.revokeObjectURL(prev.imagePreviewUrl);
         }
-        if (nextValue) {
-          nextImagePreviewUrl = URL.createObjectURL(nextValue);
+        const primaryImage = name === "imagenes_galeria"
+          ? (Array.isArray(nextValue) ? nextValue[0] : null)
+          : nextValue;
+        if (primaryImage) {
+          nextImagePreviewUrl = URL.createObjectURL(primaryImage);
           nextPreviewIsObjectUrl = true;
-          nextImageFileName = nextValue.name;
+          nextImageFileName = primaryImage.name;
         } else {
           nextImagePreviewUrl = prev.originalImageUrl || "";
           nextPreviewIsObjectUrl = false;
@@ -1868,6 +1890,7 @@ export default function AdminPanel() {
         orden_carrusel: String(moto.orden_carrusel ?? "1"),
         activa: moto.activa !== false,
         imagen_principal: null,
+        imagenes_galeria: [],
         imagen_con_maletas: null,
         video_presentacion: moto.video_presentacion || "",
       },
@@ -2103,12 +2126,16 @@ export default function AdminPanel() {
     payload.append("es_destacado", String(accesorioMotoForm.es_destacado));
     payload.append("activo", String(accesorioMotoForm.activo));
     payload.append("requiere_compatibilidad", String(accesorioMotoForm.requiere_compatibilidad));
-    if (accesorioMotoForm.imagen_principal) payload.append("imagen_principal", accesorioMotoForm.imagen_principal);
-    if (Array.isArray(accesorioMotoForm.imagenes_galeria)) {
-      accesorioMotoForm.imagenes_galeria.forEach((file) => {
-        if (file) payload.append("imagenes", file);
-      });
+    const galleryFiles = Array.isArray(accesorioMotoForm.imagenes_galeria)
+      ? accesorioMotoForm.imagenes_galeria.filter(Boolean)
+      : [];
+    const primaryImageFromGallery = galleryFiles[0] || null;
+    if (accesorioMotoForm.imagen_principal || primaryImageFromGallery) {
+      payload.append("imagen_principal", accesorioMotoForm.imagen_principal || primaryImageFromGallery);
     }
+    galleryFiles.forEach((file) => {
+      payload.append("imagenes", file);
+    });
     if (accesorioMotoForm.requiere_compatibilidad) {
       accesorioMotoForm.compatibilidad_motos.forEach((motoId) => {
         payload.append("compatibilidad_motos", String(motoId));
@@ -2161,12 +2188,16 @@ export default function AdminPanel() {
     payload.append("orden_carrusel", accesorioRiderForm.orden_carrusel || "1");
     payload.append("es_destacado", String(accesorioRiderForm.es_destacado));
     payload.append("activo", String(accesorioRiderForm.activo));
-    if (accesorioRiderForm.imagen_principal) payload.append("imagen_principal", accesorioRiderForm.imagen_principal);
-    if (Array.isArray(accesorioRiderForm.imagenes_galeria)) {
-      accesorioRiderForm.imagenes_galeria.forEach((file) => {
-        if (file) payload.append("imagenes", file);
-      });
+    const galleryFiles = Array.isArray(accesorioRiderForm.imagenes_galeria)
+      ? accesorioRiderForm.imagenes_galeria.filter(Boolean)
+      : [];
+    const primaryImageFromGallery = galleryFiles[0] || null;
+    if (accesorioRiderForm.imagen_principal || primaryImageFromGallery) {
+      payload.append("imagen_principal", accesorioRiderForm.imagen_principal || primaryImageFromGallery);
     }
+    galleryFiles.forEach((file) => {
+      payload.append("imagenes", file);
+    });
 
     try {
       const nuevoAccesorio = await createAccesorioRider(payload);
@@ -2247,6 +2278,7 @@ export default function AdminPanel() {
         es_destacado: Boolean(producto.es_destacado),
         activo: producto.activo !== false,
         imagen_principal: null,
+        imagenes_galeria: [],
       },
     });
   }
@@ -2280,9 +2312,16 @@ export default function AdminPanel() {
     payload.append("orden_carrusel", accesorioRiderEditModal.form.orden_carrusel || "1");
     payload.append("es_destacado", String(accesorioRiderEditModal.form.es_destacado));
     payload.append("activo", String(accesorioRiderEditModal.form.activo));
-    if (accesorioRiderEditModal.form.imagen_principal) {
-      payload.append("imagen_principal", accesorioRiderEditModal.form.imagen_principal);
+    const galleryFiles = Array.isArray(accesorioRiderEditModal.form.imagenes_galeria)
+      ? accesorioRiderEditModal.form.imagenes_galeria.filter(Boolean)
+      : [];
+    const primaryImageFromGallery = galleryFiles[0] || null;
+    if (accesorioRiderEditModal.form.imagen_principal || primaryImageFromGallery) {
+      payload.append("imagen_principal", accesorioRiderEditModal.form.imagen_principal || primaryImageFromGallery);
     }
+    galleryFiles.forEach((file) => {
+      payload.append("imagenes", file);
+    });
 
     try {
       const updatedAccesorio = await updateProductoAdmin(accesorioRiderEditModal.id, payload);
@@ -2970,12 +3009,13 @@ export default function AdminPanel() {
                   </label>
 
                   <label className="admin-form-span-2">
-                    Imagen principal
+                    Imagenes
                     <input
-                      key={`moto-edit-image-${motoEditModal.imageInputKey}`}
+                      key={`moto-edit-images-${motoEditModal.imageInputKey}`}
                       type="file"
-                      name="imagen_principal"
+                      name="imagenes_galeria"
                       accept="image/*"
+                      multiple
                       onChange={handleMotoEditInputChange}
                     />
                     {motoEditModal.imageFileName && (
@@ -3191,12 +3231,13 @@ export default function AdminPanel() {
                   </label>
 
                   <label className="admin-form-span-2">
-                    Imagen principal (opcional)
+                    Imagenes
                     <input
-                      key={`acc-rider-edit-image-${accesorioRiderEditModal.imageInputKey}`}
+                      key={`acc-rider-edit-images-${accesorioRiderEditModal.imageInputKey}`}
                       type="file"
-                      name="imagen_principal"
+                      name="imagenes_galeria"
                       accept="image/*"
+                      multiple
                       onChange={handleAccesorioRiderEditInputChange}
                     />
                     {accesorioRiderEditModal.imageFileName && (

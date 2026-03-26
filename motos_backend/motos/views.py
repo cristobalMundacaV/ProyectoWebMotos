@@ -60,13 +60,19 @@ def _filter_marcas_por_tipo(queryset, tipo):
 def _save_moto_gallery_files(moto, files):
     if not moto or not files:
         return
+    first_created_image = None
     current_max_order = moto.imagenes.aggregate(max_order=Max("orden")).get("max_order") or 0
     for index, image_file in enumerate(files, start=1):
-        ImagenMoto.objects.create(
+        created_image = ImagenMoto.objects.create(
             moto=moto,
             imagen=image_file,
             orden=current_max_order + index,
         )
+        if first_created_image is None:
+            first_created_image = created_image
+    if first_created_image and not moto.imagen_principal:
+        moto.imagen_principal = first_created_image.imagen
+        moto.save(update_fields=["imagen_principal"])
 
 
 @api_view(["GET", "POST"])
