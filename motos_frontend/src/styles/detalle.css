@@ -651,6 +651,10 @@
   background: #efefef;
 }
 
+.detalle-producto-page .contacto {
+  background: #ffffff;
+}
+
 .moto-hero-block {
   position: relative;
   min-height: 460px;
