@@ -63,6 +63,14 @@ function isCancelledMantencion(estado) {
   return String(estado || "").toLowerCase() === "cancelada";
 }
 
+function isDeliveredMantencion(estado) {
+  return String(estado || "").toLowerCase() === "entregada";
+}
+
+function isHiddenMantencion(estado) {
+  return isCancelledMantencion(estado) || isDeliveredMantencion(estado);
+}
+
 function getErrorText(error, fallback) {
   const data = error?.response?.data;
   if (!data) return fallback;
@@ -152,11 +160,11 @@ export default function ConsultarHora() {
     try {
       const data = await consultarMantencionesPorRut(normalizedRut);
       const resultsRaw = Array.isArray(data?.results) ? data.results : [];
-      const results = resultsRaw.filter((item) => !isCancelledMantencion(item?.estado));
+      const results = resultsRaw.filter((item) => !isHiddenMantencion(item?.estado));
       setConsultaResultados(results);
       setConsultaCurrentPage(1);
       if (results.length === 0) {
-        setConsultaError("No encontramos horas de mantencion activas asociadas a ese RUT.");
+        setConsultaError("No encontramos horas pendientes asociadas a ese RUT.");
       }
     } catch {
       setConsultaResultados([]);
