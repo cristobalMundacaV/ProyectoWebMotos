@@ -520,9 +520,9 @@ export default function CatalogoMotos() {
                     />
                   </label>
 
-                  <label className="moto-sort-label">
-                    <span>Ordenar por</span>
-                    <select value={order} onChange={(event) => setOrder(event.target.value)}>
+                  <div className="moto-order-block">
+                    <label htmlFor="moto-order">Ordenar por</label>
+                    <select id="moto-order" value={order} onChange={(event) => setOrder(event.target.value)}>
                       <option value="default">Destacados primero</option>
                       <option value="precio-asc">Precio: menor a mayor</option>
                       <option value="precio-desc">Precio: mayor a menor</option>
@@ -530,7 +530,7 @@ export default function CatalogoMotos() {
                       <option value="cilindrada-desc">Cilindrada: mayor a menor</option>
                       <option value="anio-desc">Mas reciente</option>
                     </select>
-                  </label>
+                  </div>
 
                   <button
                     type="button"

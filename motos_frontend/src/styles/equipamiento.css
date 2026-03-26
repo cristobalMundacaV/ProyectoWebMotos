@@ -47,7 +47,8 @@
   display: grid;
   grid-template-columns: minmax(260px, 420px);
   gap: 10px;
-  justify-items: start;
+  justify-items: stretch;
+  justify-self: end;
 }
 
 .equip-search {
@@ -92,9 +93,11 @@
 }
 
 .equip-order-block {
-  display: inline-flex;
+  display: flex;
+  width: 100%;
   align-items: center;
   gap: 12px;
+  justify-content: flex-end;
 }
 
 .equip-sort-row select {

@@ -39,10 +39,11 @@
 }
 
 .moto-catalog-toolbar-actions {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: minmax(260px, 420px);
+  gap: 10px;
+  justify-items: stretch;
+  justify-self: end;
 }
 
 .moto-search {
@@ -50,7 +51,8 @@
   align-items: center;
   gap: 8px;
   min-height: 40px;
-  min-width: min(340px, 100%);
+  width: 100%;
+  min-width: 0;
   padding: 0 12px;
   border: 1px solid #cfd5df;
   border-radius: 10px;
@@ -86,23 +88,26 @@
   font-weight: 600;
 }
 
-.moto-sort-label {
+.moto-order-block {
   display: flex;
+  width: 100%;
   align-items: center;
   gap: 10px;
-  color: #1f2937;
-  font-size: 0.94rem;
-  font-weight: 700;
+  justify-content: flex-end;
+  color: #777;
 }
 
-.moto-sort-label select {
-  min-height: 40px;
-  border: 1px solid #cfd5df;
-  background: #fff;
-  color: #1f2937;
-  border-radius: 10px;
-  padding: 0 12px;
-  font-size: 0.94rem;
+.moto-order-block label {
+  color: #777;
+}
+
+.moto-order-block select {
+  border: none;
+  border-bottom: 1px solid #bbb;
+  background: transparent;
+  padding: 6px 2px;
+  font-size: 0.95rem;
+  font-weight: 700;
 }
 
 .moto-filter-toggle-btn {
@@ -644,18 +649,21 @@
 @media (max-width: 560px) {
   .moto-catalog-toolbar,
   .moto-catalog-toolbar-actions,
-  .moto-sort-label,
+  .moto-order-block,
   .moto-search {
     width: 100%;
   }
 
-  .moto-sort-label {
-    flex-direction: column;
-    align-items: stretch;
+  .moto-catalog-toolbar-actions {
+    grid-template-columns: 1fr;
   }
 
-  .moto-sort-label select {
-    width: 100%;
+  .moto-order-block {
+    justify-content: flex-end;
+  }
+
+  .moto-order-block select {
+    min-width: 0;
   }
 
   .moto-filter-toggle-btn {
