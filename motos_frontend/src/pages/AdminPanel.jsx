@@ -2273,7 +2273,6 @@ export default function AdminPanel() {
         slug: producto.slug || "",
         descripcion: producto.descripcion || "",
         precio: normalizePrecioFromApi(producto.precio),
-        stock: String(producto.stock ?? "0"),
         orden_carrusel: String(producto.orden_carrusel ?? "1"),
         es_destacado: Boolean(producto.es_destacado),
         activo: producto.activo !== false,
@@ -2308,7 +2307,6 @@ export default function AdminPanel() {
     payload.append("slug", accesorioRiderEditModal.form.slug);
     payload.append("descripcion", accesorioRiderEditModal.form.descripcion);
     payload.append("precio", accesorioRiderEditModal.form.precio);
-    payload.append("stock", accesorioRiderEditModal.form.stock);
     payload.append("orden_carrusel", accesorioRiderEditModal.form.orden_carrusel || "1");
     payload.append("es_destacado", String(accesorioRiderEditModal.form.es_destacado));
     payload.append("activo", String(accesorioRiderEditModal.form.activo));
@@ -3202,18 +3200,6 @@ export default function AdminPanel() {
                       value={formatPrecioDisplay(accesorioRiderEditModal.form.precio)}
                       onChange={handleAccesorioRiderEditPrecioInputChange}
                       inputMode="numeric"
-                      required
-                    />
-                  </label>
-
-                  <label>
-                    Stock *
-                    <input
-                      type="number"
-                      name="stock"
-                      value={accesorioRiderEditModal.form.stock}
-                      onChange={handleAccesorioRiderEditInputChange}
-                      min="0"
                       required
                     />
                   </label>

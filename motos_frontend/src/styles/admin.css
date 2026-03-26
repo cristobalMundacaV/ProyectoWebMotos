@@ -1186,6 +1186,36 @@
   font-size: 0.98rem;
 }
 
+.admin-moto-form select,
+.admin-entity-modal-form select {
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  cursor: pointer;
+  padding-right: 40px;
+  background-image:
+    linear-gradient(45deg, transparent 50%, #516179 50%),
+    linear-gradient(135deg, #516179 50%, transparent 50%);
+  background-position:
+    calc(100% - 18px) calc(50% - 2px),
+    calc(100% - 12px) calc(50% - 2px);
+  background-size: 6px 6px, 6px 6px;
+  background-repeat: no-repeat;
+}
+
+.admin-moto-form select:hover,
+.admin-entity-modal-form select:hover {
+  border-color: rgba(14, 116, 144, 0.45);
+  background-color: #fcfeff;
+}
+
+.admin-moto-form select:focus,
+.admin-entity-modal-form select:focus {
+  outline: none;
+  border-color: #0f766e;
+  box-shadow: 0 0 0 3px rgba(15, 118, 110, 0.16);
+}
+
 .admin-moto-form input.admin-field-invalid,
 .admin-moto-form select.admin-field-invalid,
 .admin-moto-form textarea.admin-field-invalid,
