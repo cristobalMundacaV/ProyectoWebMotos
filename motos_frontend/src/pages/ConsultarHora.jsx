@@ -59,6 +59,10 @@ function canCancelMantencion(estado) {
   return estado === "ingresada" || estado === "aceptada";
 }
 
+function isCancelledMantencion(estado) {
+  return String(estado || "").toLowerCase() === "cancelada";
+}
+
 function getErrorText(error, fallback) {
   const data = error?.response?.data;
   if (!data) return fallback;
@@ -147,11 +151,12 @@ export default function ConsultarHora() {
 
     try {
       const data = await consultarMantencionesPorRut(normalizedRut);
-      const results = Array.isArray(data?.results) ? data.results : [];
+      const resultsRaw = Array.isArray(data?.results) ? data.results : [];
+      const results = resultsRaw.filter((item) => !isCancelledMantencion(item?.estado));
       setConsultaResultados(results);
       setConsultaCurrentPage(1);
       if (results.length === 0) {
-        setConsultaError("No encontramos horas de mantencion asociadas a ese RUT.");
+        setConsultaError("No encontramos horas de mantencion activas asociadas a ese RUT.");
       }
     } catch {
       setConsultaResultados([]);
@@ -188,17 +193,7 @@ export default function ConsultarHora() {
 
     try {
       const response = await cancelarMantencionPorRut(item.id, normalizedRut);
-      setConsultaResultados((prev) =>
-        prev.map((row) =>
-          row.id === item.id
-            ? {
-                ...row,
-                estado: response?.estado || "cancelada",
-                estado_label: response?.estado_label || "Cancelada",
-              }
-            : row
-        )
-      );
+      setConsultaResultados((prev) => prev.filter((row) => row.id !== item.id));
       setConsultaSuccess(response?.detail || "Tu hora fue cancelada correctamente.");
       setCancelModalItem(null);
     } catch (error) {
