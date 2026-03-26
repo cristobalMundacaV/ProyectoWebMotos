@@ -291,18 +291,6 @@ export default function MotosPage({
               />
             </label>
 
-            <label>
-              Cilindrada (cc) *
-              <input
-                type="number"
-                name="cilindrada"
-                value={modeloMotoForm.cilindrada}
-                onChange={onModeloMotoInputChange}
-                min="1"
-                required
-              />
-            </label>
-
             <label className="admin-form-span-2">
               Descripcion (opcional)
               <textarea
@@ -337,7 +325,7 @@ export default function MotosPage({
                   <span className="admin-row-label">Nombre Modelo</span>
                   <strong>{modelo.nombre}</strong>
                   <span>{modelo.marca_nombre || "-"}</span>
-                  <span>{formatCategoryLabel(modelo.categoria_nombre) || "-"} | {modelo.cilindrada ? `${modelo.cilindrada}cc` : "-"}</span>
+                  <span>{formatCategoryLabel(modelo.categoria_nombre) || "-"}</span>
                 </div>
                 <div className="admin-row-actions admin-recent-model-actions">
                   <button type="button" className="admin-row-action-btn edit" title="Editar" onClick={() => onModeloMotoEdit?.(modelo)}>

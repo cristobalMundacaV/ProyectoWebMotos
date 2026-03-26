@@ -32,6 +32,7 @@ export default function CatalogoMotos() {
   const [deletingMoto, setDeletingMoto] = useState(false);
   const editFileInputRef = useRef(null);
   const editMaletasFileInputRef = useRef(null);
+  const editVideoFileInputRef = useRef(null);
   const formatTitleCase = (value) =>
     String(value || "-")
       .trim()
@@ -200,13 +201,13 @@ export default function CatalogoMotos() {
       precio_lista_con_maletas: String(
         parsePrecioEntero(moto.precio_lista_con_maletas || moto.precio_lista || moto.precio_con_maletas)
       ),
-      cilindrada: String(moto.cilindrada ?? ""),
       anio: String(moto.anio ?? ""),
       orden_carrusel: String(moto.orden_carrusel ?? 1),
       es_destacada: Boolean(moto.es_destacada),
       activa: moto.activa !== false,
       imagen_principal: null,
       imagen_con_maletas: null,
+      video_presentacion: null,
     });
   }
 
@@ -335,7 +336,6 @@ export default function CatalogoMotos() {
     if (editForm.permite_variante_maletas && editForm.precio_lista_con_maletas) {
       payload.append("precio_lista_con_maletas", editForm.precio_lista_con_maletas);
     }
-    payload.append("cilindrada", editForm.cilindrada);
     payload.append("anio", editForm.anio);
     payload.append("orden_carrusel", editForm.orden_carrusel || "1");
     payload.append("es_destacada", String(editForm.es_destacada));
@@ -346,6 +346,9 @@ export default function CatalogoMotos() {
     }
     if (editForm.imagen_con_maletas) {
       payload.append("imagen_con_maletas", editForm.imagen_con_maletas);
+    }
+    if (editForm.video_presentacion) {
+      payload.append("video_presentacion", editForm.video_presentacion);
     }
 
     try {
@@ -705,18 +708,6 @@ export default function CatalogoMotos() {
               </label>
 
               <label>
-                Cilindrada *
-                <input
-                  type="number"
-                  name="cilindrada"
-                  value={editForm.cilindrada}
-                  onChange={handleEditInputChange}
-                  min="1"
-                  required
-                />
-              </label>
-
-              <label>
                 {"A\u00f1o *"}
                 <input
                   type="number"
@@ -839,6 +830,33 @@ export default function CatalogoMotos() {
                   </div>
                 </label>
               )}
+
+              <label className="moto-edit-span-2">
+                Video de presentacion (opcional)
+                <div className="moto-edit-file-picker">
+                  <input
+                    ref={editVideoFileInputRef}
+                    className="moto-edit-file-hidden"
+                    type="file"
+                    name="video_presentacion"
+                    accept="video/*"
+                    onChange={handleEditInputChange}
+                  />
+                  <button
+                    type="button"
+                    className="moto-edit-file-btn"
+                    onClick={() => editVideoFileInputRef.current?.click()}
+                  >
+                    Examinar...
+                  </button>
+                  <span className="moto-edit-file-name">
+                    {editForm.video_presentacion?.name ||
+                      (editingMoto?.video_presentacion
+                        ? String(editingMoto.video_presentacion).split("/").pop()
+                        : "No se ha seleccionado ningun archivo.")}
+                  </span>
+                </div>
+              </label>
 
               {(previewSrc || previewMaletasSrc) ? (
                 <div className="moto-edit-preview-grid moto-edit-span-2">

@@ -67,14 +67,10 @@ class ModeloMotoSerializer(serializers.ModelSerializer):
         if is_create:
             if not categoria:
                 raise serializers.ValidationError({"categoria": "La categoria del modelo es obligatoria."})
-            if cilindrada in (None, ""):
-                raise serializers.ValidationError({"cilindrada": "La cilindrada del modelo es obligatoria."})
 
-        # En updates parciales, solo validar categoria/cilindrada si vienen en el payload.
+        # En updates parciales, solo validar categoria si viene en el payload.
         if "categoria" in attrs and not categoria:
             raise serializers.ValidationError({"categoria": "La categoria del modelo es obligatoria."})
-        if "cilindrada" in attrs and cilindrada in (None, ""):
-            raise serializers.ValidationError({"cilindrada": "La cilindrada del modelo es obligatoria."})
 
         if cilindrada not in (None, "") and int(cilindrada) <= 0:
             raise serializers.ValidationError({"cilindrada": "La cilindrada debe ser mayor a 0."})
