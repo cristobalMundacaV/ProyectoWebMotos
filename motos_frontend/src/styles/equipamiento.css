@@ -914,6 +914,17 @@
 .equip-page--accesorios .equip-card-image {
   aspect-ratio: auto;
   height: 250px;
+  padding: 10px;
+  background: #f8fafc;
+}
+
+.equip-page--accesorios .equip-card-image img {
+  width: auto;
+  height: auto;
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  object-position: center;
 }
 
 .equip-page--accesorios .equip-card-body {
@@ -932,6 +943,7 @@
 
   .equip-page--accesorios .equip-card-image {
     height: 210px;
+    padding: 8px;
   }
 
   .equip-page--accesorios .equip-card-body {
@@ -947,6 +959,7 @@
 
   .equip-page--accesorios .equip-card-image {
     height: 280px;
+    padding: 12px;
   }
 
   .equip-page--accesorios .equip-card-body {
