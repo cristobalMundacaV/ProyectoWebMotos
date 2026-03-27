@@ -38,7 +38,7 @@ def get_disponibilidad(days_ahead: int = 21) -> list[dict]:
             fecha_ingreso__lte=end_date,
             hora_ingreso__isnull=False,
         )
-        .exclude(estado=Mantencion.ESTADO_CANCELADA)
+        .exclude(estado=Mantencion.ESTADO_CANCELADO)
         .values("fecha_ingreso", "hora_ingreso")
         .annotate(total=Count("id"))
     )

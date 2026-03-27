@@ -671,15 +671,15 @@ class DashboardSummaryAnalyticsAPIView(APIView):
         reservadas_qs = Mantencion.objects.filter(
             fecha_ingreso__gte=ocupacion_start,
             fecha_ingreso__lte=ocupacion_end,
-        ).exclude(estado=Mantencion.ESTADO_CANCELADA)
+        ).exclude(estado=Mantencion.ESTADO_CANCELADO)
         horas_reservadas = reservadas_qs.count()
         capacity_by_hour, total_capacity = _compute_capacity_by_hour(ocupacion_start, ocupacion_end)
         ocupacion_pct = round((horas_reservadas / total_capacity) * 100, 2) if total_capacity else 0.0
         horas_restantes = max(total_capacity - horas_reservadas, 0)
 
         # KPIs de estado/cliente.
-        canceladas = mant_qs.filter(estado=Mantencion.ESTADO_CANCELADA).count()
-        no_asistio = mant_qs.filter(estado=Mantencion.ESTADO_NO_ASISTIO).count()
+        canceladas = mant_qs.filter(estado=Mantencion.ESTADO_CANCELADO).count()
+        no_asistio = mant_qs.filter(estado=Mantencion.ESTADO_INASISTENCIA).count()
         cancelacion_pct = round((canceladas / total_reservas) * 100, 2) if total_reservas else 0.0
         no_asistencia_pct = round((no_asistio / total_reservas) * 100, 2) if total_reservas else 0.0
 

@@ -2,27 +2,28 @@ import { useEffect, useMemo, useState } from "react";
 import { getDisponibilidadMantenciones } from "../../../services/mantencionesService";
 
 const ESTADO_OPTIONS = [
-  { value: "en_revision", label: "En revision" },
-  { value: "esperando_repuestos", label: "Esperando repuestos" },
-  { value: "finalizada", label: "Finalizada" },
-  { value: "entregada", label: "Entregada" },
-  { value: "cancelada", label: "Cancelada" },
-  { value: "no_asistio", label: "No asistio" },
+  { value: "en_proceso", label: "En proceso" },
+  { value: "en_espera", label: "En espera" },
+  { value: "finalizado", label: "Finalizado" },
+  { value: "entregada", label: "Entregado" },
+  { value: "cancelado", label: "Cancelado" },
+  { value: "inasistencia", label: "Inasistencia" },
+  { value: "no_aceptado", label: "No aceptado" },
 ];
 
 const SOLICITUDES_TABS = [
-  { value: "por_aceptar", label: "Por Aceptar", estado: "ingresada" },
-  { value: "aceptadas", label: "Aceptadas", estado: "aceptada" },
+  { value: "por_aprobar", label: "Solicitud", estado: "solicitud" },
+  { value: "aprobadas", label: "Aprobadas", estado: "aprobado" },
 ];
 
-const ESTADOS_SOLICITUD = ["ingresada", "aceptada"];
-const ESTADOS_TALLER = ["en_revision", "esperando_repuestos", "finalizada"];
-const ESTADOS_EN_TALLER = ["en_revision", "esperando_repuestos", "finalizada"];
+const ESTADOS_SOLICITUD = ["solicitud", "aprobado"];
+const ESTADOS_TALLER = ["en_proceso", "en_espera", "finalizado"];
+const ESTADOS_EN_TALLER = ["en_proceso", "en_espera", "finalizado"];
 const TALLER_ESTADO_FILTERS = [
-  { value: "todos", label: "Todos" },
-  { value: "en_revision", label: "En revision" },
-  { value: "esperando_repuestos", label: "Esperando repuestos" },
+  { value: "en_proceso", label: "En proceso" },
+  { value: "en_espera", label: "En espera" },
   { value: "por_entregar", label: "Por Entregar" },
+  { value: "todos", label: "Todos" },
 ];
 
 const WEEK_DAYS = ["Lun", "Mar", "Mie", "Jue", "Vie", "Sab", "Dom"];
@@ -49,8 +50,8 @@ function formatDateTime(value) {
 
 function statusLabel(value) {
   const option = ESTADO_OPTIONS.find((item) => item.value === value);
-  if (value === "ingresada") return "Por aceptar";
-  if (value === "aceptada") return "Aceptada";
+  if (value === "solicitud") return "Solicitud";
+  if (value === "aprobado") return "Aprobado";
   if (option?.label) return option.label;
   if (!value) return "-";
   const clean = String(value).replace(/[_-]+/g, " ").trim();
@@ -58,14 +59,14 @@ function statusLabel(value) {
 }
 
 function getStatusPillClass(value) {
-  if (value === "ingresada") return "status-ingresada";
-  if (value === "aceptada") return "status-aceptada";
-  if (value === "en_revision") return "status-en-revision";
-  if (value === "esperando_repuestos") return "status-esperando-repuestos";
-  if (value === "finalizada") return "status-finalizada";
+  if (value === "solicitud") return "status-ingresada";
+  if (value === "aprobado") return "status-aceptada";
+  if (value === "en_proceso") return "status-en-revision";
+  if (value === "en_espera") return "status-esperando-repuestos";
+  if (value === "finalizado") return "status-finalizada";
   if (value === "entregada") return "status-entregada";
-  if (value === "cancelada") return "status-cancelada";
-  if (value === "no_asistio") return "status-no-asistio";
+  if (value === "cancelado") return "status-cancelada";
+  if (value === "inasistencia" || value === "no_aceptado") return "status-no-asistio";
   return "";
 }
 
@@ -76,14 +77,14 @@ function formatReason(value) {
 }
 
 function getEstadoClass(value) {
-  if (value === "aceptada") return "estado-aceptada";
-  if (value === "ingresada") return "estado-ingresada";
-  if (value === "en_revision") return "estado-en-revision";
-  if (value === "esperando_repuestos") return "estado-esperando-repuestos";
-  if (value === "finalizada") return "estado-finalizada";
+  if (value === "aprobado") return "estado-aceptada";
+  if (value === "solicitud") return "estado-ingresada";
+  if (value === "en_proceso") return "estado-en-revision";
+  if (value === "en_espera") return "estado-esperando-repuestos";
+  if (value === "finalizado") return "estado-finalizada";
   if (value === "entregada") return "estado-entregada";
-  if (value === "cancelada") return "estado-cancelada";
-  if (value === "no_asistio") return "estado-no-asistio";
+  if (value === "cancelado") return "estado-cancelada";
+  if (value === "inasistencia" || value === "no_aceptado") return "estado-no-asistio";
   return "";
 }
 
@@ -156,17 +157,6 @@ function getMantencionSortTimestamp(item) {
   return fechaTs + (hours * 60 + minutes) * 60 * 1000;
 }
 
-function getMantencionDateIso(item) {
-  if (!item?.fecha_ingreso) return "";
-  const raw = String(item.fecha_ingreso).trim();
-  const parts = raw.split("-");
-  if (parts.length === 3 && parts[0].length === 4) return raw;
-
-  const ts = parseDateTimestamp(raw);
-  if (!Number.isFinite(ts) || ts <= 0) return "";
-  return toIsoDate(new Date(ts));
-}
-
 function getCreatedAtTimestamp(item) {
   if (!item?.created_at) return 0;
   const parsed = Date.parse(item.created_at);
@@ -192,16 +182,14 @@ export default function MantencionesPage({
   const [editsById, setEditsById] = useState({});
   const [selectedSolicitudId, setSelectedSolicitudId] = useState(null);
   const [selectedFichaId, setSelectedFichaId] = useState(null);
-  const [tallerEstadoFilter, setTallerEstadoFilter] = useState("todos");
+  const [tallerEstadoFilter, setTallerEstadoFilter] = useState("en_proceso");
   const [editableFinalizadaById, setEditableFinalizadaById] = useState({});
-  const [selectedTallerDiaId, setSelectedTallerDiaId] = useState(null);
   const [selectedHistoricaId, setSelectedHistoricaId] = useState(null);
   const [selectedHistoricoCliente, setSelectedHistoricoCliente] = useState("");
-  const [solicitudesTab, setSolicitudesTab] = useState("por_aceptar");
+  const [solicitudesTab, setSolicitudesTab] = useState("por_aprobar");
   const [mobilePickerOpen, setMobilePickerOpen] = useState({
     solicitudes: false,
     fichas: false,
-    tallerDia: false,
     historicas: false,
   });
   const [calendarLoading, setCalendarLoading] = useState(false);
@@ -356,7 +344,6 @@ export default function MantencionesPage({
     setMobilePickerOpen({
       solicitudes: false,
       fichas: false,
-      tallerDia: false,
       historicas: false,
     });
   }, [activeSection]);
@@ -376,7 +363,7 @@ export default function MantencionesPage({
   const solicitudesPorAceptar = useMemo(
     () =>
       mantenciones
-        .filter((item) => item.estado === "ingresada")
+        .filter((item) => item.estado === "solicitud")
         .sort(
           (a, b) =>
             getMantencionSortTimestamp(a) - getMantencionSortTimestamp(b) ||
@@ -389,7 +376,7 @@ export default function MantencionesPage({
   const solicitudesAceptadas = useMemo(
     () =>
       mantenciones
-        .filter((item) => item.estado === "aceptada")
+        .filter((item) => item.estado === "aprobado")
         .sort(
           (a, b) =>
             getMantencionSortTimestamp(a) - getMantencionSortTimestamp(b) ||
@@ -400,16 +387,14 @@ export default function MantencionesPage({
   );
 
   const solicitudes = useMemo(() => {
-    if (solicitudesTab === "aceptadas") return solicitudesAceptadas;
+    if (solicitudesTab === "aprobadas") return solicitudesAceptadas;
     return solicitudesPorAceptar;
   }, [solicitudesAceptadas, solicitudesPorAceptar, solicitudesTab]);
 
   const solicitudesEmptyText = useMemo(() => {
-    if (solicitudesTab === "aceptadas") return "No hay solicitudes aceptadas.";
-    return "No hay solicitudes por aceptar.";
+    if (solicitudesTab === "aprobadas") return "No hay solicitudes aprobadas.";
+    return "No hay solicitudes en estado solicitud.";
   }, [solicitudesTab]);
-
-  const todayIso = useMemo(() => toIsoDate(new Date()), []);
 
   useEffect(() => {
     if (!cancelConfirm) return undefined;
@@ -423,19 +408,6 @@ export default function MantencionesPage({
     window.addEventListener("keydown", handleKeydown);
     return () => window.removeEventListener("keydown", handleKeydown);
   }, [cancelConfirm, isCancelConfirmSaving]);
-
-  const mantencionesDelDia = useMemo(
-    () =>
-      mantenciones
-        .filter((item) => getMantencionDateIso(item) === todayIso && item.estado === "aceptada")
-        .sort(
-          (a, b) =>
-            getMantencionSortTimestamp(b) - getMantencionSortTimestamp(a) ||
-            getCreatedAtTimestamp(b) - getCreatedAtTimestamp(a) ||
-            Number(b.id || 0) - Number(a.id || 0)
-        ),
-    [mantenciones, todayIso]
-  );
 
   const fichasEnTallerBase = useMemo(
     () =>
@@ -453,7 +425,7 @@ export default function MantencionesPage({
   const fichasMantencion = useMemo(() => {
     if (tallerEstadoFilter === "todos") return fichasEnTallerBase;
     if (tallerEstadoFilter === "por_entregar") {
-      return fichasEnTallerBase.filter((item) => item.estado === "finalizada");
+      return fichasEnTallerBase.filter((item) => item.estado === "finalizado");
     }
     return fichasEnTallerBase.filter((item) => item.estado === tallerEstadoFilter);
   }, [fichasEnTallerBase, tallerEstadoFilter]);
@@ -515,11 +487,6 @@ export default function MantencionesPage({
     const byId = fichasMantencion.find((item) => item.id === selectedFichaId);
     return byId || fichasMantencion[0] || null;
   }, [fichasMantencion, selectedFichaId]);
-
-  const selectedTallerDia = useMemo(() => {
-    const byId = mantencionesDelDia.find((item) => item.id === selectedTallerDiaId);
-    return byId || mantencionesDelDia[0] || null;
-  }, [mantencionesDelDia, selectedTallerDiaId]);
 
   const selectedHistorica = useMemo(() => {
     const byId = fichasHistoricasByCliente.find((item) => item.id === selectedHistoricaId);
@@ -692,13 +659,13 @@ export default function MantencionesPage({
     const isPorEntregar = mode === "por_entregar";
     const isEditable = mode === "fichas" || mode === "taller_dia";
     const canEditKmIngreso = isTallerDia;
-    const isFinalizadaRecord = mode === "fichas" && item.estado === "finalizada";
+    const isFinalizadaRecord = mode === "fichas" && item.estado === "finalizado";
     const canEditFinalizada = Boolean(editableFinalizadaById[item.id]);
     const readOnly = !isEditable || (isFinalizadaRecord && !canEditFinalizada);
     const estadoActual = draft.estado || item.estado;
-    const solicitudAceptada = item.estado === "aceptada";
+    const solicitudAceptada = item.estado === "aprobado";
     const cancelActionLabel = solicitudAceptada ? "Anular mantenimiento" : "Anular hora";
-    const canCancelSolicitud = isSolicitud && (item.estado === "ingresada" || item.estado === "aceptada");
+    const canCancelSolicitud = isSolicitud && (item.estado === "solicitud" || item.estado === "aprobado");
     const diagnosticoValor = String(isEditable ? draft.diagnostico ?? "" : item.diagnostico ?? "").trim();
     const kmIngresoRaw = isEditable
       ? draft.kilometraje_ingreso ?? item.kilometraje_ingreso ?? ""
@@ -708,25 +675,25 @@ export default function MantencionesPage({
     const estadoReferencia = mode === "fichas" ? item.estado : estadoActual;
     const estadoOptions = isTallerDia
       ? [
-          { value: "aceptada", label: "Por ingreso" },
-          { value: "en_revision", label: "Ingresada al taller" },
-          { value: "no_asistio", label: "No asistio" },
-          { value: "cancelada", label: "Cancelada" },
+          { value: "aprobado", label: "Aprobado" },
+          { value: "en_proceso", label: "En proceso" },
+          { value: "inasistencia", label: "Inasistencia" },
+          { value: "cancelado", label: "Cancelado" },
         ]
       : mode === "fichas"
-        ? estadoReferencia === "en_revision"
+        ? estadoReferencia === "en_proceso"
           ? [
-              { value: "esperando_repuestos", label: "Esperando repuestos" },
-              { value: "finalizada", label: "Finalizada" },
+              { value: "en_espera", label: "En espera" },
+              { value: "finalizado", label: "Finalizado" },
             ]
-          : estadoReferencia === "esperando_repuestos"
+          : estadoReferencia === "en_espera"
             ? [
-                { value: "en_revision", label: "En revision" },
-                { value: "finalizada", label: "Finalizada" },
+                { value: "en_proceso", label: "En proceso" },
+                { value: "finalizado", label: "Finalizado" },
               ]
-            : estadoReferencia === "finalizada" && canEditFinalizada
-              ? [{ value: "en_revision", label: "En revision" }]
-            : []
+            : estadoReferencia === "finalizado" && canEditFinalizada
+              ? [{ value: "en_proceso", label: "En proceso" }]
+              : []
         : ESTADO_OPTIONS;
     const estadoOptionsForSelect = mode === "fichas"
       ? estadoOptions
@@ -911,7 +878,7 @@ export default function MantencionesPage({
                   disabled={saving}
                   onClick={() => onAcceptSolicitud(item.id)}
                 >
-                  {saving ? "Aceptando..." : "Aceptar hora"}
+                  {saving ? "Aprobando..." : "Aprobar hora"}
                 </button>
               )}
             </div>
@@ -1018,7 +985,7 @@ export default function MantencionesPage({
                   disabled={saving}
                   onClick={() => onUpdateMantencion(item.id, { estado: "entregada" })}
                 >
-                  {saving ? "Marcando..." : "Marcar como entregada"}
+                  {saving ? "Marcando..." : "Marcar como entregado"}
                 </button>
               </>
             ) : (
@@ -1028,7 +995,7 @@ export default function MantencionesPage({
                 disabled={saving || (isTallerDia && !canPassToRevision)}
                 onClick={() =>
                   onUpdateMantencion(item.id, {
-                    estado: isTallerDia ? "en_revision" : estadoActual,
+                    estado: isTallerDia ? "en_proceso" : estadoActual,
                     kilometraje_ingreso:
                       draft.kilometraje_ingreso === "" || draft.kilometraje_ingreso === null
                         ? null
@@ -1040,7 +1007,7 @@ export default function MantencionesPage({
                   })
                 }
               >
-                {saving ? (isTallerDia ? "Pasando..." : "Guardando...") : isTallerDia ? "Pasar a revision" : "Guardar cambios"}
+                {saving ? (isTallerDia ? "Pasando..." : "Guardando...") : isTallerDia ? "Pasar a en proceso" : "Guardar cambios"}
               </button>
             )}
           </div>
@@ -1054,7 +1021,7 @@ export default function MantencionesPage({
               disabled={saving}
               onClick={() => onUpdateMantencion(item.id, { estado: "entregada" })}
             >
-              {saving ? "Marcando..." : "Marcar como Entregada"}
+              {saving ? "Marcando..." : "Marcar como Entregado"}
             </button>
           </div>
         )}
@@ -1135,7 +1102,7 @@ export default function MantencionesPage({
                   disabled={isCancelConfirmSaving}
                   onClick={async () => {
                     const targetId = cancelConfirm.id;
-                    await onUpdateMantencion(targetId, { estado: "cancelada" });
+                    await onUpdateMantencion(targetId, { estado: "cancelado" });
                     setCancelConfirm(null);
                   }}
                 >
@@ -1222,7 +1189,7 @@ export default function MantencionesPage({
                   disabled={isCancelConfirmSaving}
                   onClick={async () => {
                     const targetId = cancelConfirm.id;
-                    await onUpdateMantencion(targetId, { estado: "cancelada" });
+                    await onUpdateMantencion(targetId, { estado: "cancelado" });
                     setCancelConfirm(null);
                   }}
                 >
@@ -1233,35 +1200,6 @@ export default function MantencionesPage({
           </div>
         )}
       </>
-    );
-  }
-
-  if (activeSection === "taller_mantenciones_dia") {
-    return (
-      <section className="admin-content-grid admin-content-grid-mantenciones admin-content-grid-mantenciones-fichas">
-        <article className="admin-panel-card">
-          <div className="admin-card-header">
-            <h2>Etapa de Diagnostico</h2>
-          </div>
-
-          <div className="admin-mantencion-fichas-layout">
-            {renderFichaMobilePicker(
-              mantencionesDelDia,
-              selectedTallerDia?.id,
-              setSelectedTallerDiaId,
-              "No hay mantenciones agendadas para hoy.",
-              "tallerDia"
-            )}
-            {renderFichaList(
-              mantencionesDelDia,
-              selectedTallerDia?.id,
-              setSelectedTallerDiaId,
-              "No hay mantenciones agendadas para hoy."
-            )}
-            <div className="admin-mantencion-ficha-detail">{renderFichaDetail(selectedTallerDia, "taller_dia")}</div>
-          </div>
-        </article>
-      </section>
     );
   }
 

@@ -56,11 +56,11 @@ function isValidRut(rawRut) {
 }
 
 function canCancelMantencion(estado) {
-  return estado === "ingresada" || estado === "aceptada";
+  return estado === "solicitud" || estado === "aprobado";
 }
 
 function isCancelledMantencion(estado) {
-  return String(estado || "").toLowerCase() === "cancelada";
+  return String(estado || "").toLowerCase() === "cancelado";
 }
 
 function isDeliveredMantencion(estado) {
@@ -415,7 +415,7 @@ export default function ConsultarHora() {
               a las <strong>{cancelModalItem.hora_ingreso?.slice(0, 5) || "-"}</strong>.
             </p>
             <p className="mantencion-cancel-modal-subtext">
-              Esta accion cambiara el estado a <strong>Cancelada</strong>.
+              Esta accion cambiara el estado a <strong>Cancelado</strong>.
             </p>
 
             <div className="mantencion-cancel-modal-actions">

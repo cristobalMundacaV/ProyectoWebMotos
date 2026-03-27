@@ -115,13 +115,13 @@ class MantencionSerializer(serializers.ModelSerializer):
     def update(self, instance, validated_data):
         previous_estado = instance.estado
         next_estado = validated_data.get("estado", instance.estado)
-        entrando_a_revision = instance.estado != Mantencion.ESTADO_EN_REVISION and next_estado == Mantencion.ESTADO_EN_REVISION
-        aceptando_solicitud = instance.estado != Mantencion.ESTADO_ACEPTADA and next_estado == Mantencion.ESTADO_ACEPTADA
+        entrando_a_taller = instance.estado != Mantencion.ESTADO_EN_PROCESO and next_estado == Mantencion.ESTADO_EN_PROCESO
+        aceptando_solicitud = instance.estado != Mantencion.ESTADO_APROBADO and next_estado == Mantencion.ESTADO_APROBADO
 
         if aceptando_solicitud:
-            if instance.estado != Mantencion.ESTADO_INGRESADA:
+            if instance.estado != Mantencion.ESTADO_SOLICITUD:
                 raise serializers.ValidationError(
-                    {"estado": "Solo se pueden aceptar solicitudes que esten en estado Ingresada."}
+                    {"estado": "Solo se pueden aprobar solicitudes que esten en estado Solicitud."}
                 )
 
             hora_ingreso = instance.hora_ingreso or time(23, 59, 59)
@@ -134,7 +134,7 @@ class MantencionSerializer(serializers.ModelSerializer):
                     {"estado": "No se puede aceptar una solicitud cuya fecha/hora ya vencio."}
                 )
 
-        if entrando_a_revision and "hora_ingreso" not in validated_data:
+        if entrando_a_taller and "hora_ingreso" not in validated_data:
             validated_data["hora_ingreso"] = timezone.localtime().time().replace(microsecond=0)
 
         updated_instance = super().update(instance, validated_data)
@@ -355,13 +355,13 @@ class AgendarMantencionSerializer(serializers.Serializer):
                 tipo_mantencion=validated_data["tipo_mantencion"],
                 motivo=validated_data["motivo"].strip(),
                 observaciones="",
-                estado=Mantencion.ESTADO_INGRESADA,
+                estado=Mantencion.ESTADO_SOLICITUD,
                 costo_total=0,
             )
             MantencionEstadoHistorial.objects.create(
                 mantencion=mantencion,
                 estado_anterior="",
-                estado_nuevo=Mantencion.ESTADO_INGRESADA,
+                estado_nuevo=Mantencion.ESTADO_SOLICITUD,
                 changed_by=cliente if getattr(cliente, "is_authenticated", False) else None,
                 fuente=MantencionEstadoHistorial.FUENTE_PORTAL_CLIENTE,
                 observacion="Creacion de solicitud de mantencion",

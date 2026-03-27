@@ -83,26 +83,26 @@ class Mantencion(models.Model):
         (TIPO_OTRA, "Otra"),
     ]
 
-    ESTADO_INGRESADA = "ingresada"
-    ESTADO_ACEPTADA = "aceptada"
-    ESTADO_EN_REVISION = "en_revision"
+    ESTADO_SOLICITUD = "solicitud"
+    ESTADO_APROBADO = "aprobado"
     ESTADO_EN_PROCESO = "en_proceso"
-    ESTADO_ESPERANDO_REPUESTOS = "esperando_repuestos"
-    ESTADO_FINALIZADA = "finalizada"
+    ESTADO_EN_ESPERA = "en_espera"
+    ESTADO_FINALIZADO = "finalizado"
     ESTADO_ENTREGADA = "entregada"
-    ESTADO_CANCELADA = "cancelada"
-    ESTADO_NO_ASISTIO = "no_asistio"
+    ESTADO_CANCELADO = "cancelado"
+    ESTADO_INASISTENCIA = "inasistencia"
+    ESTADO_NO_ACEPTADO = "no_aceptado"
 
     ESTADO_CHOICES = [
-        (ESTADO_INGRESADA, "Ingresada"),
-        (ESTADO_ACEPTADA, "Aceptada"),
-        (ESTADO_EN_REVISION, "En revision"),
+        (ESTADO_SOLICITUD, "Solicitud"),
+        (ESTADO_APROBADO, "Aprobado"),
         (ESTADO_EN_PROCESO, "En proceso"),
-        (ESTADO_ESPERANDO_REPUESTOS, "Esperando repuestos"),
-        (ESTADO_FINALIZADA, "Finalizada"),
-        (ESTADO_ENTREGADA, "Entregada"),
-        (ESTADO_CANCELADA, "Cancelada"),
-        (ESTADO_NO_ASISTIO, "No asistio"),
+        (ESTADO_EN_ESPERA, "En espera"),
+        (ESTADO_FINALIZADO, "Finalizado"),
+        (ESTADO_ENTREGADA, "Entregado"),
+        (ESTADO_CANCELADO, "Cancelado"),
+        (ESTADO_INASISTENCIA, "Inasistencia"),
+        (ESTADO_NO_ACEPTADO, "No aceptado"),
     ]
 
     moto_cliente = models.ForeignKey(
@@ -128,7 +128,7 @@ class Mantencion(models.Model):
     estado = models.CharField(
         max_length=24,
         choices=ESTADO_CHOICES,
-        default=ESTADO_INGRESADA,
+        default=ESTADO_SOLICITUD,
         verbose_name="estado",
     )
     fecha_entrega = models.DateField(null=True, blank=True, verbose_name="fecha de entrega")

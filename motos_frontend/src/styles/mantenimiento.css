@@ -503,26 +503,37 @@
   color: #075985;
 }
 
+.mantencion-estado-pill.estado-solicitud {
+  background: #e0f2fe;
+  color: #075985;
+}
+
 .mantencion-estado-pill.estado-aceptada,
+.mantencion-estado-pill.estado-aprobado,
 .mantencion-estado-pill.estado-en_proceso,
 .mantencion-estado-pill.estado-en_revision {
   background: #dcfce7;
   color: #14532d;
 }
 
-.mantencion-estado-pill.estado-esperando_repuestos {
+.mantencion-estado-pill.estado-esperando_repuestos,
+.mantencion-estado-pill.estado-en_espera {
   background: #fef3c7;
   color: #92400e;
 }
 
 .mantencion-estado-pill.estado-finalizada,
+.mantencion-estado-pill.estado-finalizado,
 .mantencion-estado-pill.estado-entregada {
   background: #ede9fe;
   color: #5b21b6;
 }
 
 .mantencion-estado-pill.estado-cancelada,
-.mantencion-estado-pill.estado-no_asistio {
+.mantencion-estado-pill.estado-cancelado,
+.mantencion-estado-pill.estado-no_asistio,
+.mantencion-estado-pill.estado-inasistencia,
+.mantencion-estado-pill.estado-no_aceptado {
   background: #fee2e2;
   color: #991b1b;
 }

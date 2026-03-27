@@ -183,7 +183,6 @@ const SIDEBAR_STRUCTURE = {
           icon: "taller",
           roles: ["admin", "mecanico"],
           items: [
-            { label: "Etapa de Diagnostico", value: "taller_mantenciones_dia", roles: ["admin", "mecanico"] },
             { label: "Motos en Taller", value: "taller_en_taller", roles: ["admin", "mecanico"] },
           ],
         },

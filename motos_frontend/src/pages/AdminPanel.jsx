@@ -549,7 +549,6 @@ export default function AdminPanel() {
       activeSection !== "mantenciones_solicitudes" &&
       activeSection !== "mantenciones_fichas" &&
       activeSection !== "mantenciones_historicas" &&
-      activeSection !== "taller_mantenciones_dia" &&
       activeSection !== "taller_en_taller"
     ) return;
     let isMounted = true;
@@ -580,7 +579,6 @@ export default function AdminPanel() {
       activeSection === "mantenciones_solicitudes" ||
       activeSection === "mantenciones_fichas" ||
       activeSection === "mantenciones_historicas" ||
-      activeSection === "taller_mantenciones_dia" ||
       activeSection === "taller_en_taller";
     const isHorariosSection = activeSection === "horarios_operativos" || activeSection === "mantenciones_horarios";
 
@@ -1803,9 +1801,9 @@ export default function AdminPanel() {
   async function handleAcceptMantencionSolicitud(mantencionId) {
     setMantencionSavingById((prev) => ({ ...prev, [mantencionId]: true }));
     try {
-      const updated = await updateMantencionAdmin(mantencionId, { estado: "aceptada" });
+      const updated = await updateMantencionAdmin(mantencionId, { estado: "aprobado" });
       setMantenciones((prev) => prev.map((item) => (item.id === mantencionId ? updated : item)));
-      pushToast("Hora aceptada. La solicitud quedo en estado aceptada.", "success");
+      pushToast("Hora aprobada. La solicitud quedo en estado aprobado.", "success");
     } catch (error) {
       pushToast(getErrorText(error, "No se pudo aceptar la solicitud de mantencion."), "error");
     } finally {
@@ -1818,7 +1816,7 @@ export default function AdminPanel() {
     try {
       const updated = await updateMantencionAdmin(mantencionId, payload);
       setMantenciones((prev) => prev.map((item) => (item.id === mantencionId ? updated : item)));
-      if (payload?.estado === "cancelada") {
+      if (payload?.estado === "cancelado") {
         pushToast("Solicitud anulada correctamente.", "success");
       } else {
         pushToast("Mantencion actualizada correctamente.", "success");

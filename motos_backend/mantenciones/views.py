@@ -42,7 +42,7 @@ class MantencionViewSet(viewsets.ModelViewSet):
 
     def _mark_expired_unaccepted_requests(self):
         now = timezone.localtime()
-        pendientes = Mantencion.objects.filter(estado=Mantencion.ESTADO_INGRESADA).only(
+        pendientes = Mantencion.objects.filter(estado=Mantencion.ESTADO_SOLICITUD).only(
             "id", "fecha_ingreso", "hora_ingreso", "estado", "updated_at"
         )
 
@@ -54,14 +54,14 @@ class MantencionViewSet(viewsets.ModelViewSet):
                 continue
 
             estado_anterior = mantencion.estado
-            mantencion.estado = Mantencion.ESTADO_NO_ASISTIO
+            mantencion.estado = Mantencion.ESTADO_NO_ACEPTADO
             mantencion.updated_at = timezone.now()
             to_update.append(mantencion)
             to_history.append(
                 MantencionEstadoHistorial(
                     mantencion=mantencion,
                     estado_anterior=estado_anterior,
-                    estado_nuevo=Mantencion.ESTADO_NO_ASISTIO,
+                    estado_nuevo=Mantencion.ESTADO_NO_ACEPTADO,
                     changed_by=None,
                     fuente=MantencionEstadoHistorial.FUENTE_API,
                     observacion="Solicitud no aceptada antes de la hora agendada",
@@ -167,27 +167,27 @@ class MantencionCancelarAPIView(APIView):
                 status=status.HTTP_404_NOT_FOUND,
             )
 
-        if mantencion.estado == Mantencion.ESTADO_CANCELADA:
+        if mantencion.estado == Mantencion.ESTADO_CANCELADO:
             return Response(
                 {"detail": "La hora ya se encuentra cancelada."},
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        estados_cancelables = {Mantencion.ESTADO_INGRESADA, Mantencion.ESTADO_ACEPTADA}
+        estados_cancelables = {Mantencion.ESTADO_SOLICITUD, Mantencion.ESTADO_APROBADO}
         if mantencion.estado not in estados_cancelables:
             return Response(
-                {"detail": "Solo puedes cancelar horas en estado Ingresada o Aceptada."},
+                {"detail": "Solo puedes cancelar horas en estado Solicitud o Aprobado."},
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
         estado_anterior = mantencion.estado
-        mantencion.estado = Mantencion.ESTADO_CANCELADA
+        mantencion.estado = Mantencion.ESTADO_CANCELADO
         mantencion.save()
 
         MantencionEstadoHistorial.objects.create(
             mantencion=mantencion,
             estado_anterior=estado_anterior,
-            estado_nuevo=Mantencion.ESTADO_CANCELADA,
+            estado_nuevo=Mantencion.ESTADO_CANCELADO,
             changed_by=None,
             fuente=MantencionEstadoHistorial.FUENTE_PORTAL_CLIENTE,
             observacion="Cancelacion realizada por cliente desde consulta de estado",

@@ -1757,13 +1757,31 @@
   color: #854d0e;
 }
 
+.admin-mantencion-estado-select.estado-solicitud {
+  background: #fff2cc;
+  border-color: #fcd34d;
+  color: #854d0e;
+}
+
 .admin-mantencion-estado-select.estado-aceptada {
   background: #dcfce7;
   border-color: #86efac;
   color: #166534;
 }
 
+.admin-mantencion-estado-select.estado-aprobado {
+  background: #dcfce7;
+  border-color: #86efac;
+  color: #166534;
+}
+
 .admin-mantencion-estado-select.estado-en-revision {
+  background: #dbeafe;
+  border-color: #93c5fd;
+  color: #1d4ed8;
+}
+
+.admin-mantencion-estado-select.estado-en_proceso {
   background: #dbeafe;
   border-color: #93c5fd;
   color: #1d4ed8;
@@ -1781,7 +1799,19 @@
   color: #c2410c;
 }
 
+.admin-mantencion-estado-select.estado-en_espera {
+  background: #ffedd5;
+  border-color: #fdba74;
+  color: #c2410c;
+}
+
 .admin-mantencion-estado-select.estado-finalizada {
+  background: #dcfce7;
+  border-color: #4ade80;
+  color: #166534;
+}
+
+.admin-mantencion-estado-select.estado-finalizado {
   background: #dcfce7;
   border-color: #4ade80;
   color: #166534;
@@ -1799,7 +1829,20 @@
   color: #b91c1c;
 }
 
+.admin-mantencion-estado-select.estado-cancelado {
+  background: #fee2e2;
+  border-color: #fca5a5;
+  color: #b91c1c;
+}
+
 .admin-mantencion-estado-select.estado-no-asistio {
+  background: #e5e7eb;
+  border-color: #cbd5e1;
+  color: #475569;
+}
+
+.admin-mantencion-estado-select.estado-inasistencia,
+.admin-mantencion-estado-select.estado-no_aceptado {
   background: #e5e7eb;
   border-color: #cbd5e1;
   color: #475569;
@@ -1857,12 +1900,27 @@
   color: #854d0e;
 }
 
+.admin-status-pill.status-solicitud {
+  background: #fff2cc;
+  color: #854d0e;
+}
+
 .admin-status-pill.status-aceptada {
   background: #dcfce7;
   color: #166534;
 }
 
+.admin-status-pill.status-aprobado {
+  background: #dcfce7;
+  color: #166534;
+}
+
 .admin-status-pill.status-en-revision {
+  background: #dbeafe;
+  color: #1d4ed8;
+}
+
+.admin-status-pill.status-en_proceso {
   background: #dbeafe;
   color: #1d4ed8;
 }
@@ -1877,7 +1935,17 @@
   color: #c2410c;
 }
 
+.admin-status-pill.status-en_espera {
+  background: #ffedd5;
+  color: #c2410c;
+}
+
 .admin-status-pill.status-finalizada {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.admin-status-pill.status-finalizado {
   background: #dcfce7;
   color: #166534;
 }
@@ -1892,7 +1960,18 @@
   color: #b91c1c;
 }
 
+.admin-status-pill.status-cancelado {
+  background: #fee2e2;
+  color: #b91c1c;
+}
+
 .admin-status-pill.status-no-asistio {
+  background: #e5e7eb;
+  color: #475569;
+}
+
+.admin-status-pill.status-inasistencia,
+.admin-status-pill.status-no_aceptado {
   background: #e5e7eb;
   color: #475569;
 }
