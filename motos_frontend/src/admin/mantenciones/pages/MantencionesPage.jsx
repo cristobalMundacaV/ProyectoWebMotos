@@ -184,7 +184,6 @@ export default function MantencionesPage({
   savingById,
   onAcceptSolicitud,
   onUpdateMantencion,
-  onDeleteMantencion,
   horarios = [],
   horariosLoading = false,
   horarioForm,
@@ -858,7 +857,7 @@ export default function MantencionesPage({
                       `Estas seguro que deseas ${actionLabel}? Esta accion no se puede deshacer.`
                     );
                     if (!confirmed) return;
-                    onDeleteMantencion(item.id);
+                    onUpdateMantencion(item.id, { estado: "cancelada" });
                   }}
                 >
                   {saving ? "Anulando..." : "Anular mantenimiento"}

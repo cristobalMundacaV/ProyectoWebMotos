@@ -1901,7 +1901,7 @@
 
 .admin-mantencion-cancel-btn {
   background: #dc2626;
-  border-color: #b91c1c;
+  border: none !important;
   color: #ffffff !important;
   font: inherit;
   font-weight: 700;
