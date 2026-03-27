@@ -23,7 +23,6 @@ const TALLER_ESTADO_FILTERS = [
   { value: "en_proceso", label: "En proceso" },
   { value: "en_espera", label: "En espera" },
   { value: "por_entregar", label: "Por Entregar" },
-  { value: "todos", label: "Todos" },
 ];
 
 const WEEK_DAYS = ["Lun", "Mar", "Mie", "Jue", "Vie", "Sab", "Dom"];
@@ -74,18 +73,6 @@ function formatReason(value) {
   if (!value) return "-";
   const clean = String(value).replace(/_/g, " ").trim();
   return clean.charAt(0).toUpperCase() + clean.slice(1);
-}
-
-function getEstadoClass(value) {
-  if (value === "aprobado") return "estado-aceptada";
-  if (value === "solicitud") return "estado-ingresada";
-  if (value === "en_proceso") return "estado-en-revision";
-  if (value === "en_espera") return "estado-esperando-repuestos";
-  if (value === "finalizado") return "estado-finalizada";
-  if (value === "entregada") return "estado-entregada";
-  if (value === "cancelado") return "estado-cancelada";
-  if (value === "inasistencia" || value === "no_aceptado") return "estado-no-asistio";
-  return "";
 }
 
 function toWholeNumber(value) {
@@ -423,7 +410,6 @@ export default function MantencionesPage({
   );
 
   const fichasMantencion = useMemo(() => {
-    if (tallerEstadoFilter === "todos") return fichasEnTallerBase;
     if (tallerEstadoFilter === "por_entregar") {
       return fichasEnTallerBase.filter((item) => item.estado === "finalizado");
     }
@@ -431,7 +417,6 @@ export default function MantencionesPage({
   }, [fichasEnTallerBase, tallerEstadoFilter]);
 
   const fichasTallerEmptyText = useMemo(() => {
-    if (tallerEstadoFilter === "todos") return "No hay fichas en taller disponibles.";
     const currentFilter = TALLER_ESTADO_FILTERS.find((item) => item.value === tallerEstadoFilter);
     return `No hay fichas en estado ${currentFilter?.label?.toLowerCase() || "seleccionado"}.`;
   }, [tallerEstadoFilter]);
@@ -656,53 +641,32 @@ export default function MantencionesPage({
     const saving = Boolean(savingById[item.id]);
     const isSolicitud = mode === "solicitudes";
     const isTallerDia = mode === "taller_dia";
-    const isPorEntregar = mode === "por_entregar";
+    const isPorEntregar = mode === "por_entregar" || (mode === "fichas" && tallerEstadoFilter === "por_entregar");
     const isEditable = mode === "fichas" || mode === "taller_dia";
     const canEditKmIngreso = isTallerDia;
     const isFinalizadaRecord = mode === "fichas" && item.estado === "finalizado";
+    const isEnProcesoRecord = mode === "fichas" && item.estado === "en_proceso";
+    const isEnEsperaRecord = mode === "fichas" && item.estado === "en_espera";
     const canEditFinalizada = Boolean(editableFinalizadaById[item.id]);
-    const readOnly = !isEditable || (isFinalizadaRecord && !canEditFinalizada);
-    const estadoActual = draft.estado || item.estado;
+    const controlledEditRecord = isFinalizadaRecord || isEnProcesoRecord || isEnEsperaRecord;
+    const readOnly = !isEditable || (controlledEditRecord && !canEditFinalizada);
+    const estadoActual = item.estado;
     const solicitudAceptada = item.estado === "aprobado";
     const cancelActionLabel = solicitudAceptada ? "Anular mantenimiento" : "Anular hora";
     const canCancelSolicitud = isSolicitud && (item.estado === "solicitud" || item.estado === "aprobado");
-    const diagnosticoValor = String(isEditable ? draft.diagnostico ?? "" : item.diagnostico ?? "").trim();
-    const kmIngresoRaw = isEditable
-      ? draft.kilometraje_ingreso ?? item.kilometraje_ingreso ?? ""
-      : item.kilometraje_ingreso ?? "";
-    const kmIngresoParsed = Number.parseInt(String(kmIngresoRaw).replace(/[^\d]/g, ""), 10);
-    const canPassToRevision = diagnosticoValor.length > 0 && Number.isFinite(kmIngresoParsed) && kmIngresoParsed > 0;
-    const estadoReferencia = mode === "fichas" ? item.estado : estadoActual;
-    const estadoOptions = isTallerDia
-      ? [
-          { value: "aprobado", label: "Aprobado" },
-          { value: "en_proceso", label: "En proceso" },
-          { value: "inasistencia", label: "Inasistencia" },
-          { value: "cancelado", label: "Cancelado" },
-        ]
-      : mode === "fichas"
-        ? estadoReferencia === "en_proceso"
-          ? [
-              { value: "en_espera", label: "En espera" },
-              { value: "finalizado", label: "Finalizado" },
-            ]
-          : estadoReferencia === "en_espera"
-            ? [
-                { value: "en_proceso", label: "En proceso" },
-                { value: "finalizado", label: "Finalizado" },
-              ]
-            : estadoReferencia === "finalizado" && canEditFinalizada
-              ? [{ value: "en_proceso", label: "En proceso" }]
-              : []
-        : ESTADO_OPTIONS;
-    const estadoOptionsForSelect = mode === "fichas"
-      ? estadoOptions
-      : estadoOptions.some((option) => option.value === estadoActual)
-        ? estadoOptions
-        : [{ value: estadoActual, label: statusLabel(estadoActual) }, ...estadoOptions];
-    const selectedEstadoValue = mode === "fichas"
-      ? (estadoOptionsForSelect.some((option) => option.value === draft.estado) ? draft.estado : "")
-      : estadoActual;
+    function getEditablePayload(estadoSiguiente = item.estado) {
+      return {
+        estado: estadoSiguiente,
+        kilometraje_ingreso:
+          draft.kilometraje_ingreso === "" || draft.kilometraje_ingreso === null
+            ? null
+            : Number.parseInt(draft.kilometraje_ingreso, 10),
+        costo_total: Number.parseInt(draft.costo_total ?? item.costo_total ?? 0, 10) || 0,
+        diagnostico: draft.diagnostico ?? item.diagnostico ?? "",
+        trabajo_realizado: draft.trabajo_realizado ?? item.trabajo_realizado ?? "",
+        observaciones: draft.observaciones ?? item.observaciones ?? "",
+      };
+    }
 
     return (
       <>
@@ -797,26 +761,6 @@ export default function MantencionesPage({
           <></>
         ) : (
           <div className="admin-mantencion-ficha-controls">
-            {isEditable && !isTallerDia && !isFinalizadaRecord && (
-              <label>
-                Estado
-                <select
-                  className={`admin-mantencion-estado-select ${getEstadoClass(estadoActual)}`}
-                  value={selectedEstadoValue}
-                  onChange={(event) => setDraft(item.id, "estado", event.target.value)}
-                  disabled={saving || estadoOptionsForSelect.length === 0}
-                >
-                  {mode === "fichas" && <option value="">Selecciona nuevo estado</option>}
-                  {estadoOptionsForSelect.length === 0 && <option value="">Sin cambios disponibles</option>}
-                  {estadoOptionsForSelect.map((option) => (
-                    <option key={option.value} value={option.value}>
-                      {option.label}
-                    </option>
-                  ))}
-                </select>
-              </label>
-            )}
-
             {canEditKmIngreso && (
               <label>
                 Km ingreso
@@ -830,9 +774,9 @@ export default function MantencionesPage({
               </label>
             )}
 
-            {!isTallerDia && (
+            {!isTallerDia && isPorEntregar && (
               <label>
-                Valor cobrado
+                Valor por cobrar
                 <input
                   type="text"
                   inputMode="numeric"
@@ -928,24 +872,6 @@ export default function MantencionesPage({
 
         {isEditable && (
           <div className="admin-mantencion-ficha-actions admin-mantencion-ficha-actions-bottom">
-            {!isTallerDia && !isPorEntregar && !isFinalizadaRecord && (
-              <button
-                type="button"
-                className="admin-danger-action admin-mantencion-action-btn admin-mantencion-cancel-btn"
-                disabled={saving}
-                onClick={() =>
-                  setCancelConfirm({
-                    id: item.id,
-                    actionLabel: "Cancelar mantenimiento",
-                    moto: `${moto.marca || "-"} ${moto.modelo || "-"}`.trim(),
-                    fecha: formatDate(item.fecha_ingreso),
-                    hora: item.hora_ingreso ? String(item.hora_ingreso).slice(0, 5) : "-",
-                  })
-                }
-              >
-                {saving ? "Cancelando..." : "Cancelar mantenimiento"}
-              </button>
-            )}
             {isFinalizadaRecord ? (
               <>
                 <button
@@ -954,17 +880,7 @@ export default function MantencionesPage({
                   disabled={saving}
                   onClick={() => {
                     if (canEditFinalizada) {
-                      onUpdateMantencion(item.id, {
-                        estado: estadoActual,
-                        kilometraje_ingreso:
-                          draft.kilometraje_ingreso === "" || draft.kilometraje_ingreso === null
-                            ? null
-                            : Number.parseInt(draft.kilometraje_ingreso, 10),
-                        costo_total: Number.parseInt(draft.costo_total ?? item.costo_total ?? 0, 10) || 0,
-                        diagnostico: draft.diagnostico ?? item.diagnostico ?? "",
-                        trabajo_realizado: draft.trabajo_realizado ?? item.trabajo_realizado ?? "",
-                        observaciones: draft.observaciones ?? item.observaciones ?? "",
-                      });
+                      onUpdateMantencion(item.id, getEditablePayload(estadoActual));
                       setEditableFinalizadaById((prev) => ({
                         ...prev,
                         [item.id]: false,
@@ -988,43 +904,114 @@ export default function MantencionesPage({
                   {saving ? "Marcando..." : "Marcar como entregado"}
                 </button>
               </>
-            ) : (
-              <button
-                type="button"
-                className="admin-primary-action admin-mantencion-action-btn admin-mantencion-save-btn"
-                disabled={saving || (isTallerDia && !canPassToRevision)}
-                onClick={() =>
-                  onUpdateMantencion(item.id, {
-                    estado: isTallerDia ? "en_proceso" : estadoActual,
-                    kilometraje_ingreso:
-                      draft.kilometraje_ingreso === "" || draft.kilometraje_ingreso === null
-                        ? null
-                        : Number.parseInt(draft.kilometraje_ingreso, 10),
-                    costo_total: Number.parseInt(draft.costo_total ?? item.costo_total ?? 0, 10) || 0,
-                    diagnostico: draft.diagnostico ?? item.diagnostico ?? "",
-                    trabajo_realizado: draft.trabajo_realizado ?? item.trabajo_realizado ?? "",
-                    observaciones: draft.observaciones ?? item.observaciones ?? "",
-                  })
-                }
-              >
-                {saving ? (isTallerDia ? "Pasando..." : "Guardando...") : isTallerDia ? "Pasar a en proceso" : "Guardar cambios"}
-              </button>
-            )}
+            ) : isEnProcesoRecord ? (
+              <>
+                <button
+                  type="button"
+                  className="admin-ficha-outline-action admin-mantencion-action-btn"
+                  disabled={saving}
+                  onClick={() => {
+                    if (canEditFinalizada) {
+                      onUpdateMantencion(item.id, getEditablePayload("en_proceso"));
+                      setEditableFinalizadaById((prev) => ({
+                        ...prev,
+                        [item.id]: false,
+                      }));
+                      return;
+                    }
+                    setEditableFinalizadaById((prev) => ({
+                      ...prev,
+                      [item.id]: true,
+                    }));
+                  }}
+                >
+                  {canEditFinalizada ? "Guardar cambios" : "Modificar datos"}
+                </button>
+                <button
+                  type="button"
+                  className="admin-danger-action admin-mantencion-action-btn admin-mantencion-cancel-btn"
+                  disabled={saving}
+                  onClick={() =>
+                    setCancelConfirm({
+                      id: item.id,
+                      actionLabel: "Cancelar mantenimiento",
+                      moto: `${moto.marca || "-"} ${moto.modelo || "-"}`.trim(),
+                      fecha: formatDate(item.fecha_ingreso),
+                      hora: item.hora_ingreso ? String(item.hora_ingreso).slice(0, 5) : "-",
+                    })
+                  }
+                >
+                  {saving ? "Cancelando..." : "Cancelar mantenimiento"}
+                </button>
+                <button
+                  type="button"
+                  className="admin-ficha-outline-action admin-mantencion-action-btn"
+                  disabled={saving}
+                  onClick={() => onUpdateMantencion(item.id, getEditablePayload("en_espera"))}
+                >
+                  {saving ? "Marcando..." : "Marcar en espera"}
+                </button>
+                <button
+                  type="button"
+                  className="admin-primary-action admin-mantencion-action-btn admin-mantencion-accept-btn"
+                  disabled={saving}
+                  onClick={() => onUpdateMantencion(item.id, getEditablePayload("finalizado"))}
+                >
+                  {saving ? "Marcando..." : "Marcar como finalizado"}
+                </button>
+              </>
+            ) : isEnEsperaRecord ? (
+              <>
+                <button
+                  type="button"
+                  className="admin-ficha-outline-action admin-mantencion-action-btn"
+                  disabled={saving}
+                  onClick={() => {
+                    if (canEditFinalizada) {
+                      onUpdateMantencion(item.id, getEditablePayload("en_espera"));
+                      setEditableFinalizadaById((prev) => ({
+                        ...prev,
+                        [item.id]: false,
+                      }));
+                      return;
+                    }
+                    setEditableFinalizadaById((prev) => ({
+                      ...prev,
+                      [item.id]: true,
+                    }));
+                  }}
+                >
+                  {canEditFinalizada ? "Guardar cambios" : "Modificar datos"}
+                </button>
+                <button
+                  type="button"
+                  className="admin-danger-action admin-mantencion-action-btn admin-mantencion-cancel-btn"
+                  disabled={saving}
+                  onClick={() =>
+                    setCancelConfirm({
+                      id: item.id,
+                      actionLabel: "Cancelar mantenimiento",
+                      moto: `${moto.marca || "-"} ${moto.modelo || "-"}`.trim(),
+                      fecha: formatDate(item.fecha_ingreso),
+                      hora: item.hora_ingreso ? String(item.hora_ingreso).slice(0, 5) : "-",
+                    })
+                  }
+                >
+                  {saving ? "Cancelando..." : "Cancelar mantenimiento"}
+                </button>
+                <button
+                  type="button"
+                  className="admin-primary-action admin-mantencion-action-btn admin-mantencion-accept-btn"
+                  disabled={saving}
+                  onClick={() => onUpdateMantencion(item.id, getEditablePayload("en_proceso"))}
+                >
+                  {saving ? "Reanudando..." : "Reanudar"}
+                </button>
+              </>
+            ) : null}
           </div>
         )}
 
-        {isPorEntregar && (
-          <div className="admin-mantencion-ficha-actions admin-mantencion-ficha-actions-bottom">
-            <button
-              type="button"
-              className="admin-primary-action admin-mantencion-action-btn admin-mantencion-accept-btn"
-              disabled={saving}
-              onClick={() => onUpdateMantencion(item.id, { estado: "entregada" })}
-            >
-              {saving ? "Marcando..." : "Marcar como Entregado"}
-            </button>
-          </div>
-        )}
       </>
     );
   }
@@ -1085,7 +1072,7 @@ export default function MantencionesPage({
                 Vas a anular la solicitud de <strong>{cancelConfirm.moto}</strong> del{" "}
                 <strong>{cancelConfirm.fecha}</strong> a las <strong>{cancelConfirm.hora}</strong>.
               </p>
-              <p className="admin-confirm-modal-subtext">Esta accion cambiara el estado a <strong>Cancelada</strong>.</p>
+              <p className="admin-confirm-modal-subtext">Esta accion cambiara el estado a <strong>Cancelado</strong>.</p>
 
               <div className="admin-confirm-modal-actions">
                 <button
@@ -1172,7 +1159,7 @@ export default function MantencionesPage({
                 Vas a cancelar el mantenimiento de <strong>{cancelConfirm.moto}</strong> del{" "}
                 <strong>{cancelConfirm.fecha}</strong> a las <strong>{cancelConfirm.hora}</strong>.
               </p>
-              <p className="admin-confirm-modal-subtext">Esta accion cambiara el estado a <strong>Cancelada</strong>.</p>
+              <p className="admin-confirm-modal-subtext">Esta accion cambiara el estado a <strong>Cancelado</strong>.</p>
 
               <div className="admin-confirm-modal-actions">
                 <button
