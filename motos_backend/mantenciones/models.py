@@ -177,30 +177,30 @@ class Mantencion(models.Model):
         ]
         constraints = [
             models.CheckConstraint(
-                check=models.Q(costo_total__gte=0),
+                condition=models.Q(costo_total__gte=0),
                 name="chk_mantencion_costo_total_non_negative",
             ),
             models.CheckConstraint(
-                check=models.Q(kilometraje_ingreso__isnull=True) | models.Q(kilometraje_ingreso__gte=0),
+                condition=models.Q(kilometraje_ingreso__isnull=True) | models.Q(kilometraje_ingreso__gte=0),
                 name="chk_mantencion_km_ingreso_non_negative",
             ),
             models.CheckConstraint(
-                check=~models.Q(rut_cliente=""),
+                condition=~models.Q(rut_cliente=""),
                 name="chk_mantencion_rut_not_empty",
             ),
             models.CheckConstraint(
-                check=models.Q(fecha_entrega__isnull=True) | models.Q(fecha_entrega__gte=models.F("fecha_ingreso")),
+                condition=models.Q(fecha_entrega__isnull=True) | models.Q(fecha_entrega__gte=models.F("fecha_ingreso")),
                 name="chk_mantencion_fecha_entrega_gte_ingreso",
             ),
             models.CheckConstraint(
-                check=(
+                condition=(
                     ~models.Q(estado__in=["en_proceso", "en_espera", "finalizado", "entregada"])
                     | (models.Q(hora_ingreso__isnull=False) & models.Q(kilometraje_ingreso__isnull=False))
                 ),
                 name="chk_mantencion_estado_requiere_ingreso",
             ),
             models.CheckConstraint(
-                check=~models.Q(estado="entregada") | models.Q(fecha_entrega__isnull=False),
+                condition=~models.Q(estado="entregada") | models.Q(fecha_entrega__isnull=False),
                 name="chk_mantencion_entregada_requiere_fecha_entrega",
             ),
             models.UniqueConstraint(
