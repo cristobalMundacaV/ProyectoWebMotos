@@ -3,7 +3,6 @@ import { getDisponibilidadMantenciones } from "../../../services/mantencionesSer
 
 const ESTADO_OPTIONS = [
   { value: "en_revision", label: "En revision" },
-  { value: "en_proceso", label: "En proceso" },
   { value: "esperando_repuestos", label: "Esperando repuestos" },
   { value: "finalizada", label: "Finalizada" },
   { value: "entregada", label: "Entregada" },
@@ -17,13 +16,12 @@ const SOLICITUDES_TABS = [
 ];
 
 const ESTADOS_SOLICITUD = ["ingresada", "aceptada"];
-const ESTADOS_TALLER = ["en_revision", "en_proceso", "esperando_repuestos", "finalizada"];
-const ESTADOS_EN_TALLER = ["en_revision", "en_proceso", "esperando_repuestos"];
+const ESTADOS_TALLER = ["en_revision", "esperando_repuestos", "finalizada"];
+const ESTADOS_EN_TALLER = ["en_revision", "esperando_repuestos"];
 const ESTADOS_POR_ENTREGAR = ["finalizada"];
 const TALLER_ESTADO_FILTERS = [
   { value: "todos", label: "Todos" },
   { value: "en_revision", label: "En revision" },
-  { value: "en_proceso", label: "En proceso" },
   { value: "esperando_repuestos", label: "Esperando repuestos" },
 ];
 
@@ -63,7 +61,6 @@ function getStatusPillClass(value) {
   if (value === "ingresada") return "status-ingresada";
   if (value === "aceptada") return "status-aceptada";
   if (value === "en_revision") return "status-en-revision";
-  if (value === "en_proceso") return "status-en-proceso";
   if (value === "esperando_repuestos") return "status-esperando-repuestos";
   if (value === "finalizada") return "status-finalizada";
   if (value === "entregada") return "status-entregada";
@@ -82,7 +79,6 @@ function getEstadoClass(value) {
   if (value === "aceptada") return "estado-aceptada";
   if (value === "ingresada") return "estado-ingresada";
   if (value === "en_revision") return "estado-en-revision";
-  if (value === "en_proceso") return "estado-en-proceso";
   if (value === "esperando_repuestos") return "estado-esperando-repuestos";
   if (value === "finalizada") return "estado-finalizada";
   if (value === "entregada") return "estado-entregada";
@@ -701,6 +697,12 @@ export default function MantencionesPage({
     const solicitudAceptada = item.estado === "aceptada";
     const cancelActionLabel = solicitudAceptada ? "Anular mantenimiento" : "Anular hora";
     const canCancelSolicitud = isSolicitud && (item.estado === "ingresada" || item.estado === "aceptada");
+    const diagnosticoValor = String(isEditable ? draft.diagnostico ?? "" : item.diagnostico ?? "").trim();
+    const kmIngresoRaw = isEditable
+      ? draft.kilometraje_ingreso ?? item.kilometraje_ingreso ?? ""
+      : item.kilometraje_ingreso ?? "";
+    const kmIngresoParsed = Number.parseInt(String(kmIngresoRaw).replace(/[^\d]/g, ""), 10);
+    const canPassToRevision = diagnosticoValor.length > 0 && Number.isFinite(kmIngresoParsed) && kmIngresoParsed > 0;
     const estadoOptions = isTallerDia
       ? [
           { value: "aceptada", label: "Por ingreso" },
@@ -808,7 +810,7 @@ export default function MantencionesPage({
           <></>
         ) : (
           <div className="admin-mantencion-ficha-controls">
-            {isEditable && (
+            {isEditable && !isTallerDia && (
               <label>
                 Estado
                 <select
@@ -942,10 +944,10 @@ export default function MantencionesPage({
             <button
               type="button"
               className="admin-primary-action admin-mantencion-action-btn admin-mantencion-save-btn"
-              disabled={saving}
+              disabled={saving || (isTallerDia && !canPassToRevision)}
               onClick={() =>
                 onUpdateMantencion(item.id, {
-                  estado: estadoActual,
+                  estado: isTallerDia ? "en_revision" : estadoActual,
                   kilometraje_ingreso:
                     draft.kilometraje_ingreso === "" || draft.kilometraje_ingreso === null
                       ? null
@@ -957,7 +959,7 @@ export default function MantencionesPage({
                 })
               }
             >
-              {saving ? "Guardando..." : "Guardar cambios"}
+              {saving ? (isTallerDia ? "Pasando..." : "Guardando...") : isTallerDia ? "Pasar a revision" : "Guardar cambios"}
             </button>
           </div>
         )}
