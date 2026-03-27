@@ -2686,6 +2686,13 @@
   padding: 18px;
 }
 
+.admin-mantencion-ficha-editing {
+  border: 2px solid #facc15;
+  border-radius: 14px;
+  padding: 10px;
+  box-shadow: 0 0 0 3px rgba(250, 204, 21, 0.22);
+}
+
 .admin-ficha-modal {
   width: min(520px, 100%);
   background: #ffffff;

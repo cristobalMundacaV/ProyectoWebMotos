@@ -638,7 +638,8 @@ export default function MantencionesPage({
 
     const moto = item?.moto_cliente_detalle || {};
     const draft = getDraft(item);
-    const saving = Boolean(savingById[item.id]);
+    const savingAction = savingById[item.id] || "";
+    const saving = Boolean(savingAction);
     const isSolicitud = mode === "solicitudes";
     const isTallerDia = mode === "taller_dia";
     const isPorEntregar = mode === "por_entregar" || (mode === "fichas" && tallerEstadoFilter === "por_entregar");
@@ -650,6 +651,7 @@ export default function MantencionesPage({
     const canEditFinalizada = Boolean(editableFinalizadaById[item.id]);
     const controlledEditRecord = isFinalizadaRecord || isEnProcesoRecord || isEnEsperaRecord;
     const readOnly = !isEditable || (controlledEditRecord && !canEditFinalizada);
+    const highlightEditing = controlledEditRecord && canEditFinalizada;
     const estadoActual = item.estado;
     const solicitudAceptada = item.estado === "aprobado";
     const cancelActionLabel = solicitudAceptada ? "Anular mantenimiento" : "Anular hora";
@@ -669,7 +671,7 @@ export default function MantencionesPage({
     }
 
     return (
-      <>
+      <div className={highlightEditing ? "admin-mantencion-ficha-editing" : ""}>
         <div className="admin-mantencion-ficha-head">
           <h3>{`${moto.marca || "-"} ${moto.modelo || "-"}`}</h3>
           <span className={`admin-status-pill ${getStatusPillClass(item.estado)}`}>{statusLabel(item.estado)}</span>
@@ -812,7 +814,7 @@ export default function MantencionesPage({
                     });
                   }}
                 >
-                  {saving ? "Anulando..." : cancelActionLabel}
+                  {savingAction === "cancel" ? "Anulando..." : cancelActionLabel}
                 </button>
               )}
               {!solicitudAceptada && (
@@ -820,9 +822,9 @@ export default function MantencionesPage({
                   type="button"
                   className="admin-primary-action admin-mantencion-action-btn admin-mantencion-accept-btn"
                   disabled={saving}
-                  onClick={() => onAcceptSolicitud(item.id)}
+                  onClick={() => onAcceptSolicitud(item.id, "approve")}
                 >
-                  {saving ? "Aprobando..." : "Aprobar hora"}
+                  {savingAction === "approve" ? "Aprobando..." : "Aprobar hora"}
                 </button>
               )}
             </div>
@@ -880,7 +882,7 @@ export default function MantencionesPage({
                   disabled={saving}
                   onClick={() => {
                     if (canEditFinalizada) {
-                      onUpdateMantencion(item.id, getEditablePayload(estadoActual));
+                      onUpdateMantencion(item.id, getEditablePayload(estadoActual), "save");
                       setEditableFinalizadaById((prev) => ({
                         ...prev,
                         [item.id]: false,
@@ -899,9 +901,9 @@ export default function MantencionesPage({
                   type="button"
                   className="admin-primary-action admin-mantencion-action-btn admin-mantencion-accept-btn"
                   disabled={saving}
-                  onClick={() => onUpdateMantencion(item.id, { estado: "entregada" })}
+                  onClick={() => onUpdateMantencion(item.id, { estado: "entregada" }, "deliver")}
                 >
-                  {saving ? "Marcando..." : "Marcar como entregado"}
+                  {savingAction === "deliver" ? "Marcando..." : "Marcar como entregado"}
                 </button>
               </>
             ) : isEnProcesoRecord ? (
@@ -912,7 +914,7 @@ export default function MantencionesPage({
                   disabled={saving}
                   onClick={() => {
                     if (canEditFinalizada) {
-                      onUpdateMantencion(item.id, getEditablePayload("en_proceso"));
+                      onUpdateMantencion(item.id, getEditablePayload("en_proceso"), "save");
                       setEditableFinalizadaById((prev) => ({
                         ...prev,
                         [item.id]: false,
@@ -941,23 +943,23 @@ export default function MantencionesPage({
                     })
                   }
                 >
-                  {saving ? "Cancelando..." : "Cancelar mantenimiento"}
+                  {savingAction === "cancel" ? "Cancelando..." : "Cancelar mantenimiento"}
                 </button>
                 <button
                   type="button"
                   className="admin-ficha-outline-action admin-mantencion-action-btn admin-mantencion-wait-btn"
                   disabled={saving}
-                  onClick={() => onUpdateMantencion(item.id, getEditablePayload("en_espera"))}
+                  onClick={() => onUpdateMantencion(item.id, getEditablePayload("en_espera"), "wait")}
                 >
-                  {saving ? "Marcando..." : "Marcar en espera"}
+                  {savingAction === "wait" ? "Marcando..." : "Marcar en espera"}
                 </button>
                 <button
                   type="button"
                   className="admin-primary-action admin-mantencion-action-btn admin-mantencion-accept-btn"
                   disabled={saving}
-                  onClick={() => onUpdateMantencion(item.id, getEditablePayload("finalizado"))}
+                  onClick={() => onUpdateMantencion(item.id, getEditablePayload("finalizado"), "finalize")}
                 >
-                  {saving ? "Marcando..." : "Marcar como finalizado"}
+                  {savingAction === "finalize" ? "Marcando..." : "Marcar como finalizado"}
                 </button>
               </>
             ) : isEnEsperaRecord ? (
@@ -968,7 +970,7 @@ export default function MantencionesPage({
                   disabled={saving}
                   onClick={() => {
                     if (canEditFinalizada) {
-                      onUpdateMantencion(item.id, getEditablePayload("en_espera"));
+                      onUpdateMantencion(item.id, getEditablePayload("en_espera"), "save");
                       setEditableFinalizadaById((prev) => ({
                         ...prev,
                         [item.id]: false,
@@ -997,22 +999,22 @@ export default function MantencionesPage({
                     })
                   }
                 >
-                  {saving ? "Cancelando..." : "Cancelar mantenimiento"}
+                  {savingAction === "cancel" ? "Cancelando..." : "Cancelar mantenimiento"}
                 </button>
                 <button
                   type="button"
                   className="admin-primary-action admin-mantencion-action-btn admin-mantencion-accept-btn"
                   disabled={saving}
-                  onClick={() => onUpdateMantencion(item.id, getEditablePayload("en_proceso"))}
+                  onClick={() => onUpdateMantencion(item.id, getEditablePayload("en_proceso"), "resume")}
                 >
-                  {saving ? "Reanudando..." : "Reanudar"}
+                  {savingAction === "resume" ? "Reanudando..." : "Reanudar"}
                 </button>
               </>
             ) : null}
           </div>
         )}
 
-      </>
+      </div>
     );
   }
 
@@ -1089,7 +1091,7 @@ export default function MantencionesPage({
                   disabled={isCancelConfirmSaving}
                   onClick={async () => {
                     const targetId = cancelConfirm.id;
-                    await onUpdateMantencion(targetId, { estado: "cancelado" });
+                    await onUpdateMantencion(targetId, { estado: "cancelado" }, "cancel");
                     setCancelConfirm(null);
                   }}
                 >
@@ -1176,7 +1178,7 @@ export default function MantencionesPage({
                   disabled={isCancelConfirmSaving}
                   onClick={async () => {
                     const targetId = cancelConfirm.id;
-                    await onUpdateMantencion(targetId, { estado: "cancelado" });
+                    await onUpdateMantencion(targetId, { estado: "cancelado" }, "cancel");
                     setCancelConfirm(null);
                   }}
                 >

@@ -1798,8 +1798,8 @@ export default function AdminPanel() {
     }
   }
 
-  async function handleAcceptMantencionSolicitud(mantencionId) {
-    setMantencionSavingById((prev) => ({ ...prev, [mantencionId]: true }));
+  async function handleAcceptMantencionSolicitud(mantencionId, actionKey = "approve") {
+    setMantencionSavingById((prev) => ({ ...prev, [mantencionId]: actionKey }));
     try {
       const updated = await updateMantencionAdmin(mantencionId, { estado: "aprobado" });
       setMantenciones((prev) => prev.map((item) => (item.id === mantencionId ? updated : item)));
@@ -1807,12 +1807,12 @@ export default function AdminPanel() {
     } catch (error) {
       pushToast(getErrorText(error, "No se pudo aceptar la solicitud de mantencion."), "error");
     } finally {
-      setMantencionSavingById((prev) => ({ ...prev, [mantencionId]: false }));
+      setMantencionSavingById((prev) => ({ ...prev, [mantencionId]: "" }));
     }
   }
 
-  async function handleUpdateMantencion(mantencionId, payload) {
-    setMantencionSavingById((prev) => ({ ...prev, [mantencionId]: true }));
+  async function handleUpdateMantencion(mantencionId, payload, actionKey = "update") {
+    setMantencionSavingById((prev) => ({ ...prev, [mantencionId]: actionKey }));
     try {
       const updated = await updateMantencionAdmin(mantencionId, payload);
       setMantenciones((prev) => prev.map((item) => (item.id === mantencionId ? updated : item)));
@@ -1824,7 +1824,7 @@ export default function AdminPanel() {
     } catch (error) {
       pushToast(getErrorText(error, "No se pudo actualizar la mantencion."), "error");
     } finally {
-      setMantencionSavingById((prev) => ({ ...prev, [mantencionId]: false }));
+      setMantencionSavingById((prev) => ({ ...prev, [mantencionId]: "" }));
     }
   }
 
