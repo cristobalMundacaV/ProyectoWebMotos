@@ -1,3 +1,5 @@
+from datetime import time
+
 from django.db import migrations, models
 import django.db.models.deletion
 from django.conf import settings
@@ -56,6 +58,28 @@ def dedupe_active_slots(apps, schema_editor):
             )
 
 
+def backfill_required_state_fields(apps, schema_editor):
+    Mantencion = apps.get_model("mantenciones", "Mantencion")
+
+    affected_states = ["en_proceso", "en_espera", "finalizado", "entregada"]
+    rows = Mantencion.objects.filter(estado__in=affected_states).select_related("moto_cliente")
+    for row in rows.iterator():
+        changed_fields = []
+        if row.hora_ingreso is None:
+            # Valor de respaldo para registros legacy que ya estaban en estado operativo.
+            row.hora_ingreso = time(0, 0, 0)
+            changed_fields.append("hora_ingreso")
+        if row.kilometraje_ingreso is None:
+            fallback_km = getattr(row.moto_cliente, "kilometraje_actual", 0) or 0
+            row.kilometraje_ingreso = fallback_km
+            changed_fields.append("kilometraje_ingreso")
+        if row.estado == "entregada" and row.fecha_entrega is None:
+            row.fecha_entrega = row.fecha_ingreso
+            changed_fields.append("fecha_entrega")
+        if changed_fields:
+            row.save(update_fields=changed_fields + ["updated_at"])
+
+
 class Migration(migrations.Migration):
     dependencies = [
         ("mantenciones", "0006_rename_estados_operativos"),
@@ -65,6 +89,7 @@ class Migration(migrations.Migration):
     operations = [
         migrations.RunPython(sanitize_empty_rut, migrations.RunPython.noop),
         migrations.RunPython(dedupe_active_slots, migrations.RunPython.noop),
+        migrations.RunPython(backfill_required_state_fields, migrations.RunPython.noop),
         migrations.AlterField(
             model_name="vehiculocliente",
             name="cliente",
