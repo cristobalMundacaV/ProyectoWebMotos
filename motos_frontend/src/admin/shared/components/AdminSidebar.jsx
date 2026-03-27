@@ -246,10 +246,29 @@ const SIDEBAR_STRUCTURE = {
 };
 
 function normalizeRole(value) {
-  const role = String(value || "admin").toLowerCase().trim();
-  if (role === "mecánico" || role === "mecanica") return "mecanico";
-  if (role === "cliente") return "cliente";
-  return role || "admin";
+  const role = String(value || "admin")
+    .toLowerCase()
+    .trim()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "");
+
+  if (["mecanico", "mecanica", "tecnico", "taller"].includes(role)) return "mecanico";
+  if (["cliente", "user", "usuario"].includes(role)) return "cliente";
+  if (
+    [
+      "admin",
+      "administrador",
+      "administradora",
+      "superadmin",
+      "staff",
+      "owner",
+      "gerente",
+      "jefe",
+    ].includes(role)
+  ) {
+    return "admin";
+  }
+  return "admin";
 }
 
 function hasRoleAccess(roles, currentRole) {
@@ -425,4 +444,3 @@ export default function AdminSidebar({
     </aside>
   );
 }
-

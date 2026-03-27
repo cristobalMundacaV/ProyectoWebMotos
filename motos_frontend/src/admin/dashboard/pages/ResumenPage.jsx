@@ -12,7 +12,7 @@ const PERIOD_OPTIONS = [
   { value: "last_3_months", label: "Ultimos 3 meses" },
   { value: "last_6_months", label: "Ultimos 6 meses" },
   { value: "last_9_months", label: "Ultimos 9 meses" },
-  { value: "last_year", label: "Ultimo ano" },
+  { value: "last_year", label: "Ultimo año" },
   { value: "all", label: "Todos" },
 ];
 
