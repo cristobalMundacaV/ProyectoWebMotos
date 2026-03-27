@@ -485,7 +485,7 @@ export default function CatalogoMotos() {
             <span>Catalogo de Motos</span>
           </div>
           {loading ? (
-            <p style={{ textAlign: "center" }}>Cargando...</p>
+            null
           ) : error ? (
             <p style={{ textAlign: "center" }}>{error}</p>
           ) : (
@@ -945,7 +945,7 @@ export default function CatalogoMotos() {
                   Cancelar
                 </button>
                 <button type="submit" className="btn-primary" disabled={savingEdit}>
-                  {savingEdit ? "Guardando..." : "Guardar cambios"}
+                  {"Guardar cambios"}
                 </button>
               </div>
             </form>
@@ -965,7 +965,7 @@ export default function CatalogoMotos() {
                 Volver
               </button>
               <button type="button" className="btn-delete" onClick={confirmDeleteMoto} disabled={deletingMoto}>
-                {deletingMoto ? "Eliminando..." : "Eliminar"}
+                {"Eliminar"}
               </button>
             </div>
           </section>

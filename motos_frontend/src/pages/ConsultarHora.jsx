@@ -330,7 +330,7 @@ export default function ConsultarHora() {
                           onClick={() => openCancelModal(item)}
                           disabled={Boolean(cancelandoById[item.id])}
                         >
-                          {cancelandoById[item.id] ? "Cancelando..." : "Cancelar hora"}
+                          {"Cancelar hora"}
                         </button>
                       </div>
                     )}
@@ -423,7 +423,7 @@ export default function ConsultarHora() {
                 Volver
               </button>
               <button type="button" className="btn-delete" onClick={handleCancelarHora} disabled={isCancelModalSaving}>
-                {isCancelModalSaving ? "Cancelando..." : "Cancelar hora"}
+                {"Cancelar hora"}
               </button>
             </div>
           </section>

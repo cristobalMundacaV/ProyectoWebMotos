@@ -909,7 +909,7 @@ export default function FichasTecnicasPage({ activeSection, motos = [] }) {
                   />
                 </div>
 
-                {loading && <p className="admin-empty">Cargando items de ficha tecnica...</p>}
+                {loading && null}
                 {!loading && groupedSections.length === 0 && (
                   <p className="admin-empty">
                     Esta moto no tiene items de ficha tecnica. Ejecuta migraciones o revisa la carga inicial.
@@ -1021,7 +1021,7 @@ export default function FichasTecnicasPage({ activeSection, motos = [] }) {
                     onClick={handleSave}
                     disabled={!hasChanges || saving || loading || groupedSections.length === 0}
                   >
-                    {saving ? "Guardando..." : "Guardar cambios"}
+                    {"Guardar cambios"}
                   </button>
                 </div>
               </>
@@ -1087,7 +1087,7 @@ export default function FichasTecnicasPage({ activeSection, motos = [] }) {
                   className="admin-primary-action"
                   disabled={managingSection || normalizeText(manageSectionName).trim().length < 2}
                 >
-                  {managingSection ? "Guardando..." : "Guardar seccion"}
+                  {"Guardar seccion"}
                 </button>
               </div>
             </form>
@@ -1194,7 +1194,7 @@ export default function FichasTecnicasPage({ activeSection, motos = [] }) {
                     normalizeText(manageItemName).trim().length < 2
                   }
                 >
-                  {managingItem ? "Guardando..." : "Guardar item"}
+                  {"Guardar item"}
                 </button>
               </div>
             </form>

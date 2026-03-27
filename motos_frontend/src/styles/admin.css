@@ -2070,7 +2070,8 @@
 }
 
 .admin-confirm-modal-actions .btn-back,
-.admin-confirm-modal-actions .btn-delete {
+.admin-confirm-modal-actions .btn-delete,
+.admin-confirm-modal-actions .btn-confirm {
   border: none;
   border-radius: 10px;
   min-height: 40px;
@@ -2090,10 +2091,52 @@
   color: #ffffff;
 }
 
+.admin-confirm-modal-actions .btn-confirm {
+  background: #16a34a;
+  color: #ffffff;
+}
+
 .admin-confirm-modal-actions .btn-back:disabled,
-.admin-confirm-modal-actions .btn-delete:disabled {
+.admin-confirm-modal-actions .btn-delete:disabled,
+.admin-confirm-modal-actions .btn-confirm:disabled {
   opacity: 0.65;
   cursor: not-allowed;
+}
+
+.admin-confirm-modal-field {
+  margin-top: 12px;
+  display: grid;
+  gap: 6px;
+  text-align: left;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: #475569;
+}
+
+.admin-confirm-modal-field input {
+  border: 1px solid #cbd5e1;
+  border-radius: 10px;
+  min-height: 40px;
+  padding: 8px 12px;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #0f172a;
+  background: #ffffff;
+}
+
+.admin-confirm-modal-field input:focus {
+  outline: none;
+  border-color: #0f766e;
+  box-shadow: 0 0 0 3px rgba(15, 118, 110, 0.15);
+}
+
+.admin-confirm-modal-error {
+  margin-top: 8px;
+  margin-bottom: 0;
+  text-align: left;
+  color: #b91c1c;
+  font-size: 0.84rem;
+  font-weight: 700;
 }
 
 .admin-mantencion-save-btn {

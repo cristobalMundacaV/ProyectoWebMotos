@@ -5,7 +5,7 @@ export default function SummaryTableCard({ title, rows = [], loading = false }) 
         <h2>{title}</h2>
       </div>
       {loading ? (
-        <p className="admin-empty">Cargando datos...</p>
+        null
       ) : rows.length === 0 ? (
         <p className="admin-empty">Sin datos para mostrar.</p>
       ) : (

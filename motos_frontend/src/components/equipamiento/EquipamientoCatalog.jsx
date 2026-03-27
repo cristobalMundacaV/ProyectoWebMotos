@@ -645,7 +645,7 @@ export default function EquipamientoCatalog({ variant = "accesorios" }) {
         </aside>
 
         <div className="equip-grid">
-          {loading && <div className="equip-empty">Cargando productos...</div>}
+          {loading && null}
           {error && <div className="equip-empty">{error}</div>}
 
           {productosPaginados.map((producto) => {
@@ -926,7 +926,7 @@ export default function EquipamientoCatalog({ variant = "accesorios" }) {
                     Cancelar
                   </button>
                   <button type="submit" className="btn-primary" disabled={savingEdit}>
-                    {savingEdit ? "Guardando..." : "Guardar cambios"}
+                    {"Guardar cambios"}
                   </button>
                 </div>
               </div>
@@ -947,7 +947,7 @@ export default function EquipamientoCatalog({ variant = "accesorios" }) {
                 Volver
               </button>
               <button type="button" className="btn-delete" onClick={confirmDeleteProducto} disabled={deletingProducto}>
-                {deletingProducto ? "Eliminando..." : "Eliminar"}
+                {"Eliminar"}
               </button>
             </div>
           </section>

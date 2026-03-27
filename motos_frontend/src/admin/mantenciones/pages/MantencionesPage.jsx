@@ -85,6 +85,12 @@ function sanitizeIntegerInput(value) {
   return String(value ?? "").replace(/[^\d]/g, "");
 }
 
+function sanitizeRutInput(value) {
+  return String(value ?? "")
+    .toUpperCase()
+    .replace(/[^0-9K.\-]/g, "");
+}
+
 function toPositiveInteger(value, fallback) {
   const parsed = Number.parseInt(String(value ?? "").trim(), 10);
   if (!Number.isFinite(parsed) || parsed <= 0) return fallback;
@@ -190,6 +196,12 @@ export default function MantencionesPage({
   const [horarioEditsById, setHorarioEditsById] = useState({});
   const [cancelConfirm, setCancelConfirm] = useState(null);
   const isCancelConfirmSaving = cancelConfirm ? Boolean(savingById[cancelConfirm.id]) : false;
+  const [ingresoConfirm, setIngresoConfirm] = useState(null);
+  const [ingresoError, setIngresoError] = useState("");
+  const isIngresoConfirmSaving = ingresoConfirm ? savingById[ingresoConfirm.id] === "ingreso" : false;
+  const [deliverConfirm, setDeliverConfirm] = useState(null);
+  const [deliverError, setDeliverError] = useState("");
+  const isDeliverConfirmSaving = deliverConfirm ? savingById[deliverConfirm.id] === "deliver" : false;
   const [showHorarioForm, setShowHorarioForm] = useState(false);
 
   const DIAS_LABEL = {
@@ -396,6 +408,34 @@ export default function MantencionesPage({
     return () => window.removeEventListener("keydown", handleKeydown);
   }, [cancelConfirm, isCancelConfirmSaving]);
 
+  useEffect(() => {
+    if (!ingresoConfirm) return undefined;
+
+    function handleKeydown(event) {
+      if (event.key === "Escape" && !isIngresoConfirmSaving) {
+        setIngresoConfirm(null);
+        setIngresoError("");
+      }
+    }
+
+    window.addEventListener("keydown", handleKeydown);
+    return () => window.removeEventListener("keydown", handleKeydown);
+  }, [ingresoConfirm, isIngresoConfirmSaving]);
+
+  useEffect(() => {
+    if (!deliverConfirm) return undefined;
+
+    function handleKeydown(event) {
+      if (event.key === "Escape" && !isDeliverConfirmSaving) {
+        setDeliverConfirm(null);
+        setDeliverError("");
+      }
+    }
+
+    window.addEventListener("keydown", handleKeydown);
+    return () => window.removeEventListener("keydown", handleKeydown);
+  }, [deliverConfirm, isDeliverConfirmSaving]);
+
   const fichasEnTallerBase = useMemo(
     () =>
       mantenciones
@@ -462,6 +502,12 @@ export default function MantencionesPage({
   useEffect(() => {
     setSelectedHistoricaId(null);
   }, [selectedHistoricoCliente]);
+
+  useEffect(() => {
+    // Cuando el backend refresca horarios (por guardado automatico o edicion),
+    // limpiamos borradores locales para que la grilla muestre el dato real persistido.
+    setHorarioEditsById({});
+  }, [horarios]);
 
   const selectedSolicitud = useMemo(() => {
     const byId = solicitudes.find((item) => item.id === selectedSolicitudId);
@@ -560,7 +606,7 @@ export default function MantencionesPage({
         })}
 
         {!loading && items.length === 0 && <p className="admin-empty">{emptyText}</p>}
-        {loading && <p className="admin-empty">Cargando fichas...</p>}
+        {loading && null}
       </aside>
     );
   }
@@ -572,7 +618,7 @@ export default function MantencionesPage({
 
   function renderFichaMobilePicker(items, selectedId, onSelect, emptyText, pickerKey) {
     if (loading) {
-      return <p className="admin-empty admin-mantencion-ficha-mobile-picker-empty">Cargando fichas...</p>;
+      return null;
     }
 
     if (!items.length) {
@@ -776,19 +822,6 @@ export default function MantencionesPage({
               </label>
             )}
 
-            {!isTallerDia && isPorEntregar && (
-              <label>
-                Valor por cobrar
-                <input
-                  type="text"
-                  inputMode="numeric"
-                  value={formatIntegerCL(isEditable ? draft.costo_total ?? "" : toWholeNumber(item.costo_total ?? 0))}
-                  onChange={(event) => setDraft(item.id, "costo_total", sanitizeIntegerInput(event.target.value))}
-                  disabled={saving || readOnly}
-                />
-              </label>
-            )}
-
           </div>
         )}
 
@@ -814,17 +847,35 @@ export default function MantencionesPage({
                     });
                   }}
                 >
-                  {savingAction === "cancel" ? "Anulando..." : cancelActionLabel}
+                  {cancelActionLabel}
                 </button>
               )}
-              {!solicitudAceptada && (
+              {!solicitudAceptada ? (
                 <button
                   type="button"
                   className="admin-primary-action admin-mantencion-action-btn admin-mantencion-accept-btn"
                   disabled={saving}
                   onClick={() => onAcceptSolicitud(item.id, "approve")}
                 >
-                  {savingAction === "approve" ? "Aprobando..." : "Aprobar hora"}
+                  {"Aprobar hora"}
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  className="admin-primary-action admin-mantencion-action-btn admin-mantencion-accept-btn"
+                  disabled={saving}
+                  onClick={() => {
+                    setIngresoError("");
+                    setIngresoConfirm({
+                      id: item.id,
+                      moto: `${moto.marca || "-"} ${moto.modelo || "-"}`.trim(),
+                      fecha: formatDate(item.fecha_ingreso),
+                      hora: item.hora_ingreso ? String(item.hora_ingreso).slice(0, 5) : "-",
+                      kilometraje: sanitizeIntegerInput(moto.kilometraje_actual ?? item.kilometraje_ingreso ?? ""),
+                    });
+                  }}
+                >
+                  {"Marcar ingreso"}
                 </button>
               )}
             </div>
@@ -901,9 +952,19 @@ export default function MantencionesPage({
                   type="button"
                   className="admin-primary-action admin-mantencion-action-btn admin-mantencion-accept-btn"
                   disabled={saving}
-                  onClick={() => onUpdateMantencion(item.id, { estado: "entregada" }, "deliver")}
+                  onClick={() => {
+                    setDeliverError("");
+                    setDeliverConfirm({
+                      id: item.id,
+                      moto: `${moto.marca || "-"} ${moto.modelo || "-"}`.trim(),
+                      rutRetira: "",
+                      nombreRetira: "",
+                      valorCobrado: sanitizeIntegerInput(draft.costo_total ?? item.costo_total ?? ""),
+                      observacionesBase: (draft.observaciones ?? item.observaciones ?? "").trim(),
+                    });
+                  }}
                 >
-                  {savingAction === "deliver" ? "Marcando..." : "Marcar como entregado"}
+                  {"Marcar como entregado"}
                 </button>
               </>
             ) : isEnProcesoRecord ? (
@@ -943,7 +1004,7 @@ export default function MantencionesPage({
                     })
                   }
                 >
-                  {savingAction === "cancel" ? "Cancelando..." : "Cancelar mantenimiento"}
+                  {"Cancelar mantenimiento"}
                 </button>
                 <button
                   type="button"
@@ -951,7 +1012,7 @@ export default function MantencionesPage({
                   disabled={saving}
                   onClick={() => onUpdateMantencion(item.id, getEditablePayload("en_espera"), "wait")}
                 >
-                  {savingAction === "wait" ? "Marcando..." : "Marcar en espera"}
+                  {"Marcar en espera"}
                 </button>
                 <button
                   type="button"
@@ -959,7 +1020,7 @@ export default function MantencionesPage({
                   disabled={saving}
                   onClick={() => onUpdateMantencion(item.id, getEditablePayload("finalizado"), "finalize")}
                 >
-                  {savingAction === "finalize" ? "Marcando..." : "Marcar como finalizado"}
+                  {"Marcar como finalizado"}
                 </button>
               </>
             ) : isEnEsperaRecord ? (
@@ -999,7 +1060,7 @@ export default function MantencionesPage({
                     })
                   }
                 >
-                  {savingAction === "cancel" ? "Cancelando..." : "Cancelar mantenimiento"}
+                  {"Cancelar mantenimiento"}
                 </button>
                 <button
                   type="button"
@@ -1007,7 +1068,7 @@ export default function MantencionesPage({
                   disabled={saving}
                   onClick={() => onUpdateMantencion(item.id, getEditablePayload("en_proceso"), "resume")}
                 >
-                  {savingAction === "resume" ? "Reanudando..." : "Reanudar"}
+                  {"Reanudar"}
                 </button>
               </>
             ) : null}
@@ -1095,7 +1156,205 @@ export default function MantencionesPage({
                     setCancelConfirm(null);
                   }}
                 >
-                  {isCancelConfirmSaving ? "Anulando..." : cancelConfirm.actionLabel}
+                  {cancelConfirm.actionLabel}
+                </button>
+              </div>
+            </section>
+          </div>
+        )}
+
+        {ingresoConfirm && (
+          <div
+            className="admin-confirm-modal-overlay"
+            onClick={() => {
+              if (!isIngresoConfirmSaving) {
+                setIngresoConfirm(null);
+                setIngresoError("");
+              }
+            }}
+          >
+            <section className="admin-confirm-modal" onClick={(event) => event.stopPropagation()}>
+              <img src="/images/informacion.png" alt="Informacion" className="admin-confirm-modal-image" />
+              <h3>Confirmar ingreso a taller</h3>
+              <p className="admin-confirm-modal-text">
+                Vas a ingresar al taller la motocicleta <strong>{ingresoConfirm.moto}</strong> del{" "}
+                <strong>{ingresoConfirm.fecha}</strong> a las <strong>{ingresoConfirm.hora}</strong>.
+              </p>
+              <p className="admin-confirm-modal-subtext">
+                Ingresa el kilometraje actual para cambiar el estado a <strong>En proceso</strong>.
+              </p>
+
+              <label className="admin-confirm-modal-field">
+                Kilometraje actual
+                <input
+                  type="text"
+                  inputMode="numeric"
+                  value={formatIntegerCL(ingresoConfirm.kilometraje)}
+                  disabled={isIngresoConfirmSaving}
+                  onChange={(event) => {
+                    setIngresoError("");
+                    const clean = sanitizeIntegerInput(event.target.value);
+                    setIngresoConfirm((prev) => (prev ? { ...prev, kilometraje: clean } : prev));
+                  }}
+                />
+              </label>
+              {ingresoError ? <p className="admin-confirm-modal-error">{ingresoError}</p> : null}
+
+              <div className="admin-confirm-modal-actions">
+                <button
+                  type="button"
+                  className="btn-back"
+                  disabled={isIngresoConfirmSaving}
+                  onClick={() => {
+                    setIngresoConfirm(null);
+                    setIngresoError("");
+                  }}
+                >
+                  Volver
+                </button>
+                <button
+                  type="button"
+                  className="btn-delete"
+                  disabled={isIngresoConfirmSaving}
+                  onClick={async () => {
+                    const targetId = ingresoConfirm.id;
+                    const km = Number.parseInt(String(ingresoConfirm.kilometraje ?? "").trim(), 10);
+                    if (!Number.isFinite(km) || km < 0) {
+                      setIngresoError("Ingresa un kilometraje valido.");
+                      return;
+                    }
+                    await onUpdateMantencion(
+                      targetId,
+                      { estado: "en_proceso", kilometraje_ingreso: km },
+                      "ingreso"
+                    );
+                    setIngresoConfirm(null);
+                    setIngresoError("");
+                  }}
+                >
+                  {"Ingresar"}
+                </button>
+              </div>
+            </section>
+          </div>
+        )}
+
+        {deliverConfirm && (
+          <div
+            className="admin-confirm-modal-overlay"
+            onClick={() => {
+              if (!isDeliverConfirmSaving) {
+                setDeliverConfirm(null);
+                setDeliverError("");
+              }
+            }}
+          >
+            <section className="admin-confirm-modal" onClick={(event) => event.stopPropagation()}>
+              <img src="/images/informacion.png" alt="Informacion" className="admin-confirm-modal-image" />
+              <h3>Confirmar entrega</h3>
+              <p className="admin-confirm-modal-text">
+                Registraras la entrega de <strong>{deliverConfirm.moto}</strong>.
+              </p>
+              <p className="admin-confirm-modal-subtext">
+                Completa los datos de retiro para cambiar el estado a <strong>Entregado</strong>.
+              </p>
+
+              <label className="admin-confirm-modal-field">
+                RUT de la persona que retira
+                <input
+                  type="text"
+                  value={deliverConfirm.rutRetira}
+                  disabled={isDeliverConfirmSaving}
+                  onChange={(event) => {
+                    setDeliverError("");
+                    const clean = sanitizeRutInput(event.target.value);
+                    setDeliverConfirm((prev) => (prev ? { ...prev, rutRetira: clean } : prev));
+                  }}
+                />
+              </label>
+
+              <label className="admin-confirm-modal-field">
+                Nombre de la persona que retira
+                <input
+                  type="text"
+                  value={deliverConfirm.nombreRetira}
+                  disabled={isDeliverConfirmSaving}
+                  onChange={(event) => {
+                    setDeliverError("");
+                    setDeliverConfirm((prev) => (prev ? { ...prev, nombreRetira: event.target.value } : prev));
+                  }}
+                />
+              </label>
+
+              <label className="admin-confirm-modal-field">
+                Valor cobrado
+                <input
+                  type="text"
+                  inputMode="numeric"
+                  value={formatIntegerCL(deliverConfirm.valorCobrado)}
+                  disabled={isDeliverConfirmSaving}
+                  onChange={(event) => {
+                    setDeliverError("");
+                    const clean = sanitizeIntegerInput(event.target.value);
+                    setDeliverConfirm((prev) => (prev ? { ...prev, valorCobrado: clean } : prev));
+                  }}
+                />
+              </label>
+
+              {deliverError ? <p className="admin-confirm-modal-error">{deliverError}</p> : null}
+
+              <div className="admin-confirm-modal-actions">
+                <button
+                  type="button"
+                  className="btn-back"
+                  disabled={isDeliverConfirmSaving}
+                  onClick={() => {
+                    setDeliverConfirm(null);
+                    setDeliverError("");
+                  }}
+                >
+                  Volver
+                </button>
+                <button
+                  type="button"
+                  className="btn-confirm"
+                  disabled={isDeliverConfirmSaving}
+                  onClick={async () => {
+                    const targetId = deliverConfirm.id;
+                    const rutRetira = String(deliverConfirm.rutRetira || "").trim();
+                    const nombreRetira = String(deliverConfirm.nombreRetira || "").trim();
+                    const valor = Number.parseInt(String(deliverConfirm.valorCobrado || "").trim(), 10);
+
+                    if (!rutRetira) {
+                      setDeliverError("Ingresa el RUT de quien retira.");
+                      return;
+                    }
+                    if (!nombreRetira) {
+                      setDeliverError("Ingresa el nombre de quien retira.");
+                      return;
+                    }
+                    if (!Number.isFinite(valor) || valor < 0) {
+                      setDeliverError("Ingresa un valor cobrado valido.");
+                      return;
+                    }
+
+                    const retiroNote = `Entrega a ${nombreRetira} (RUT: ${rutRetira}). Valor cobrado: ${formatIntegerCL(valor)}.`;
+                    const observaciones = [deliverConfirm.observacionesBase, retiroNote].filter(Boolean).join(" | ");
+
+                    await onUpdateMantencion(
+                      targetId,
+                      {
+                        estado: "entregada",
+                        costo_total: valor,
+                        observaciones,
+                      },
+                      "deliver"
+                    );
+                    setDeliverConfirm(null);
+                    setDeliverError("");
+                  }}
+                >
+                  {"Entregar"}
                 </button>
               </div>
             </section>
@@ -1182,7 +1441,7 @@ export default function MantencionesPage({
                     setCancelConfirm(null);
                   }}
                 >
-                  {isCancelConfirmSaving ? "Cancelando..." : cancelConfirm.actionLabel}
+                  {cancelConfirm.actionLabel}
                 </button>
               </div>
             </section>
@@ -1321,7 +1580,7 @@ export default function MantencionesPage({
               </label>
 
               <button type="submit" className="admin-primary-action" disabled={horarioSaving}>
-                {horarioSaving ? "Guardando..." : "Guardar horario"}
+                {"Guardar horario"}
               </button>
             </form>
           )}
@@ -1407,7 +1666,7 @@ export default function MantencionesPage({
             })}
 
             {!horariosLoading && horarios.length === 0 && <p className="admin-empty">No hay horario de la semana configurado.</p>}
-            {horariosLoading && <p className="admin-empty">Cargando horarios...</p>}
+            {horariosLoading && null}
           </div>
         </article>
       </section>
@@ -1509,7 +1768,7 @@ export default function MantencionesPage({
                 <span><i className="dot dot-inactive" />Sin agenda</span>
               </div>
 
-              {calendarLoading && <p className="admin-empty">Cargando calendario...</p>}
+              {calendarLoading && null}
               {!calendarLoading && calendarError && <p className="admin-empty">{calendarError}</p>}
             </section>
 

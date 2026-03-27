@@ -2539,7 +2539,7 @@ export default function AdminPanel() {
 
   function renderAdminUsersTable() {
     if (adminUsersLoading) {
-      return <p className="admin-empty">Cargando usuarios...</p>;
+      return null;
     }
 
     if (adminUsers.length === 0) {
@@ -3116,7 +3116,7 @@ export default function AdminPanel() {
                         Cancelar
                       </button>
                       <button type="submit" className="btn-save" disabled={motoEditSaving}>
-                        {motoEditSaving ? "Guardando..." : "Guardar cambios"}
+                        {"Guardar cambios"}
                       </button>
                     </div>
                   </div>
@@ -3275,7 +3275,7 @@ export default function AdminPanel() {
                         Cancelar
                       </button>
                       <button type="submit" className="btn-save" disabled={accesorioRiderEditSaving}>
-                        {accesorioRiderEditSaving ? "Guardando..." : "Guardar cambios"}
+                        {"Guardar cambios"}
                       </button>
                     </div>
                   </div>
@@ -3370,7 +3370,7 @@ export default function AdminPanel() {
                       Cancelar
                     </button>
                     <button type="submit" className="btn-save" disabled={adminUserModalSaving}>
-                      {adminUserModalSaving ? "Guardando..." : "Guardar cambios"}
+                      {"Guardar cambios"}
                     </button>
                   </div>
                 </form>
@@ -3391,7 +3391,7 @@ export default function AdminPanel() {
                     Volver
                   </button>
                   <button type="button" className="btn-delete" onClick={submitAdminUserDelete} disabled={adminUserModalSaving}>
-                    {adminUserModalSaving ? "Eliminando..." : "Eliminar"}
+                    {"Eliminar"}
                   </button>
                 </div>
               </section>
@@ -3436,7 +3436,7 @@ export default function AdminPanel() {
                       Cancelar
                     </button>
                     <button type="submit" className="btn-save" disabled={entityModalSaving}>
-                      {entityModalSaving ? "Guardando..." : "Guardar cambios"}
+                      {"Guardar cambios"}
                     </button>
                   </div>
                 </form>
@@ -3456,7 +3456,7 @@ export default function AdminPanel() {
                     Volver
                   </button>
                   <button type="button" className="btn-delete" onClick={submitEntityDelete} disabled={entityModalSaving}>
-                    {entityModalSaving ? "Eliminando..." : "Eliminar"}
+                    {"Eliminar"}
                   </button>
                 </div>
               </section>

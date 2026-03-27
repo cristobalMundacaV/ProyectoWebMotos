@@ -83,7 +83,7 @@ export default function MotosDestacadas() {
     <section className="destacadas" id="catalogo">
       <h2>Modelos Destacados</h2>
 
-      {loading && <p className="home-carousel-empty">Cargando motos...</p>}
+      {loading && null}
       {!loading && error && <p className="home-carousel-empty">{error}</p>}
       {!loading && !error && orderedMotos.length === 0 && (
         <p className="home-carousel-empty">No hay motos disponibles por ahora.</p>

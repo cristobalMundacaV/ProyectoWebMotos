@@ -112,7 +112,7 @@ export default function IndumentariaDestacada() {
       <h2>Indumentaria Rider Destacada</h2>
 
       {loading ? (
-        <p className="home-carousel-empty">Cargando productos...</p>
+        null
       ) : error ? (
         <p className="home-carousel-empty">{error}</p>
       ) : (

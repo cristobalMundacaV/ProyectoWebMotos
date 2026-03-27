@@ -159,9 +159,7 @@ export default function MotoDetalle() {
     return "";
   }
 
-  if (loading) {
-    return <p className="detalle-loading">Cargando detalle...</p>;
-  }
+  if (loading) return null;
 
   if (!moto) {
     return (

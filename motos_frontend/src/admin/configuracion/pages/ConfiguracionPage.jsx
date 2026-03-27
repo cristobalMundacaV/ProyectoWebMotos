@@ -52,7 +52,7 @@ export default function ConfiguracionPage({
           </label>
 
           <button type="submit" className="admin-primary-action" disabled={contactoSaving}>
-            {contactoSaving ? "Guardando..." : "Guardar contacto"}
+            {"Guardar contacto"}
           </button>
         </form>
       </article>

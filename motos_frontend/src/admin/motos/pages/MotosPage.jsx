@@ -136,7 +136,7 @@ export default function MotosPage({
             </label>
 
             <button type="submit" className="admin-primary-action" disabled={marcaSaving}>
-              {marcaSaving ? "Guardando..." : "Guardar marca"}
+              {"Guardar marca"}
             </button>
           </form>
         </article>
@@ -218,7 +218,7 @@ export default function MotosPage({
             </label>
 
             <button type="submit" className="admin-primary-action" disabled={categoriaMotoSaving}>
-              {categoriaMotoSaving ? "Guardando..." : "Guardar categoria"}
+              {"Guardar categoria"}
             </button>
           </form>
         </article>
@@ -321,7 +321,7 @@ export default function MotosPage({
             </label>
 
             <button type="submit" className="admin-primary-action" disabled={modeloMotoSaving}>
-              {modeloMotoSaving ? "Guardando..." : "Guardar modelo"}
+              {"Guardar modelo"}
             </button>
           </form>
         </article>
@@ -561,7 +561,7 @@ export default function MotosPage({
 
             <div className="admin-form-footer admin-form-footer-single-action">
               <button type="submit" className="admin-primary-action admin-form-footer-submit" disabled={motoSaving}>
-                {motoSaving ? "Guardando..." : "Guardar moto"}
+                {"Guardar moto"}
               </button>
             </div>
           </form>

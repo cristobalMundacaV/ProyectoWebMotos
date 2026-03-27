@@ -180,7 +180,7 @@ export default function AdminTopbar({
                       Cancelar
                     </button>
                     <button type="submit" className="admin-user-btn save" disabled={saving}>
-                      {saving ? "Guardando..." : "Guardar cambios"}
+                      {"Guardar cambios"}
                     </button>
                   </div>
                 </form>

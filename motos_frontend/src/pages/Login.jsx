@@ -215,7 +215,7 @@ export default function Login() {
             {error && <p className="login-error">{error}</p>}
 
             <button type="submit" className="login-submit">
-              {loading ? "Procesando..." : mode === "login" ? "Continuar" : "Crear cuenta"}
+              {mode === "login" ? "Continuar" : "Crear cuenta"}
             </button>
 
             {mode === "login" && (
