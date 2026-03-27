@@ -175,15 +175,8 @@ const SIDEBAR_STRUCTURE = {
           roles: ["admin", "mecanico"],
           items: [
             { label: "Solicitudes de Mantencion", value: "mantenciones_solicitudes", roles: ["admin", "mecanico"] },
-            { label: "Fichas Historicas", value: "mantenciones_historicas", roles: ["admin", "mecanico"] },
-          ],
-        },
-        {
-          label: "Taller",
-          icon: "taller",
-          roles: ["admin", "mecanico"],
-          items: [
             { label: "Motos en Taller", value: "taller_en_taller", roles: ["admin", "mecanico"] },
+            { label: "Fichas Historicas", value: "mantenciones_historicas", roles: ["admin", "mecanico"] },
           ],
         },
         {
