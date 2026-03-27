@@ -1,9 +1,10 @@
 import calendar
-from datetime import date, datetime, time, timedelta
+from datetime import date, datetime, timedelta
 
-from django.db.models import Count, Q
+from django.db.models import Count
 from django.db.models.functions import ExtractHour
 
+from .integrity import mark_expired_unaccepted_requests
 from .models import HorarioMantencion, Mantencion
 
 
@@ -41,12 +42,13 @@ def _sum_capacity_for_month(start_date: date, end_date: date) -> int:
 
 
 def get_monthly_kpis(year: int, month: int) -> dict:
+    mark_expired_unaccepted_requests()
     start_date, end_date = month_range(year, month)
     reservations = Mantencion.objects.filter(fecha_ingreso__gte=start_date, fecha_ingreso__lte=end_date)
     total_agendadas = reservations.count()
 
-    # Cupos comprometidos del mes: ignora canceladas.
-    total_ocupadas = reservations.exclude(estado=Mantencion.ESTADO_CANCELADO).count()
+    # Cupos comprometidos del mes: cuenta solo estados que consumen cupo operativo.
+    total_ocupadas = reservations.filter(estado__in=list(Mantencion.ESTADOS_CUPO_OCUPADO)).count()
     total_disponibles = _sum_capacity_for_month(start_date, end_date)
     ocupacion_pct = round((total_ocupadas / total_disponibles) * 100, 2) if total_disponibles else 0
     horas_disponibles_restantes = max(total_disponibles - total_ocupadas, 0)

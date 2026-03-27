@@ -1,11 +1,12 @@
 from django.conf import settings
+from django.core.exceptions import ValidationError
 from django.db import models
 
 
 class VehiculoCliente(models.Model):
     cliente = models.ForeignKey(
         settings.AUTH_USER_MODEL,
-        on_delete=models.CASCADE,
+        on_delete=models.PROTECT,
         related_name="vehiculos_cliente",
         verbose_name="cliente",
     )
@@ -105,9 +106,35 @@ class Mantencion(models.Model):
         (ESTADO_NO_ACEPTADO, "No aceptado"),
     ]
 
+    ESTADOS_AGENDABLES = {ESTADO_SOLICITUD, ESTADO_APROBADO}
+    ESTADOS_ACTIVOS_TALLER = {ESTADO_EN_PROCESO, ESTADO_EN_ESPERA}
+    ESTADOS_CIERRE = {ESTADO_FINALIZADO, ESTADO_ENTREGADA}
+    ESTADOS_CUPO_OCUPADO = {
+        ESTADO_SOLICITUD,
+        ESTADO_APROBADO,
+        ESTADO_EN_PROCESO,
+        ESTADO_EN_ESPERA,
+        ESTADO_FINALIZADO,
+        ESTADO_ENTREGADA,
+        ESTADO_INASISTENCIA,
+    }
+    ESTADOS_NO_OCUPAN_CUPO = {ESTADO_CANCELADO, ESTADO_NO_ACEPTADO}
+
+    ALLOWED_STATE_TRANSITIONS = {
+        ESTADO_SOLICITUD: {ESTADO_APROBADO, ESTADO_CANCELADO, ESTADO_NO_ACEPTADO},
+        ESTADO_APROBADO: {ESTADO_EN_PROCESO, ESTADO_INASISTENCIA, ESTADO_CANCELADO},
+        ESTADO_EN_PROCESO: {ESTADO_EN_ESPERA, ESTADO_FINALIZADO, ESTADO_CANCELADO},
+        ESTADO_EN_ESPERA: {ESTADO_EN_PROCESO, ESTADO_CANCELADO},
+        ESTADO_FINALIZADO: {ESTADO_ENTREGADA, ESTADO_CANCELADO},
+        ESTADO_ENTREGADA: set(),
+        ESTADO_CANCELADO: set(),
+        ESTADO_INASISTENCIA: set(),
+        ESTADO_NO_ACEPTADO: set(),
+    }
+
     moto_cliente = models.ForeignKey(
         VehiculoCliente,
-        on_delete=models.CASCADE,
+        on_delete=models.PROTECT,
         related_name="mantenciones",
         verbose_name="moto cliente",
     )
@@ -148,9 +175,84 @@ class Mantencion(models.Model):
             models.Index(fields=["fecha_ingreso", "hora_ingreso"], name="idx_mantencion_fecha_hora"),
             models.Index(fields=["created_at", "estado"], name="idx_mantencion_created_estado"),
         ]
+        constraints = [
+            models.CheckConstraint(
+                check=models.Q(costo_total__gte=0),
+                name="chk_mantencion_costo_total_non_negative",
+            ),
+            models.CheckConstraint(
+                check=models.Q(kilometraje_ingreso__isnull=True) | models.Q(kilometraje_ingreso__gte=0),
+                name="chk_mantencion_km_ingreso_non_negative",
+            ),
+            models.CheckConstraint(
+                check=~models.Q(rut_cliente=""),
+                name="chk_mantencion_rut_not_empty",
+            ),
+            models.CheckConstraint(
+                check=models.Q(fecha_entrega__isnull=True) | models.Q(fecha_entrega__gte=models.F("fecha_ingreso")),
+                name="chk_mantencion_fecha_entrega_gte_ingreso",
+            ),
+            models.CheckConstraint(
+                check=(
+                    ~models.Q(estado__in=["en_proceso", "en_espera", "finalizado", "entregada"])
+                    | (models.Q(hora_ingreso__isnull=False) & models.Q(kilometraje_ingreso__isnull=False))
+                ),
+                name="chk_mantencion_estado_requiere_ingreso",
+            ),
+            models.CheckConstraint(
+                check=~models.Q(estado="entregada") | models.Q(fecha_entrega__isnull=False),
+                name="chk_mantencion_entregada_requiere_fecha_entrega",
+            ),
+            models.UniqueConstraint(
+                fields=["moto_cliente", "fecha_ingreso", "hora_ingreso"],
+                condition=(
+                    models.Q(hora_ingreso__isnull=False)
+                    & models.Q(
+                        estado__in=[
+                            "solicitud",
+                            "aprobado",
+                            "en_proceso",
+                            "en_espera",
+                            "finalizado",
+                        ]
+                    )
+                ),
+                name="uniq_mantencion_activa_por_moto_slot",
+            ),
+        ]
 
     def __str__(self) -> str:
         return f"Mantencion {self.moto_cliente.matricula} - {self.fecha_ingreso} ({self.get_estado_display()})"
+
+    @classmethod
+    def can_transition(cls, from_state: str, to_state: str) -> bool:
+        if from_state == to_state:
+            return True
+        return to_state in cls.ALLOWED_STATE_TRANSITIONS.get(from_state, set())
+
+    def clean(self):
+        super().clean()
+
+        if self.estado in self.ESTADOS_ACTIVOS_TALLER | self.ESTADOS_CIERRE:
+            if self.hora_ingreso is None:
+                raise ValidationError({"hora_ingreso": "La hora de ingreso es obligatoria para este estado."})
+            if self.kilometraje_ingreso is None:
+                raise ValidationError({"kilometraje_ingreso": "El kilometraje de ingreso es obligatorio para este estado."})
+
+        if self.estado in self.ESTADOS_CIERRE:
+            if not (self.diagnostico or "").strip():
+                raise ValidationError({"diagnostico": "El diagnostico es obligatorio para este estado."})
+            if not (self.trabajo_realizado or "").strip():
+                raise ValidationError({"trabajo_realizado": "El trabajo realizado es obligatorio para este estado."})
+
+        if self.estado == self.ESTADO_ENTREGADA and self.fecha_entrega is None:
+            raise ValidationError({"fecha_entrega": "La fecha de entrega es obligatoria cuando la mantencion esta entregada."})
+
+    def save(self, *args, **kwargs):
+        validate = kwargs.pop("validate", True)
+        if validate:
+            self.full_clean()
+        return super().save(*args, **kwargs)
 
 
 class MantencionEstadoHistorial(models.Model):
@@ -166,7 +268,7 @@ class MantencionEstadoHistorial(models.Model):
 
     mantencion = models.ForeignKey(
         Mantencion,
-        on_delete=models.CASCADE,
+        on_delete=models.PROTECT,
         related_name="historial_estados",
         verbose_name="mantencion",
     )

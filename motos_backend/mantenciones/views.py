@@ -1,14 +1,13 @@
-from datetime import datetime, time
-
 from django.db import transaction
-from django.utils import timezone
 from rest_framework import status, viewsets
-from rest_framework.permissions import AllowAny
+from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from .availability import get_disponibilidad
+from .integrity import mark_expired_unaccepted_requests
 from .models import HorarioMantencion, Mantencion, MantencionEstadoHistorial, VehiculoCliente
+from .permissions import IsOperationalStaff
 from .serializers import (
     AgendarMantencionSerializer,
     ConsultarMantencionPorRutSerializer,
@@ -21,62 +20,21 @@ from .serializers import (
 class VehiculoClienteViewSet(viewsets.ModelViewSet):
     queryset = VehiculoCliente.objects.select_related("cliente").all()
     serializer_class = VehiculoClienteSerializer
+    permission_classes = [IsOperationalStaff]
 
 
 class HorarioMantencionViewSet(viewsets.ModelViewSet):
     queryset = HorarioMantencion.objects.all().order_by("dia_semana", "hora_inicio")
     serializer_class = HorarioMantencionSerializer
+    permission_classes = [IsOperationalStaff]
 
 
 class MantencionViewSet(viewsets.ModelViewSet):
     serializer_class = MantencionSerializer
-
-    def _scheduled_datetime(self, mantencion: Mantencion):
-        if not mantencion.fecha_ingreso:
-            return None
-        hora_ingreso = mantencion.hora_ingreso or time(23, 59, 59)
-        scheduled_at = datetime.combine(mantencion.fecha_ingreso, hora_ingreso)
-        if timezone.is_naive(scheduled_at):
-            scheduled_at = timezone.make_aware(scheduled_at, timezone.get_current_timezone())
-        return scheduled_at
-
-    def _mark_expired_unaccepted_requests(self):
-        now = timezone.localtime()
-        pendientes = Mantencion.objects.filter(estado=Mantencion.ESTADO_SOLICITUD).only(
-            "id", "fecha_ingreso", "hora_ingreso", "estado", "updated_at"
-        )
-
-        to_update = []
-        to_history = []
-        for mantencion in pendientes:
-            scheduled_at = self._scheduled_datetime(mantencion)
-            if not scheduled_at or scheduled_at >= now:
-                continue
-
-            estado_anterior = mantencion.estado
-            mantencion.estado = Mantencion.ESTADO_NO_ACEPTADO
-            mantencion.updated_at = timezone.now()
-            to_update.append(mantencion)
-            to_history.append(
-                MantencionEstadoHistorial(
-                    mantencion=mantencion,
-                    estado_anterior=estado_anterior,
-                    estado_nuevo=Mantencion.ESTADO_NO_ACEPTADO,
-                    changed_by=None,
-                    fuente=MantencionEstadoHistorial.FUENTE_API,
-                    observacion="Solicitud no aceptada antes de la hora agendada",
-                )
-            )
-
-        if not to_update:
-            return
-
-        with transaction.atomic():
-            Mantencion.objects.bulk_update(to_update, ["estado", "updated_at"])
-            MantencionEstadoHistorial.objects.bulk_create(to_history)
+    permission_classes = [IsOperationalStaff]
 
     def get_queryset(self):
-        self._mark_expired_unaccepted_requests()
+        mark_expired_unaccepted_requests()
         return (
             Mantencion.objects.select_related("moto_cliente", "moto_cliente__cliente")
             .all()
@@ -111,17 +69,32 @@ class MantencionDisponibilidadAPIView(APIView):
 
 
 class MantencionConsultaRutAPIView(APIView):
-    authentication_classes = []
-    permission_classes = [AllowAny]
+    permission_classes = [IsAuthenticated]
+
+    def _is_staff_user(self, user) -> bool:
+        if not user or not user.is_authenticated:
+            return False
+        if user.is_superuser or user.is_staff:
+            return True
+        perfil = getattr(user, "perfil_usuario", None)
+        rol = getattr(perfil, "rol", "")
+        return rol in {"superadmin", "admin", "encargado"}
 
     def get(self, request):
+        mark_expired_unaccepted_requests()
         query_serializer = ConsultarMantencionPorRutSerializer(data={"rut": request.query_params.get("rut", "")})
         query_serializer.is_valid(raise_exception=True)
         rut = query_serializer.validated_data["rut"]
 
-        mantenciones = (
+        queryset = (
             Mantencion.objects.select_related("moto_cliente", "moto_cliente__cliente", "moto_cliente__cliente__perfil_usuario")
             .filter(rut_cliente=rut)
+        )
+        if not self._is_staff_user(request.user):
+            queryset = queryset.filter(moto_cliente__cliente=request.user)
+
+        mantenciones = (
+            queryset
             .order_by("-fecha_ingreso", "-hora_ingreso", "-created_at")[:25]
         )
 
@@ -152,46 +125,52 @@ class MantencionConsultaRutAPIView(APIView):
 
 
 class MantencionCancelarAPIView(APIView):
-    authentication_classes = []
-    permission_classes = [AllowAny]
+    permission_classes = [IsAuthenticated]
+
+    def _is_staff_user(self, user) -> bool:
+        if not user or not user.is_authenticated:
+            return False
+        if user.is_superuser or user.is_staff:
+            return True
+        perfil = getattr(user, "perfil_usuario", None)
+        rol = getattr(perfil, "rol", "")
+        return rol in {"superadmin", "admin", "encargado"}
 
     def post(self, request, mantencion_id: int):
+        mark_expired_unaccepted_requests()
         query_serializer = ConsultarMantencionPorRutSerializer(data={"rut": request.data.get("rut", "")})
         query_serializer.is_valid(raise_exception=True)
         rut = query_serializer.validated_data["rut"]
+        with transaction.atomic():
+            queryset = Mantencion.objects.select_for_update().filter(id=mantencion_id, rut_cliente=rut)
+            if not self._is_staff_user(request.user):
+                queryset = queryset.filter(moto_cliente__cliente=request.user)
 
-        mantencion = Mantencion.objects.filter(id=mantencion_id, rut_cliente=rut).first()
-        if not mantencion:
-            return Response(
-                {"detail": "No encontramos esa hora asociada al RUT indicado."},
-                status=status.HTTP_404_NOT_FOUND,
+            mantencion = queryset.first()
+            if not mantencion:
+                return Response(
+                    {"detail": "No encontramos esa hora asociada al RUT indicado."},
+                    status=status.HTTP_404_NOT_FOUND,
+                )
+
+            if not Mantencion.can_transition(mantencion.estado, Mantencion.ESTADO_CANCELADO):
+                return Response(
+                    {"detail": "No es posible cancelar una mantencion en su estado actual."},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+
+            estado_anterior = mantencion.estado
+            mantencion.estado = Mantencion.ESTADO_CANCELADO
+            mantencion.save()
+
+            MantencionEstadoHistorial.objects.create(
+                mantencion=mantencion,
+                estado_anterior=estado_anterior,
+                estado_nuevo=Mantencion.ESTADO_CANCELADO,
+                changed_by=request.user if request.user.is_authenticated else None,
+                fuente=MantencionEstadoHistorial.FUENTE_PORTAL_CLIENTE,
+                observacion="Cancelacion realizada por cliente desde consulta de estado",
             )
-
-        if mantencion.estado == Mantencion.ESTADO_CANCELADO:
-            return Response(
-                {"detail": "La hora ya se encuentra cancelada."},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
-
-        estados_cancelables = {Mantencion.ESTADO_SOLICITUD, Mantencion.ESTADO_APROBADO}
-        if mantencion.estado not in estados_cancelables:
-            return Response(
-                {"detail": "Solo puedes cancelar horas en estado Solicitud o Aprobado."},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
-
-        estado_anterior = mantencion.estado
-        mantencion.estado = Mantencion.ESTADO_CANCELADO
-        mantencion.save()
-
-        MantencionEstadoHistorial.objects.create(
-            mantencion=mantencion,
-            estado_anterior=estado_anterior,
-            estado_nuevo=Mantencion.ESTADO_CANCELADO,
-            changed_by=None,
-            fuente=MantencionEstadoHistorial.FUENTE_PORTAL_CLIENTE,
-            observacion="Cancelacion realizada por cliente desde consulta de estado",
-        )
 
         return Response(
             {

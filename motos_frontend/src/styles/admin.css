@@ -2113,6 +2113,26 @@
   box-shadow: none;
 }
 
+.admin-mantencion-wait-btn {
+  background: #f97316;
+  border: 1px solid #ea580c;
+  color: #ffffff !important;
+  box-shadow: 0 6px 16px rgba(249, 115, 22, 0.24);
+}
+
+.admin-mantencion-wait-btn:hover:not(:disabled) {
+  background: #ea580c;
+  border-color: #c2410c;
+  color: #ffffff !important;
+}
+
+.admin-mantencion-wait-btn:disabled {
+  background: #fdba74;
+  border-color: #fb923c;
+  box-shadow: none;
+  color: #ffffff !important;
+}
+
 .admin-content-grid.admin-content-grid-mantenciones-fichas .admin-panel-card {
   width: 100%;
   min-height: calc(100vh - 170px);

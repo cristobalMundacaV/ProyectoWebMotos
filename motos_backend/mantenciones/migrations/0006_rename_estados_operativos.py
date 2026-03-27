@@ -28,7 +28,19 @@ def backward_states(apps, schema_editor):
     Mantencion = apps.get_model("mantenciones", "Mantencion")
     MantencionEstadoHistorial = apps.get_model("mantenciones", "MantencionEstadoHistorial")
 
-    reverse_map = {value: key for key, value in ESTADOS_MAP.items()}
+    reverse_map = {
+        "solicitud": "ingresada",
+        "aprobado": "aceptada",
+        # El mapeo previo fusiono en_revision/en_proceso -> en_proceso.
+        # Para rollback elegimos el valor operativo mas estable.
+        "en_proceso": "en_proceso",
+        "en_espera": "esperando_repuestos",
+        "finalizado": "finalizada",
+        "entregada": "entregada",
+        "cancelado": "cancelada",
+        "inasistencia": "no_asistio",
+        "no_aceptado": "ingresada",
+    }
 
     for new_state, old_state in reverse_map.items():
         Mantencion.objects.filter(estado=new_state).update(estado=old_state)

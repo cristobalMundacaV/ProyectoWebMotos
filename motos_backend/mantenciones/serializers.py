@@ -1,4 +1,5 @@
 from django.contrib.auth import get_user_model
+from django.core.exceptions import ValidationError as DjangoValidationError
 from django.db import transaction
 from django.utils import timezone
 from rest_framework import serializers
@@ -110,51 +111,62 @@ class MantencionSerializer(serializers.ModelSerializer):
             "created_at",
             "updated_at",
         )
-        read_only_fields = ("created_at", "updated_at")
+        read_only_fields = ("created_at", "updated_at", "rut_cliente")
 
     def update(self, instance, validated_data):
-        previous_estado = instance.estado
-        next_estado = validated_data.get("estado", instance.estado)
-        entrando_a_taller = instance.estado != Mantencion.ESTADO_EN_PROCESO and next_estado == Mantencion.ESTADO_EN_PROCESO
-        aceptando_solicitud = instance.estado != Mantencion.ESTADO_APROBADO and next_estado == Mantencion.ESTADO_APROBADO
+        request = self.context.get("request")
+        source = (
+            MantencionEstadoHistorial.FUENTE_ADMIN_PANEL
+            if request and getattr(request, "user", None) and request.user.is_authenticated
+            else MantencionEstadoHistorial.FUENTE_API
+        )
+        changed_by = request.user if request and getattr(request, "user", None) and request.user.is_authenticated else None
 
-        if aceptando_solicitud:
-            if instance.estado != Mantencion.ESTADO_SOLICITUD:
+        with transaction.atomic():
+            locked = Mantencion.objects.select_for_update().get(pk=instance.pk)
+            previous_estado = locked.estado
+            next_estado = validated_data.get("estado", locked.estado)
+            estado_cambia = previous_estado != next_estado
+
+            if estado_cambia and not Mantencion.can_transition(previous_estado, next_estado):
                 raise serializers.ValidationError(
-                    {"estado": "Solo se pueden aprobar solicitudes que esten en estado Solicitud."}
+                    {"estado": f"Transicion invalida: {previous_estado} -> {next_estado}."}
                 )
 
-            hora_ingreso = instance.hora_ingreso or time(23, 59, 59)
-            scheduled_at = datetime.combine(instance.fecha_ingreso, hora_ingreso)
-            if timezone.is_naive(scheduled_at):
-                scheduled_at = timezone.make_aware(scheduled_at, timezone.get_current_timezone())
+            aceptando_solicitud = previous_estado != Mantencion.ESTADO_APROBADO and next_estado == Mantencion.ESTADO_APROBADO
+            entrando_a_taller = previous_estado != Mantencion.ESTADO_EN_PROCESO and next_estado == Mantencion.ESTADO_EN_PROCESO
 
-            if scheduled_at < timezone.localtime():
-                raise serializers.ValidationError(
-                    {"estado": "No se puede aceptar una solicitud cuya fecha/hora ya vencio."}
+            if aceptando_solicitud:
+                hora_ingreso = locked.hora_ingreso or time(23, 59, 59)
+                scheduled_at = datetime.combine(locked.fecha_ingreso, hora_ingreso)
+                if timezone.is_naive(scheduled_at):
+                    scheduled_at = timezone.make_aware(scheduled_at, timezone.get_current_timezone())
+                if scheduled_at < timezone.localtime():
+                    raise serializers.ValidationError(
+                        {"estado": "No se puede aceptar una solicitud cuya fecha/hora ya vencio."}
+                    )
+
+            if entrando_a_taller and "hora_ingreso" not in validated_data:
+                validated_data["hora_ingreso"] = timezone.localtime().time().replace(microsecond=0)
+
+            for field, value in validated_data.items():
+                setattr(locked, field, value)
+
+            try:
+                locked.save()
+            except DjangoValidationError as exc:
+                raise serializers.ValidationError(exc.message_dict if hasattr(exc, "message_dict") else {"detail": exc.messages})
+
+            if estado_cambia:
+                MantencionEstadoHistorial.objects.create(
+                    mantencion=locked,
+                    estado_anterior=previous_estado,
+                    estado_nuevo=locked.estado,
+                    changed_by=changed_by,
+                    fuente=source,
                 )
 
-        if entrando_a_taller and "hora_ingreso" not in validated_data:
-            validated_data["hora_ingreso"] = timezone.localtime().time().replace(microsecond=0)
-
-        updated_instance = super().update(instance, validated_data)
-
-        if previous_estado != updated_instance.estado:
-            request = self.context.get("request")
-            source = (
-                MantencionEstadoHistorial.FUENTE_ADMIN_PANEL
-                if request and getattr(request, "user", None) and request.user.is_authenticated
-                else MantencionEstadoHistorial.FUENTE_API
-            )
-            MantencionEstadoHistorial.objects.create(
-                mantencion=updated_instance,
-                estado_anterior=previous_estado,
-                estado_nuevo=updated_instance.estado,
-                changed_by=request.user if request and getattr(request, "user", None) and request.user.is_authenticated else None,
-                fuente=source,
-            )
-
-        return updated_instance
+            return locked
 
 
 class AgendarMantencionSerializer(serializers.Serializer):
@@ -225,14 +237,53 @@ class AgendarMantencionSerializer(serializers.Serializer):
         fecha = attrs.get("fecha_agendada")
         hora = attrs.get("hora_agendada")
         if fecha and hora and not slot_disponible(fecha, hora):
-            raise serializers.ValidationError(
-                {"hora_agendada": "La hora seleccionada ya no esta disponible. Elige otra opcion."}
-            )
+            raise serializers.ValidationError({"hora_agendada": "La hora seleccionada ya no esta disponible. Elige otra opcion."})
         attrs["rut"] = normalized_rut
         attrs["nombres"] = nombres
         attrs["apellidos"] = apellidos
         attrs["email"] = email
         return attrs
+
+    def _slot_capacity_for_time(self, *, fecha, hora):
+        weekday = fecha.weekday()
+        horarios = list(
+            HorarioMantencion.objects.select_for_update()
+            .filter(activo=True, dia_semana=weekday)
+            .order_by("hora_inicio")
+        )
+        if not horarios:
+            raise serializers.ValidationError({"fecha_agendada": "No hay horarios operativos para el dia seleccionado."})
+
+        if fecha == timezone.localdate() and hora <= timezone.localtime().time():
+            raise serializers.ValidationError({"hora_agendada": "La hora seleccionada ya vencio."})
+
+        total_capacity = 0
+        for bloque in horarios:
+            if not (bloque.hora_inicio <= hora < bloque.hora_fin):
+                continue
+            if bloque.intervalo_minutos <= 0:
+                continue
+            start_minutes = bloque.hora_inicio.hour * 60 + bloque.hora_inicio.minute
+            slot_minutes = hora.hour * 60 + hora.minute
+            if (slot_minutes - start_minutes) % int(bloque.intervalo_minutos) != 0:
+                continue
+            total_capacity += int(bloque.cupos_por_bloque or 0)
+
+        if total_capacity <= 0:
+            raise serializers.ValidationError({"hora_agendada": "La hora seleccionada no pertenece a un bloque operativo valido."})
+        return total_capacity
+
+    def _validate_slot_with_lock(self, *, fecha, hora):
+        total_capacity = self._slot_capacity_for_time(fecha=fecha, hora=hora)
+
+        reservadas = (
+            Mantencion.objects.select_for_update()
+            .filter(fecha_ingreso=fecha, hora_ingreso=hora)
+            .exclude(estado__in=[Mantencion.ESTADO_CANCELADO, Mantencion.ESTADO_NO_ACEPTADO])
+            .count()
+        )
+        if reservadas >= total_capacity:
+            raise serializers.ValidationError({"hora_agendada": "La hora seleccionada ya no esta disponible. Elige otra opcion."})
 
     def _generate_username(self, nombres: str, apellidos: str, telefono: str, email: str) -> str:
         User = get_user_model()
@@ -323,6 +374,10 @@ class AgendarMantencionSerializer(serializers.Serializer):
 
     def create(self, validated_data):
         with transaction.atomic():
+            self._validate_slot_with_lock(
+                fecha=validated_data["fecha_agendada"],
+                hora=validated_data["hora_agendada"],
+            )
             cliente = self._resolve_or_create_cliente()
             matricula = validated_data["matricula"].strip().upper()
 

@@ -6,6 +6,7 @@ from datetime import date, time, timedelta
 from django.db.models import Count
 from django.utils import timezone
 
+from .integrity import mark_expired_unaccepted_requests
 from .models import HorarioMantencion, Mantencion
 
 
@@ -20,6 +21,7 @@ def _from_minutes(value: int) -> time:
 
 
 def get_disponibilidad(days_ahead: int = 21) -> list[dict]:
+    mark_expired_unaccepted_requests()
     today = timezone.localdate()
     now_local = timezone.localtime()
     end_date = today + timedelta(days=max(days_ahead, 1) - 1)
@@ -38,7 +40,7 @@ def get_disponibilidad(days_ahead: int = 21) -> list[dict]:
             fecha_ingreso__lte=end_date,
             hora_ingreso__isnull=False,
         )
-        .exclude(estado=Mantencion.ESTADO_CANCELADO)
+        .exclude(estado__in=[Mantencion.ESTADO_CANCELADO, Mantencion.ESTADO_NO_ACEPTADO])
         .values("fecha_ingreso", "hora_ingreso")
         .annotate(total=Count("id"))
     )
@@ -58,7 +60,7 @@ def get_disponibilidad(days_ahead: int = 21) -> list[dict]:
         if not bloques:
             continue
 
-        horas_calculadas = []
+        capacity_by_hour: dict[time, int] = {}
         for bloque in bloques:
             start_min = _to_minutes(bloque.hora_inicio)
             end_min = _to_minutes(bloque.hora_fin)
@@ -70,30 +72,20 @@ def get_disponibilidad(days_ahead: int = 21) -> list[dict]:
                 if current_date == today and slot_time <= now_local.time():
                     continue
 
+                capacity_by_hour[slot_time] = capacity_by_hour.get(slot_time, 0) + int(bloque.cupos_por_bloque or 0)
+
+        if capacity_by_hour:
+            horas = []
+            for slot_time, total_capacity in sorted(capacity_by_hour.items(), key=lambda item: item[0]):
                 reserved_count = ocupadas_map.get((current_date, slot_time), 0)
-                cupos = bloque.cupos_por_bloque - reserved_count
-                horas_calculadas.append(
+                cupos_disponibles = max(total_capacity - reserved_count, 0)
+                horas.append(
                     {
                         "hora": slot_time.strftime("%H:%M"),
-                        "cupos_disponibles": max(cupos, 0),
-                        "disponible": cupos > 0,
+                        "cupos_disponibles": cupos_disponibles,
+                        "disponible": cupos_disponibles > 0,
                     }
                 )
-
-        if horas_calculadas:
-            deduped = {}
-            for item in horas_calculadas:
-                hora = item["hora"]
-                if hora not in deduped:
-                    deduped[hora] = item
-                else:
-                    deduped[hora]["cupos_disponibles"] = max(
-                        deduped[hora]["cupos_disponibles"],
-                        item["cupos_disponibles"],
-                    )
-                    deduped[hora]["disponible"] = deduped[hora]["cupos_disponibles"] > 0
-
-            horas = sorted(deduped.values(), key=lambda item: item["hora"])
             disponibles = sum(1 for item in horas if item["disponible"])
             disponibilidad.append(
                 {

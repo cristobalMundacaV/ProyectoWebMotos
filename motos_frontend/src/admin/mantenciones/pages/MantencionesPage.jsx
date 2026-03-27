@@ -945,7 +945,7 @@ export default function MantencionesPage({
                 </button>
                 <button
                   type="button"
-                  className="admin-ficha-outline-action admin-mantencion-action-btn"
+                  className="admin-ficha-outline-action admin-mantencion-action-btn admin-mantencion-wait-btn"
                   disabled={saving}
                   onClick={() => onUpdateMantencion(item.id, getEditablePayload("en_espera"))}
                 >
