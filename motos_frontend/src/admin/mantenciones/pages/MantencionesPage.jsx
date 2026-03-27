@@ -910,26 +910,30 @@ export default function MantencionesPage({
                 rows={4}
               />
             </article>
-            <article>
-              <h4>Trabajo realizado</h4>
-              <textarea
-                className="admin-mantencion-ficha-textarea"
-                value={isEditable ? draft.trabajo_realizado ?? "" : item.trabajo_realizado ?? ""}
-                onChange={(event) => setDraft(item.id, "trabajo_realizado", event.target.value)}
-                disabled={saving || readOnly}
-                rows={4}
-              />
-            </article>
-            <article>
-              <h4>Comentarios / Observaciones</h4>
-              <textarea
-                className="admin-mantencion-ficha-textarea"
-                value={isEditable ? draft.observaciones ?? "" : item.observaciones ?? ""}
-                onChange={(event) => setDraft(item.id, "observaciones", event.target.value)}
-                disabled={saving || readOnly}
-                rows={4}
-              />
-            </article>
+            {!isTallerDia && (
+              <>
+                <article>
+                  <h4>Trabajo realizado</h4>
+                  <textarea
+                    className="admin-mantencion-ficha-textarea"
+                    value={isEditable ? draft.trabajo_realizado ?? "" : item.trabajo_realizado ?? ""}
+                    onChange={(event) => setDraft(item.id, "trabajo_realizado", event.target.value)}
+                    disabled={saving || readOnly}
+                    rows={4}
+                  />
+                </article>
+                <article>
+                  <h4>Comentarios / Observaciones</h4>
+                  <textarea
+                    className="admin-mantencion-ficha-textarea"
+                    value={isEditable ? draft.observaciones ?? "" : item.observaciones ?? ""}
+                    onChange={(event) => setDraft(item.id, "observaciones", event.target.value)}
+                    disabled={saving || readOnly}
+                    rows={4}
+                  />
+                </article>
+              </>
+            )}
           </div>
         )}
 
