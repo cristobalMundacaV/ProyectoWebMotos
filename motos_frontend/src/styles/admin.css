@@ -1912,6 +1912,89 @@
   color: #ffffff !important;
 }
 
+.admin-confirm-modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1200;
+  background: rgba(15, 23, 42, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.admin-confirm-modal {
+  width: min(520px, 100%);
+  background: #ffffff;
+  border-radius: 16px;
+  border: 1px solid #e5e7eb;
+  box-shadow: 0 24px 60px rgba(2, 6, 23, 0.25);
+  padding: 22px 22px 18px;
+}
+
+.admin-confirm-modal-image {
+  width: 62px;
+  height: auto;
+  display: block;
+  margin: 0 auto 12px;
+}
+
+.admin-confirm-modal h3 {
+  margin: 0 0 8px;
+  font-size: 1.35rem;
+  text-align: center;
+  color: #0f172a;
+}
+
+.admin-confirm-modal-text {
+  margin: 0;
+  font-size: 0.98rem;
+  color: #334155;
+  text-align: center;
+  line-height: 1.45;
+}
+
+.admin-confirm-modal-subtext {
+  margin: 8px 0 0;
+  font-size: 0.95rem;
+  color: #475569;
+  text-align: center;
+}
+
+.admin-confirm-modal-actions {
+  margin-top: 18px;
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+}
+
+.admin-confirm-modal-actions .btn-back,
+.admin-confirm-modal-actions .btn-delete {
+  border: none;
+  border-radius: 10px;
+  min-height: 40px;
+  padding: 10px 16px;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.admin-confirm-modal-actions .btn-back {
+  background: #e2e8f0;
+  color: #0f172a;
+}
+
+.admin-confirm-modal-actions .btn-delete {
+  background: #dc2626;
+  color: #ffffff;
+}
+
+.admin-confirm-modal-actions .btn-back:disabled,
+.admin-confirm-modal-actions .btn-delete:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+
 .admin-mantencion-save-btn {
   background: #16a34a;
   border: 1px solid #15803d;

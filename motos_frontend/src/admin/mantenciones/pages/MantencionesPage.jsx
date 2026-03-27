@@ -218,6 +218,8 @@ export default function MantencionesPage({
     return new Date(now.getFullYear(), now.getMonth(), 1);
   });
   const [horarioEditsById, setHorarioEditsById] = useState({});
+  const [cancelConfirm, setCancelConfirm] = useState(null);
+  const isCancelConfirmSaving = cancelConfirm ? Boolean(savingById[cancelConfirm.id]) : false;
   const [showHorarioForm, setShowHorarioForm] = useState(false);
 
   const DIAS_LABEL = {
@@ -397,6 +399,19 @@ export default function MantencionesPage({
   }, [solicitudesTab]);
 
   const todayIso = useMemo(() => toIsoDate(new Date()), []);
+
+  useEffect(() => {
+    if (!cancelConfirm) return undefined;
+
+    function handleKeydown(event) {
+      if (event.key === "Escape" && !isCancelConfirmSaving) {
+        setCancelConfirm(null);
+      }
+    }
+
+    window.addEventListener("keydown", handleKeydown);
+    return () => window.removeEventListener("keydown", handleKeydown);
+  }, [cancelConfirm, isCancelConfirmSaving]);
 
   const mantencionesDelDia = useMemo(
     () =>
@@ -684,6 +699,7 @@ export default function MantencionesPage({
     const readOnly = !isEditable;
     const estadoActual = draft.estado || item.estado;
     const solicitudAceptada = item.estado === "aceptada";
+    const cancelActionLabel = solicitudAceptada ? "Anular mantenimiento" : "Anular hora";
     const canCancelSolicitud = isSolicitud && (item.estado === "ingresada" || item.estado === "aceptada");
     const estadoOptions = isTallerDia
       ? [
@@ -852,15 +868,16 @@ export default function MantencionesPage({
                   className="admin-danger-action admin-mantencion-action-btn admin-mantencion-cancel-btn"
                   disabled={saving}
                   onClick={() => {
-                    const actionLabel = "anular este mantenimiento";
-                    const confirmed = window.confirm(
-                      `Estas seguro que deseas ${actionLabel}? Esta accion no se puede deshacer.`
-                    );
-                    if (!confirmed) return;
-                    onUpdateMantencion(item.id, { estado: "cancelada" });
+                    setCancelConfirm({
+                      id: item.id,
+                      actionLabel: cancelActionLabel,
+                      moto: `${moto.marca || "-"} ${moto.modelo || "-"}`.trim(),
+                      fecha: formatDate(item.fecha_ingreso),
+                      hora: item.hora_ingreso ? String(item.hora_ingreso).slice(0, 5) : "-",
+                    });
                   }}
                 >
-                  {saving ? "Anulando..." : "Anular mantenimiento"}
+                  {saving ? "Anulando..." : cancelActionLabel}
                 </button>
               )}
               <button
@@ -959,44 +976,88 @@ export default function MantencionesPage({
 
   if (activeSection === "mantenciones_solicitudes") {
     return (
-      <section className="admin-content-grid admin-content-grid-mantenciones admin-content-grid-mantenciones-fichas">
-        <article className="admin-panel-card">
-          <div className="admin-card-header">
-            <div className="admin-mantencion-solicitudes-head">
-              <h2>Solicitudes de mantencion</h2>
-              <div className="admin-mantencion-tabs" role="tablist" aria-label="Filtros de solicitudes">
-                {SOLICITUDES_TABS.map((tab) => {
-                  const isActive = solicitudesTab === tab.value;
-                  return (
-                    <button
-                      key={tab.value}
-                      type="button"
-                      role="tab"
-                      aria-selected={isActive}
-                      className={isActive ? "admin-mantencion-tab active" : "admin-mantencion-tab"}
-                      onClick={() => setSolicitudesTab(tab.value)}
-                    >
-                      {tab.label}
-                    </button>
-                  );
-                })}
+      <>
+        <section className="admin-content-grid admin-content-grid-mantenciones admin-content-grid-mantenciones-fichas">
+          <article className="admin-panel-card">
+            <div className="admin-card-header">
+              <div className="admin-mantencion-solicitudes-head">
+                <h2>Solicitudes de mantencion</h2>
+                <div className="admin-mantencion-tabs" role="tablist" aria-label="Filtros de solicitudes">
+                  {SOLICITUDES_TABS.map((tab) => {
+                    const isActive = solicitudesTab === tab.value;
+                    return (
+                      <button
+                        key={tab.value}
+                        type="button"
+                        role="tab"
+                        aria-selected={isActive}
+                        className={isActive ? "admin-mantencion-tab active" : "admin-mantencion-tab"}
+                        onClick={() => setSolicitudesTab(tab.value)}
+                      >
+                        {tab.label}
+                      </button>
+                    );
+                  })}
+                </div>
               </div>
             </div>
-          </div>
 
-          <div className="admin-mantencion-fichas-layout">
-            {renderFichaMobilePicker(
-              solicitudes,
-              selectedSolicitud?.id,
-              setSelectedSolicitudId,
-              solicitudesEmptyText,
-              "solicitudes"
-            )}
-            {renderFichaList(solicitudes, selectedSolicitud?.id, setSelectedSolicitudId, solicitudesEmptyText)}
-            <div className="admin-mantencion-ficha-detail">{renderFichaDetail(selectedSolicitud, "solicitudes")}</div>
+            <div className="admin-mantencion-fichas-layout">
+              {renderFichaMobilePicker(
+                solicitudes,
+                selectedSolicitud?.id,
+                setSelectedSolicitudId,
+                solicitudesEmptyText,
+                "solicitudes"
+              )}
+              {renderFichaList(solicitudes, selectedSolicitud?.id, setSelectedSolicitudId, solicitudesEmptyText)}
+              <div className="admin-mantencion-ficha-detail">{renderFichaDetail(selectedSolicitud, "solicitudes")}</div>
+            </div>
+          </article>
+        </section>
+
+        {cancelConfirm && (
+          <div
+            className="admin-confirm-modal-overlay"
+            onClick={() => {
+              if (!isCancelConfirmSaving) setCancelConfirm(null);
+            }}
+          >
+            <section className="admin-confirm-modal" onClick={(event) => event.stopPropagation()}>
+              <img src="/images/informacion.png" alt="Informacion" className="admin-confirm-modal-image" />
+              <h3>Confirmar anulacion</h3>
+              <p className="admin-confirm-modal-text">
+                Vas a anular la solicitud de <strong>{cancelConfirm.moto}</strong> del{" "}
+                <strong>{cancelConfirm.fecha}</strong> a las <strong>{cancelConfirm.hora}</strong>.
+              </p>
+              <p className="admin-confirm-modal-subtext">Esta accion cambiara el estado a <strong>Cancelada</strong>.</p>
+
+              <div className="admin-confirm-modal-actions">
+                <button
+                  type="button"
+                  className="btn-back"
+                  disabled={isCancelConfirmSaving}
+                  onClick={() => setCancelConfirm(null)}
+                >
+                  Volver
+                </button>
+                <button
+                  type="button"
+                  className="btn-delete"
+                  disabled={isCancelConfirmSaving}
+                  onClick={async () => {
+                    const targetId = cancelConfirm.id;
+                    await onUpdateMantencion(targetId, { estado: "cancelada" });
+                    setCancelConfirm(null);
+                  }}
+                >
+                  {isCancelConfirmSaving ? "Anulando..." : cancelConfirm.actionLabel}
+                </button>
+              </div>
+            </section>
           </div>
-        </article>
-      </section>
+        )}
+      </>
     );
   }
 
