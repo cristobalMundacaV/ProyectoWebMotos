@@ -81,6 +81,11 @@ def backfill_required_state_fields(apps, schema_editor):
 
 
 class Migration(migrations.Migration):
+    # En PostgreSQL, esta migracion mezcla data fixes + ALTER TABLE/constraints.
+    # Debe ejecutarse fuera de una sola transaccion para evitar:
+    # "cannot ALTER TABLE ... because it has pending trigger events".
+    atomic = False
+
     dependencies = [
         ("mantenciones", "0006_rename_estados_operativos"),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
