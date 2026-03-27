@@ -1,4 +1,4 @@
-from datetime import date
+from datetime import date, datetime
 
 from django.db import transaction
 from rest_framework import status, viewsets
@@ -8,7 +8,15 @@ from rest_framework.views import APIView
 
 from .availability import get_disponibilidad
 from .integrity import mark_expired_unaccepted_requests
-from .models import HorarioMantencion, Mantencion, MantencionDiaBloqueado, MantencionEstadoHistorial, VehiculoCliente
+from .models import (
+    HorarioMantencion,
+    Mantencion,
+    MantencionDiaBloqueado,
+    MantencionHoraBloqueada,
+    MantencionEstadoHistorial,
+    MantencionHorarioFecha,
+    VehiculoCliente,
+)
 from .permissions import IsOperationalStaff
 from .serializers import (
     AgendarMantencionSerializer,
@@ -135,6 +143,169 @@ class MantencionBloquearDiaAPIView(APIView):
             },
             status=status.HTTP_200_OK,
         )
+
+
+class MantencionActivarDiaAPIView(APIView):
+    permission_classes = [IsOperationalStaff]
+
+    def post(self, request):
+        raw_fecha = str(request.data.get("fecha", "")).strip()
+        raw_hora_inicio = str(request.data.get("hora_inicio", "")).strip()
+        raw_hora_fin = str(request.data.get("hora_fin", "")).strip()
+
+        if not raw_fecha:
+            return Response({"detail": "La fecha es obligatoria."}, status=status.HTTP_400_BAD_REQUEST)
+        if not raw_hora_inicio or not raw_hora_fin:
+            return Response({"detail": "Hora inicio y hora fin son obligatorias."}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            target_date = date.fromisoformat(raw_fecha)
+        except ValueError:
+            return Response({"detail": "Formato de fecha invalido. Usa YYYY-MM-DD."}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            hora_inicio = datetime.strptime(raw_hora_inicio, "%H:%M").time()
+            hora_fin = datetime.strptime(raw_hora_fin, "%H:%M").time()
+        except ValueError:
+            return Response({"detail": "Formato de hora invalido. Usa HH:MM."}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            intervalo_minutos = int(request.data.get("intervalo_minutos", 60))
+            cupos_por_bloque = int(request.data.get("cupos_por_bloque", 1))
+        except (TypeError, ValueError):
+            return Response({"detail": "Intervalo y horas por bloque deben ser numericos."}, status=status.HTTP_400_BAD_REQUEST)
+
+        if hora_fin <= hora_inicio:
+            return Response({"detail": "La hora fin debe ser mayor a la hora inicio."}, status=status.HTTP_400_BAD_REQUEST)
+        if intervalo_minutos <= 0:
+            return Response({"detail": "El intervalo debe ser mayor a 0 minutos."}, status=status.HTTP_400_BAD_REQUEST)
+        if cupos_por_bloque <= 0:
+            return Response({"detail": "Las horas por bloque deben ser mayores a 0."}, status=status.HTTP_400_BAD_REQUEST)
+
+        with transaction.atomic():
+            MantencionDiaBloqueado.objects.update_or_create(
+                fecha=target_date,
+                defaults={"bloqueado": False, "motivo": "Dia habilitado desde calendario"},
+            )
+            MantencionHorarioFecha.objects.update_or_create(
+                fecha=target_date,
+                defaults={
+                    "hora_inicio": hora_inicio,
+                    "hora_fin": hora_fin,
+                    "intervalo_minutos": intervalo_minutos,
+                    "cupos_por_bloque": cupos_por_bloque,
+                    "activo": True,
+                },
+            )
+
+        return Response(
+            {
+                "fecha": target_date.isoformat(),
+                "activo": True,
+                "hora_inicio": hora_inicio.strftime("%H:%M"),
+                "hora_fin": hora_fin.strftime("%H:%M"),
+                "intervalo_minutos": intervalo_minutos,
+                "cupos_por_bloque": cupos_por_bloque,
+            },
+            status=status.HTTP_200_OK,
+        )
+
+
+class MantencionToggleHoraAPIView(APIView):
+    permission_classes = [IsOperationalStaff]
+
+    def post(self, request):
+        raw_fecha = str(request.data.get("fecha", "")).strip()
+        raw_hora = str(request.data.get("hora", "")).strip()
+        action = str(request.data.get("action", "block")).strip().lower()
+        confirm_with_bookings = bool(request.data.get("confirm_with_bookings", False))
+
+        if action not in {"block", "unblock"}:
+            return Response({"detail": "Accion invalida. Usa 'block' o 'unblock'."}, status=status.HTTP_400_BAD_REQUEST)
+        if not raw_fecha or not raw_hora:
+            return Response({"detail": "Fecha y hora son obligatorias."}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            target_date = date.fromisoformat(raw_fecha)
+        except ValueError:
+            return Response({"detail": "Formato de fecha invalido. Usa YYYY-MM-DD."}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            target_hora = datetime.strptime(raw_hora, "%H:%M").time()
+        except ValueError:
+            return Response({"detail": "Formato de hora invalido. Usa HH:MM."}, status=status.HTTP_400_BAD_REQUEST)
+
+        with transaction.atomic():
+            if action == "block":
+                mark_expired_unaccepted_requests()
+                estados_reagendables = [Mantencion.ESTADO_SOLICITUD, Mantencion.ESTADO_APROBADO]
+                affected = list(
+                    Mantencion.objects.select_for_update()
+                    .filter(
+                        fecha_ingreso=target_date,
+                        hora_ingreso=target_hora,
+                        estado__in=estados_reagendables,
+                    )
+                    .only("id", "estado")
+                )
+
+                if affected and not confirm_with_bookings:
+                    return Response(
+                        {
+                            "needs_confirmation": True,
+                            "detail": "Hay horas agendadas para esta hora. Seguro que quieres desactivarla?",
+                            "bookings_count": len(affected),
+                        },
+                        status=status.HTTP_409_CONFLICT,
+                    )
+
+                if affected:
+                    mantencion_ids = [item.id for item in affected]
+                    Mantencion.objects.filter(id__in=mantencion_ids).update(estado=Mantencion.ESTADO_REAGENDACION)
+                    MantencionEstadoHistorial.objects.bulk_create(
+                        [
+                            MantencionEstadoHistorial(
+                                mantencion_id=item.id,
+                                estado_anterior=item.estado,
+                                estado_nuevo=Mantencion.ESTADO_REAGENDACION,
+                                changed_by=request.user if request.user.is_authenticated else None,
+                                fuente=MantencionEstadoHistorial.FUENTE_ADMIN_PANEL,
+                                observacion="Reagendacion automatica por bloqueo de hora en calendario",
+                            )
+                            for item in affected
+                        ]
+                    )
+
+                MantencionHoraBloqueada.objects.update_or_create(
+                    fecha=target_date,
+                    hora=target_hora,
+                    defaults={"bloqueado": True, "motivo": "Hora desactivada desde calendario"},
+                )
+
+                return Response(
+                    {
+                        "fecha": target_date.isoformat(),
+                        "hora": target_hora.strftime("%H:%M"),
+                        "bloqueado": True,
+                        "bookings_reagendadas": len(affected),
+                    },
+                    status=status.HTTP_200_OK,
+                )
+
+            MantencionHoraBloqueada.objects.update_or_create(
+                fecha=target_date,
+                hora=target_hora,
+                defaults={"bloqueado": False, "motivo": "Hora activada desde calendario"},
+            )
+            return Response(
+                {
+                    "fecha": target_date.isoformat(),
+                    "hora": target_hora.strftime("%H:%M"),
+                    "bloqueado": False,
+                    "bookings_reagendadas": 0,
+                },
+                status=status.HTTP_200_OK,
+            )
 
 
 class MantencionConsultaRutAPIView(APIView):

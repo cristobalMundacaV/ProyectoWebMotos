@@ -6,8 +6,15 @@ from datetime import date, time, timedelta
 from django.db.models import Count
 from django.utils import timezone
 
+from .chile_holidays import is_chilean_holiday
 from .integrity import mark_expired_unaccepted_requests
-from .models import HorarioMantencion, Mantencion, MantencionDiaBloqueado
+from .models import (
+    HorarioMantencion,
+    Mantencion,
+    MantencionDiaBloqueado,
+    MantencionHoraBloqueada,
+    MantencionHorarioFecha,
+)
 
 
 def _to_minutes(value: time) -> int:
@@ -31,9 +38,6 @@ def get_disponibilidad(days_ahead: int = 21) -> list[dict]:
         .order_by("dia_semana", "hora_inicio")
         .all()
     )
-    if not horarios:
-        return []
-
     ocupadas = (
         Mantencion.objects.filter(
             fecha_ingreso__gte=today,
@@ -61,6 +65,24 @@ def get_disponibilidad(days_ahead: int = 21) -> list[dict]:
             fecha__lte=end_date,
         ).values_list("fecha", flat=True)
     )
+    horarios_por_fecha = {
+        item.fecha: item
+        for item in MantencionHorarioFecha.objects.filter(
+            activo=True,
+            fecha__gte=today,
+            fecha__lte=end_date,
+        ).all()
+    }
+    horas_bloqueadas_map: dict[tuple[date, time], bool] = {
+        (item.fecha, item.hora): True
+        for item in MantencionHoraBloqueada.objects.filter(
+            bloqueado=True,
+            fecha__gte=today,
+            fecha__lte=end_date,
+        ).all()
+    }
+    if not horarios and not horarios_por_fecha:
+        return []
 
     grouped_horarios = defaultdict(list)
     for horario in horarios:
@@ -69,9 +91,17 @@ def get_disponibilidad(days_ahead: int = 21) -> list[dict]:
     disponibilidad: list[dict] = []
     for offset in range((end_date - today).days + 1):
         current_date = today + timedelta(days=offset)
+        horario_exacto = horarios_por_fecha.get(current_date)
+
         if current_date in fechas_bloqueadas:
             continue
-        bloques = grouped_horarios.get(current_date.weekday(), [])
+        if is_chilean_holiday(current_date) and not horario_exacto:
+            continue
+
+        if horario_exacto:
+            bloques = [horario_exacto]
+        else:
+            bloques = grouped_horarios.get(current_date.weekday(), [])
         if not bloques:
             continue
 
@@ -92,13 +122,15 @@ def get_disponibilidad(days_ahead: int = 21) -> list[dict]:
         if capacity_by_hour:
             horas = []
             for slot_time, total_capacity in sorted(capacity_by_hour.items(), key=lambda item: item[0]):
+                is_blocked = horas_bloqueadas_map.get((current_date, slot_time), False)
                 reserved_count = ocupadas_map.get((current_date, slot_time), 0)
                 cupos_disponibles = max(total_capacity - reserved_count, 0)
                 horas.append(
                     {
                         "hora": slot_time.strftime("%H:%M"),
-                        "cupos_disponibles": cupos_disponibles,
-                        "disponible": cupos_disponibles > 0,
+                        "cupos_disponibles": 0 if is_blocked else cupos_disponibles,
+                        "disponible": (cupos_disponibles > 0) and not is_blocked,
+                        "desactivada": bool(is_blocked),
                     }
                 )
             disponibles = sum(1 for item in horas if item["disponible"])

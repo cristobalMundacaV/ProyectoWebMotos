@@ -66,3 +66,23 @@ export async function bloquearDiaCalendarioMantencion(payload) {
   );
   return response.data;
 }
+
+export async function activarDiaCalendarioMantencion(payload) {
+  const response = await requestWithFallback(
+    "post",
+    "/mantenciones/disponibilidad/activar-dia/",
+    "/mantenciones/disponibilidad/activar-dia/",
+    payload
+  );
+  return response.data;
+}
+
+export async function toggleHoraCalendarioMantencion(payload) {
+  const response = await requestWithFallback(
+    "post",
+    "/mantenciones/disponibilidad/toggle-hora/",
+    "/mantenciones/disponibilidad/toggle-hora/",
+    payload
+  );
+  return response.data;
+}

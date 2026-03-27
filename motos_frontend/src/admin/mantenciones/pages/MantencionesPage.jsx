@@ -1,6 +1,10 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { getDisponibilidadMantenciones } from "../../../services/mantencionesService";
-import { bloquearDiaCalendarioMantencion } from "../services/mantencionesAdminService";
+import {
+  activarDiaCalendarioMantencion,
+  bloquearDiaCalendarioMantencion,
+  toggleHoraCalendarioMantencion,
+} from "../services/mantencionesAdminService";
 
 const ESTADO_OPTIONS = [
   { value: "en_proceso", label: "En proceso" },
@@ -158,6 +162,12 @@ function extractErrorMessage(error, fallback = "No se pudo procesar la solicitud
   return fallback;
 }
 
+function formatCuposLabel(value) {
+  const total = Number.parseInt(String(value ?? "0"), 10);
+  const safe = Number.isFinite(total) ? total : 0;
+  return `${safe} ${safe === 1 ? "cupo" : "cupos"}`;
+}
+
 function getCreatedAtTimestamp(item) {
   if (!item?.created_at) return 0;
   const parsed = Date.parse(item.created_at);
@@ -214,6 +224,18 @@ export default function MantencionesPage({
   const [dayBlockConfirm, setDayBlockConfirm] = useState(null);
   const [dayBlockSaving, setDayBlockSaving] = useState(false);
   const [dayBlockError, setDayBlockError] = useState("");
+  const [dayActivateModalOpen, setDayActivateModalOpen] = useState(false);
+  const [dayActivateSaving, setDayActivateSaving] = useState(false);
+  const [dayActivateError, setDayActivateError] = useState("");
+  const [dayActivateForm, setDayActivateForm] = useState({
+    hora_inicio: "09:00",
+    hora_fin: "18:00",
+    intervalo_minutos: "60",
+    cupos_por_bloque: "1",
+  });
+  const [slotToggleConfirm, setSlotToggleConfirm] = useState(null);
+  const [slotToggleSaving, setSlotToggleSaving] = useState(false);
+  const [slotToggleError, setSlotToggleError] = useState("");
 
   const DIAS_LABEL = {
     0: "Lunes",
@@ -465,6 +487,38 @@ export default function MantencionesPage({
     return () => window.removeEventListener("keydown", handleKeydown);
   }, [dayBlockConfirm, dayBlockSaving]);
 
+  useEffect(() => {
+    if (!dayActivateModalOpen) return undefined;
+    function handleKeydown(event) {
+      if (event.key === "Escape" && !dayActivateSaving) {
+        setDayActivateModalOpen(false);
+        setDayActivateError("");
+      }
+    }
+    window.addEventListener("keydown", handleKeydown);
+    return () => window.removeEventListener("keydown", handleKeydown);
+  }, [dayActivateModalOpen, dayActivateSaving]);
+
+  useEffect(() => {
+    if (!slotToggleConfirm) return undefined;
+    function handleKeydown(event) {
+      if (event.key === "Escape" && !slotToggleSaving) {
+        setSlotToggleConfirm(null);
+        setSlotToggleError("");
+      }
+    }
+    window.addEventListener("keydown", handleKeydown);
+    return () => window.removeEventListener("keydown", handleKeydown);
+  }, [slotToggleConfirm, slotToggleSaving]);
+
+  useEffect(() => {
+    setDayBlockError("");
+    setDayActivateError("");
+    setSlotToggleError("");
+    setDayBlockConfirm(null);
+    setSlotToggleConfirm(null);
+  }, [selectedCalendarDate]);
+
   const fichasEnTallerBase = useMemo(
     () =>
       mantenciones
@@ -664,6 +718,88 @@ export default function MantencionesPage({
       setDayBlockError(extractErrorMessage(error, "No se pudo desactivar el dia seleccionado."));
     } finally {
       setDayBlockSaving(false);
+    }
+  }
+
+  function buildDefaultActivationForm(targetDateIso) {
+    const fallback = {
+      hora_inicio: "09:00",
+      hora_fin: "18:00",
+      intervalo_minutos: "60",
+      cupos_por_bloque: "1",
+    };
+    if (!targetDateIso) return fallback;
+
+    const parsed = new Date(targetDateIso);
+    if (Number.isNaN(parsed.getTime())) return fallback;
+    const weekday = (parsed.getDay() + 6) % 7;
+    const base = [...horarios]
+      .filter((item) => Number(item?.dia_semana ?? -1) === weekday)
+      .sort((a, b) => String(a?.hora_inicio || "").localeCompare(String(b?.hora_inicio || "")))[0];
+    if (!base) return fallback;
+
+    return {
+      hora_inicio: String(base.hora_inicio || fallback.hora_inicio).slice(0, 5),
+      hora_fin: String(base.hora_fin || fallback.hora_fin).slice(0, 5),
+      intervalo_minutos: String(base.intervalo_minutos ?? fallback.intervalo_minutos),
+      cupos_por_bloque: String(base.cupos_por_bloque ?? fallback.cupos_por_bloque),
+    };
+  }
+
+  function openActivateDayModal() {
+    setDayActivateError("");
+    setDayActivateForm(buildDefaultActivationForm(selectedCalendarDate));
+    setDayActivateModalOpen(true);
+  }
+
+  async function executeDayActivation() {
+    if (!selectedCalendarDate) return;
+    setDayActivateSaving(true);
+    setDayActivateError("");
+
+    try {
+      await activarDiaCalendarioMantencion({
+        fecha: selectedCalendarDate,
+        hora_inicio: dayActivateForm.hora_inicio,
+        hora_fin: dayActivateForm.hora_fin,
+        intervalo_minutos: Number.parseInt(String(dayActivateForm.intervalo_minutos || "0"), 10),
+        cupos_por_bloque: Number.parseInt(String(dayActivateForm.cupos_por_bloque || "0"), 10),
+      });
+      setDayActivateModalOpen(false);
+      await refreshCalendarAvailability({ silent: true });
+    } catch (error) {
+      setDayActivateError(extractErrorMessage(error, "No se pudo activar el dia seleccionado."));
+    } finally {
+      setDayActivateSaving(false);
+    }
+  }
+
+  async function executeSlotToggle(slot, action, confirmWithBookings = false) {
+    if (!selectedCalendarDate || !slot?.hora) return;
+    setSlotToggleSaving(true);
+    setSlotToggleError("");
+
+    try {
+      await toggleHoraCalendarioMantencion({
+        fecha: selectedCalendarDate,
+        hora: slot.hora,
+        action,
+        ...(confirmWithBookings ? { confirm_with_bookings: true } : {}),
+      });
+      setSlotToggleConfirm(null);
+      await refreshCalendarAvailability({ silent: true });
+    } catch (error) {
+      const needsConfirmation = error?.response?.status === 409 && Boolean(error?.response?.data?.needs_confirmation);
+      if (needsConfirmation && action === "block" && !confirmWithBookings) {
+        setSlotToggleConfirm({
+          hora: slot.hora,
+          bookingsCount: Number(error?.response?.data?.bookings_count || 0),
+        });
+        return;
+      }
+      setSlotToggleError(extractErrorMessage(error, "No se pudo actualizar la hora seleccionada."));
+    } finally {
+      setSlotToggleSaving(false);
     }
   }
 
@@ -1801,7 +1937,6 @@ export default function MantencionesPage({
                       key={cell.key}
                       type="button"
                       className={className}
-                      disabled={!cell.hasSchedule}
                       onClick={() => setSelectedCalendarDate(cell.iso)}
                       title={cell.hasSchedule ? formatLongDate(cell.iso) : "Sin horarios configurados"}
                     >
@@ -1834,15 +1969,26 @@ export default function MantencionesPage({
                   <p className="admin-horarios-calendar-kicker">Detalle del dia</p>
                   <strong>{selectedCalendarDate ? formatLongDate(selectedCalendarDate) : "Selecciona un dia"}</strong>
                 </div>
-                {selectedCalendarDay && (
-                  <button
-                    type="button"
-                    className="admin-danger-action admin-mantencion-action-btn admin-horarios-day-disable-btn"
-                    disabled={dayBlockSaving}
-                    onClick={() => executeDayBlocking(false)}
-                  >
-                    {dayBlockSaving ? "Desactivando..." : "Desactivar dia"}
-                  </button>
+                {selectedCalendarDate && (
+                  selectedCalendarDay ? (
+                    <button
+                      type="button"
+                      className="admin-danger-action admin-mantencion-action-btn admin-horarios-day-disable-btn"
+                      disabled={dayBlockSaving}
+                      onClick={() => executeDayBlocking(false)}
+                    >
+                      {dayBlockSaving ? "Desactivando..." : "Desactivar dia"}
+                    </button>
+                  ) : (
+                    <button
+                      type="button"
+                      className="admin-primary-action admin-mantencion-action-btn admin-horarios-day-activate-btn"
+                      disabled={dayActivateSaving}
+                      onClick={openActivateDayModal}
+                    >
+                      {dayActivateSaving ? "Activando..." : "Activar dia"}
+                    </button>
+                  )
                 )}
               </div>
 
@@ -1859,7 +2005,7 @@ export default function MantencionesPage({
                     </article>
                     <article>
                       <span>Ocupados</span>
-                      <strong>{selectedCalendarDay.horas?.filter((slot) => !slot.disponible).length || 0}</strong>
+                      <strong>{selectedCalendarDay.horas?.filter((slot) => !slot.disponible && !slot.desactivada).length || 0}</strong>
                     </article>
                   </div>
 
@@ -1867,21 +2013,54 @@ export default function MantencionesPage({
                     {(selectedCalendarDay.horas || []).map((slot) => (
                       <div
                         key={slot.hora}
-                        className={slot.disponible ? "admin-horarios-slot-item available" : "admin-horarios-slot-item occupied"}
+                        className={
+                          slot.desactivada
+                            ? "admin-horarios-slot-item disabled"
+                            : slot.disponible
+                              ? "admin-horarios-slot-item available"
+                              : "admin-horarios-slot-item occupied"
+                        }
                       >
                         <div>
                           <strong>{slot.hora}</strong>
-                          <span>{slot.disponible ? "Disponible" : "Ocupado"}</span>
+                          <span>{slot.desactivada ? "Desactivada" : slot.disponible ? "Disponible" : "Ocupado"}</span>
                         </div>
-                        <b>{slot.cupos_disponibles} cupos</b>
+                        <div className="admin-horarios-slot-actions">
+                          <b>{formatCuposLabel(slot.cupos_disponibles)}</b>
+                          {slot.desactivada ? (
+                            <button
+                              type="button"
+                              className="admin-horarios-slot-toggle-btn enable"
+                              disabled={slotToggleSaving}
+                              onClick={() => executeSlotToggle(slot, "unblock")}
+                              title="Activar hora"
+                            >
+                              ↺
+                            </button>
+                          ) : (
+                            <button
+                              type="button"
+                              className="admin-horarios-slot-toggle-btn disable"
+                              disabled={slotToggleSaving}
+                              onClick={() => executeSlotToggle(slot, "block")}
+                              title="Desactivar hora"
+                            >
+                              ×
+                            </button>
+                          )}
+                        </div>
                       </div>
                     ))}
                   </div>
                 </>
+              ) : selectedCalendarDate ? (
+                <p className="admin-empty">Dia sin agenda. Puedes activarlo para habilitar nuevas horas.</p>
               ) : (
                 <p className="admin-empty">Selecciona un dia del calendario para ver sus horas.</p>
               )}
               {dayBlockError ? <p className="admin-confirm-modal-error">{dayBlockError}</p> : null}
+              {dayActivateError ? <p className="admin-confirm-modal-error">{dayActivateError}</p> : null}
+              {slotToggleError ? <p className="admin-confirm-modal-error">{slotToggleError}</p> : null}
             </aside>
           </div>
           {dayBlockConfirm && (
@@ -1929,6 +2108,161 @@ export default function MantencionesPage({
                     onClick={() => executeDayBlocking(true)}
                   >
                     {dayBlockSaving ? "Procesando..." : "Aceptar"}
+                  </button>
+                </div>
+              </section>
+            </div>
+          )}
+          {slotToggleConfirm && (
+            <div
+              className="admin-confirm-modal-overlay"
+              onClick={() => {
+                if (!slotToggleSaving) {
+                  setSlotToggleConfirm(null);
+                  setSlotToggleError("");
+                }
+              }}
+            >
+              <section className="admin-confirm-modal" onClick={(event) => event.stopPropagation()}>
+                <img src="/images/informacion.png" alt="Informacion" className="admin-confirm-modal-image" />
+                <h3>Confirmar desactivacion de hora</h3>
+                <p className="admin-confirm-modal-text">
+                  Hay horas agendadas para esta hora. Seguro que quieres desactivarla?
+                </p>
+                <p className="admin-confirm-modal-subtext">
+                  Fecha: <strong>{formatLongDate(selectedCalendarDate, { weekday: "long", day: "2-digit", month: "long", year: "numeric" })}</strong>
+                  {" - "}
+                  Hora: <strong>{slotToggleConfirm.hora}</strong>
+                </p>
+                <p className="admin-confirm-modal-subtext">
+                  Mantenciones afectadas: <strong>{slotToggleConfirm.bookingsCount}</strong>. Se marcaran como{" "}
+                  <strong>Reagendacion</strong>.
+                </p>
+                {slotToggleError ? <p className="admin-confirm-modal-error">{slotToggleError}</p> : null}
+                <div className="admin-confirm-modal-actions">
+                  <button
+                    type="button"
+                    className="btn-back"
+                    disabled={slotToggleSaving}
+                    onClick={() => {
+                      setSlotToggleConfirm(null);
+                      setSlotToggleError("");
+                    }}
+                  >
+                    Volver
+                  </button>
+                  <button
+                    type="button"
+                    className="btn-delete"
+                    disabled={slotToggleSaving}
+                    onClick={() => executeSlotToggle({ hora: slotToggleConfirm.hora }, "block", true)}
+                  >
+                    {slotToggleSaving ? "Procesando..." : "Aceptar"}
+                  </button>
+                </div>
+              </section>
+            </div>
+          )}
+          {dayActivateModalOpen && (
+            <div
+              className="admin-confirm-modal-overlay"
+              onClick={() => {
+                if (!dayActivateSaving) {
+                  setDayActivateModalOpen(false);
+                  setDayActivateError("");
+                }
+              }}
+            >
+              <section className="admin-confirm-modal" onClick={(event) => event.stopPropagation()}>
+                <img src="/images/informacion.png" alt="Informacion" className="admin-confirm-modal-image" />
+                <h3>Activar dia</h3>
+                <p className="admin-confirm-modal-text">
+                  Configura el horario del dia seleccionado para habilitar agenda.
+                </p>
+                <label className="admin-confirm-modal-field">
+                  Hora inicio
+                  <input
+                    type="time"
+                    value={dayActivateForm.hora_inicio}
+                    disabled={dayActivateSaving}
+                    onChange={(event) =>
+                      setDayActivateForm((prev) => ({
+                        ...prev,
+                        hora_inicio: event.target.value,
+                      }))
+                    }
+                    required
+                  />
+                </label>
+                <label className="admin-confirm-modal-field">
+                  Hora fin
+                  <input
+                    type="time"
+                    value={dayActivateForm.hora_fin}
+                    disabled={dayActivateSaving}
+                    onChange={(event) =>
+                      setDayActivateForm((prev) => ({
+                        ...prev,
+                        hora_fin: event.target.value,
+                      }))
+                    }
+                    required
+                  />
+                </label>
+                <label className="admin-confirm-modal-field">
+                  Intervalo (minutos)
+                  <input
+                    type="number"
+                    min="15"
+                    step="5"
+                    value={dayActivateForm.intervalo_minutos}
+                    disabled={dayActivateSaving}
+                    onChange={(event) =>
+                      setDayActivateForm((prev) => ({
+                        ...prev,
+                        intervalo_minutos: sanitizeIntegerInput(event.target.value),
+                      }))
+                    }
+                    required
+                  />
+                </label>
+                <label className="admin-confirm-modal-field">
+                  Horas por bloque
+                  <input
+                    type="number"
+                    min="1"
+                    step="1"
+                    value={dayActivateForm.cupos_por_bloque}
+                    disabled={dayActivateSaving}
+                    onChange={(event) =>
+                      setDayActivateForm((prev) => ({
+                        ...prev,
+                        cupos_por_bloque: sanitizeIntegerInput(event.target.value),
+                      }))
+                    }
+                    required
+                  />
+                </label>
+                {dayActivateError ? <p className="admin-confirm-modal-error">{dayActivateError}</p> : null}
+                <div className="admin-confirm-modal-actions">
+                  <button
+                    type="button"
+                    className="btn-back"
+                    disabled={dayActivateSaving}
+                    onClick={() => {
+                      setDayActivateModalOpen(false);
+                      setDayActivateError("");
+                    }}
+                  >
+                    Volver
+                  </button>
+                  <button
+                    type="button"
+                    className="btn-save"
+                    disabled={dayActivateSaving}
+                    onClick={executeDayActivation}
+                  >
+                    {dayActivateSaving ? "Activando..." : "Activar"}
                   </button>
                 </div>
               </section>

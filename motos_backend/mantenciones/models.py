@@ -323,3 +323,55 @@ class MantencionDiaBloqueado(models.Model):
     def __str__(self) -> str:
         estado = "bloqueado" if self.bloqueado else "habilitado"
         return f"{self.fecha} ({estado})"
+
+
+class MantencionHorarioFecha(models.Model):
+    fecha = models.DateField(unique=True, verbose_name="fecha")
+    hora_inicio = models.TimeField(verbose_name="hora inicio")
+    hora_fin = models.TimeField(verbose_name="hora fin")
+    intervalo_minutos = models.PositiveSmallIntegerField(default=60, verbose_name="intervalo (minutos)")
+    cupos_por_bloque = models.PositiveSmallIntegerField(default=1, verbose_name="cupos por bloque")
+    activo = models.BooleanField(default=True, verbose_name="activo")
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name="creado")
+    updated_at = models.DateTimeField(auto_now=True, verbose_name="actualizado")
+
+    class Meta:
+        verbose_name = "horario por fecha de mantencion"
+        verbose_name_plural = "horarios por fecha de mantencion"
+        ordering = ["-fecha"]
+        indexes = [
+            models.Index(fields=["fecha"], name="idx_mant_hor_fecha"),
+            models.Index(fields=["activo"], name="idx_mant_hor_fecha_activo"),
+        ]
+
+    def __str__(self) -> str:
+        estado = "activo" if self.activo else "inactivo"
+        return (
+            f"{self.fecha} {self.hora_inicio.strftime('%H:%M')} - "
+            f"{self.hora_fin.strftime('%H:%M')} ({estado})"
+        )
+
+
+class MantencionHoraBloqueada(models.Model):
+    fecha = models.DateField(verbose_name="fecha")
+    hora = models.TimeField(verbose_name="hora")
+    bloqueado = models.BooleanField(default=True, verbose_name="bloqueado")
+    motivo = models.CharField(max_length=255, blank=True, default="", verbose_name="motivo")
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name="creado")
+    updated_at = models.DateTimeField(auto_now=True, verbose_name="actualizado")
+
+    class Meta:
+        verbose_name = "hora bloqueada de mantencion"
+        verbose_name_plural = "horas bloqueadas de mantencion"
+        ordering = ["-fecha", "hora"]
+        constraints = [
+            models.UniqueConstraint(fields=["fecha", "hora"], name="uniq_mant_hora_bloq_fecha_hora"),
+        ]
+        indexes = [
+            models.Index(fields=["fecha"], name="idx_mant_hora_bloq_fecha"),
+            models.Index(fields=["bloqueado"], name="idx_mant_hora_bloq_estado"),
+        ]
+
+    def __str__(self) -> str:
+        estado = "bloqueada" if self.bloqueado else "activa"
+        return f"{self.fecha} {self.hora.strftime('%H:%M')} ({estado})"

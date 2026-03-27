@@ -3275,7 +3275,7 @@
 .admin-horarios-day-btn.inactive {
   background: #f8fafc;
   color: #111827;
-  cursor: not-allowed;
+  cursor: pointer;
 }
 
 .admin-horarios-day-btn.today {
@@ -3345,6 +3345,12 @@
   gap: 4px;
 }
 
+.admin-horarios-slot-actions {
+  display: inline-flex !important;
+  align-items: center;
+  gap: 10px;
+}
+
 .admin-horarios-slot-item strong {
   color: #111827;
   font-size: 0.98rem;
@@ -3375,8 +3381,70 @@
   color: #6b7280;
 }
 
+.admin-horarios-slot-item.disabled {
+  background: #fff7ed;
+  border-color: #fdba74;
+}
+
+.admin-horarios-slot-item.disabled span,
+.admin-horarios-slot-item.disabled b {
+  color: #9a3412;
+}
+
+.admin-horarios-slot-toggle-btn {
+  width: 28px;
+  height: 28px;
+  border-radius: 999px;
+  border: none;
+  cursor: pointer;
+  font-size: 1rem;
+  font-weight: 800;
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.admin-horarios-slot-toggle-btn.disable {
+  background: #dc2626;
+  color: #fff;
+}
+
+.admin-horarios-slot-toggle-btn.disable:hover {
+  background: #b91c1c;
+}
+
+.admin-horarios-slot-toggle-btn.enable {
+  background: #16a34a;
+  color: #fff;
+}
+
+.admin-horarios-slot-toggle-btn.enable:hover {
+  background: #15803d;
+}
+
 .admin-horarios-day-disable-btn {
   min-width: 168px;
+  border: 1px solid #dc2626 !important;
+  background: #dc2626 !important;
+  color: #fff !important;
+}
+
+.admin-horarios-day-disable-btn:hover {
+  background: #b91c1c !important;
+  border-color: #b91c1c !important;
+}
+
+.admin-horarios-day-activate-btn {
+  min-width: 148px;
+  border: 1px solid #16a34a !important;
+  background: #16a34a !important;
+  color: #fff !important;
+}
+
+.admin-horarios-day-activate-btn:hover {
+  background: #15803d !important;
+  border-color: #15803d !important;
 }
 
 .admin-analytics-dashboard {
