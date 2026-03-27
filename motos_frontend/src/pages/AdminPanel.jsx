@@ -2601,6 +2601,7 @@ export default function AdminPanel() {
             onChangeSection={setActiveSection}
             onNavigate={() => setIsMobileSidebarOpen(false)}
             onLogout={handleLogout}
+            userRole={currentUser?.rol || currentUser?.role || "admin"}
           />
         </div>
 

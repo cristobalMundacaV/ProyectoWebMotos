@@ -429,6 +429,28 @@
   gap: 10px;
 }
 
+.admin-sidebar-dashboard-nav {
+  margin-bottom: 14px;
+}
+
+.admin-sidebar-section {
+  display: grid;
+  gap: 8px;
+}
+
+.admin-sidebar-section + .admin-sidebar-section {
+  margin-top: 8px;
+}
+
+.admin-sidebar-section-title {
+  margin: 2px 4px 0;
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #6b7280;
+}
+
 .admin-sidebar-module {
   border: 1px solid rgba(16, 16, 16, 0.08);
   border-radius: 14px;
@@ -4014,6 +4036,14 @@
 
   .admin-sidebar-nav {
     gap: 8px;
+  }
+
+  .admin-sidebar-dashboard-nav {
+    margin-bottom: 10px;
+  }
+
+  .admin-sidebar-section-title {
+    font-size: 0.68rem;
   }
 
   .admin-sidebar-module-trigger {

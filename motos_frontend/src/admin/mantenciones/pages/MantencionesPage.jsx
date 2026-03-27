@@ -193,6 +193,7 @@ export default function MantencionesPage({
   const [selectedSolicitudId, setSelectedSolicitudId] = useState(null);
   const [selectedFichaId, setSelectedFichaId] = useState(null);
   const [tallerEstadoFilter, setTallerEstadoFilter] = useState("todos");
+  const [editableFinalizadaById, setEditableFinalizadaById] = useState({});
   const [selectedTallerDiaId, setSelectedTallerDiaId] = useState(null);
   const [selectedHistoricaId, setSelectedHistoricaId] = useState(null);
   const [selectedHistoricoCliente, setSelectedHistoricoCliente] = useState("");
@@ -367,6 +368,10 @@ export default function MantencionesPage({
   useEffect(() => {
     setSelectedFichaId(null);
   }, [tallerEstadoFilter]);
+
+  useEffect(() => {
+    setEditableFinalizadaById({});
+  }, [selectedFichaId, tallerEstadoFilter]);
 
   const solicitudesBase = useMemo(
     () =>
@@ -674,7 +679,9 @@ export default function MantencionesPage({
     const isPorEntregar = mode === "por_entregar";
     const isEditable = mode === "fichas" || mode === "taller_dia";
     const canEditKmIngreso = isTallerDia;
-    const readOnly = !isEditable;
+    const isFinalizadaRecord = mode === "fichas" && item.estado === "finalizada";
+    const canEditFinalizada = Boolean(editableFinalizadaById[item.id]);
+    const readOnly = !isEditable || (isFinalizadaRecord && !canEditFinalizada);
     const estadoActual = draft.estado || item.estado;
     const solicitudAceptada = item.estado === "aceptada";
     const cancelActionLabel = solicitudAceptada ? "Anular mantenimiento" : "Anular hora";
@@ -685,6 +692,7 @@ export default function MantencionesPage({
       : item.kilometraje_ingreso ?? "";
     const kmIngresoParsed = Number.parseInt(String(kmIngresoRaw).replace(/[^\d]/g, ""), 10);
     const canPassToRevision = diagnosticoValor.length > 0 && Number.isFinite(kmIngresoParsed) && kmIngresoParsed > 0;
+    const estadoReferencia = mode === "fichas" ? item.estado : estadoActual;
     const estadoOptions = isTallerDia
       ? [
           { value: "aceptada", label: "Por ingreso" },
@@ -693,16 +701,18 @@ export default function MantencionesPage({
           { value: "cancelada", label: "Cancelada" },
         ]
       : mode === "fichas"
-        ? estadoActual === "en_revision"
+        ? estadoReferencia === "en_revision"
           ? [
               { value: "esperando_repuestos", label: "Esperando repuestos" },
               { value: "finalizada", label: "Finalizada" },
             ]
-          : estadoActual === "esperando_repuestos"
+          : estadoReferencia === "esperando_repuestos"
             ? [
                 { value: "en_revision", label: "En revision" },
                 { value: "finalizada", label: "Finalizada" },
               ]
+            : estadoReferencia === "finalizada" && canEditFinalizada
+              ? [{ value: "en_revision", label: "En revision" }]
             : []
         : ESTADO_OPTIONS;
     const estadoOptionsForSelect = mode === "fichas"
@@ -807,7 +817,7 @@ export default function MantencionesPage({
           <></>
         ) : (
           <div className="admin-mantencion-ficha-controls">
-            {isEditable && !isTallerDia && (
+            {isEditable && !isTallerDia && !isFinalizadaRecord && (
               <label>
                 Estado
                 <select
@@ -940,7 +950,7 @@ export default function MantencionesPage({
 
         {isEditable && (
           <div className="admin-mantencion-ficha-actions admin-mantencion-ficha-actions-bottom">
-            {!isTallerDia && !isPorEntregar && (
+            {!isTallerDia && !isPorEntregar && !isFinalizadaRecord && (
               <button
                 type="button"
                 className="admin-danger-action admin-mantencion-action-btn admin-mantencion-cancel-btn"
@@ -958,26 +968,70 @@ export default function MantencionesPage({
                 {saving ? "Cancelando..." : "Cancelar mantenimiento"}
               </button>
             )}
-            <button
-              type="button"
-              className="admin-primary-action admin-mantencion-action-btn admin-mantencion-save-btn"
-              disabled={saving || (isTallerDia && !canPassToRevision)}
-              onClick={() =>
-                onUpdateMantencion(item.id, {
-                  estado: isTallerDia ? "en_revision" : estadoActual,
-                  kilometraje_ingreso:
-                    draft.kilometraje_ingreso === "" || draft.kilometraje_ingreso === null
-                      ? null
-                      : Number.parseInt(draft.kilometraje_ingreso, 10),
-                  costo_total: Number.parseInt(draft.costo_total ?? item.costo_total ?? 0, 10) || 0,
-                  diagnostico: draft.diagnostico ?? item.diagnostico ?? "",
-                  trabajo_realizado: draft.trabajo_realizado ?? item.trabajo_realizado ?? "",
-                  observaciones: draft.observaciones ?? item.observaciones ?? "",
-                })
-              }
-            >
-              {saving ? (isTallerDia ? "Pasando..." : "Guardando...") : isTallerDia ? "Pasar a revision" : "Guardar cambios"}
-            </button>
+            {isFinalizadaRecord ? (
+              <>
+                <button
+                  type="button"
+                  className="admin-ficha-outline-action admin-mantencion-action-btn"
+                  disabled={saving}
+                  onClick={() => {
+                    if (canEditFinalizada) {
+                      onUpdateMantencion(item.id, {
+                        estado: estadoActual,
+                        kilometraje_ingreso:
+                          draft.kilometraje_ingreso === "" || draft.kilometraje_ingreso === null
+                            ? null
+                            : Number.parseInt(draft.kilometraje_ingreso, 10),
+                        costo_total: Number.parseInt(draft.costo_total ?? item.costo_total ?? 0, 10) || 0,
+                        diagnostico: draft.diagnostico ?? item.diagnostico ?? "",
+                        trabajo_realizado: draft.trabajo_realizado ?? item.trabajo_realizado ?? "",
+                        observaciones: draft.observaciones ?? item.observaciones ?? "",
+                      });
+                      setEditableFinalizadaById((prev) => ({
+                        ...prev,
+                        [item.id]: false,
+                      }));
+                      return;
+                    }
+                    setEditableFinalizadaById((prev) => ({
+                      ...prev,
+                      [item.id]: true,
+                    }));
+                  }}
+                >
+                  {canEditFinalizada ? "Guardar cambios" : "Modificar datos"}
+                </button>
+                <button
+                  type="button"
+                  className="admin-primary-action admin-mantencion-action-btn admin-mantencion-accept-btn"
+                  disabled={saving}
+                  onClick={() => onUpdateMantencion(item.id, { estado: "entregada" })}
+                >
+                  {saving ? "Marcando..." : "Marcar como entregada"}
+                </button>
+              </>
+            ) : (
+              <button
+                type="button"
+                className="admin-primary-action admin-mantencion-action-btn admin-mantencion-save-btn"
+                disabled={saving || (isTallerDia && !canPassToRevision)}
+                onClick={() =>
+                  onUpdateMantencion(item.id, {
+                    estado: isTallerDia ? "en_revision" : estadoActual,
+                    kilometraje_ingreso:
+                      draft.kilometraje_ingreso === "" || draft.kilometraje_ingreso === null
+                        ? null
+                        : Number.parseInt(draft.kilometraje_ingreso, 10),
+                    costo_total: Number.parseInt(draft.costo_total ?? item.costo_total ?? 0, 10) || 0,
+                    diagnostico: draft.diagnostico ?? item.diagnostico ?? "",
+                    trabajo_realizado: draft.trabajo_realizado ?? item.trabajo_realizado ?? "",
+                    observaciones: draft.observaciones ?? item.observaciones ?? "",
+                  })
+                }
+              >
+                {saving ? (isTallerDia ? "Pasando..." : "Guardando...") : isTallerDia ? "Pasar a revision" : "Guardar cambios"}
+              </button>
+            )}
           </div>
         )}
 

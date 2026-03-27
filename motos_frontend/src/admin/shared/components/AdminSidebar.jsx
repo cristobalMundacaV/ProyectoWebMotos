@@ -123,107 +123,193 @@ function SidebarIcon({ kind }) {
   );
 }
 
-const navigationGroups = [
-  {
+const SIDEBAR_STRUCTURE = {
+  dashboard: {
     label: "Dashboard",
     icon: "dashboard",
     directValue: "resumen",
-    items: [],
+    roles: ["admin", "mecanico", "cliente"],
   },
-  {
-    label: "Motos",
-    icon: "motos",
-    items: [
-      { label: "Crear motos", value: "motos" },
-      { label: "Ver Catalogo", to: "/catalogo" },
-    ],
-  },
-  {
-    label: "Productos",
-    icon: "productos",
-    items: [
-      { label: "Indumentaria Rider", kind: "heading" },
-      { label: "Crear indumentaria rider", value: "accesorios_rider" },
-      { label: "Ver catalogo", to: "/indumentaria" },
-      { label: "Accesorios de moto", kind: "heading" },
-      { label: "Crear accesorios de moto", value: "accesorios_motos" },
-      { label: "Ver catalogo", to: "/accesorios" },
-    ],
-  },
-  {
-    label: "Mantenimiento",
-    icon: "mantenciones",
-    items: [
-      { label: "Solicitudes de Mantencion", value: "mantenciones_solicitudes" },
-      { label: "Fichas Historicas", value: "mantenciones_historicas" },
-    ],
-  },
-  {
-    label: "Taller",
-    icon: "taller",
-    items: [
-      { label: "Etapa de Diagnostico", value: "taller_mantenciones_dia" },
-      { label: "Motos en Taller", value: "taller_en_taller" },
-    ],
-  },
-  {
-    label: "Horarios",
-    icon: "horarios",
-    items: [
-      { label: "Horario de la Semana", value: "horarios_operativos" },
-      { label: "Calendario de disponibilidad", value: "horarios_calendario" },
-    ],
-  },
-  {
-    label: "Fichas tecnicas",
-    icon: "fichas_tecnicas",
-    items: [
-      { label: "Resumen general", value: "fichas_resumen" },
-    ],
-  },
-  {
-    label: "Usuarios",
-    icon: "usuarios",
-    items: [
-      { label: "Crear Usuario", value: "crear_usuario" },
-    ],
-  },
-  {
-    label: "Mantenedores",
-    icon: "mantenedores",
-    items: [
-      { label: "Motos", kind: "heading" },
-      { label: "Marca", value: "marcas_motos" },
-      { label: "Modelo", value: "modelos_motos" },
-      { label: "Categoria", value: "categoria_motos" },
-      { label: "Accesorios de moto", kind: "heading" },
-      { label: "Marca", value: "marcas_acc_motos" },
-      { label: "Categoria", value: "categorias_acc_motos" },
-      { label: "Indumentaria rider", kind: "heading" },
-      { label: "Marca", value: "marcas_acc_rider" },
-      { label: "Categoria", value: "categorias_acc_rider" },
-    ],
-  },
-  {
-    label: "Configuracion",
-    icon: "categorias",
-    items: [{ label: "Contacto y datos del sitio", value: "contacto" }],
-  },
-];
+  blocks: [
+    {
+      id: "catalogo",
+      title: "Catalogo",
+      groups: [
+        {
+          label: "Motos",
+          icon: "motos",
+          roles: ["admin", "mecanico"],
+          items: [
+            { label: "Crear motos", value: "motos", roles: ["admin", "mecanico"] },
+            { label: "Ver catalogo", to: "/catalogo", roles: ["admin", "mecanico"] },
+          ],
+        },
+        {
+          label: "Productos",
+          icon: "productos",
+          roles: ["admin", "mecanico"],
+          items: [
+            { label: "Indumentaria Rider", kind: "heading" },
+            { label: "Crear indumentaria rider", value: "accesorios_rider", roles: ["admin", "mecanico"] },
+            { label: "Ver catalogo", to: "/indumentaria", roles: ["admin", "mecanico"] },
+            { label: "Accesorios de moto", kind: "heading" },
+            { label: "Crear accesorios de moto", value: "accesorios_motos", roles: ["admin", "mecanico"] },
+            { label: "Ver catalogo", to: "/accesorios", roles: ["admin", "mecanico"] },
+          ],
+        },
+        {
+          label: "Fichas tecnicas",
+          icon: "fichas_tecnicas",
+          roles: ["admin", "mecanico"],
+          items: [{ label: "Resumen general", value: "fichas_resumen", roles: ["admin", "mecanico"] }],
+        },
+      ],
+    },
+    {
+      id: "operacion",
+      title: "Operacion",
+      groups: [
+        {
+          label: "Mantenimiento",
+          icon: "mantenciones",
+          roles: ["admin", "mecanico"],
+          items: [
+            { label: "Solicitudes de Mantencion", value: "mantenciones_solicitudes", roles: ["admin", "mecanico"] },
+            { label: "Fichas Historicas", value: "mantenciones_historicas", roles: ["admin", "mecanico"] },
+          ],
+        },
+        {
+          label: "Taller",
+          icon: "taller",
+          roles: ["admin", "mecanico"],
+          items: [
+            { label: "Etapa de Diagnostico", value: "taller_mantenciones_dia", roles: ["admin", "mecanico"] },
+            { label: "Motos en Taller", value: "taller_en_taller", roles: ["admin", "mecanico"] },
+          ],
+        },
+        {
+          label: "Horarios",
+          icon: "horarios",
+          roles: ["admin", "mecanico"],
+          items: [
+            { label: "Horario de la Semana", value: "horarios_operativos", roles: ["admin", "mecanico"] },
+            { label: "Calendario de disponibilidad", value: "horarios_calendario", roles: ["admin", "mecanico"] },
+          ],
+        },
+      ],
+    },
+    {
+      id: "gestion",
+      title: "Gestion",
+      groups: [
+        {
+          label: "Usuarios",
+          icon: "usuarios",
+          roles: ["admin"],
+          items: [
+            { label: "Crear Usuario", value: "crear_usuario", roles: ["admin"] },
+            { label: "Lista de usuarios", value: "lista_usuarios", roles: ["admin"] },
+          ],
+        },
+        {
+          label: "Mantenedores",
+          icon: "mantenedores",
+          roles: ["admin"],
+          items: [
+            { label: "Motos", kind: "heading" },
+            { label: "Marca", value: "marcas_motos", roles: ["admin"] },
+            { label: "Modelo", value: "modelos_motos", roles: ["admin"] },
+            { label: "Categoria", value: "categoria_motos", roles: ["admin"] },
+            { label: "Accesorios de moto", kind: "heading" },
+            { label: "Marca", value: "marcas_acc_motos", roles: ["admin"] },
+            { label: "Categoria", value: "categorias_acc_motos", roles: ["admin"] },
+            { label: "Indumentaria rider", kind: "heading" },
+            { label: "Marca", value: "marcas_acc_rider", roles: ["admin"] },
+            { label: "Categoria", value: "categorias_acc_rider", roles: ["admin"] },
+          ],
+        },
+      ],
+    },
+    {
+      id: "sistema",
+      title: "Sistema",
+      groups: [
+        {
+          label: "Configuracion",
+          icon: "categorias",
+          roles: ["admin"],
+          items: [{ label: "Contacto y datos del sitio", value: "contacto", roles: ["admin"] }],
+        },
+      ],
+    },
+  ],
+};
 
-function getGroupLabelBySection(section) {
-  const group = navigationGroups.find((item) =>
-    item.directValue === section || item.items.some((subItem) => subItem.value && subItem.value === section)
-  );
-  return group?.label || navigationGroups[0].label;
+function normalizeRole(value) {
+  const role = String(value || "admin").toLowerCase().trim();
+  if (role === "mecánico" || role === "mecanica") return "mecanico";
+  if (role === "cliente") return "cliente";
+  return role || "admin";
 }
 
-export default function AdminSidebar({ activeSection, onChangeSection, className = "", onNavigate, onLogout }) {
+function hasRoleAccess(roles, currentRole) {
+  if (!Array.isArray(roles) || roles.length === 0) return true;
+  return roles.includes(currentRole);
+}
+
+function getVisibleNavigation(userRole) {
+  const currentRole = normalizeRole(userRole);
+  const visibleBlocks = SIDEBAR_STRUCTURE.blocks
+    .map((block) => {
+      const visibleGroups = block.groups
+        .filter((group) => hasRoleAccess(group.roles, currentRole))
+        .map((group) => ({
+          ...group,
+          items: group.items.filter((item) => item.kind === "heading" || hasRoleAccess(item.roles, currentRole)),
+        }))
+        .filter((group) => group.items.some((item) => item.kind !== "heading"));
+      return {
+        ...block,
+        groups: visibleGroups,
+      };
+    })
+    .filter((block) => block.groups.length > 0);
+
+  return {
+    dashboard: hasRoleAccess(SIDEBAR_STRUCTURE.dashboard.roles, currentRole) ? SIDEBAR_STRUCTURE.dashboard : null,
+    blocks: visibleBlocks,
+  };
+}
+
+function flattenVisibleGroups(visibleNavigation) {
+  return visibleNavigation.blocks.flatMap((block) => block.groups);
+}
+
+function getGroupLabelBySection(section, visibleNavigation) {
+  const groups = flattenVisibleGroups(visibleNavigation);
+  const group = groups.find((item) => item.items.some((subItem) => subItem.value && subItem.value === section));
+  return group?.label || "";
+}
+
+export default function AdminSidebar({
+  activeSection,
+  onChangeSection,
+  className = "",
+  onNavigate,
+  onLogout,
+  userRole = "admin",
+}) {
   const navigate = useNavigate();
-  const activeGroupLabel = useMemo(() => getGroupLabelBySection(activeSection), [activeSection]);
-  const [expandedGroup, setExpandedGroup] = useState(activeGroupLabel);
+  const visibleNavigation = useMemo(() => getVisibleNavigation(userRole), [userRole]);
+  const groups = useMemo(() => flattenVisibleGroups(visibleNavigation), [visibleNavigation]);
+  const activeGroupLabel = useMemo(
+    () => getGroupLabelBySection(activeSection, visibleNavigation),
+    [activeSection, visibleNavigation]
+  );
+  const [expandedGroup, setExpandedGroup] = useState(activeGroupLabel || groups[0]?.label || "");
 
   useEffect(() => {
+    if (!activeGroupLabel) return;
     setExpandedGroup(activeGroupLabel);
   }, [activeGroupLabel]);
 
@@ -247,68 +333,84 @@ export default function AdminSidebar({ activeSection, onChangeSection, className
     <aside className={`admin-sidebar ${className}`.trim()}>
       <div className="admin-sidebar-card">
         <p className="admin-sidebar-eyebrow">Navegacion</p>
+
+        {visibleNavigation.dashboard && (
+          <div className="admin-sidebar-nav admin-sidebar-dashboard-nav">
+            <div className="admin-sidebar-module">
+              <button
+                type="button"
+                className={
+                  activeSection === visibleNavigation.dashboard.directValue
+                    ? "admin-sidebar-module-trigger active"
+                    : "admin-sidebar-module-trigger"
+                }
+                onClick={() => handleSelectSection("Dashboard", visibleNavigation.dashboard.directValue)}
+              >
+                <span className="admin-sidebar-module-icon">
+                  <SidebarIcon kind={visibleNavigation.dashboard.icon} />
+                </span>
+                <span className="admin-sidebar-module-label">{visibleNavigation.dashboard.label}</span>
+              </button>
+            </div>
+          </div>
+        )}
+
         <nav className="admin-sidebar-nav">
-          {navigationGroups.map((group) => {
-            const isDirect = Boolean(group.directValue);
-            const isOpen = expandedGroup === group.label;
-            const hasActiveItem = isDirect
-              ? group.directValue === activeSection
-              : group.items.some((item) => item.value && item.value === activeSection);
+          {visibleNavigation.blocks.map((block) => (
+            <section key={block.id} className="admin-sidebar-section" aria-label={block.title}>
+              <p className="admin-sidebar-section-title">{block.title}</p>
+              {block.groups.map((group) => {
+                const isOpen = expandedGroup === group.label;
+                const hasActiveItem = group.items.some((item) => item.value && item.value === activeSection);
 
-            return (
-              <div key={group.label} className={isOpen ? "admin-sidebar-module open" : "admin-sidebar-module"}>
-                <button
-                  type="button"
-                  className={hasActiveItem ? "admin-sidebar-module-trigger active" : "admin-sidebar-module-trigger"}
-                  onClick={() => {
-                    if (isDirect) {
-                      handleSelectSection(group.label, group.directValue);
-                      return;
-                    }
-                    toggleGroup(group.label);
-                  }}
-                  aria-expanded={isDirect ? undefined : isOpen}
-                >
-                  <span className="admin-sidebar-module-icon">
-                    <SidebarIcon kind={group.icon} />
-                  </span>
-                  <span className="admin-sidebar-module-label">{group.label}</span>
-                  {!isDirect && (
-                    <span className={isOpen ? "admin-sidebar-module-caret open" : "admin-sidebar-module-caret"}>v</span>
-                  )}
-                </button>
+                return (
+                  <div key={group.label} className={isOpen ? "admin-sidebar-module open" : "admin-sidebar-module"}>
+                    <button
+                      type="button"
+                      className={hasActiveItem ? "admin-sidebar-module-trigger active" : "admin-sidebar-module-trigger"}
+                      onClick={() => toggleGroup(group.label)}
+                      aria-expanded={isOpen}
+                    >
+                      <span className="admin-sidebar-module-icon">
+                        <SidebarIcon kind={group.icon} />
+                      </span>
+                      <span className="admin-sidebar-module-label">{group.label}</span>
+                      <span className={isOpen ? "admin-sidebar-module-caret open" : "admin-sidebar-module-caret"}>v</span>
+                    </button>
 
-                {!isDirect && isOpen && (
-                  <div className="admin-sidebar-subnav">
-                    {group.items.map((item) => (
-                      item.kind === "heading" ? (
-                        <p key={`${group.label}-${item.label}`} className="admin-sidebar-subtitle">
-                          {item.label}
-                        </p>
-                      ) : (
-                        <button
-                          key={`${group.label}-${item.value || item.to}`}
-                          type="button"
-                          className={
-                            activeSection === item.value
-                              ? "admin-sidebar-link admin-sidebar-sublink active"
-                              : "admin-sidebar-link admin-sidebar-sublink"
-                          }
-                          onClick={() =>
-                            item.to
-                              ? handleExternalNavigate(group.label, item.to)
-                              : handleSelectSection(group.label, item.value)
-                          }
-                        >
-                          {item.label}
-                        </button>
-                      )
-                    ))}
+                    {isOpen && (
+                      <div className="admin-sidebar-subnav">
+                        {group.items.map((item) =>
+                          item.kind === "heading" ? (
+                            <p key={`${group.label}-${item.label}`} className="admin-sidebar-subtitle">
+                              {item.label}
+                            </p>
+                          ) : (
+                            <button
+                              key={`${group.label}-${item.value || item.to}`}
+                              type="button"
+                              className={
+                                activeSection === item.value
+                                  ? "admin-sidebar-link admin-sidebar-sublink active"
+                                  : "admin-sidebar-link admin-sidebar-sublink"
+                              }
+                              onClick={() =>
+                                item.to
+                                  ? handleExternalNavigate(group.label, item.to)
+                                  : handleSelectSection(group.label, item.value)
+                              }
+                            >
+                              {item.label}
+                            </button>
+                          )
+                        )}
+                      </div>
+                    )}
                   </div>
-                )}
-              </div>
-            );
-          })}
+                );
+              })}
+            </section>
+          ))}
         </nav>
 
         <div className="admin-sidebar-quick-actions">
@@ -316,12 +418,11 @@ export default function AdminSidebar({ activeSection, onChangeSection, className
             Ver sitio
           </button>
           <button type="button" className="admin-sidebar-link admin-sidebar-link-danger" onClick={onLogout}>
-            Cerrar sesión
+            Cerrar sesion
           </button>
         </div>
       </div>
     </aside>
   );
 }
-
 
