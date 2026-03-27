@@ -550,8 +550,7 @@ export default function AdminPanel() {
       activeSection !== "mantenciones_fichas" &&
       activeSection !== "mantenciones_historicas" &&
       activeSection !== "taller_mantenciones_dia" &&
-      activeSection !== "taller_en_taller" &&
-      activeSection !== "taller_por_entregar"
+      activeSection !== "taller_en_taller"
     ) return;
     let isMounted = true;
     setMantencionesLoading(true);
@@ -582,8 +581,7 @@ export default function AdminPanel() {
       activeSection === "mantenciones_fichas" ||
       activeSection === "mantenciones_historicas" ||
       activeSection === "taller_mantenciones_dia" ||
-      activeSection === "taller_en_taller" ||
-      activeSection === "taller_por_entregar";
+      activeSection === "taller_en_taller";
     const isHorariosSection = activeSection === "horarios_operativos" || activeSection === "mantenciones_horarios";
 
     if (!isUsersSection && !isMantencionesSection && !isHorariosSection) return undefined;

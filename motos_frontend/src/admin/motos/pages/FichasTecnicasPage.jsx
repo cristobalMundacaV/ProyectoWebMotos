@@ -137,6 +137,10 @@ function isBooleanToggleCandidate({ sectionName, itemName, currentValue }) {
   return isSiDefault || isTruthyToggleValue(currentValue) || isFalsyToggleValue(currentValue);
 }
 
+function isSwitchControlType(value) {
+  return normalizeText(value).trim().toLowerCase() === "switch";
+}
+
 function isDuplicateCreationError(err) {
   const message =
     err?.response?.data?.detail ||
@@ -183,6 +187,7 @@ export default function FichasTecnicasPage({ activeSection, motos = [] }) {
   const [showCreateItemModal, setShowCreateItemModal] = useState(false);
   const [newItemName, setNewItemName] = useState("");
   const [newItemValue, setNewItemValue] = useState("");
+  const [newItemControlType, setNewItemControlType] = useState("texto");
   const [fichaSearch, setFichaSearch] = useState("");
   const [showManageSectionsModal, setShowManageSectionsModal] = useState(false);
   const [managingSection, setManagingSection] = useState(false);
@@ -192,6 +197,7 @@ export default function FichasTecnicasPage({ activeSection, motos = [] }) {
   const [manageItemId, setManageItemId] = useState("");
   const [manageItemName, setManageItemName] = useState("");
   const [manageItemValue, setManageItemValue] = useState("");
+  const [manageItemControlType, setManageItemControlType] = useState("texto");
   const [toasts, setToasts] = useState([]);
 
   function dismissToast(id) {
@@ -383,20 +389,29 @@ export default function FichasTecnicasPage({ activeSection, motos = [] }) {
   }, [showManageSectionsModal, selectedSection]);
 
   useEffect(() => {
+    if (!showCreateItemModal) {
+      setNewItemControlType("texto");
+    }
+  }, [showCreateItemModal]);
+
+  useEffect(() => {
     if (!showManageItemsModal) return;
     setManageItemId("");
     setManageItemName("");
     setManageItemValue("");
+    setManageItemControlType("texto");
   }, [showManageItemsModal, selectedSection?.tipoAtributoId]);
 
   useEffect(() => {
     if (!showManageItemsModal || !selectedManagedItem) {
       setManageItemName("");
       setManageItemValue("");
+      setManageItemControlType("texto");
       return;
     }
     setManageItemName(selectedManagedItem?.nombre || "");
     setManageItemValue(selectedManagedItem?.valor || "");
+    setManageItemControlType(selectedManagedItem?.tipo_control || "texto");
   }, [showManageItemsModal, selectedManagedItem]);
 
   const hasChanges = useMemo(
@@ -512,7 +527,9 @@ export default function FichasTecnicasPage({ activeSection, motos = [] }) {
 
     const itemName = normalizeText(newItemName).trim();
     const itemValue = normalizeText(newItemValue).trim();
+    const itemControlType = normalizeText(newItemControlType).trim().toLowerCase();
     if (!itemName) return;
+    if (!["texto", "switch"].includes(itemControlType)) return;
 
     const existsInSection = normalizeArray(selectedSection.items).some(
       (item) => normalizeItemKey(item.nombre) === normalizeItemKey(itemName)
@@ -543,6 +560,7 @@ export default function FichasTecnicasPage({ activeSection, motos = [] }) {
         tipo_atributo: tipoAtributoId,
         nombre: itemName,
         valor: itemValue,
+        tipo_control: itemControlType,
         orden: nextOrden,
       });
 
@@ -553,6 +571,7 @@ export default function FichasTecnicasPage({ activeSection, motos = [] }) {
 
       setNewItemName("");
       setNewItemValue("");
+      setNewItemControlType("texto");
       setShowCreateItemModal(false);
 
       const createdCount = Number(result?.created_count ?? 0);
@@ -594,6 +613,7 @@ export default function FichasTecnicasPage({ activeSection, motos = [] }) {
               tipo_atributo: tipoAtributoId,
               nombre: itemName,
               valor: itemValue,
+              tipo_control: itemControlType,
               orden: nextOrden,
             });
             createdRows.push(created);
@@ -621,6 +641,7 @@ export default function FichasTecnicasPage({ activeSection, motos = [] }) {
               tipo_atributo: tipoAtributoId,
               nombre: itemName,
               valor: itemValue,
+              tipo_control: itemControlType,
               orden: nextOrden,
             });
             createdRows.push(createdRetry);
@@ -672,6 +693,7 @@ export default function FichasTecnicasPage({ activeSection, motos = [] }) {
         setDraftById((prevDraft) => mergeDraftPreservingUnsavedChanges(refreshedList, prevDraft));
         setNewItemName("");
         setNewItemValue("");
+        setNewItemControlType("texto");
         setShowCreateItemModal(false);
 
         if (failedRows.length === 0) {
@@ -757,13 +779,16 @@ export default function FichasTecnicasPage({ activeSection, motos = [] }) {
     const itemId = Number(manageItemId || 0);
     const itemName = normalizeText(manageItemName).trim();
     const itemTypeId = Number(selectedSection?.tipoAtributoId || 0);
+    const itemControlType = normalizeText(manageItemControlType).trim().toLowerCase();
     if (!itemId || !itemName || !itemTypeId || managingItem) return;
+    if (!["texto", "switch"].includes(itemControlType)) return;
 
     try {
       setManagingItem(true);
       await updateValorAtributoMoto(itemId, {
         nombre: itemName,
         valor: normalizeText(manageItemValue),
+        tipo_control: itemControlType,
         tipo_atributo: itemTypeId,
       });
       await reloadFichaData({ preserveDraft: true });
@@ -932,11 +957,14 @@ export default function FichasTecnicasPage({ activeSection, motos = [] }) {
                             {section.items.map((item) => (
                               <label key={item.id} className="admin-ficha-item-field">
                                 <span>{getFichaItemLabel(item.nombre)}</span>
-                                {isBooleanToggleCandidate({
-                                  sectionName: section.nombre,
-                                  itemName: item.nombre,
-                                  currentValue: draftById[item.id],
-                                }) ? (
+                                {(
+                                  isSwitchControlType(item?.tipo_control) ||
+                                  isBooleanToggleCandidate({
+                                    sectionName: section.nombre,
+                                    itemName: item.nombre,
+                                    currentValue: draftById[item.id],
+                                  })
+                                ) ? (
                                   <button
                                     type="button"
                                     className={
@@ -1136,6 +1164,18 @@ export default function FichasTecnicasPage({ activeSection, motos = [] }) {
                 />
               </label>
 
+              <label>
+                Tipo de dato
+                <select
+                  value={manageItemControlType}
+                  onChange={(event) => setManageItemControlType(event.target.value)}
+                  disabled={managingItem || !manageItemId}
+                >
+                  <option value="texto">Cuadro de texto</option>
+                  <option value="switch">Switch box</option>
+                </select>
+              </label>
+
               <div className="admin-ficha-modal-actions admin-ficha-modal-actions-between">
                 <button
                   type="button"
@@ -1281,6 +1321,18 @@ export default function FichasTecnicasPage({ activeSection, motos = [] }) {
                   placeholder="Ej: Si / 120 HP / N/A"
                   disabled={creatingItem}
                 />
+              </label>
+
+              <label>
+                Tipo de dato
+                <select
+                  value={newItemControlType}
+                  onChange={(event) => setNewItemControlType(event.target.value)}
+                  disabled={creatingItem}
+                >
+                  <option value="texto">Cuadro de texto</option>
+                  <option value="switch">Switch box</option>
+                </select>
               </label>
 
               <div className="admin-ficha-modal-actions">

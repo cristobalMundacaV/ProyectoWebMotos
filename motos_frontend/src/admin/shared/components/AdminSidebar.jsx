@@ -164,7 +164,6 @@ const navigationGroups = [
     items: [
       { label: "Etapa de Diagnostico", value: "taller_mantenciones_dia" },
       { label: "Motos en Taller", value: "taller_en_taller" },
-      { label: "Por Entregar", value: "taller_por_entregar" },
     ],
   },
   {

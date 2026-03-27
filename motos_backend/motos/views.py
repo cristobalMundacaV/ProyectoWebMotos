@@ -426,6 +426,7 @@ def valores_atributo_moto(request):
         tipo_atributo_id = request.data.get("tipo_atributo")
         nombre = str(request.data.get("nombre") or "").strip()
         valor = str(request.data.get("valor") or "")
+        tipo_control = str(request.data.get("tipo_control") or "texto").strip().lower()
         orden_raw = request.data.get("orden", 1)
 
         try:
@@ -443,6 +444,11 @@ def valores_atributo_moto(request):
                 {"detail": "El nombre del item es obligatorio."},
                 status=status.HTTP_400_BAD_REQUEST,
             )
+        if tipo_control not in {"texto", "switch"}:
+            return Response(
+                {"detail": "El tipo de control debe ser texto o switch."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
 
         tipo_atributo = TipoAtributo.objects.filter(id=tipo_atributo_id).first()
         if not tipo_atributo:
@@ -458,7 +464,7 @@ def valores_atributo_moto(request):
                     moto_id=moto.id,
                     tipo_atributo_id=tipo_atributo.id,
                     nombre=nombre,
-                    defaults={"valor": valor, "orden": orden},
+                    defaults={"valor": valor, "orden": orden, "tipo_control": tipo_control},
                 )
                 if created:
                     created_count += 1
@@ -474,6 +480,7 @@ def valores_atributo_moto(request):
                 "mode": "global",
                 "nombre": nombre,
                 "tipo_atributo": tipo_atributo.id,
+                "tipo_control": tipo_control,
                 "created_count": created_count,
                 "skipped_count": skipped_count,
                 "failed_count": failed_count,

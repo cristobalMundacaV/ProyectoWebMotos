@@ -17,12 +17,12 @@ const SOLICITUDES_TABS = [
 
 const ESTADOS_SOLICITUD = ["ingresada", "aceptada"];
 const ESTADOS_TALLER = ["en_revision", "esperando_repuestos", "finalizada"];
-const ESTADOS_EN_TALLER = ["en_revision", "esperando_repuestos"];
-const ESTADOS_POR_ENTREGAR = ["finalizada"];
+const ESTADOS_EN_TALLER = ["en_revision", "esperando_repuestos", "finalizada"];
 const TALLER_ESTADO_FILTERS = [
   { value: "todos", label: "Todos" },
   { value: "en_revision", label: "En revision" },
   { value: "esperando_repuestos", label: "Esperando repuestos" },
+  { value: "por_entregar", label: "Por Entregar" },
 ];
 
 const WEEK_DAYS = ["Lun", "Mar", "Mie", "Jue", "Vie", "Sab", "Dom"];
@@ -194,7 +194,6 @@ export default function MantencionesPage({
   const [selectedFichaId, setSelectedFichaId] = useState(null);
   const [tallerEstadoFilter, setTallerEstadoFilter] = useState("todos");
   const [selectedTallerDiaId, setSelectedTallerDiaId] = useState(null);
-  const [selectedPorEntregarId, setSelectedPorEntregarId] = useState(null);
   const [selectedHistoricaId, setSelectedHistoricaId] = useState(null);
   const [selectedHistoricoCliente, setSelectedHistoricoCliente] = useState("");
   const [solicitudesTab, setSolicitudesTab] = useState("por_aceptar");
@@ -202,7 +201,6 @@ export default function MantencionesPage({
     solicitudes: false,
     fichas: false,
     tallerDia: false,
-    porEntregar: false,
     historicas: false,
   });
   const [calendarLoading, setCalendarLoading] = useState(false);
@@ -358,7 +356,6 @@ export default function MantencionesPage({
       solicitudes: false,
       fichas: false,
       tallerDia: false,
-      porEntregar: false,
       historicas: false,
     });
   }, [activeSection]);
@@ -435,21 +432,11 @@ export default function MantencionesPage({
     [mantenciones]
   );
 
-  const fichasPorEntregar = useMemo(
-    () =>
-      mantenciones
-        .filter((item) => ESTADOS_POR_ENTREGAR.includes(item.estado))
-        .sort(
-          (a, b) =>
-            getMantencionSortTimestamp(b) - getMantencionSortTimestamp(a) ||
-            getCreatedAtTimestamp(b) - getCreatedAtTimestamp(a) ||
-            Number(b.id || 0) - Number(a.id || 0)
-        ),
-    [mantenciones]
-  );
-
   const fichasMantencion = useMemo(() => {
     if (tallerEstadoFilter === "todos") return fichasEnTallerBase;
+    if (tallerEstadoFilter === "por_entregar") {
+      return fichasEnTallerBase.filter((item) => item.estado === "finalizada");
+    }
     return fichasEnTallerBase.filter((item) => item.estado === tallerEstadoFilter);
   }, [fichasEnTallerBase, tallerEstadoFilter]);
 
@@ -515,11 +502,6 @@ export default function MantencionesPage({
     const byId = mantencionesDelDia.find((item) => item.id === selectedTallerDiaId);
     return byId || mantencionesDelDia[0] || null;
   }, [mantencionesDelDia, selectedTallerDiaId]);
-
-  const selectedPorEntregar = useMemo(() => {
-    const byId = fichasPorEntregar.find((item) => item.id === selectedPorEntregarId);
-    return byId || fichasPorEntregar[0] || null;
-  }, [fichasPorEntregar, selectedPorEntregarId]);
 
   const selectedHistorica = useMemo(() => {
     const byId = fichasHistoricasByCliente.find((item) => item.id === selectedHistoricaId);
@@ -711,11 +693,26 @@ export default function MantencionesPage({
           { value: "cancelada", label: "Cancelada" },
         ]
       : mode === "fichas"
-        ? ESTADO_OPTIONS.filter((option) => option.value !== "no_asistio")
-      : ESTADO_OPTIONS;
-    const estadoOptionsForSelect = estadoOptions.some((option) => option.value === estadoActual)
+        ? estadoActual === "en_revision"
+          ? [
+              { value: "esperando_repuestos", label: "Esperando repuestos" },
+              { value: "finalizada", label: "Finalizada" },
+            ]
+          : estadoActual === "esperando_repuestos"
+            ? [
+                { value: "en_revision", label: "En revision" },
+                { value: "finalizada", label: "Finalizada" },
+              ]
+            : []
+        : ESTADO_OPTIONS;
+    const estadoOptionsForSelect = mode === "fichas"
       ? estadoOptions
-      : [{ value: estadoActual, label: statusLabel(estadoActual) }, ...estadoOptions];
+      : estadoOptions.some((option) => option.value === estadoActual)
+        ? estadoOptions
+        : [{ value: estadoActual, label: statusLabel(estadoActual) }, ...estadoOptions];
+    const selectedEstadoValue = mode === "fichas"
+      ? (estadoOptionsForSelect.some((option) => option.value === draft.estado) ? draft.estado : "")
+      : estadoActual;
 
     return (
       <>
@@ -815,10 +812,12 @@ export default function MantencionesPage({
                 Estado
                 <select
                   className={`admin-mantencion-estado-select ${getEstadoClass(estadoActual)}`}
-                  value={estadoActual}
+                  value={selectedEstadoValue}
                   onChange={(event) => setDraft(item.id, "estado", event.target.value)}
-                  disabled={saving}
+                  disabled={saving || estadoOptionsForSelect.length === 0}
                 >
+                  {mode === "fichas" && <option value="">Selecciona nuevo estado</option>}
+                  {estadoOptionsForSelect.length === 0 && <option value="">Sin cambios disponibles</option>}
                   {estadoOptionsForSelect.map((option) => (
                     <option key={option.value} value={option.value}>
                       {option.label}
@@ -941,6 +940,24 @@ export default function MantencionesPage({
 
         {isEditable && (
           <div className="admin-mantencion-ficha-actions admin-mantencion-ficha-actions-bottom">
+            {!isTallerDia && !isPorEntregar && (
+              <button
+                type="button"
+                className="admin-danger-action admin-mantencion-action-btn admin-mantencion-cancel-btn"
+                disabled={saving}
+                onClick={() =>
+                  setCancelConfirm({
+                    id: item.id,
+                    actionLabel: "Cancelar mantenimiento",
+                    moto: `${moto.marca || "-"} ${moto.modelo || "-"}`.trim(),
+                    fecha: formatDate(item.fecha_ingreso),
+                    hora: item.hora_ingreso ? String(item.hora_ingreso).slice(0, 5) : "-",
+                  })
+                }
+              >
+                {saving ? "Cancelando..." : "Cancelar mantenimiento"}
+              </button>
+            )}
             <button
               type="button"
               className="admin-primary-action admin-mantencion-action-btn admin-mantencion-save-btn"
@@ -1069,44 +1086,88 @@ export default function MantencionesPage({
 
   if (activeSection === "mantenciones_fichas" || activeSection === "taller_en_taller") {
     return (
-      <section className="admin-content-grid admin-content-grid-mantenciones admin-content-grid-mantenciones-fichas">
-        <article className="admin-panel-card">
-          <div className="admin-card-header">
-            <div className="admin-mantencion-solicitudes-head">
-              <h2>Motos en taller</h2>
-              <div className="admin-mantencion-tabs" role="tablist" aria-label="Filtros por estado en taller">
-                {TALLER_ESTADO_FILTERS.map((filter) => {
-                  const isActive = tallerEstadoFilter === filter.value;
-                  return (
-                    <button
-                      key={filter.value}
-                      type="button"
-                      role="tab"
-                      aria-selected={isActive}
-                      className={isActive ? "admin-mantencion-tab active" : "admin-mantencion-tab"}
-                      onClick={() => setTallerEstadoFilter(filter.value)}
-                    >
-                      {filter.label}
-                    </button>
-                  );
-                })}
+      <>
+        <section className="admin-content-grid admin-content-grid-mantenciones admin-content-grid-mantenciones-fichas">
+          <article className="admin-panel-card">
+            <div className="admin-card-header">
+              <div className="admin-mantencion-solicitudes-head">
+                <h2>Motos en taller</h2>
+                <div className="admin-mantencion-tabs" role="tablist" aria-label="Filtros por estado en taller">
+                  {TALLER_ESTADO_FILTERS.map((filter) => {
+                    const isActive = tallerEstadoFilter === filter.value;
+                    return (
+                      <button
+                        key={filter.value}
+                        type="button"
+                        role="tab"
+                        aria-selected={isActive}
+                        className={isActive ? "admin-mantencion-tab active" : "admin-mantencion-tab"}
+                        onClick={() => setTallerEstadoFilter(filter.value)}
+                      >
+                        {filter.label}
+                      </button>
+                    );
+                  })}
+                </div>
               </div>
             </div>
-          </div>
 
-          <div className="admin-mantencion-fichas-layout">
-            {renderFichaMobilePicker(
-              fichasMantencion,
-              selectedFicha?.id,
-              setSelectedFichaId,
-              fichasTallerEmptyText,
-              "fichas"
-            )}
-            {renderFichaList(fichasMantencion, selectedFicha?.id, setSelectedFichaId, fichasTallerEmptyText)}
-            <div className="admin-mantencion-ficha-detail">{renderFichaDetail(selectedFicha, "fichas")}</div>
+            <div className="admin-mantencion-fichas-layout">
+              {renderFichaMobilePicker(
+                fichasMantencion,
+                selectedFicha?.id,
+                setSelectedFichaId,
+                fichasTallerEmptyText,
+                "fichas"
+              )}
+              {renderFichaList(fichasMantencion, selectedFicha?.id, setSelectedFichaId, fichasTallerEmptyText)}
+              <div className="admin-mantencion-ficha-detail">{renderFichaDetail(selectedFicha, "fichas")}</div>
+            </div>
+          </article>
+        </section>
+
+        {cancelConfirm && (
+          <div
+            className="admin-confirm-modal-overlay"
+            onClick={() => {
+              if (!isCancelConfirmSaving) setCancelConfirm(null);
+            }}
+          >
+            <section className="admin-confirm-modal" onClick={(event) => event.stopPropagation()}>
+              <img src="/images/informacion.png" alt="Informacion" className="admin-confirm-modal-image" />
+              <h3>Confirmar cancelacion</h3>
+              <p className="admin-confirm-modal-text">
+                Vas a cancelar el mantenimiento de <strong>{cancelConfirm.moto}</strong> del{" "}
+                <strong>{cancelConfirm.fecha}</strong> a las <strong>{cancelConfirm.hora}</strong>.
+              </p>
+              <p className="admin-confirm-modal-subtext">Esta accion cambiara el estado a <strong>Cancelada</strong>.</p>
+
+              <div className="admin-confirm-modal-actions">
+                <button
+                  type="button"
+                  className="btn-back"
+                  disabled={isCancelConfirmSaving}
+                  onClick={() => setCancelConfirm(null)}
+                >
+                  Volver
+                </button>
+                <button
+                  type="button"
+                  className="btn-delete"
+                  disabled={isCancelConfirmSaving}
+                  onClick={async () => {
+                    const targetId = cancelConfirm.id;
+                    await onUpdateMantencion(targetId, { estado: "cancelada" });
+                    setCancelConfirm(null);
+                  }}
+                >
+                  {isCancelConfirmSaving ? "Cancelando..." : cancelConfirm.actionLabel}
+                </button>
+              </div>
+            </section>
           </div>
-        </article>
-      </section>
+        )}
+      </>
     );
   }
 
@@ -1133,35 +1194,6 @@ export default function MantencionesPage({
               "No hay mantenciones agendadas para hoy."
             )}
             <div className="admin-mantencion-ficha-detail">{renderFichaDetail(selectedTallerDia, "taller_dia")}</div>
-          </div>
-        </article>
-      </section>
-    );
-  }
-
-  if (activeSection === "taller_por_entregar") {
-    return (
-      <section className="admin-content-grid admin-content-grid-mantenciones admin-content-grid-mantenciones-fichas">
-        <article className="admin-panel-card">
-          <div className="admin-card-header">
-            <h2>Por entregar</h2>
-          </div>
-
-          <div className="admin-mantencion-fichas-layout">
-            {renderFichaMobilePicker(
-              fichasPorEntregar,
-              selectedPorEntregar?.id,
-              setSelectedPorEntregarId,
-              "No hay motos por entregar.",
-              "porEntregar"
-            )}
-            {renderFichaList(
-              fichasPorEntregar,
-              selectedPorEntregar?.id,
-              setSelectedPorEntregarId,
-              "No hay motos por entregar."
-            )}
-            <div className="admin-mantencion-ficha-detail">{renderFichaDetail(selectedPorEntregar, "por_entregar")}</div>
           </div>
         </article>
       </section>

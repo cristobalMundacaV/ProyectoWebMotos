@@ -80,6 +80,13 @@ class TipoAtributo(models.Model):
 
 
 class ValorAtributoMoto(models.Model):
+    TIPO_CONTROL_TEXTO = "texto"
+    TIPO_CONTROL_SWITCH = "switch"
+    TIPO_CONTROL_CHOICES = [
+        (TIPO_CONTROL_TEXTO, "Texto"),
+        (TIPO_CONTROL_SWITCH, "Switch"),
+    ]
+
     moto = models.ForeignKey(
         Moto,
         on_delete=models.CASCADE,
@@ -92,6 +99,7 @@ class ValorAtributoMoto(models.Model):
     )
     nombre = models.CharField(max_length=120, default="")
     valor = models.TextField(blank=True, default="")
+    tipo_control = models.CharField(max_length=20, choices=TIPO_CONTROL_CHOICES, default=TIPO_CONTROL_TEXTO)
     orden = models.PositiveIntegerField(default=1)
 
     class Meta:

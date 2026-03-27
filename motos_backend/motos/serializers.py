@@ -440,5 +440,6 @@ class ValorAtributoMotoSerializer(serializers.ModelSerializer):
             "tipo_atributo_orden",
             "nombre",
             "valor",
+            "tipo_control",
             "orden",
         ]
