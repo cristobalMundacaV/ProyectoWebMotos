@@ -1,5 +1,6 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { getDisponibilidadMantenciones } from "../../../services/mantencionesService";
+import { bloquearDiaCalendarioMantencion } from "../services/mantencionesAdminService";
 
 const ESTADO_OPTIONS = [
   { value: "en_proceso", label: "En proceso" },
@@ -9,6 +10,7 @@ const ESTADO_OPTIONS = [
   { value: "cancelado", label: "Cancelado" },
   { value: "inasistencia", label: "Inasistencia" },
   { value: "no_aceptado", label: "No aceptado" },
+  { value: "reagendacion", label: "Reagendacion" },
 ];
 
 const SOLICITUDES_TABS = [
@@ -150,6 +152,12 @@ function getMantencionSortTimestamp(item) {
   return fechaTs + (hours * 60 + minutes) * 60 * 1000;
 }
 
+function extractErrorMessage(error, fallback = "No se pudo procesar la solicitud.") {
+  const detail = error?.response?.data?.detail;
+  if (typeof detail === "string" && detail.trim()) return detail.trim();
+  return fallback;
+}
+
 function getCreatedAtTimestamp(item) {
   if (!item?.created_at) return 0;
   const parsed = Date.parse(item.created_at);
@@ -203,6 +211,9 @@ export default function MantencionesPage({
   const [deliverError, setDeliverError] = useState("");
   const isDeliverConfirmSaving = deliverConfirm ? savingById[deliverConfirm.id] === "deliver" : false;
   const [showHorarioForm, setShowHorarioForm] = useState(false);
+  const [dayBlockConfirm, setDayBlockConfirm] = useState(null);
+  const [dayBlockSaving, setDayBlockSaving] = useState(false);
+  const [dayBlockError, setDayBlockError] = useState("");
 
   const DIAS_LABEL = {
     0: "Lunes",
@@ -293,51 +304,57 @@ export default function MantencionesPage({
     [calendarCells]
   );
 
-  useEffect(() => {
-    if (activeSection !== "horarios_calendario") return undefined;
-
-    let mounted = true;
-    let intervalId = null;
-
-    async function loadAvailability() {
-      if (!mounted || document.hidden) return;
-      setCalendarLoading(true);
+  const refreshCalendarAvailability = useCallback(
+    async ({ silent = false } = {}) => {
+      if (activeSection !== "horarios_calendario" || document.hidden) return;
+      if (!silent) setCalendarLoading(true);
       setCalendarError("");
       try {
         const data = await getDisponibilidadMantenciones(60);
-        if (!mounted) return;
         const days = Array.isArray(data?.slots) ? data.slots : [];
         setAvailabilityDays(days);
-
         if (days.length > 0) {
           setSelectedCalendarDate((prev) => (prev && days.some((day) => day.fecha === prev) ? prev : days[0].fecha));
         } else {
           setSelectedCalendarDate("");
         }
       } catch (_error) {
-        if (!mounted) return;
         setAvailabilityDays([]);
         setSelectedCalendarDate("");
         setCalendarError("No se pudo cargar la disponibilidad del calendario.");
       } finally {
-        if (mounted) setCalendarLoading(false);
+        if (!silent) setCalendarLoading(false);
       }
-    }
+    },
+    [activeSection]
+  );
 
-    loadAvailability();
-    intervalId = window.setInterval(loadAvailability, 12000);
+  useEffect(() => {
+    if (activeSection !== "horarios_calendario") return undefined;
+    let mounted = true;
+    let intervalId = null;
+
+    const loadCalendar = async ({ silent = false } = {}) => {
+      if (!mounted) return;
+      await refreshCalendarAvailability({ silent });
+    };
+
+    loadCalendar();
+    intervalId = window.setInterval(() => loadCalendar({ silent: true }), 12000);
 
     const onVisibilityChange = () => {
-      if (!document.hidden) loadAvailability();
+      if (!document.hidden) {
+        loadCalendar({ silent: true });
+      }
     };
-    document.addEventListener("visibilitychange", onVisibilityChange);
 
+    document.addEventListener("visibilitychange", onVisibilityChange);
     return () => {
       mounted = false;
       if (intervalId) window.clearInterval(intervalId);
       document.removeEventListener("visibilitychange", onVisibilityChange);
     };
-  }, [activeSection]);
+  }, [activeSection, refreshCalendarAvailability]);
 
   useEffect(() => {
     setMobilePickerOpen({
@@ -435,6 +452,18 @@ export default function MantencionesPage({
     window.addEventListener("keydown", handleKeydown);
     return () => window.removeEventListener("keydown", handleKeydown);
   }, [deliverConfirm, isDeliverConfirmSaving]);
+
+  useEffect(() => {
+    if (!dayBlockConfirm) return undefined;
+    function handleKeydown(event) {
+      if (event.key === "Escape" && !dayBlockSaving) {
+        setDayBlockConfirm(null);
+        setDayBlockError("");
+      }
+    }
+    window.addEventListener("keydown", handleKeydown);
+    return () => window.removeEventListener("keydown", handleKeydown);
+  }, [dayBlockConfirm, dayBlockSaving]);
 
   const fichasEnTallerBase = useMemo(
     () =>
@@ -609,6 +638,33 @@ export default function MantencionesPage({
         {loading && null}
       </aside>
     );
+  }
+
+  async function executeDayBlocking(confirmWithBookings = false) {
+    if (!selectedCalendarDate) return;
+    setDayBlockSaving(true);
+    setDayBlockError("");
+    try {
+      await bloquearDiaCalendarioMantencion({
+        fecha: selectedCalendarDate,
+        observacion: "Dia bloqueado desde calendario de disponibilidad",
+        ...(confirmWithBookings ? { confirm_with_bookings: true } : {}),
+      });
+      setDayBlockConfirm(null);
+      await refreshCalendarAvailability({ silent: true });
+    } catch (error) {
+      const needsConfirmation = error?.response?.status === 409 && Boolean(error?.response?.data?.needs_confirmation);
+      if (needsConfirmation && !confirmWithBookings) {
+        setDayBlockConfirm({
+          fecha: selectedCalendarDate,
+          bookingsCount: Number(error?.response?.data?.bookings_count || 0),
+        });
+        return;
+      }
+      setDayBlockError(extractErrorMessage(error, "No se pudo desactivar el dia seleccionado."));
+    } finally {
+      setDayBlockSaving(false);
+    }
   }
 
   function getFichaMobileLabel(item) {
@@ -1779,9 +1835,14 @@ export default function MantencionesPage({
                   <strong>{selectedCalendarDate ? formatLongDate(selectedCalendarDate) : "Selecciona un dia"}</strong>
                 </div>
                 {selectedCalendarDay && (
-                  <span className={`admin-status-pill ${selectedCalendarDay.has_disponibles ? "status-aceptada" : "status-cancelada"}`}>
-                    {selectedCalendarDay.has_disponibles ? "Con cupos" : "Completo"}
-                  </span>
+                  <button
+                    type="button"
+                    className="admin-danger-action admin-mantencion-action-btn admin-horarios-day-disable-btn"
+                    disabled={dayBlockSaving}
+                    onClick={() => executeDayBlocking(false)}
+                  >
+                    {dayBlockSaving ? "Desactivando..." : "Desactivar dia"}
+                  </button>
                 )}
               </div>
 
@@ -1820,12 +1881,64 @@ export default function MantencionesPage({
               ) : (
                 <p className="admin-empty">Selecciona un dia del calendario para ver sus horas.</p>
               )}
+              {dayBlockError ? <p className="admin-confirm-modal-error">{dayBlockError}</p> : null}
             </aside>
           </div>
+          {dayBlockConfirm && (
+            <div
+              className="admin-confirm-modal-overlay"
+              onClick={() => {
+                if (!dayBlockSaving) {
+                  setDayBlockConfirm(null);
+                  setDayBlockError("");
+                }
+              }}
+            >
+              <section className="admin-confirm-modal" onClick={(event) => event.stopPropagation()}>
+                <img src="/images/informacion.png" alt="Informacion" className="admin-confirm-modal-image" />
+                <h3>Confirmar cancelacion del dia</h3>
+                <p className="admin-confirm-modal-text">
+                  Hay horas agendadas para este dia. Seguro que quieres cancelar la atencion del dia?
+                </p>
+                <p className="admin-confirm-modal-subtext">
+                  Las mantenciones agendadas en esta fecha pasaran al estado <strong>Reagendacion</strong>.
+                </p>
+                <p className="admin-confirm-modal-subtext">
+                  Fecha:{" "}
+                  <strong>{formatLongDate(dayBlockConfirm.fecha, { weekday: "long", day: "2-digit", month: "long", year: "numeric" })}</strong>
+                  {" - "}
+                  Horas afectadas: <strong>{dayBlockConfirm.bookingsCount}</strong>
+                </p>
+                {dayBlockError ? <p className="admin-confirm-modal-error">{dayBlockError}</p> : null}
+                <div className="admin-confirm-modal-actions">
+                  <button
+                    type="button"
+                    className="btn-back"
+                    disabled={dayBlockSaving}
+                    onClick={() => {
+                      setDayBlockConfirm(null);
+                      setDayBlockError("");
+                    }}
+                  >
+                    Volver
+                  </button>
+                  <button
+                    type="button"
+                    className="btn-delete"
+                    disabled={dayBlockSaving}
+                    onClick={() => executeDayBlocking(true)}
+                  >
+                    {dayBlockSaving ? "Procesando..." : "Aceptar"}
+                  </button>
+                </div>
+              </section>
+            </div>
+          )}
         </article>
       </section>
     );
   }
+
 
   return null;
 }

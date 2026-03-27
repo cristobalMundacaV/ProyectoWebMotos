@@ -93,6 +93,7 @@ class Mantencion(models.Model):
     ESTADO_CANCELADO = "cancelado"
     ESTADO_INASISTENCIA = "inasistencia"
     ESTADO_NO_ACEPTADO = "no_aceptado"
+    ESTADO_REAGENDACION = "reagendacion"
 
     ESTADO_CHOICES = [
         (ESTADO_SOLICITUD, "Solicitud"),
@@ -104,6 +105,7 @@ class Mantencion(models.Model):
         (ESTADO_CANCELADO, "Cancelado"),
         (ESTADO_INASISTENCIA, "Inasistencia"),
         (ESTADO_NO_ACEPTADO, "No aceptado"),
+        (ESTADO_REAGENDACION, "Reagendacion"),
     ]
 
     ESTADOS_AGENDABLES = {ESTADO_SOLICITUD, ESTADO_APROBADO}
@@ -118,11 +120,11 @@ class Mantencion(models.Model):
         ESTADO_ENTREGADA,
         ESTADO_INASISTENCIA,
     }
-    ESTADOS_NO_OCUPAN_CUPO = {ESTADO_CANCELADO, ESTADO_NO_ACEPTADO}
+    ESTADOS_NO_OCUPAN_CUPO = {ESTADO_CANCELADO, ESTADO_NO_ACEPTADO, ESTADO_REAGENDACION}
 
     ALLOWED_STATE_TRANSITIONS = {
-        ESTADO_SOLICITUD: {ESTADO_APROBADO, ESTADO_CANCELADO, ESTADO_NO_ACEPTADO},
-        ESTADO_APROBADO: {ESTADO_EN_PROCESO, ESTADO_INASISTENCIA, ESTADO_CANCELADO},
+        ESTADO_SOLICITUD: {ESTADO_APROBADO, ESTADO_CANCELADO, ESTADO_NO_ACEPTADO, ESTADO_REAGENDACION},
+        ESTADO_APROBADO: {ESTADO_EN_PROCESO, ESTADO_INASISTENCIA, ESTADO_CANCELADO, ESTADO_REAGENDACION},
         ESTADO_EN_PROCESO: {ESTADO_EN_ESPERA, ESTADO_FINALIZADO, ESTADO_CANCELADO},
         ESTADO_EN_ESPERA: {ESTADO_EN_PROCESO, ESTADO_CANCELADO},
         ESTADO_FINALIZADO: {ESTADO_ENTREGADA, ESTADO_CANCELADO},
@@ -130,6 +132,7 @@ class Mantencion(models.Model):
         ESTADO_CANCELADO: set(),
         ESTADO_INASISTENCIA: set(),
         ESTADO_NO_ACEPTADO: set(),
+        ESTADO_REAGENDACION: set(),
     }
 
     moto_cliente = models.ForeignKey(
@@ -299,3 +302,24 @@ class MantencionEstadoHistorial(models.Model):
     def __str__(self) -> str:
         previo = self.estado_anterior or "sin_estado"
         return f"{self.mantencion_id}: {previo} -> {self.estado_nuevo}"
+
+
+class MantencionDiaBloqueado(models.Model):
+    fecha = models.DateField(unique=True, verbose_name="fecha bloqueada")
+    bloqueado = models.BooleanField(default=True, verbose_name="bloqueado")
+    motivo = models.CharField(max_length=255, blank=True, default="", verbose_name="motivo")
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name="creado")
+    updated_at = models.DateTimeField(auto_now=True, verbose_name="actualizado")
+
+    class Meta:
+        verbose_name = "dia bloqueado de mantencion"
+        verbose_name_plural = "dias bloqueados de mantencion"
+        ordering = ["-fecha"]
+        indexes = [
+            models.Index(fields=["fecha"], name="idx_mant_dia_bloq_fecha"),
+            models.Index(fields=["bloqueado"], name="idx_mant_dia_bloq_estado"),
+        ]
+
+    def __str__(self) -> str:
+        estado = "bloqueado" if self.bloqueado else "habilitado"
+        return f"{self.fecha} ({estado})"

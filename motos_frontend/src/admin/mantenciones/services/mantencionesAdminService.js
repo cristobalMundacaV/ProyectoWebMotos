@@ -56,3 +56,13 @@ export async function updateHorarioMantencionAdmin(id, payload) {
 export async function deleteHorarioMantencionAdmin(id) {
   await requestWithFallback("delete", `/mantenciones/horarios/${id}/`, `/mantenciones/horarios/${id}/`);
 }
+
+export async function bloquearDiaCalendarioMantencion(payload) {
+  const response = await requestWithFallback(
+    "post",
+    "/mantenciones/disponibilidad/bloquear-dia/",
+    "/mantenciones/disponibilidad/bloquear-dia/",
+    payload
+  );
+  return response.data;
+}

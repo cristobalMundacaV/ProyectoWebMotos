@@ -7,7 +7,7 @@ from django.db.models import Count
 from django.utils import timezone
 
 from .integrity import mark_expired_unaccepted_requests
-from .models import HorarioMantencion, Mantencion
+from .models import HorarioMantencion, Mantencion, MantencionDiaBloqueado
 
 
 def _to_minutes(value: time) -> int:
@@ -40,7 +40,13 @@ def get_disponibilidad(days_ahead: int = 21) -> list[dict]:
             fecha_ingreso__lte=end_date,
             hora_ingreso__isnull=False,
         )
-        .exclude(estado__in=[Mantencion.ESTADO_CANCELADO, Mantencion.ESTADO_NO_ACEPTADO])
+        .exclude(
+            estado__in=[
+                Mantencion.ESTADO_CANCELADO,
+                Mantencion.ESTADO_NO_ACEPTADO,
+                Mantencion.ESTADO_REAGENDACION,
+            ]
+        )
         .values("fecha_ingreso", "hora_ingreso")
         .annotate(total=Count("id"))
     )
@@ -48,6 +54,13 @@ def get_disponibilidad(days_ahead: int = 21) -> list[dict]:
         (row["fecha_ingreso"], row["hora_ingreso"]): row["total"]
         for row in ocupadas
     }
+    fechas_bloqueadas = set(
+        MantencionDiaBloqueado.objects.filter(
+            bloqueado=True,
+            fecha__gte=today,
+            fecha__lte=end_date,
+        ).values_list("fecha", flat=True)
+    )
 
     grouped_horarios = defaultdict(list)
     for horario in horarios:
@@ -56,6 +69,8 @@ def get_disponibilidad(days_ahead: int = 21) -> list[dict]:
     disponibilidad: list[dict] = []
     for offset in range((end_date - today).days + 1):
         current_date = today + timedelta(days=offset)
+        if current_date in fechas_bloqueadas:
+            continue
         bloques = grouped_horarios.get(current_date.weekday(), [])
         if not bloques:
             continue

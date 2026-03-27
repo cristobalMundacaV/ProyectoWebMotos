@@ -1,3 +1,5 @@
+from datetime import date
+
 from django.db import transaction
 from rest_framework import status, viewsets
 from rest_framework.permissions import AllowAny, IsAuthenticated
@@ -6,7 +8,7 @@ from rest_framework.views import APIView
 
 from .availability import get_disponibilidad
 from .integrity import mark_expired_unaccepted_requests
-from .models import HorarioMantencion, Mantencion, MantencionEstadoHistorial, VehiculoCliente
+from .models import HorarioMantencion, Mantencion, MantencionDiaBloqueado, MantencionEstadoHistorial, VehiculoCliente
 from .permissions import IsOperationalStaff
 from .serializers import (
     AgendarMantencionSerializer,
@@ -66,6 +68,73 @@ class MantencionDisponibilidadAPIView(APIView):
             days = 21
         days = min(max(days, 1), 60)
         return Response({"days": days, "slots": get_disponibilidad(days_ahead=days)}, status=status.HTTP_200_OK)
+
+
+class MantencionBloquearDiaAPIView(APIView):
+    permission_classes = [IsOperationalStaff]
+
+    def post(self, request):
+        raw_fecha = str(request.data.get("fecha", "")).strip()
+        if not raw_fecha:
+            return Response({"detail": "La fecha es obligatoria."}, status=status.HTTP_400_BAD_REQUEST)
+        try:
+            target_date = date.fromisoformat(raw_fecha)
+        except ValueError:
+            return Response({"detail": "Formato de fecha invalido. Usa YYYY-MM-DD."}, status=status.HTTP_400_BAD_REQUEST)
+
+        confirm_with_bookings = bool(request.data.get("confirm_with_bookings", False))
+        observacion = str(request.data.get("observacion", "")).strip() or "Dia marcado sin agenda por el equipo"
+
+        estados_reagendables = [Mantencion.ESTADO_SOLICITUD, Mantencion.ESTADO_APROBADO]
+
+        with transaction.atomic():
+            mark_expired_unaccepted_requests()
+            affected = list(
+                Mantencion.objects.select_for_update()
+                .filter(fecha_ingreso=target_date, estado__in=estados_reagendables)
+                .only("id", "estado")
+            )
+
+            if affected and not confirm_with_bookings:
+                return Response(
+                    {
+                        "needs_confirmation": True,
+                        "detail": "Hay horas agendadas para este dia. Seguro que quieres cancelar la atencion del dia?",
+                        "bookings_count": len(affected),
+                    },
+                    status=status.HTTP_409_CONFLICT,
+                )
+
+            if affected:
+                mantencion_ids = [item.id for item in affected]
+                Mantencion.objects.filter(id__in=mantencion_ids).update(estado=Mantencion.ESTADO_REAGENDACION)
+                MantencionEstadoHistorial.objects.bulk_create(
+                    [
+                        MantencionEstadoHistorial(
+                            mantencion_id=item.id,
+                            estado_anterior=item.estado,
+                            estado_nuevo=Mantencion.ESTADO_REAGENDACION,
+                            changed_by=request.user if request.user.is_authenticated else None,
+                            fuente=MantencionEstadoHistorial.FUENTE_ADMIN_PANEL,
+                            observacion="Reagendacion automatica por bloqueo del dia en calendario",
+                        )
+                        for item in affected
+                    ]
+                )
+
+            MantencionDiaBloqueado.objects.update_or_create(
+                fecha=target_date,
+                defaults={"bloqueado": True, "motivo": observacion},
+            )
+
+        return Response(
+            {
+                "fecha": target_date.isoformat(),
+                "bloqueado": True,
+                "bookings_reagendadas": len(affected),
+            },
+            status=status.HTTP_200_OK,
+        )
 
 
 class MantencionConsultaRutAPIView(APIView):

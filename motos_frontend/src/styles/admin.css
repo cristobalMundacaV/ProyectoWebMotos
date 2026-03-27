@@ -3242,7 +3242,7 @@
 .admin-horarios-day-btn {
   min-height: 78px;
   border-radius: 16px;
-  border: 1px solid transparent;
+  border: 1px solid #111827;
   padding: 10px 8px;
   display: grid;
   align-content: space-between;
@@ -3274,7 +3274,7 @@
 
 .admin-horarios-day-btn.inactive {
   background: #f8fafc;
-  color: #cbd5e1;
+  color: #111827;
   cursor: not-allowed;
 }
 
@@ -3373,6 +3373,10 @@
 .admin-horarios-slot-item.occupied span,
 .admin-horarios-slot-item.occupied b {
   color: #6b7280;
+}
+
+.admin-horarios-day-disable-btn {
+  min-width: 168px;
 }
 
 .admin-analytics-dashboard {

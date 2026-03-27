@@ -4,6 +4,7 @@ from rest_framework.routers import DefaultRouter
 from .views import (
     AgendarMantencionAPIView,
     MantencionCancelarAPIView,
+    MantencionBloquearDiaAPIView,
     MantencionConsultaRutAPIView,
     HorarioMantencionViewSet,
     MantencionDisponibilidadAPIView,
@@ -20,6 +21,7 @@ router.register(r"", MantencionViewSet, basename="mantenciones")
 urlpatterns = [
     path("agendar/", AgendarMantencionAPIView.as_view(), name="agendar-mantencion"),
     path("disponibilidad/", MantencionDisponibilidadAPIView.as_view(), name="mantencion-disponibilidad"),
+    path("disponibilidad/bloquear-dia/", MantencionBloquearDiaAPIView.as_view(), name="mantencion-bloquear-dia"),
     path("consulta/", MantencionConsultaRutAPIView.as_view(), name="mantencion-consulta-rut"),
     path("consulta/<int:mantencion_id>/cancelar/", MantencionCancelarAPIView.as_view(), name="mantencion-cancelar-rut"),
     path("", include(router.urls)),
