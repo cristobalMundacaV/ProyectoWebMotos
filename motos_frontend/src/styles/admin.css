@@ -1902,10 +1902,14 @@
 .admin-mantencion-cancel-btn {
   background: #dc2626;
   border-color: #b91c1c;
+  color: #ffffff !important;
+  font: inherit;
+  font-weight: 700;
 }
 
 .admin-mantencion-cancel-btn:hover {
   background: #b91c1c;
+  color: #ffffff !important;
 }
 
 .admin-mantencion-save-btn {

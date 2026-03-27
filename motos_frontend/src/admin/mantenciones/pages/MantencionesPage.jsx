@@ -184,6 +184,7 @@ export default function MantencionesPage({
   savingById,
   onAcceptSolicitud,
   onUpdateMantencion,
+  onDeleteMantencion,
   horarios = [],
   horariosLoading = false,
   horarioForm,
@@ -852,15 +853,15 @@ export default function MantencionesPage({
                   className="admin-danger-action admin-mantencion-action-btn admin-mantencion-cancel-btn"
                   disabled={saving}
                   onClick={() => {
-                    const actionLabel = solicitudAceptada ? "anular este pendiente de ingreso" : "cancelar esta hora";
+                    const actionLabel = "anular este mantenimiento";
                     const confirmed = window.confirm(
                       `Estas seguro que deseas ${actionLabel}? Esta accion no se puede deshacer.`
                     );
                     if (!confirmed) return;
-                    onUpdateMantencion(item.id, { estado: "cancelada" });
+                    onDeleteMantencion(item.id);
                   }}
                 >
-                  {saving ? "Anulando..." : solicitudAceptada ? "Anular pendiente ingreso" : "Cancelar hora"}
+                  {saving ? "Anulando..." : "Anular mantenimiento"}
                 </button>
               )}
               <button

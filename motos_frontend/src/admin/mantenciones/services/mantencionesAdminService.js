@@ -33,6 +33,10 @@ export async function updateMantencionAdmin(id, payload) {
   return response.data;
 }
 
+export async function deleteMantencionAdmin(id) {
+  await requestWithFallback("delete", `/mantenciones/${id}/`, `/mantenciones/${id}/`);
+}
+
 export async function getHorariosMantencionAdmin() {
   const response = await requestWithFallback("get", "/mantenciones/horarios/", "/mantenciones/horarios/");
   return normalizeList(response.data);

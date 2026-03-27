@@ -50,6 +50,7 @@ import ConfiguracionPage from "../admin/configuracion/pages/ConfiguracionPage";
 import MantencionesPage from "../admin/mantenciones/pages/MantencionesPage";
 import {
   createHorarioMantencionAdmin,
+  deleteMantencionAdmin,
   deleteHorarioMantencionAdmin,
   getHorariosMantencionAdmin,
   getMantencionesAdmin,
@@ -1901,6 +1902,19 @@ export default function AdminPanel() {
     });
   }
 
+  async function handleDeleteMantencion(mantencionId) {
+    setMantencionSavingById((prev) => ({ ...prev, [mantencionId]: true }));
+    try {
+      await deleteMantencionAdmin(mantencionId);
+      setMantenciones((prev) => prev.filter((item) => item.id !== mantencionId));
+      pushToast("Mantenimiento anulado correctamente.", "success");
+    } catch (error) {
+      pushToast(getErrorText(error, "No se pudo anular el mantenimiento."), "error");
+    } finally {
+      setMantencionSavingById((prev) => ({ ...prev, [mantencionId]: false }));
+    }
+  }
+
   function closeMotoEditModal(forceClose = false) {
     if (motoEditSaving && !forceClose) return;
     setMotoEditModal((prev) => {
@@ -2733,6 +2747,7 @@ export default function AdminPanel() {
             savingById={mantencionSavingById}
             onAcceptSolicitud={handleAcceptMantencionSolicitud}
             onUpdateMantencion={handleUpdateMantencion}
+            onDeleteMantencion={handleDeleteMantencion}
             horarios={horariosMantencion}
             horariosLoading={horariosMantencionLoading}
             horarioForm={horarioMantencionForm}
