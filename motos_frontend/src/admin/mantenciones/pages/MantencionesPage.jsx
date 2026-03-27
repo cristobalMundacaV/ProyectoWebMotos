@@ -12,7 +12,7 @@ const ESTADO_OPTIONS = [
 
 const SOLICITUDES_TABS = [
   { value: "por_aceptar", label: "Por Aceptar", estado: "ingresada" },
-  { value: "pendiente_ingreso", label: "Pendiente Ingreso", estado: "aceptada" },
+  { value: "aceptadas", label: "Aceptadas", estado: "aceptada" },
 ];
 
 const ESTADOS_SOLICITUD = ["ingresada", "aceptada"];
@@ -50,7 +50,7 @@ function formatDateTime(value) {
 function statusLabel(value) {
   const option = ESTADO_OPTIONS.find((item) => item.value === value);
   if (value === "ingresada") return "Por aceptar";
-  if (value === "aceptada") return "Por ingreso";
+  if (value === "aceptada") return "Aceptada";
   if (option?.label) return option.label;
   if (!value) return "-";
   const clean = String(value).replace(/[_-]+/g, " ").trim();
@@ -373,26 +373,39 @@ export default function MantencionesPage({
     setEditableFinalizadaById({});
   }, [selectedFichaId, tallerEstadoFilter]);
 
-  const solicitudesBase = useMemo(
+  const solicitudesPorAceptar = useMemo(
     () =>
       mantenciones
-        .filter((item) => ESTADOS_SOLICITUD.includes(item.estado))
+        .filter((item) => item.estado === "ingresada")
         .sort(
           (a, b) =>
-            getMantencionSortTimestamp(b) - getMantencionSortTimestamp(a) ||
-            getCreatedAtTimestamp(b) - getCreatedAtTimestamp(a) ||
-            Number(b.id || 0) - Number(a.id || 0)
+            getMantencionSortTimestamp(a) - getMantencionSortTimestamp(b) ||
+            getCreatedAtTimestamp(a) - getCreatedAtTimestamp(b) ||
+            Number(a.id || 0) - Number(b.id || 0)
+        ),
+    [mantenciones]
+  );
+
+  const solicitudesAceptadas = useMemo(
+    () =>
+      mantenciones
+        .filter((item) => item.estado === "aceptada")
+        .sort(
+          (a, b) =>
+            getMantencionSortTimestamp(a) - getMantencionSortTimestamp(b) ||
+            getCreatedAtTimestamp(a) - getCreatedAtTimestamp(b) ||
+            Number(a.id || 0) - Number(b.id || 0)
         ),
     [mantenciones]
   );
 
   const solicitudes = useMemo(() => {
-    const selectedTab = SOLICITUDES_TABS.find((tab) => tab.value === solicitudesTab) || SOLICITUDES_TABS[0];
-    return solicitudesBase.filter((item) => item.estado === selectedTab.estado);
-  }, [solicitudesBase, solicitudesTab]);
+    if (solicitudesTab === "aceptadas") return solicitudesAceptadas;
+    return solicitudesPorAceptar;
+  }, [solicitudesAceptadas, solicitudesPorAceptar, solicitudesTab]);
 
   const solicitudesEmptyText = useMemo(() => {
-    if (solicitudesTab === "pendiente_ingreso") return "No hay solicitudes pendientes de ingreso.";
+    if (solicitudesTab === "aceptadas") return "No hay solicitudes aceptadas.";
     return "No hay solicitudes por aceptar.";
   }, [solicitudesTab]);
 
@@ -891,18 +904,16 @@ export default function MantencionesPage({
                   {saving ? "Anulando..." : cancelActionLabel}
                 </button>
               )}
-              <button
-                type="button"
-                className="admin-primary-action admin-mantencion-action-btn admin-mantencion-accept-btn"
-                disabled={saving}
-                onClick={() =>
-                  solicitudAceptada
-                    ? onUpdateMantencion(item.id, { estado: "en_revision" })
-                    : onAcceptSolicitud(item.id)
-                }
-              >
-                {saving ? (solicitudAceptada ? "Ingresando..." : "Aceptando...") : solicitudAceptada ? "Ingresar a taller" : "Aceptar hora"}
-              </button>
+              {!solicitudAceptada && (
+                <button
+                  type="button"
+                  className="admin-primary-action admin-mantencion-action-btn admin-mantencion-accept-btn"
+                  disabled={saving}
+                  onClick={() => onAcceptSolicitud(item.id)}
+                >
+                  {saving ? "Aceptando..." : "Aceptar hora"}
+                </button>
+              )}
             </div>
           </div>
         ) : (

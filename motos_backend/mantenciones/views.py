@@ -1,3 +1,7 @@
+from datetime import datetime, time
+
+from django.db import transaction
+from django.utils import timezone
 from rest_framework import status, viewsets
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
@@ -27,7 +31,52 @@ class HorarioMantencionViewSet(viewsets.ModelViewSet):
 class MantencionViewSet(viewsets.ModelViewSet):
     serializer_class = MantencionSerializer
 
+    def _scheduled_datetime(self, mantencion: Mantencion):
+        if not mantencion.fecha_ingreso:
+            return None
+        hora_ingreso = mantencion.hora_ingreso or time(23, 59, 59)
+        scheduled_at = datetime.combine(mantencion.fecha_ingreso, hora_ingreso)
+        if timezone.is_naive(scheduled_at):
+            scheduled_at = timezone.make_aware(scheduled_at, timezone.get_current_timezone())
+        return scheduled_at
+
+    def _mark_expired_unaccepted_requests(self):
+        now = timezone.localtime()
+        pendientes = Mantencion.objects.filter(estado=Mantencion.ESTADO_INGRESADA).only(
+            "id", "fecha_ingreso", "hora_ingreso", "estado", "updated_at"
+        )
+
+        to_update = []
+        to_history = []
+        for mantencion in pendientes:
+            scheduled_at = self._scheduled_datetime(mantencion)
+            if not scheduled_at or scheduled_at >= now:
+                continue
+
+            estado_anterior = mantencion.estado
+            mantencion.estado = Mantencion.ESTADO_NO_ASISTIO
+            mantencion.updated_at = timezone.now()
+            to_update.append(mantencion)
+            to_history.append(
+                MantencionEstadoHistorial(
+                    mantencion=mantencion,
+                    estado_anterior=estado_anterior,
+                    estado_nuevo=Mantencion.ESTADO_NO_ASISTIO,
+                    changed_by=None,
+                    fuente=MantencionEstadoHistorial.FUENTE_API,
+                    observacion="Solicitud no aceptada antes de la hora agendada",
+                )
+            )
+
+        if not to_update:
+            return
+
+        with transaction.atomic():
+            Mantencion.objects.bulk_update(to_update, ["estado", "updated_at"])
+            MantencionEstadoHistorial.objects.bulk_create(to_history)
+
     def get_queryset(self):
+        self._mark_expired_unaccepted_requests()
         return (
             Mantencion.objects.select_related("moto_cliente", "moto_cliente__cliente")
             .all()

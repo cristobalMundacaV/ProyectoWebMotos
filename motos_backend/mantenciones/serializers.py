@@ -3,6 +3,7 @@ from django.db import transaction
 from django.utils import timezone
 from rest_framework import serializers
 import logging
+from datetime import datetime, time
 
 from clientes.models import PerfilUsuario
 from .availability import slot_disponible
@@ -115,6 +116,23 @@ class MantencionSerializer(serializers.ModelSerializer):
         previous_estado = instance.estado
         next_estado = validated_data.get("estado", instance.estado)
         entrando_a_revision = instance.estado != Mantencion.ESTADO_EN_REVISION and next_estado == Mantencion.ESTADO_EN_REVISION
+        aceptando_solicitud = instance.estado != Mantencion.ESTADO_ACEPTADA and next_estado == Mantencion.ESTADO_ACEPTADA
+
+        if aceptando_solicitud:
+            if instance.estado != Mantencion.ESTADO_INGRESADA:
+                raise serializers.ValidationError(
+                    {"estado": "Solo se pueden aceptar solicitudes que esten en estado Ingresada."}
+                )
+
+            hora_ingreso = instance.hora_ingreso or time(23, 59, 59)
+            scheduled_at = datetime.combine(instance.fecha_ingreso, hora_ingreso)
+            if timezone.is_naive(scheduled_at):
+                scheduled_at = timezone.make_aware(scheduled_at, timezone.get_current_timezone())
+
+            if scheduled_at < timezone.localtime():
+                raise serializers.ValidationError(
+                    {"estado": "No se puede aceptar una solicitud cuya fecha/hora ya vencio."}
+                )
 
         if entrando_a_revision and "hora_ingreso" not in validated_data:
             validated_data["hora_ingreso"] = timezone.localtime().time().replace(microsecond=0)
