@@ -1,5 +1,4 @@
 from django.utils.text import slugify
-from django.db import IntegrityError, transaction
 from rest_framework import serializers
 
 from catalogo.models import CategoriaMoto, Marca
@@ -156,7 +155,7 @@ class MotoSerializer(serializers.ModelSerializer):
         return marca
 
     def validate(self, attrs):
-        modelo_moto = attrs.get("modelo_moto")
+        modelo_moto = attrs.get("modelo_moto", getattr(self.instance, "modelo_moto", None))
         marca = attrs.get("marca") or getattr(self.instance, "marca", None)
         modelo = (attrs.get("modelo") or "").strip()
         permite_variante_maletas = attrs.get(
@@ -184,8 +183,10 @@ class MotoSerializer(serializers.ModelSerializer):
         if modelo_moto and marca and modelo_moto.marca_id != marca.id:
             raise serializers.ValidationError({"modelo_id": "El modelo seleccionado no pertenece a la marca indicada."})
 
-        if not modelo_moto and not modelo:
-            raise serializers.ValidationError({"modelo_id": "Debes seleccionar un modelo o ingresar un nombre de modelo."})
+        if not modelo_moto:
+            raise serializers.ValidationError(
+                {"modelo_id": "Debes seleccionar un modelo existente desde la lista de modelos."}
+            )
 
         # En edicion de moto no se debe crear un modelo nuevo por error de tipeo.
         # El cambio de nombre/categoria/cilindrada del modelo debe gestionarse desde el mantenedor de modelos.
@@ -218,61 +219,10 @@ class MotoSerializer(serializers.ModelSerializer):
 
         return attrs
 
-    def _build_unique_modelo_slug(self, nombre_modelo, marca_id):
-        base_slug = slugify(nombre_modelo) or f"modelo-{marca_id}"
-        candidate = base_slug
-        counter = 2
-        while ModeloMoto.objects.filter(slug=candidate).exists():
-            candidate = f"{base_slug}-{counter}"
-            counter += 1
-        return candidate
-
-    def _ensure_modelo_moto(self, validated_data):
-        modelo_moto = validated_data.get("modelo_moto")
-        if modelo_moto:
-            return modelo_moto
-
-        marca = validated_data.get("marca") or getattr(self.instance, "marca", None)
-        modelo_text = (validated_data.get("modelo") or "").strip()
-        if not marca or not modelo_text:
-            return None
-
-        legacy_categoria = validated_data.pop("_legacy_categoria", None)
-        legacy_cilindrada = validated_data.pop("_legacy_cilindrada", None)
-
-        try:
-            with transaction.atomic():
-                modelo_moto, _ = ModeloMoto.objects.get_or_create(
-                    marca=marca,
-                    nombre_modelo=modelo_text,
-                    defaults={
-                        "slug": self._build_unique_modelo_slug(modelo_text, marca.id),
-                        "activo": True,
-                        "categoria": legacy_categoria,
-                        "cilindrada": legacy_cilindrada,
-                    },
-                )
-        except IntegrityError:
-            # Condicion de carrera: otro request creo el modelo en paralelo.
-            modelo_moto = ModeloMoto.objects.get(marca=marca, nombre_modelo=modelo_text)
-
-        update_fields = []
-        if legacy_categoria and modelo_moto.categoria_id is None:
-            modelo_moto.categoria = legacy_categoria
-            update_fields.append("categoria")
-        if legacy_cilindrada is not None and modelo_moto.cilindrada is None:
-            modelo_moto.cilindrada = legacy_cilindrada
-            update_fields.append("cilindrada")
-        if update_fields:
-            modelo_moto.save(update_fields=update_fields)
-
-        validated_data["modelo_moto"] = modelo_moto
-        return modelo_moto
-
     def create(self, validated_data):
         validated_data.pop("_legacy_categoria", None)
         validated_data.pop("_legacy_cilindrada", None)
-        modelo_moto = self._ensure_modelo_moto(validated_data)
+        modelo_moto = validated_data.get("modelo_moto")
         if modelo_moto:
             validated_data["modelo"] = modelo_moto.nombre_modelo
         moto = super().create(validated_data)
@@ -282,7 +232,7 @@ class MotoSerializer(serializers.ModelSerializer):
     def update(self, instance, validated_data):
         validated_data.pop("_legacy_categoria", None)
         validated_data.pop("_legacy_cilindrada", None)
-        modelo_moto = self._ensure_modelo_moto(validated_data)
+        modelo_moto = validated_data.get("modelo_moto", getattr(instance, "modelo_moto", None))
         if modelo_moto:
             validated_data["modelo"] = modelo_moto.nombre_modelo
         return super().update(instance, validated_data)

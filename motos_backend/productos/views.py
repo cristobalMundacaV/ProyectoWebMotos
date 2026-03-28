@@ -2,6 +2,7 @@ from rest_framework import status
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
+from django.db import IntegrityError, transaction
 from django.db.models import Q
 import re
 
@@ -69,6 +70,12 @@ def _filter_marcas_por_tipo(queryset, tipo):
 		return queryset.filter(tipo=Marca.TIPO_ACCESORIO_RIDER).distinct()
 
 	return queryset
+
+
+def _is_falsey(value):
+	if isinstance(value, bool):
+		return value is False
+	return str(value or "").strip().lower() in {"false", "0", "off", "no", ""}
 
 
 def _apply_tipo_filter(queryset, tipo):
@@ -187,17 +194,23 @@ def admin_accesorios_motos(request):
 		return Response(serializer.data)
 
 	payload = request.data.copy()
-	if payload.get("requiere_compatibilidad") in ["false", "False", "0", "off", "no", ""]:
+	if _is_falsey(payload.get("requiere_compatibilidad")):
 		payload.setlist("compatibilidad_motos", [])
 
 	serializer = ProductoAccesorioAdminSerializer(data=payload)
 	serializer.is_valid(raise_exception=True)
-	producto = create_producto_with_relations(
-		serializer=serializer,
-		gallery_files=request.FILES.getlist("imagenes"),
-		actor=request.user,
-		metadata=_request_meta(request),
-	)
+	try:
+		producto = create_producto_with_relations(
+			serializer=serializer,
+			gallery_files=request.FILES.getlist("imagenes"),
+			actor=request.user,
+			metadata=_request_meta(request),
+		)
+	except IntegrityError:
+		return Response(
+			{"detail": "No se pudo crear el producto. Verifica nombre unico y compatibilidades."},
+			status=status.HTTP_400_BAD_REQUEST,
+		)
 
 	response_serializer = ProductoSerializer(producto)
 	return Response(response_serializer.data, status=status.HTTP_201_CREATED)
@@ -248,12 +261,18 @@ def admin_accesorios_rider(request):
 
 	serializer = ProductoAccesorioRiderAdminSerializer(data=request.data)
 	serializer.is_valid(raise_exception=True)
-	producto = create_producto_with_relations(
-		serializer=serializer,
-		gallery_files=request.FILES.getlist("imagenes"),
-		actor=request.user,
-		metadata=_request_meta(request),
-	)
+	try:
+		producto = create_producto_with_relations(
+			serializer=serializer,
+			gallery_files=request.FILES.getlist("imagenes"),
+			actor=request.user,
+			metadata=_request_meta(request),
+		)
+	except IntegrityError:
+		return Response(
+			{"detail": "No se pudo crear el producto. Verifica nombre unico y datos obligatorios."},
+			status=status.HTTP_400_BAD_REQUEST,
+		)
 
 	response_serializer = ProductoSerializer(producto)
 	return Response(response_serializer.data, status=status.HTTP_201_CREATED)
@@ -267,17 +286,18 @@ def admin_producto_detalle(request, producto_id):
 		return Response({"detail": "Producto no encontrado."}, status=status.HTTP_404_NOT_FOUND)
 
 	if request.method == "DELETE":
-		before = serialize_instance_for_audit(producto)
-		producto.delete()
-		create_audit_log(
-			action="delete",
-			entity="productos.Producto",
-			entity_id=producto_id,
-			before=before,
-			after=None,
-			actor=request.user,
-			metadata=_request_meta(request),
-		)
+		with transaction.atomic():
+			before = serialize_instance_for_audit(producto)
+			producto.delete()
+			create_audit_log(
+				action="delete",
+				entity="productos.Producto",
+				entity_id=producto_id,
+				before=before,
+				after=None,
+				actor=request.user,
+				metadata=_request_meta(request),
+			)
 		return Response(status=status.HTTP_204_NO_CONTENT)
 
 	serializer = ProductoAdminUpdateSerializer(producto, data=request.data, partial=True)
@@ -290,20 +310,26 @@ def admin_producto_detalle(request, producto_id):
 		raw_delete_ids.append(request.data.get("imagenes_eliminar"))
 
 	image_ids_to_delete = _parse_image_ids(raw_delete_ids)
-	compatibilidad_motos = None
-	if "compatibilidad_motos" in request.data:
+	compatibilidad_motos = serializer.validated_data.get("compatibilidad_motos", None)
+	if compatibilidad_motos is None and "compatibilidad_motos" in request.data:
 		compatibilidad_motos = _parse_compatibilidad_motos(request.data)
-	if request.data.get("requiere_compatibilidad") in ["false", "False", "0", "off", "no", ""]:
+	if _is_falsey(request.data.get("requiere_compatibilidad")):
 		compatibilidad_motos = []
 
-	producto = update_producto_with_relations(
-		serializer=serializer,
-		gallery_files=request.FILES.getlist("imagenes"),
-		image_ids_to_delete=image_ids_to_delete,
-		compatibilidad_motos=compatibilidad_motos,
-		actor=request.user,
-		metadata=_request_meta(request),
-	)
+	try:
+		producto = update_producto_with_relations(
+			serializer=serializer,
+			gallery_files=request.FILES.getlist("imagenes"),
+			image_ids_to_delete=image_ids_to_delete,
+			compatibilidad_motos=compatibilidad_motos,
+			actor=request.user,
+			metadata=_request_meta(request),
+		)
+	except IntegrityError:
+		return Response(
+			{"detail": "No se pudo actualizar el producto. Verifica nombre unico y compatibilidades."},
+			status=status.HTTP_400_BAD_REQUEST,
+		)
 
 	response_serializer = ProductoSerializer(producto)
 	return Response(response_serializer.data)

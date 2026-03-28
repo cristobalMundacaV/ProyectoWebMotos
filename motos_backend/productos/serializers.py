@@ -2,6 +2,7 @@ from rest_framework import serializers
 import re
 
 from catalogo.models import Marca
+from motos.models import Moto
 
 from .models import CompatibilidadProductoMoto, ImagenProducto, Producto
 
@@ -136,6 +137,15 @@ class ProductoAccesorioAdminSerializer(serializers.ModelSerializer):
                 {"compatibilidad_motos": ["Selecciona al menos una moto compatible."]}
             )
 
+        if moto_ids:
+            unique_ids = sorted(set(int(moto_id) for moto_id in moto_ids))
+            existing_ids = set(Moto.objects.filter(id__in=unique_ids).values_list("id", flat=True))
+            missing_ids = [moto_id for moto_id in unique_ids if moto_id not in existing_ids]
+            if missing_ids:
+                raise serializers.ValidationError(
+                    {"compatibilidad_motos": [f"Hay motos no validas en la compatibilidad: {missing_ids}."]}
+                )
+
         if "nombre" in attrs:
             attrs["nombre"] = force_brand_token_in_name(attrs.get("nombre"), marca)
 
@@ -209,6 +219,12 @@ class ProductoAccesorioRiderAdminSerializer(serializers.ModelSerializer):
 
 
 class ProductoAdminUpdateSerializer(serializers.ModelSerializer):
+    compatibilidad_motos = serializers.ListField(
+        child=serializers.IntegerField(min_value=1),
+        required=False,
+        write_only=True,
+    )
+
     class Meta:
         model = Producto
         fields = [
@@ -222,6 +238,8 @@ class ProductoAdminUpdateSerializer(serializers.ModelSerializer):
             "es_destacado",
             "orden_carrusel",
             "activo",
+            "requiere_compatibilidad",
+            "compatibilidad_motos",
         ]
         extra_kwargs = {
             "marca": {"required": False, "allow_null": False},
@@ -245,6 +263,11 @@ class ProductoAdminUpdateSerializer(serializers.ModelSerializer):
     def validate(self, attrs):
         marca = attrs.get("marca") or getattr(self.instance, "marca", None)
         subcategoria = attrs.get("subcategoria") or getattr(self.instance, "subcategoria", None)
+        requiere_compatibilidad = attrs.get(
+            "requiere_compatibilidad",
+            getattr(self.instance, "requiere_compatibilidad", False),
+        )
+        compatibilidad_motos = attrs.get("compatibilidad_motos", None)
 
         categoria_slug = getattr(getattr(subcategoria, "categoria", None), "slug", "")
         if categoria_slug in ["accesorios-para-la-moto", "accesorios"]:
@@ -253,6 +276,26 @@ class ProductoAdminUpdateSerializer(serializers.ModelSerializer):
         else:
             if marca and marca.tipo != Marca.TIPO_ACCESORIO_RIDER:
                 raise serializers.ValidationError({"marca": "La marca seleccionada no pertenece a Indumentaria Rider."})
+            # En Rider no aplica compatibilidad por modelo.
+            attrs["requiere_compatibilidad"] = False
+            if compatibilidad_motos not in (None, [], ()):
+                raise serializers.ValidationError(
+                    {"compatibilidad_motos": "La compatibilidad por moto solo aplica a Accesorios Motos."}
+                )
+
+        if categoria_slug in ["accesorios-para-la-moto", "accesorios"]:
+            if requiere_compatibilidad and compatibilidad_motos is not None and len(compatibilidad_motos) == 0:
+                raise serializers.ValidationError(
+                    {"compatibilidad_motos": "Selecciona al menos una moto compatible o desactiva compatibilidad."}
+                )
+            if compatibilidad_motos:
+                unique_ids = sorted(set(int(moto_id) for moto_id in compatibilidad_motos))
+                existing_ids = set(Moto.objects.filter(id__in=unique_ids).values_list("id", flat=True))
+                missing_ids = [moto_id for moto_id in unique_ids if moto_id not in existing_ids]
+                if missing_ids:
+                    raise serializers.ValidationError(
+                        {"compatibilidad_motos": [f"Hay motos no validas en la compatibilidad: {missing_ids}."]}
+                    )
 
         if "nombre" in attrs:
             attrs["nombre"] = force_brand_token_in_name(attrs.get("nombre"), marca)

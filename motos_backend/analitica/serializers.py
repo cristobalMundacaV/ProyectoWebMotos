@@ -27,3 +27,24 @@ class CatalogoEventoCreateSerializer(serializers.ModelSerializer):
         attrs["entidad_nombre"] = (attrs.get("entidad_nombre") or "").strip()
         attrs["entidad_slug"] = (attrs.get("entidad_slug") or "").strip().lower()
         return attrs
+
+
+class KpiMetaSerializer(serializers.Serializer):
+    name = serializers.CharField()
+    type = serializers.CharField()
+    time_mode = serializers.CharField()
+    window = serializers.DictField(child=serializers.CharField())
+    comparison_window = serializers.DictField(child=serializers.CharField(), required=False, allow_null=True)
+    sample_size = serializers.IntegerField()
+    granularity = serializers.CharField()
+    fallback_policy = serializers.CharField()
+    decision_support = serializers.CharField()
+
+
+class KpiContractSerializer(serializers.Serializer):
+    kpi_key = serializers.CharField()
+    value = serializers.JSONField(allow_null=True)
+    display = serializers.CharField(allow_null=True, required=False)
+    meta = KpiMetaSerializer()
+    quality_flags = serializers.ListField(child=serializers.CharField(), allow_empty=True)
+    empty_reason = serializers.CharField(allow_null=True, required=False)
