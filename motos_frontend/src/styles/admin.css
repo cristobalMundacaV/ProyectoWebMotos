@@ -4670,6 +4670,18 @@
   padding: 20px;
 }
 
+.admin-analytics-chart-card--fill {
+  display: flex;
+  flex-direction: column;
+}
+
+.admin-analytics-chart-card--fill .admin-analytics-bars {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  justify-content: space-evenly;
+}
+
 .admin-card-header h2 {
   font-size: 1.02rem;
 }

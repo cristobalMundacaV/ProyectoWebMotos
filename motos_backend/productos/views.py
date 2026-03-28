@@ -2,6 +2,7 @@ from rest_framework import status
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
+from django.db.models import Q
 import re
 
 from catalogo.models import Marca, SubcategoriaProducto
@@ -93,7 +94,12 @@ def lista_productos(request):
 	productos = _apply_tipo_filter(productos, tipo)
 
 	if moto_slug:
-		productos = productos.filter(compatibilidades__moto__slug=moto_slug)
+		if moto_slug == "universal":
+			productos = productos.filter(
+				Q(requiere_compatibilidad=False) | Q(compatibilidades__isnull=True)
+			)
+		else:
+			productos = productos.filter(compatibilidades__moto__slug=moto_slug)
 
 	if order == "precio-asc":
 		productos = productos.order_by("precio")
@@ -126,8 +132,13 @@ def categorias_producto(request):
 @api_view(["GET"])
 @permission_classes([AllowAny])
 def motos_compatibles(request):
-	motos = Moto.objects.filter(activa=True).order_by("modelo").values("id", "slug", "modelo")
-	return Response(list(motos))
+	motos = list(Moto.objects.filter(activa=True).order_by("modelo").values("id", "slug", "modelo"))
+	return Response(
+		[
+			{"id": 0, "slug": "universal", "modelo": "Universal"},
+			*motos,
+		]
+	)
 
 
 @api_view(["GET"])

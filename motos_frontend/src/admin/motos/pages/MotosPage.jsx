@@ -46,7 +46,9 @@ export default function MotosPage({
   const MODELOS_PAGE_SIZE = 6;
   const RECENT_MOTOS_PAGE_SIZE = 7;
   const currentYear = new Date().getFullYear();
-  const MIN_MOTO_YEAR = 1990;
+  // Limitamos el selector a los ultimos anos para evitar un desplegable excesivamente largo.
+  const MOTO_YEAR_RANGE = 18;
+  const MIN_MOTO_YEAR = currentYear - MOTO_YEAR_RANGE;
   const motoYearOptions = Array.from(
     { length: currentYear - MIN_MOTO_YEAR + 1 },
     (_, index) => String(currentYear - index)

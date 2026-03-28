@@ -166,6 +166,12 @@
   text-transform: uppercase;
 }
 
+.mantencion-form select[name="anio"]:focus {
+  border-color: #d1d5db;
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(15, 23, 42, 0.08);
+}
+
 .mantencion-submit-btn {
   border: none;
   border-radius: 10px;

@@ -9,7 +9,13 @@ from datetime import datetime, time
 from clientes.models import PerfilUsuario
 from .availability import slot_disponible
 from .models import HorarioMantencion, Mantencion, MantencionEstadoHistorial, VehiculoCliente
-from .notifications import send_mantencion_confirmation_email
+from .notifications import (
+    get_recipient_email,
+    send_mantencion_approved_email,
+    send_mantencion_canceled_email,
+    send_mantencion_confirmation_email,
+    send_mantencion_finalized_email,
+)
 
 
 logger = logging.getLogger(__name__)
@@ -165,6 +171,26 @@ class MantencionSerializer(serializers.ModelSerializer):
                     changed_by=changed_by,
                     fuente=source,
                 )
+
+            if estado_cambia:
+                recipient_email = get_recipient_email(locked)
+                if recipient_email:
+                    def _send_estado_email():
+                        try:
+                            if locked.estado == Mantencion.ESTADO_APROBADO:
+                                send_mantencion_approved_email(mantencion=locked, recipient_email=recipient_email)
+                            elif locked.estado == Mantencion.ESTADO_CANCELADO:
+                                send_mantencion_canceled_email(mantencion=locked, recipient_email=recipient_email)
+                            elif locked.estado == Mantencion.ESTADO_FINALIZADO:
+                                send_mantencion_finalized_email(mantencion=locked, recipient_email=recipient_email)
+                        except Exception:
+                            logger.exception(
+                                "Error enviando correo de cambio de estado para mantencion_id=%s estado=%s",
+                                locked.id,
+                                locked.estado,
+                            )
+
+                    transaction.on_commit(_send_estado_email)
 
             return locked
 
@@ -422,9 +448,7 @@ class AgendarMantencionSerializer(serializers.Serializer):
                 observacion="Creacion de solicitud de mantencion",
             )
 
-            cliente_nombre = f"{validated_data['nombres']} {validated_data['apellidos']}".strip()
             recipient_email = validated_data["email"]
-            nombre_final = cliente_nombre or "cliente"
 
             # El agendamiento no debe fallar si el servicio de correo tiene problemas.
             # Enviamos el email al confirmar la transaccion y registramos cualquier error.
@@ -433,7 +457,6 @@ class AgendarMantencionSerializer(serializers.Serializer):
                     send_mantencion_confirmation_email(
                         mantencion=mantencion,
                         recipient_email=recipient_email,
-                        cliente_nombre=nombre_final,
                     )
                 except Exception:
                     logger.exception(

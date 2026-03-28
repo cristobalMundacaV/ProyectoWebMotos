@@ -276,6 +276,7 @@ export default function ResumenPage() {
           title="Top 5 modelos de moto mas vistos"
           subtitle="Ranking de interes del periodo"
           items={topMotos}
+          stretch
           loading={loading}
         />
         <BarChartCard

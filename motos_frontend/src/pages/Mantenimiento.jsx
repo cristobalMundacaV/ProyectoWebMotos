@@ -24,7 +24,6 @@ const TIPO_MANTENCION_OPTIONS = [
 const WEEK_DAYS = ["Lun", "Mar", "Mie", "Jue", "Vie", "Sab", "Dom"];
 const CURRENT_YEAR = new Date().getFullYear();
 const MIN_MOTO_YEAR = 1980;
-const YEAR_SELECT_VISIBLE_OPTIONS = 8;
 const YEAR_OPTIONS = Array.from({ length: CURRENT_YEAR - MIN_MOTO_YEAR + 1 }, (_, index) => String(CURRENT_YEAR - index));
 
 function getInitialForm() {
@@ -117,18 +116,6 @@ function toIsoDate(date) {
 
 function addMonths(date, delta) {
   return new Date(date.getFullYear(), date.getMonth() + delta, 1);
-}
-
-function expandYearSelect(event) {
-  const select = event.currentTarget;
-  if (!select) return;
-  select.size = Math.min(YEAR_SELECT_VISIBLE_OPTIONS, YEAR_OPTIONS.length + 1);
-}
-
-function collapseYearSelect(event) {
-  const select = event.currentTarget;
-  if (!select) return;
-  select.size = 1;
 }
 
 export default function Mantenimiento() {
@@ -481,13 +468,7 @@ export default function Mantenimiento() {
                 <select
                   name="anio"
                   value={form.anio}
-                  onChange={(event) => {
-                    handleChange(event);
-                    collapseYearSelect(event);
-                  }}
-                  onFocus={expandYearSelect}
-                  onBlur={collapseYearSelect}
-                  size={1}
+                  onChange={handleChange}
                   required
                 >
                   <option value="">{`Selecciona A\u00F1o`}</option>

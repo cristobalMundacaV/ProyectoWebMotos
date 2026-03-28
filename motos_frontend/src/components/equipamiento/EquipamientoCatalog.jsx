@@ -90,19 +90,32 @@ export default function EquipamientoCatalog({ variant = "accesorios" }) {
         const [categoriasRes, motosRes, metaRes] = await Promise.all([
           getCategoriasProducto({ tipo: tipoApi }),
           showModeloCompatible ? getMotosCompatibles({ tipo: tipoApi }) : Promise.resolve([]),
-          tipoApi === "accesorios" ? getAccesoriosMotosMeta() : getAccesoriosRiderMeta(),
+          isAdmin
+            ? tipoApi === "accesorios"
+              ? getAccesoriosMotosMeta()
+              : getAccesoriosRiderMeta()
+            : Promise.resolve({ subcategorias: [], marcas: [] }),
         ]);
 
         if (!isMounted) return;
         setCategorias(categoriasRes);
-        setMotosCompatibles(motosRes);
+        const motosList = Array.isArray(motosRes) ? motosRes : [];
+        setMotosCompatibles(
+          showModeloCompatible
+            ? motosList.some((moto) => moto?.slug === "universal")
+              ? motosList
+              : [{ id: 0, slug: "universal", modelo: "Universal" }, ...motosList]
+            : motosList
+        );
         setEditOptions({
           subcategorias: Array.isArray(metaRes?.subcategorias) ? metaRes.subcategorias : [],
           marcas: Array.isArray(metaRes?.marcas) ? metaRes.marcas : [],
         });
       } catch {
         if (!isMounted) return;
-        setError("No se pudieron cargar los filtros");
+        setCategorias([]);
+        setMotosCompatibles(showModeloCompatible ? [{ id: 0, slug: "universal", modelo: "Universal" }] : []);
+        setEditOptions({ subcategorias: [], marcas: [] });
       }
     }
 
@@ -111,7 +124,7 @@ export default function EquipamientoCatalog({ variant = "accesorios" }) {
     return () => {
       isMounted = false;
     };
-  }, [showModeloCompatible, tipoApi]);
+  }, [showModeloCompatible, tipoApi, isAdmin]);
 
   useEffect(() => {
     let isMounted = true;

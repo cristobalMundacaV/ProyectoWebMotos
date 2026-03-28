@@ -162,6 +162,7 @@ class Mantencion(models.Model):
         verbose_name="estado",
     )
     fecha_entrega = models.DateField(null=True, blank=True, verbose_name="fecha de entrega")
+    reminder_sent_at = models.DateTimeField(null=True, blank=True, verbose_name="recordatorio enviado")
     observaciones = models.TextField(blank=True, verbose_name="observaciones")
     created_at = models.DateTimeField(auto_now_add=True, verbose_name="creado")
     updated_at = models.DateTimeField(auto_now=True, verbose_name="actualizado")

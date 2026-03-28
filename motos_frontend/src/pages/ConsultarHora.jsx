@@ -107,7 +107,6 @@ function buildVisiblePages(currentPage, totalPages) {
 export default function ConsultarHora() {
   const [consultaRut, setConsultaRut] = useState("");
   const [consultaLoading, setConsultaLoading] = useState(false);
-  const [consultaError, setConsultaError] = useState("");
   const [toast, setToast] = useState({ type: "", message: "" });
   const [consultaResultados, setConsultaResultados] = useState([]);
   const [consultaCurrentPage, setConsultaCurrentPage] = useState(1);
@@ -153,14 +152,13 @@ export default function ConsultarHora() {
 
     const normalizedRut = normalizeRut(consultaRut);
     if (!normalizedRut || !isValidRut(normalizedRut)) {
-      setConsultaError("Ingresa un RUT valido para consultar (ejemplo: 12345678-5).");
+      setToast({ type: "error", message: "Ingresa un RUT valido para consultar (ejemplo: 12345678-5)." });
       setConsultaResultados([]);
       setConsultaCurrentPage(1);
       return;
     }
 
     setConsultaLoading(true);
-    setConsultaError("");
     setToast({ type: "", message: "" });
 
     try {
@@ -170,12 +168,15 @@ export default function ConsultarHora() {
       setConsultaResultados(results);
       setConsultaCurrentPage(1);
       if (results.length === 0) {
-        setConsultaError("No encontramos horas pendientes asociadas a ese RUT.");
+        setToast({ type: "error", message: "No se han encontrado horas asociadas a este RUT." });
       }
-    } catch {
+    } catch (error) {
       setConsultaResultados([]);
       setConsultaCurrentPage(1);
-      setConsultaError("No pudimos consultar el estado de tus horas. Intenta nuevamente.");
+      setToast({
+        type: "error",
+        message: getErrorText(error, "No pudimos consultar el estado de tus horas. Intenta nuevamente."),
+      });
     } finally {
       setConsultaLoading(false);
     }
@@ -197,11 +198,10 @@ export default function ConsultarHora() {
 
     const normalizedRut = normalizeRut(consultaRut || item.rut_cliente);
     if (!normalizedRut || !isValidRut(normalizedRut)) {
-      setConsultaError("No pudimos validar el RUT para cancelar la hora.");
+      setToast({ type: "error", message: "No pudimos validar el RUT para cancelar la hora." });
       return;
     }
 
-    setConsultaError("");
     setToast({ type: "", message: "" });
     setCancelandoById((prev) => ({ ...prev, [item.id]: true }));
 
@@ -211,7 +211,7 @@ export default function ConsultarHora() {
       setToast({ type: "success", message: response?.detail || "Tu hora fue cancelada correctamente." });
       setCancelModalItem(null);
     } catch (error) {
-      setConsultaError(getErrorText(error, "No pudimos cancelar la hora. Intenta nuevamente."));
+      setToast({ type: "error", message: getErrorText(error, "No pudimos cancelar la hora. Intenta nuevamente.") });
     } finally {
       setCancelandoById((prev) => ({ ...prev, [item.id]: false }));
     }
@@ -266,8 +266,6 @@ export default function ConsultarHora() {
                 {consultaLoading ? "Consultando..." : "Consultar estado"}
               </button>
             </form>
-
-            {consultaError && <p className="mantencion-consulta-error">{consultaError}</p>}
 
             {consultaResultados.length > 0 && (
               <div className="mantencion-consulta-list">

@@ -1,4 +1,5 @@
 from datetime import date, datetime
+import logging
 
 from django.db import transaction
 from rest_framework import status, viewsets
@@ -18,6 +19,11 @@ from .models import (
     VehiculoCliente,
 )
 from .permissions import IsOperationalStaff
+from .notifications import (
+    get_recipient_email,
+    send_mantencion_canceled_email,
+    send_mantencion_reagendacion_email,
+)
 from .serializers import (
     AgendarMantencionSerializer,
     ConsultarMantencionPorRutSerializer,
@@ -25,6 +31,9 @@ from .serializers import (
     MantencionSerializer,
     VehiculoClienteSerializer,
 )
+
+
+logger = logging.getLogger(__name__)
 
 
 class VehiculoClienteViewSet(viewsets.ModelViewSet):
@@ -129,11 +138,36 @@ class MantencionBloquearDiaAPIView(APIView):
                         for item in affected
                     ]
                 )
+                affected_for_email = list(
+                    Mantencion.objects.select_related("moto_cliente", "moto_cliente__cliente")
+                    .filter(id__in=mantencion_ids)
+                )
+            else:
+                affected_for_email = []
 
             MantencionDiaBloqueado.objects.update_or_create(
                 fecha=target_date,
                 defaults={"bloqueado": True, "motivo": observacion},
             )
+
+            if affected_for_email:
+                def _send_reagendacion_notifications():
+                    for mantencion in affected_for_email:
+                        recipient_email = get_recipient_email(mantencion)
+                        if not recipient_email:
+                            continue
+                        try:
+                            send_mantencion_reagendacion_email(
+                                mantencion=mantencion,
+                                recipient_email=recipient_email,
+                            )
+                        except Exception:
+                            logger.exception(
+                                "Error enviando correo de reagendacion por bloqueo de dia para mantencion_id=%s",
+                                mantencion.id,
+                            )
+
+                transaction.on_commit(_send_reagendacion_notifications)
 
         return Response(
             {
@@ -275,12 +309,37 @@ class MantencionToggleHoraAPIView(APIView):
                             for item in affected
                         ]
                     )
+                    affected_for_email = list(
+                        Mantencion.objects.select_related("moto_cliente", "moto_cliente__cliente")
+                        .filter(id__in=mantencion_ids)
+                    )
+                else:
+                    affected_for_email = []
 
                 MantencionHoraBloqueada.objects.update_or_create(
                     fecha=target_date,
                     hora=target_hora,
                     defaults={"bloqueado": True, "motivo": "Hora desactivada desde calendario"},
                 )
+
+                if affected_for_email:
+                    def _send_reagendacion_notifications():
+                        for mantencion in affected_for_email:
+                            recipient_email = get_recipient_email(mantencion)
+                            if not recipient_email:
+                                continue
+                            try:
+                                send_mantencion_reagendacion_email(
+                                    mantencion=mantencion,
+                                    recipient_email=recipient_email,
+                                )
+                            except Exception:
+                                logger.exception(
+                                    "Error enviando correo de reagendacion por bloqueo de hora para mantencion_id=%s",
+                                    mantencion.id,
+                                )
+
+                    transaction.on_commit(_send_reagendacion_notifications)
 
                 return Response(
                     {
@@ -411,6 +470,19 @@ class MantencionCancelarAPIView(APIView):
                 fuente=MantencionEstadoHistorial.FUENTE_PORTAL_CLIENTE,
                 observacion="Cancelacion realizada por cliente desde consulta de estado",
             )
+
+            recipient_email = get_recipient_email(mantencion)
+            if recipient_email:
+                def _send_cancel_email():
+                    try:
+                        send_mantencion_canceled_email(mantencion=mantencion, recipient_email=recipient_email)
+                    except Exception:
+                        logger.exception(
+                            "Error enviando correo de cancelacion para mantencion_id=%s",
+                            mantencion.id,
+                        )
+
+                transaction.on_commit(_send_cancel_email)
 
         return Response(
             {

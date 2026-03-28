@@ -6,11 +6,25 @@ function safeMax(items) {
 const PRIMARY_BAR = "linear-gradient(90deg, #0e7490, #0369a1)";
 const HIGHLIGHT_BAR = "linear-gradient(90deg, #0891b2, #0284c7)";
 
-export default function BarChartCard({ title, subtitle = "", items = [], horizontal = false, loading = false }) {
+export default function BarChartCard({
+  title,
+  subtitle = "",
+  items = [],
+  horizontal = false,
+  loading = false,
+  stretch = false,
+}) {
   const max = safeMax(items);
+  const chartCardClassName = [
+    "admin-panel-card",
+    "admin-analytics-chart-card",
+    stretch ? "admin-analytics-chart-card--fill" : "",
+  ]
+    .filter(Boolean)
+    .join(" ");
 
   return (
-    <article className="admin-panel-card admin-analytics-chart-card">
+    <article className={chartCardClassName}>
       <div className="admin-card-header">
         <div>
           <h2>{title}</h2>
