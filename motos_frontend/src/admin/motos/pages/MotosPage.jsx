@@ -103,6 +103,14 @@ export default function MotosPage({
     };
   }, [motoGaleriaPreviewUrls]);
 
+  function expandYearSelect(event) {
+    event.target.size = 10;
+  }
+
+  function collapseYearSelect(event) {
+    event.target.size = 1;
+  }
+
   if (activeSection === "marcas_motos" || activeSection === "marcas_acc_motos" || activeSection === "marcas_acc_rider") {
     const marcas =
       activeSection === "marcas_motos"
@@ -429,7 +437,17 @@ export default function MotosPage({
 
             <label>
               {"A\u00f1o *"}
-              <select name="anio" value={motoForm.anio} onChange={onMotoInputChange} required>
+              <select
+                name="anio"
+                value={motoForm.anio}
+                onChange={(event) => {
+                  onMotoInputChange(event);
+                  collapseYearSelect(event);
+                }}
+                onFocus={expandYearSelect}
+                onBlur={collapseYearSelect}
+                required
+              >
                 <option value="">{"Selecciona un a\u00f1o"}</option>
                 {motoYearOptions.map((year) => (
                   <option key={year} value={year}>
