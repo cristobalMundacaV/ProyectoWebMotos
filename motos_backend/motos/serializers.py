@@ -1,4 +1,5 @@
 from django.utils.text import slugify
+from django.db import IntegrityError, transaction
 from rest_framework import serializers
 
 from catalogo.models import CategoriaMoto, Marca
@@ -48,7 +49,7 @@ class ModeloMotoSerializer(serializers.ModelSerializer):
         return candidate
 
     def validate_marca(self, marca):
-        if marca.tipo and marca.tipo != Marca.TIPO_MOTO:
+        if marca.tipo != Marca.TIPO_MOTO:
             raise serializers.ValidationError("La marca seleccionada no pertenece a motos.")
         return marca
 
@@ -150,7 +151,7 @@ class MotoSerializer(serializers.ModelSerializer):
         return super().to_internal_value(payload)
 
     def validate_marca(self, marca):
-        if marca.tipo and marca.tipo != Marca.TIPO_MOTO:
+        if marca.tipo != Marca.TIPO_MOTO:
             raise serializers.ValidationError("La marca seleccionada no pertenece a motos.")
         return marca
 
@@ -239,16 +240,21 @@ class MotoSerializer(serializers.ModelSerializer):
         legacy_categoria = validated_data.pop("_legacy_categoria", None)
         legacy_cilindrada = validated_data.pop("_legacy_cilindrada", None)
 
-        modelo_moto, _ = ModeloMoto.objects.get_or_create(
-            marca=marca,
-            nombre_modelo=modelo_text,
-            defaults={
-                "slug": self._build_unique_modelo_slug(modelo_text, marca.id),
-                "activo": True,
-                "categoria": legacy_categoria,
-                "cilindrada": legacy_cilindrada,
-            },
-        )
+        try:
+            with transaction.atomic():
+                modelo_moto, _ = ModeloMoto.objects.get_or_create(
+                    marca=marca,
+                    nombre_modelo=modelo_text,
+                    defaults={
+                        "slug": self._build_unique_modelo_slug(modelo_text, marca.id),
+                        "activo": True,
+                        "categoria": legacy_categoria,
+                        "cilindrada": legacy_cilindrada,
+                    },
+                )
+        except IntegrityError:
+            # Condicion de carrera: otro request creo el modelo en paralelo.
+            modelo_moto = ModeloMoto.objects.get(marca=marca, nombre_modelo=modelo_text)
 
         update_fields = []
         if legacy_categoria and modelo_moto.categoria_id is None:

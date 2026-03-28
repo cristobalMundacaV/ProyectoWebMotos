@@ -74,7 +74,7 @@ export default function MotosPage({
     const [entero = "", decimal = ""] = texto.split(".");
     const enteroConPuntos = entero.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
 
-    return decimal ? `${enteroConPuntos},${decimal}` : enteroConPuntos;
+    return decimal ? `$ ${enteroConPuntos},${decimal}` : `$ ${enteroConPuntos}`;
   }
 
   function formatCategoryLabel(value) {
@@ -366,9 +366,7 @@ export default function MotosPage({
 
   if (activeSection === "motos") {
     const paginatedMotos = paginateItems(dashboard.motos, tablePages.motos, RECENT_MOTOS_PAGE_SIZE);
-    const modelosFiltrados = motoMeta.modelos.filter(
-      (modelo) => !motoForm.marca || String(modelo.marca) === String(motoForm.marca)
-    );
+    const modelosFiltrados = motoMeta.modelos.filter((modelo) => String(modelo.marca) === String(motoForm.marca));
 
     return (
       <section className="admin-content-grid lower">
@@ -393,8 +391,16 @@ export default function MotosPage({
 
             <label>
               Modelo *
-              <select name="modelo" value={motoForm.modelo} onChange={onMotoInputChange} required>
-                <option value="">Selecciona un modelo</option>
+              <select
+                name="modelo"
+                value={motoForm.modelo}
+                onChange={onMotoInputChange}
+                required
+                disabled={!motoForm.marca}
+              >
+                <option value="">
+                  {motoForm.marca ? "Selecciona un modelo" : "Selecciona una marca primero"}
+                </option>
                 {modelosFiltrados.map((modelo) => (
                   <option key={modelo.id} value={modelo.id}>
                     {modelo.nombre}

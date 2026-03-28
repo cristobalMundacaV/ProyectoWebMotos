@@ -1,4 +1,5 @@
 from django.contrib.auth.models import User
+from django.db import transaction
 from rest_framework import serializers
 
 from .models import PerfilUsuario
@@ -63,14 +64,15 @@ class UserRegisterSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         validated_data.pop("confirm_password")
         password = validated_data.pop("password")
-        user = User(**validated_data)
-        user.email = user.email.lower()
-        user.set_password(password)
-        user.save()
-        PerfilUsuario.objects.update_or_create(
-            user=user,
-            defaults={"rol": PerfilUsuario.ROL_CLIENTE},
-        )
+        with transaction.atomic():
+            user = User(**validated_data)
+            user.email = user.email.lower()
+            user.set_password(password)
+            user.save()
+            PerfilUsuario.objects.update_or_create(
+                user=user,
+                defaults={"rol": PerfilUsuario.ROL_CLIENTE},
+            )
         return user
 
 
@@ -121,26 +123,27 @@ class AdminUserCreateSerializer(serializers.Serializer):
         telefono = validated_data.pop("telefono")
         rol = validated_data.pop("rol", PerfilUsuario.ROL_ENCARGADO)
 
-        user = User(
-            username=validated_data["username"],
-            first_name=validated_data["first_name"].strip(),
-            last_name=validated_data["last_name"].strip(),
-            email=validated_data.get("email", ""),
-        )
-        user.is_staff = rol in {
-            PerfilUsuario.ROL_ADMIN,
-            PerfilUsuario.ROL_ENCARGADO,
-            PerfilUsuario.ROL_SUPERADMIN,
-        }
-        user.is_superuser = rol == PerfilUsuario.ROL_SUPERADMIN
-        user.set_password(password)
-        user.save()
+        with transaction.atomic():
+            user = User(
+                username=validated_data["username"],
+                first_name=validated_data["first_name"].strip(),
+                last_name=validated_data["last_name"].strip(),
+                email=validated_data.get("email", ""),
+            )
+            user.is_staff = rol in {
+                PerfilUsuario.ROL_ADMIN,
+                PerfilUsuario.ROL_ENCARGADO,
+                PerfilUsuario.ROL_SUPERADMIN,
+            }
+            user.is_superuser = rol == PerfilUsuario.ROL_SUPERADMIN
+            user.set_password(password)
+            user.save()
 
-        PerfilUsuario.objects.update_or_create(
-            user=user,
-            defaults={
-                "telefono": telefono.strip(),
-                "rol": rol,
-            },
-        )
+            PerfilUsuario.objects.update_or_create(
+                user=user,
+                defaults={
+                    "telefono": telefono.strip(),
+                    "rol": rol,
+                },
+            )
         return user

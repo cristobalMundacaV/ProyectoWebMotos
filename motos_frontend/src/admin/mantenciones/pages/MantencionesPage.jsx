@@ -168,6 +168,72 @@ function formatCuposLabel(value) {
   return `${safe} ${safe === 1 ? "cupo" : "cupos"}`;
 }
 
+function easterSunday(year) {
+  const a = year % 19;
+  const b = Math.floor(year / 100);
+  const c = year % 100;
+  const d = Math.floor(b / 4);
+  const e = b % 4;
+  const f = Math.floor((b + 8) / 25);
+  const g = Math.floor((b - f + 1) / 3);
+  const h = (19 * a + b - d - g + 15) % 30;
+  const i = Math.floor(c / 4);
+  const k = c % 4;
+  const l = (32 + 2 * e + 2 * i - h - k) % 7;
+  const m = Math.floor((a + 11 * h + 22 * l) / 451);
+  const month = Math.floor((h + l - 7 * m + 114) / 31);
+  const day = ((h + l - 7 * m + 114) % 31) + 1;
+  return new Date(year, month - 1, day);
+}
+
+function nearestMonday(date) {
+  const weekday = (date.getDay() + 6) % 7;
+  const previousMonday = new Date(date.getFullYear(), date.getMonth(), date.getDate() - weekday);
+  const nextMonday = new Date(previousMonday.getFullYear(), previousMonday.getMonth(), previousMonday.getDate() + 7);
+  const diffPrev = Math.abs(date.getTime() - previousMonday.getTime());
+  const diffNext = Math.abs(nextMonday.getTime() - date.getTime());
+  return diffPrev <= diffNext ? previousMonday : nextMonday;
+}
+
+function isChileanHolidayDate(dateObj) {
+  if (!(dateObj instanceof Date) || Number.isNaN(dateObj.getTime())) return false;
+  const year = dateObj.getFullYear();
+  const month = dateObj.getMonth() + 1;
+  const day = dateObj.getDate();
+  const key = `${year}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+
+  const easter = easterSunday(year);
+  const easterMinusTwo = new Date(easter.getFullYear(), easter.getMonth(), easter.getDate() - 2);
+  const easterMinusOne = new Date(easter.getFullYear(), easter.getMonth(), easter.getDate() - 1);
+  const sanPedro = nearestMonday(new Date(year, 5, 29));
+  const encuentro = nearestMonday(new Date(year, 9, 12));
+
+  const fixed = new Set([
+    `${year}-01-01`,
+    `${year}-05-01`,
+    `${year}-05-21`,
+    `${year}-06-21`,
+    `${year}-07-16`,
+    `${year}-08-15`,
+    `${year}-09-18`,
+    `${year}-09-19`,
+    `${year}-10-31`,
+    `${year}-11-01`,
+    `${year}-12-08`,
+    `${year}-12-25`,
+    toIsoDate(easterMinusTwo),
+    toIsoDate(easterMinusOne),
+    toIsoDate(sanPedro),
+    toIsoDate(encuentro),
+  ]);
+
+  const sep18 = new Date(year, 8, 18);
+  if (sep18.getDay() === 2) fixed.add(`${year}-09-17`);
+  if (sep18.getDay() === 4) fixed.add(`${year}-09-20`);
+
+  return fixed.has(key);
+}
+
 function getCreatedAtTimestamp(item) {
   if (!item?.created_at) return 0;
   const parsed = Date.parse(item.created_at);
@@ -279,6 +345,7 @@ export default function MantencionesPage({
       const date = new Date(year, month, day);
       const iso = toIsoDate(date);
       const info = availabilityMap[iso];
+      const isHoliday = isChileanHolidayDate(date);
       const totalSlots = Array.isArray(info?.horas) ? info.horas.length : 0;
       const availableSlots = Array.isArray(info?.horas) ? info.horas.filter((slot) => slot.disponible).length : 0;
 
@@ -287,6 +354,7 @@ export default function MantencionesPage({
         iso,
         day,
         hasSchedule: Boolean(info),
+        isHoliday,
         hasAvailable: availableSlots > 0,
         totalSlots,
         availableSlots,
@@ -325,6 +393,11 @@ export default function MantencionesPage({
       ),
     [calendarCells]
   );
+  const selectedCalendarIsHoliday = useMemo(() => {
+    if (!selectedCalendarDate) return false;
+    const parsed = new Date(selectedCalendarDate);
+    return isChileanHolidayDate(parsed);
+  }, [selectedCalendarDate]);
 
   const refreshCalendarAvailability = useCallback(
     async ({ silent = false } = {}) => {
@@ -1926,6 +1999,7 @@ export default function MantencionesPage({
                   const className = [
                     "admin-horarios-day-btn",
                     cell.hasSchedule ? (cell.hasAvailable ? "available" : "occupied") : "inactive",
+                    !cell.hasSchedule && cell.isHoliday ? "holiday" : "",
                     cell.isToday ? "today" : "",
                     isSelected ? "selected" : "",
                   ]
@@ -1938,7 +2012,13 @@ export default function MantencionesPage({
                       type="button"
                       className={className}
                       onClick={() => setSelectedCalendarDate(cell.iso)}
-                      title={cell.hasSchedule ? formatLongDate(cell.iso) : "Sin horarios configurados"}
+                      title={
+                        cell.hasSchedule
+                          ? formatLongDate(cell.iso)
+                          : cell.isHoliday
+                            ? "Feriado chileno"
+                            : "Sin horarios configurados"
+                      }
                     >
                       <strong>{cell.day}</strong>
                       <small>
@@ -1946,7 +2026,9 @@ export default function MantencionesPage({
                           ? cell.hasAvailable
                             ? `${cell.availableSlots}/${cell.totalSlots} libres`
                             : "Completo"
-                          : "Sin agenda"}
+                          : cell.isHoliday
+                            ? "Feriado"
+                            : "Sin agenda"}
                       </small>
                     </button>
                   );
@@ -2035,7 +2117,7 @@ export default function MantencionesPage({
                               onClick={() => executeSlotToggle(slot, "unblock")}
                               title="Activar hora"
                             >
-                              ↺
+                              +
                             </button>
                           ) : (
                             <button
@@ -2045,7 +2127,7 @@ export default function MantencionesPage({
                               onClick={() => executeSlotToggle(slot, "block")}
                               title="Desactivar hora"
                             >
-                              ×
+                              X
                             </button>
                           )}
                         </div>
@@ -2054,7 +2136,11 @@ export default function MantencionesPage({
                   </div>
                 </>
               ) : selectedCalendarDate ? (
-                <p className="admin-empty">Dia sin agenda. Puedes activarlo para habilitar nuevas horas.</p>
+                <p className="admin-empty">
+                  {selectedCalendarIsHoliday
+                    ? "Dia feriado en Chile. Puedes activarlo manualmente si necesitas abrir agenda."
+                    : "Dia sin agenda. Puedes activarlo para habilitar nuevas horas."}
+                </p>
               ) : (
                 <p className="admin-empty">Selecciona un dia del calendario para ver sus horas.</p>
               )}
@@ -2258,7 +2344,7 @@ export default function MantencionesPage({
                   </button>
                   <button
                     type="button"
-                    className="btn-save"
+                    className="btn-save admin-activate-modal-btn"
                     disabled={dayActivateSaving}
                     onClick={executeDayActivation}
                   >

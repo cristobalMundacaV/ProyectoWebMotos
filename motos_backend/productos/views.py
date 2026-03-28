@@ -1,13 +1,15 @@
 from rest_framework import status
-from rest_framework.decorators import api_view
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
-from django.db.models import Max, Q
 import re
 
 from catalogo.models import Marca, SubcategoriaProducto
-from clientes.permissions import has_admin_access
+from clientes.permissions import IsCatalogAdmin
+from core.audit import build_request_metadata, create_audit_log, serialize_instance_for_audit
 from motos.models import Moto
-from .models import ImagenProducto, Producto
+from .models import Producto
+from .services import create_producto_with_relations, update_producto_with_relations
 from .serializers import (
 	ProductoAdminUpdateSerializer,
 	ProductoAccesorioAdminSerializer,
@@ -19,22 +21,8 @@ from .serializers import (
 ACCESORIOS_CATEGORY_SLUGS = ["accesorios-para-la-moto", "accesorios"]
 
 
-def _save_producto_gallery_files(producto, files):
-	if not producto or not files:
-		return
-	first_created_image = None
-	current_max_order = producto.imagenes.aggregate(max_order=Max("orden")).get("max_order") or 0
-	for index, image_file in enumerate(files, start=1):
-		created_image = ImagenProducto.objects.create(
-			producto=producto,
-			imagen=image_file,
-			orden=current_max_order + index,
-		)
-		if first_created_image is None:
-			first_created_image = created_image
-	if first_created_image and not producto.imagen_principal:
-		producto.imagen_principal = first_created_image.imagen
-		producto.save(update_fields=["imagen_principal"])
+def _request_meta(request):
+	return build_request_metadata(request)
 
 
 def _parse_image_ids(raw_ids):
@@ -48,46 +36,36 @@ def _parse_image_ids(raw_ids):
 	return ids
 
 
-def _sync_producto_main_image(producto):
-	if not producto:
-		return
-	main_image_name = str(getattr(producto.imagen_principal, "name", "") or "").strip()
-	first_gallery_image = producto.imagenes.order_by("orden", "id").first()
+def _parse_compatibilidad_motos(data):
+	raw_values = []
+	if hasattr(data, "getlist"):
+		raw_values.extend(data.getlist("compatibilidad_motos"))
+	value = data.get("compatibilidad_motos")
+	if value not in (None, "", []):
+		raw_values.append(value)
 
-	# Compatibilidad con productos antiguos que solo tienen imagen_principal
-	# y no registros en galeria: no borrar la imagen al editar metadatos.
-	if not first_gallery_image and main_image_name:
-		return
-
-	if main_image_name:
-		has_main_in_gallery = producto.imagenes.filter(imagen=main_image_name).exists()
-		if has_main_in_gallery:
-			return
-	producto.imagen_principal = first_gallery_image.imagen if first_gallery_image else None
-	producto.save(update_fields=["imagen_principal"])
+	ids = set()
+	for raw in raw_values:
+		if isinstance(raw, (list, tuple)):
+			iter_values = raw
+		else:
+			iter_values = re.findall(r"\d+", str(raw))
+		for item in iter_values:
+			try:
+				ids.add(int(item))
+			except (TypeError, ValueError):
+				continue
+	return sorted(ids)
 
 
 def _filter_marcas_por_tipo(queryset, tipo):
 	tipo = (tipo or "").strip().lower()
 
 	if tipo == Marca.TIPO_ACCESORIO_MOTO:
-		return queryset.filter(
-			Q(tipo=Marca.TIPO_ACCESORIO_MOTO)
-			| (
-				Q(tipo__isnull=True)
-				& Q(productos__subcategoria__categoria__slug__in=ACCESORIOS_CATEGORY_SLUGS)
-			)
-		).distinct()
+		return queryset.filter(tipo=Marca.TIPO_ACCESORIO_MOTO).distinct()
 
 	if tipo == Marca.TIPO_ACCESORIO_RIDER:
-		return queryset.filter(
-			Q(tipo=Marca.TIPO_ACCESORIO_RIDER)
-			| (
-				Q(tipo__isnull=True)
-				& Q(productos__subcategoria__categoria__slug__isnull=False)
-				& ~Q(productos__subcategoria__categoria__slug__in=ACCESORIOS_CATEGORY_SLUGS)
-			)
-		).distinct()
+		return queryset.filter(tipo=Marca.TIPO_ACCESORIO_RIDER).distinct()
 
 	return queryset
 
@@ -103,6 +81,7 @@ def _apply_tipo_filter(queryset, tipo):
 
 
 @api_view(["GET"])
+@permission_classes([AllowAny])
 def lista_productos(request):
 	tipo = request.GET.get("tipo", "").strip().lower()
 	moto_slug = request.GET.get("moto", "").strip()
@@ -130,6 +109,7 @@ def lista_productos(request):
 
 
 @api_view(["GET"])
+@permission_classes([AllowAny])
 def categorias_producto(request):
 	tipo = request.GET.get("tipo", "").strip().lower()
 
@@ -144,12 +124,14 @@ def categorias_producto(request):
 
 
 @api_view(["GET"])
+@permission_classes([AllowAny])
 def motos_compatibles(request):
 	motos = Moto.objects.filter(activa=True).order_by("modelo").values("id", "slug", "modelo")
 	return Response(list(motos))
 
 
 @api_view(["GET"])
+@permission_classes([IsCatalogAdmin])
 def accesorios_motos_meta(request):
 	subcategorias = list(
 		SubcategoriaProducto.objects.filter(categoria__slug__in=ACCESORIOS_CATEGORY_SLUGS)
@@ -181,13 +163,8 @@ def accesorios_motos_meta(request):
 
 
 @api_view(["GET", "POST"])
+@permission_classes([IsCatalogAdmin])
 def admin_accesorios_motos(request):
-	if not has_admin_access(request.user):
-		return Response(
-			{"detail": "Solo administradores pueden gestionar accesorios."},
-			status=status.HTTP_403_FORBIDDEN,
-		)
-
 	if request.method == "GET":
 		productos = (
 			Producto.objects.filter(subcategoria__categoria__slug__in=ACCESORIOS_CATEGORY_SLUGS)
@@ -204,14 +181,19 @@ def admin_accesorios_motos(request):
 
 	serializer = ProductoAccesorioAdminSerializer(data=payload)
 	serializer.is_valid(raise_exception=True)
-	producto = serializer.save()
-	_save_producto_gallery_files(producto, request.FILES.getlist("imagenes"))
+	producto = create_producto_with_relations(
+		serializer=serializer,
+		gallery_files=request.FILES.getlist("imagenes"),
+		actor=request.user,
+		metadata=_request_meta(request),
+	)
 
 	response_serializer = ProductoSerializer(producto)
 	return Response(response_serializer.data, status=status.HTTP_201_CREATED)
 
 
 @api_view(["GET"])
+@permission_classes([IsCatalogAdmin])
 def accesorios_rider_meta(request):
 	subcategorias = list(
 		SubcategoriaProducto.objects.exclude(categoria__slug__in=ACCESORIOS_CATEGORY_SLUGS)
@@ -241,13 +223,8 @@ def accesorios_rider_meta(request):
 
 
 @api_view(["GET", "POST"])
+@permission_classes([IsCatalogAdmin])
 def admin_accesorios_rider(request):
-	if not has_admin_access(request.user):
-		return Response(
-			{"detail": "Solo administradores pueden gestionar accesorios rider."},
-			status=status.HTTP_403_FORBIDDEN,
-		)
-
 	if request.method == "GET":
 		productos = (
 			Producto.objects.exclude(subcategoria__categoria__slug__in=ACCESORIOS_CATEGORY_SLUGS)
@@ -260,32 +237,40 @@ def admin_accesorios_rider(request):
 
 	serializer = ProductoAccesorioRiderAdminSerializer(data=request.data)
 	serializer.is_valid(raise_exception=True)
-	producto = serializer.save()
-	_save_producto_gallery_files(producto, request.FILES.getlist("imagenes"))
+	producto = create_producto_with_relations(
+		serializer=serializer,
+		gallery_files=request.FILES.getlist("imagenes"),
+		actor=request.user,
+		metadata=_request_meta(request),
+	)
 
 	response_serializer = ProductoSerializer(producto)
 	return Response(response_serializer.data, status=status.HTTP_201_CREATED)
 
 
 @api_view(["PATCH", "DELETE"])
+@permission_classes([IsCatalogAdmin])
 def admin_producto_detalle(request, producto_id):
-	if not has_admin_access(request.user):
-		return Response(
-			{"detail": "Solo administradores pueden gestionar productos."},
-			status=status.HTTP_403_FORBIDDEN,
-		)
-
 	producto = Producto.objects.filter(id=producto_id).first()
 	if not producto:
 		return Response({"detail": "Producto no encontrado."}, status=status.HTTP_404_NOT_FOUND)
 
 	if request.method == "DELETE":
+		before = serialize_instance_for_audit(producto)
 		producto.delete()
+		create_audit_log(
+			action="delete",
+			entity="productos.Producto",
+			entity_id=producto_id,
+			before=before,
+			after=None,
+			actor=request.user,
+			metadata=_request_meta(request),
+		)
 		return Response(status=status.HTTP_204_NO_CONTENT)
 
 	serializer = ProductoAdminUpdateSerializer(producto, data=request.data, partial=True)
 	serializer.is_valid(raise_exception=True)
-	serializer.save()
 
 	raw_delete_ids = []
 	if hasattr(request.data, "getlist"):
@@ -294,11 +279,20 @@ def admin_producto_detalle(request, producto_id):
 		raw_delete_ids.append(request.data.get("imagenes_eliminar"))
 
 	image_ids_to_delete = _parse_image_ids(raw_delete_ids)
-	if image_ids_to_delete:
-		producto.imagenes.filter(id__in=image_ids_to_delete).delete()
+	compatibilidad_motos = None
+	if "compatibilidad_motos" in request.data:
+		compatibilidad_motos = _parse_compatibilidad_motos(request.data)
+	if request.data.get("requiere_compatibilidad") in ["false", "False", "0", "off", "no", ""]:
+		compatibilidad_motos = []
 
-	_save_producto_gallery_files(producto, request.FILES.getlist("imagenes"))
-	_sync_producto_main_image(producto)
+	producto = update_producto_with_relations(
+		serializer=serializer,
+		gallery_files=request.FILES.getlist("imagenes"),
+		image_ids_to_delete=image_ids_to_delete,
+		compatibilidad_motos=compatibilidad_motos,
+		actor=request.user,
+		metadata=_request_meta(request),
+	)
 
 	response_serializer = ProductoSerializer(producto)
 	return Response(response_serializer.data)

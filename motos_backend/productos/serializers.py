@@ -111,7 +111,7 @@ class ProductoAccesorioAdminSerializer(serializers.ModelSerializer):
     def validate_marca(self, marca):
         if marca is None:
             raise serializers.ValidationError("La marca es obligatoria.")
-        if marca.tipo and marca.tipo != Marca.TIPO_ACCESORIO_MOTO:
+        if marca.tipo != Marca.TIPO_ACCESORIO_MOTO:
             raise serializers.ValidationError("La marca seleccionada no pertenece a Accesorios Motos.")
         return marca
 
@@ -180,7 +180,7 @@ class ProductoAccesorioRiderAdminSerializer(serializers.ModelSerializer):
     def validate_marca(self, marca):
         if marca is None:
             raise serializers.ValidationError("La marca es obligatoria.")
-        if marca.tipo and marca.tipo != Marca.TIPO_ACCESORIO_RIDER:
+        if marca.tipo != Marca.TIPO_ACCESORIO_RIDER:
             raise serializers.ValidationError("La marca seleccionada no pertenece a Indumentaria Rider.")
         return marca
 
@@ -248,10 +248,10 @@ class ProductoAdminUpdateSerializer(serializers.ModelSerializer):
 
         categoria_slug = getattr(getattr(subcategoria, "categoria", None), "slug", "")
         if categoria_slug in ["accesorios-para-la-moto", "accesorios"]:
-            if marca and marca.tipo and marca.tipo != Marca.TIPO_ACCESORIO_MOTO:
+            if marca and marca.tipo != Marca.TIPO_ACCESORIO_MOTO:
                 raise serializers.ValidationError({"marca": "La marca seleccionada no pertenece a Accesorios Motos."})
         else:
-            if marca and marca.tipo and marca.tipo != Marca.TIPO_ACCESORIO_RIDER:
+            if marca and marca.tipo != Marca.TIPO_ACCESORIO_RIDER:
                 raise serializers.ValidationError({"marca": "La marca seleccionada no pertenece a Indumentaria Rider."})
 
         if "nombre" in attrs:

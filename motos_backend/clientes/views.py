@@ -1,15 +1,16 @@
 from django.contrib.auth import authenticate
 from django.contrib.auth.models import User
+from django.db import IntegrityError, transaction
 from django.db.models import Q
 from rest_framework import status
 from rest_framework.decorators import api_view, authentication_classes, permission_classes
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework_simplejwt.tokens import RefreshToken, TokenError
 
 from .models import PerfilUsuario
-from .permissions import ADMIN_ALLOWED_ROLES, get_user_role, has_admin_access
+from .permissions import ADMIN_ALLOWED_ROLES, IsBackofficeAdmin, get_user_role
 from .serializers import AdminUserCreateSerializer, UserRegisterSerializer
 
 
@@ -32,10 +33,18 @@ def _serialize_user(user: User):
 
 
 @api_view(["POST"])
+@permission_classes([AllowAny])
 def register_user(request):
 	serializer = UserRegisterSerializer(data=request.data)
 	serializer.is_valid(raise_exception=True)
-	user = serializer.save()
+	try:
+		with transaction.atomic():
+			user = serializer.save()
+	except IntegrityError:
+		return Response(
+			{"detail": "No se pudo registrar el usuario por conflicto de integridad."},
+			status=status.HTTP_409_CONFLICT,
+		)
 	refresh = RefreshToken.for_user(user)
 	access = refresh.access_token
 	return Response(
@@ -50,6 +59,7 @@ def register_user(request):
 
 
 @api_view(["POST"])
+@permission_classes([AllowAny])
 def login_user(request):
 	username_or_email = (request.data.get("username") or request.data.get("email") or "").strip()
 	password = request.data.get("password") or ""
@@ -112,14 +122,8 @@ def logout_user(request):
 
 @api_view(["GET", "POST"])
 @authentication_classes([JWTAuthentication])
-@permission_classes([IsAuthenticated])
+@permission_classes([IsAuthenticated, IsBackofficeAdmin])
 def admin_create_user(request):
-	if not has_admin_access(request.user):
-		return Response(
-			{"detail": "Solo administradores pueden crear usuarios."},
-			status=status.HTTP_403_FORBIDDEN,
-		)
-
 	if request.method == "GET":
 		users = (
 			User.objects.select_related("perfil_usuario")
@@ -134,7 +138,14 @@ def admin_create_user(request):
 
 	serializer = AdminUserCreateSerializer(data=request.data)
 	serializer.is_valid(raise_exception=True)
-	user = serializer.save()
+	try:
+		with transaction.atomic():
+			user = serializer.save()
+	except IntegrityError:
+		return Response(
+			{"detail": "No se pudo crear el usuario por conflicto de integridad."},
+			status=status.HTTP_409_CONFLICT,
+		)
 
 	# Ensure an explicit role is always persisted even for special cases.
 	perfil = getattr(user, "perfil_usuario", None)
@@ -155,14 +166,8 @@ def admin_create_user(request):
 
 @api_view(["PATCH", "DELETE"])
 @authentication_classes([JWTAuthentication])
-@permission_classes([IsAuthenticated])
+@permission_classes([IsAuthenticated, IsBackofficeAdmin])
 def admin_manage_user(request, user_id: int):
-	if not has_admin_access(request.user):
-		return Response(
-			{"detail": "Solo administradores pueden gestionar usuarios."},
-			status=status.HTTP_403_FORBIDDEN,
-		)
-
 	try:
 		target_user = User.objects.select_related("perfil_usuario").get(id=user_id)
 	except User.DoesNotExist:
@@ -174,7 +179,8 @@ def admin_manage_user(request, user_id: int):
 				{"detail": "No puedes eliminar tu propio usuario."},
 				status=status.HTTP_400_BAD_REQUEST,
 			)
-		target_user.delete()
+		with transaction.atomic():
+			target_user.delete()
 		return Response(status=status.HTTP_204_NO_CONTENT)
 
 	data = request.data
@@ -201,18 +207,25 @@ def admin_manage_user(request, user_id: int):
 	if email and User.objects.filter(email__iexact=email).exclude(id=target_user.id).exists():
 		return Response({"detail": "El correo ya esta en uso."}, status=status.HTTP_400_BAD_REQUEST)
 
-	target_user.first_name = first_name
-	target_user.last_name = last_name
-	target_user.username = username
-	target_user.email = email
-	target_user.is_staff = rol in {PerfilUsuario.ROL_ADMIN, PerfilUsuario.ROL_SUPERADMIN}
-	target_user.is_superuser = rol == PerfilUsuario.ROL_SUPERADMIN
-	target_user.save()
+	try:
+		with transaction.atomic():
+			target_user.first_name = first_name
+			target_user.last_name = last_name
+			target_user.username = username
+			target_user.email = email
+			target_user.is_staff = rol in {PerfilUsuario.ROL_ADMIN, PerfilUsuario.ROL_SUPERADMIN}
+			target_user.is_superuser = rol == PerfilUsuario.ROL_SUPERADMIN
+			target_user.save()
 
-	PerfilUsuario.objects.update_or_create(
-		user=target_user,
-		defaults={"rol": rol, "telefono": telefono},
-	)
+			PerfilUsuario.objects.update_or_create(
+				user=target_user,
+				defaults={"rol": rol, "telefono": telefono},
+			)
+	except IntegrityError:
+		return Response(
+			{"detail": "No se pudo actualizar el usuario por conflicto de integridad."},
+			status=status.HTTP_409_CONFLICT,
+		)
 
 	target_user.refresh_from_db()
 	return Response({"detail": "Usuario actualizado correctamente.", "user": _serialize_user(target_user)})

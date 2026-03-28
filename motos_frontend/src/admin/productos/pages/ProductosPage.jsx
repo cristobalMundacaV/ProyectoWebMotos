@@ -66,7 +66,7 @@ export default function ProductosPage({
     if (value === null || value === undefined || value === "") return "";
     const digits = String(value).replace(/\D/g, "");
     if (!digits) return "";
-    return digits.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+    return `$ ${digits.replace(/\B(?=(\d{3})+(?!\d))/g, ".")}`;
   }
 
   function formatCategoryLabel(value) {

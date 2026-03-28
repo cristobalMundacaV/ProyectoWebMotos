@@ -124,7 +124,7 @@ export default function CatalogoMotos() {
 
     const entero = parsePrecioEntero(value);
     if (!entero) return "";
-    return String(entero).replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+    return `$ ${String(entero).replace(/\B(?=(\d{3})+(?!\d))/g, ".")}`;
   }
 
   function parsePrecioEntero(value) {
@@ -188,11 +188,17 @@ export default function CatalogoMotos() {
         moto.modelo || moto.nombre || "",
         meta.modelos.filter((item) => String(item.marca) === String(moto.marca))
       );
+    const modeloSeleccionado = meta.modelos.find((item) => String(item.id) === String(resolvedModeloId));
+    const categoriaDesdeModelo = resolveSelectId(
+      modeloSeleccionado?.categoria ?? modeloSeleccionado?.categoria_id,
+      modeloSeleccionado?.categoria_nombre,
+      meta.categorias
+    );
 
     setEditingMoto(moto);
     setEditForm({
       marca: resolveSelectId(moto.marca, moto.marca_nombre, meta.marcas),
-      categoria: resolveSelectId(moto.categoria, moto.categoria_nombre, meta.categorias),
+      categoria: categoriaDesdeModelo || resolveSelectId(moto.categoria, moto.categoria_nombre, meta.categorias),
       modelo: resolvedModeloId,
       slug: moto.slug || "",
       descripcion: moto.descripcion || "",
@@ -244,11 +250,21 @@ export default function CatalogoMotos() {
 
       if (name === "marca") {
         nextForm.modelo = "";
+        nextForm.categoria = "";
       }
 
       if (name === "modelo") {
-        const selectedModelo = meta.modelos.find((item) => String(item.id) === String(nextValue));
+        const selectedModelo = meta.modelos.find(
+          (item) =>
+            String(item.id) === String(nextValue) &&
+            String(item.marca) === String(nextForm.marca)
+        );
         nextForm.slug = buildSlug(selectedModelo?.slug || selectedModelo?.nombre || "");
+        nextForm.categoria = resolveSelectId(
+          selectedModelo?.categoria ?? selectedModelo?.categoria_id,
+          selectedModelo?.categoria_nombre,
+          meta.categorias
+        );
       }
 
       if (name === "precio") {
@@ -320,16 +336,30 @@ export default function CatalogoMotos() {
     setSavingEdit(true);
     setEditError("");
 
-    const selectedModelo = meta.modelos.find((item) => String(item.id) === String(editForm.modelo));
+    const selectedModelo = meta.modelos.find(
+      (item) =>
+        String(item.id) === String(editForm.modelo) &&
+        String(item.marca) === String(editForm.marca)
+    );
     if (!selectedModelo) {
       setEditError("Debes seleccionar un modelo valido para actualizar la moto.");
+      setSavingEdit(false);
+      return;
+    }
+    const categoriaDesdeModelo = resolveSelectId(
+      selectedModelo.categoria ?? selectedModelo.categoria_id,
+      selectedModelo.categoria_nombre,
+      meta.categorias
+    );
+    if (!categoriaDesdeModelo) {
+      setEditError("El modelo seleccionado no tiene categoria valida asociada.");
       setSavingEdit(false);
       return;
     }
 
     const payload = new FormData();
     payload.append("marca", editForm.marca);
-    payload.append("categoria", editForm.categoria);
+    payload.append("categoria", categoriaDesdeModelo);
     payload.append("modelo_id", String(selectedModelo.id));
     payload.append("modelo", selectedModelo.nombre || "");
     payload.append("slug", selectedModelo.slug || editForm.slug);
@@ -708,7 +738,7 @@ export default function CatalogoMotos() {
 
               <label>
                 Categoria *
-                <select name="categoria" value={editForm.categoria} onChange={handleEditInputChange} required>
+                <select name="categoria" value={editForm.categoria} onChange={handleEditInputChange} required disabled>
                   <option value="">Selecciona una categoría</option>
                   {meta.categorias.map((categoria) => (
                     <option key={categoria.id} value={categoria.id}>
@@ -725,8 +755,11 @@ export default function CatalogoMotos() {
                   value={editForm.modelo}
                   onChange={handleEditInputChange}
                   required
+                  disabled={!editForm.marca}
                 >
-                  <option value="">Selecciona un modelo</option>
+                  <option value="">
+                    {editForm.marca ? "Selecciona un modelo" : "Selecciona una marca primero"}
+                  </option>
                   {meta.modelos
                     .filter((modelo) => String(modelo.marca) === String(editForm.marca))
                     .map((modelo) => (

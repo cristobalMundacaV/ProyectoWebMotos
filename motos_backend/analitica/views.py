@@ -6,12 +6,12 @@ from django.db.models.functions import TruncDay, TruncMonth, TruncWeek, TruncYea
 from django.utils.text import slugify
 from rest_framework import status
 from rest_framework.authentication import SessionAuthentication
-from rest_framework.permissions import AllowAny, IsAuthenticated
+from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.authentication import JWTAuthentication
 
-from clientes.permissions import has_admin_access
+from clientes.permissions import IsBackofficeAdmin
 from mantenciones.analytics import get_monthly_kpis
 from mantenciones.models import HorarioMantencion, Mantencion
 from motos.models import Moto
@@ -350,12 +350,9 @@ def _value_to_date(value):
 
 class CatalogoDashboardAnalyticsAPIView(APIView):
     authentication_classes = [JWTAuthentication, SessionAuthentication]
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsBackofficeAdmin]
 
     def get(self, request):
-        if not has_admin_access(request.user):
-            return Response({"detail": "Solo administradores pueden acceder a esta analitica."}, status=403)
-
         today = date.today()
         default_start = today - timedelta(days=30)
         start = _parse_date(request.query_params.get("start"), default_start)
@@ -543,12 +540,9 @@ class CatalogoDashboardAnalyticsAPIView(APIView):
 
 class MantencionesDashboardAnalyticsAPIView(APIView):
     authentication_classes = [JWTAuthentication, SessionAuthentication]
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsBackofficeAdmin]
 
     def get(self, request):
-        if not has_admin_access(request.user):
-            return Response({"detail": "Solo administradores pueden acceder a esta analitica."}, status=403)
-
         today = date.today()
         year = _parse_int(request.query_params.get("year"), today.year, min_value=2000, max_value=2100)
         month = _parse_int(request.query_params.get("month"), today.month, min_value=1, max_value=12)
@@ -613,12 +607,9 @@ class MantencionesDashboardAnalyticsAPIView(APIView):
 
 class DashboardSummaryAnalyticsAPIView(APIView):
     authentication_classes = [JWTAuthentication, SessionAuthentication]
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsBackofficeAdmin]
 
     def get(self, request):
-        if not has_admin_access(request.user):
-            return Response({"detail": "Solo administradores pueden acceder a esta analitica."}, status=403)
-
         today = date.today()
         period = (request.query_params.get("period") or "this_month").strip().lower()
         start, end, trend_group = _period_bounds(period, today)

@@ -1116,7 +1116,8 @@ export default function AdminPanel() {
   function formatPrecioDisplay(value) {
     if (value === null || value === undefined || value === "") return "";
     const digits = String(value).replace(/\D/g, "");
-    return digits.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+    if (!digits) return "";
+    return `$ ${digits.replace(/\B(?=(\d{3})+(?!\d))/g, ".")}`;
   }
 
   function getFileNameFromPath(pathValue) {
@@ -1137,7 +1138,9 @@ export default function AdminPanel() {
       ? form.imagenes_galeria.filter(Boolean)
       : [];
     const primaryImageFromGallery = galleryFiles[0] || null;
-    const selectedModelo = motoMeta.modelos.find((item) => String(item.id) === String(form.modelo));
+    const selectedModelo = motoMeta.modelos.find(
+      (item) => String(item.id) === String(form.modelo) && String(item.marca) === String(form.marca)
+    );
     const modeloNombre = selectedModelo?.nombre || "";
     const modeloSlug = selectedModelo?.slug || form.slug || limitSlug(buildSlug(modeloNombre), 50);
     payload.append("marca", form.marca);
@@ -1831,6 +1834,13 @@ export default function AdminPanel() {
   async function handleMotoSubmit(event) {
     event.preventDefault();
     if (!validateFormWithToast(event.currentTarget)) return;
+    const selectedModelo = motoMeta.modelos.find(
+      (item) => String(item.id) === String(motoForm.modelo) && String(item.marca) === String(motoForm.marca)
+    );
+    if (!selectedModelo) {
+      pushToast("Selecciona un modelo valido para la marca elegida.", "error");
+      return;
+    }
     setMotoSaving(true);
     const payload = buildMotoPayload(motoForm);
 
@@ -1916,6 +1926,17 @@ export default function AdminPanel() {
     event.preventDefault();
     if (!motoEditModal) return;
     if (!validateFormWithToast(event.currentTarget)) return;
+    const selectedModelo = motoMeta.modelos.find(
+      (item) =>
+        String(item.id) === String(motoEditModal.form.modelo) &&
+        String(item.marca) === String(motoEditModal.form.marca)
+    );
+    if (!selectedModelo) {
+      const message = "Selecciona un modelo valido para la marca elegida.";
+      setMotoEditError(message);
+      pushToast(message, "error");
+      return;
+    }
     setMotoEditSaving(true);
     setMotoEditError("");
 
@@ -2534,7 +2555,7 @@ export default function AdminPanel() {
   const MIN_MOTO_YEAR = Math.max(2010, currentYear - 12);
   const motoYearOptions = Array.from({ length: currentYear - MIN_MOTO_YEAR + 1 }, (_, index) => String(currentYear - index));
   const motoEditModelosFiltrados = motoEditModal
-    ? motoMeta.modelos.filter((modelo) => !motoEditModal.form.marca || String(modelo.marca) === String(motoEditModal.form.marca))
+    ? motoMeta.modelos.filter((modelo) => String(modelo.marca) === String(motoEditModal.form.marca))
     : [];
 
   function renderAdminUsersTable() {
@@ -2896,8 +2917,11 @@ export default function AdminPanel() {
                       value={motoEditModal.form.modelo}
                       onChange={handleMotoEditInputChange}
                       required
+                      disabled={!motoEditModal.form.marca}
                     >
-                      <option value="">Selecciona un modelo</option>
+                      <option value="">
+                        {motoEditModal.form.marca ? "Selecciona un modelo" : "Selecciona una marca primero"}
+                      </option>
                       {motoEditModelosFiltrados.map((modelo) => (
                         <option key={modelo.id} value={modelo.id}>
                           {modelo.nombre}

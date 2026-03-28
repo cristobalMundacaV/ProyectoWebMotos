@@ -19,6 +19,17 @@ class PerfilUsuario(models.Model):
     telefono = models.CharField(max_length=30, blank=True)
     rol = models.CharField(max_length=20, choices=ROL_CHOICES, default=ROL_CLIENTE)
 
+    class Meta:
+        indexes = [
+            models.Index(fields=["rol"], name="idx_perfilusuario_rol"),
+        ]
+        constraints = [
+            models.CheckConstraint(
+                condition=~models.Q(rol=""),
+                name="chk_perfilusuario_rol_not_empty",
+            ),
+        ]
+
     def __str__(self):
         return f"{self.user.username} ({self.rol})"
 
@@ -33,6 +44,28 @@ class ContactoCliente(models.Model):
     mensaje = models.TextField(blank=True)
 
     fecha_creacion = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-fecha_creacion", "-id"]
+        indexes = [
+            models.Index(fields=["fecha_creacion"], name="idx_contactocliente_fecha"),
+            models.Index(fields=["moto"], name="idx_contactocliente_moto"),
+            models.Index(fields=["producto"], name="idx_contactocliente_producto"),
+        ]
+        constraints = [
+            models.CheckConstraint(
+                condition=~models.Q(nombres=""),
+                name="chk_contactocliente_nombres_not_empty",
+            ),
+            models.CheckConstraint(
+                condition=~models.Q(apellidos=""),
+                name="chk_contactocliente_apellidos_not_empty",
+            ),
+            models.CheckConstraint(
+                condition=~models.Q(telefono=""),
+                name="chk_contactocliente_telefono_not_empty",
+            ),
+        ]
 
     def __str__(self):
         full_name = f"{self.nombres} {self.apellidos}".strip()
