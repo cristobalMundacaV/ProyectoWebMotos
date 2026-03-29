@@ -257,14 +257,6 @@ export default function Mantenimiento() {
     setForm((prev) => ({ ...prev, hora_agendada: hourValue }));
   }
 
-  function expandYearSelect(event) {
-    event.target.size = 10;
-  }
-
-  function collapseYearSelect(event) {
-    event.target.size = 1;
-  }
-
   async function handleSubmit(event) {
     event.preventDefault();
     if (loading) return;
@@ -477,9 +469,6 @@ export default function Mantenimiento() {
                   name="anio"
                   value={form.anio}
                   onChange={handleChange}
-                  onFocus={expandYearSelect}
-                  onBlur={collapseYearSelect}
-                  onChangeCapture={(event) => collapseYearSelect(event)}
                   required
                 >
                   <option value="">{`Selecciona A\u00F1o`}</option>
