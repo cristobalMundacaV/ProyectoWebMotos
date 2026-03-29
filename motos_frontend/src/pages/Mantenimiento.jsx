@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import Navbar from "../components/layout/Navbar";
 import Footer from "../components/layout/Footer";
@@ -124,6 +124,8 @@ export default function Mantenimiento() {
   const [loadingSlots, setLoadingSlots] = useState(false);
   const [slotsByDate, setSlotsByDate] = useState([]);
   const [toast, setToast] = useState({ type: "", message: "" });
+  const [yearDropdownOpen, setYearDropdownOpen] = useState(false);
+  const yearDropdownRef = useRef(null);
   const [calendarMonth, setCalendarMonth] = useState(() => {
     const now = new Date();
     return new Date(now.getFullYear(), now.getMonth(), 1);
@@ -229,6 +231,28 @@ export default function Mantenimiento() {
     return () => window.clearInterval(intervalId);
   }, []);
 
+  useEffect(() => {
+    function handleClickOutside(event) {
+      if (!yearDropdownRef.current) return;
+      if (!yearDropdownRef.current.contains(event.target)) {
+        setYearDropdownOpen(false);
+      }
+    }
+
+    function handleEscape(event) {
+      if (event.key === "Escape") {
+        setYearDropdownOpen(false);
+      }
+    }
+
+    document.addEventListener("mousedown", handleClickOutside);
+    window.addEventListener("keydown", handleEscape);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+      window.removeEventListener("keydown", handleEscape);
+    };
+  }, []);
+
   function handleChange(event) {
     const { name, value } = event.target;
     if (name === "rut") {
@@ -255,6 +279,11 @@ export default function Mantenimiento() {
   function handleSelectHour(hourValue, available) {
     if (!available) return;
     setForm((prev) => ({ ...prev, hora_agendada: hourValue }));
+  }
+
+  function handleSelectYear(value) {
+    setForm((prev) => ({ ...prev, anio: value }));
+    setYearDropdownOpen(false);
   }
 
   async function handleSubmit(event) {
@@ -465,19 +494,44 @@ export default function Mantenimiento() {
 
               <label>
                 {"A\u00F1o"}
-                <select
-                  name="anio"
-                  value={form.anio}
-                  onChange={handleChange}
-                  required
-                >
-                  <option value="">{`Selecciona A\u00F1o`}</option>
-                  {YEAR_OPTIONS.map((year) => (
-                    <option key={year} value={year}>
-                      {year}
-                    </option>
-                  ))}
-                </select>
+                <div className="mantencion-year-select" ref={yearDropdownRef}>
+                  <button
+                    type="button"
+                    className={yearDropdownOpen ? "mantencion-year-trigger open" : "mantencion-year-trigger"}
+                    onClick={() => setYearDropdownOpen((prev) => !prev)}
+                    aria-haspopup="listbox"
+                    aria-expanded={yearDropdownOpen}
+                  >
+                    <span>{form.anio || `Selecciona A\u00F1o`}</span>
+                    <span aria-hidden="true">▾</span>
+                  </button>
+
+                  {yearDropdownOpen && (
+                    <div className="mantencion-year-menu" role="listbox" aria-label={"A\u00F1o"}>
+                      <button
+                        type="button"
+                        role="option"
+                        className={!form.anio ? "mantencion-year-option active" : "mantencion-year-option"}
+                        aria-selected={!form.anio}
+                        onClick={() => handleSelectYear("")}
+                      >
+                        {`Selecciona A\u00F1o`}
+                      </button>
+                      {YEAR_OPTIONS.map((year) => (
+                        <button
+                          key={year}
+                          type="button"
+                          role="option"
+                          className={form.anio === year ? "mantencion-year-option active" : "mantencion-year-option"}
+                          aria-selected={form.anio === year}
+                          onClick={() => handleSelectYear(year)}
+                        >
+                          {year}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
               </label>
 
               <label>

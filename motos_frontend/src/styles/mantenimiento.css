@@ -172,6 +172,66 @@
   box-shadow: 0 0 0 2px rgba(15, 23, 42, 0.08);
 }
 
+.mantencion-year-select {
+  position: relative;
+}
+
+.mantencion-year-trigger {
+  width: 100%;
+  border: 1px solid #d1d5db;
+  border-radius: 10px;
+  min-height: 42px;
+  padding: 10px 12px;
+  font: inherit;
+  color: #0f172a;
+  background: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  cursor: pointer;
+}
+
+.mantencion-year-trigger.open,
+.mantencion-year-trigger:focus {
+  border-color: #d1d5db;
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(15, 23, 42, 0.08);
+}
+
+.mantencion-year-menu {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  right: 0;
+  z-index: 20;
+  max-height: 396px; /* ~10 filas */
+  overflow-y: auto;
+  border: 1px solid #d1d5db;
+  border-radius: 10px;
+  background: #fff;
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.12);
+}
+
+.mantencion-year-option {
+  width: 100%;
+  text-align: left;
+  border: none;
+  background: #fff;
+  padding: 10px 12px;
+  font: inherit;
+  color: #0f172a;
+  cursor: pointer;
+}
+
+.mantencion-year-option:hover {
+  background: #f3f4f6;
+}
+
+.mantencion-year-option.active {
+  background: #e5e7eb;
+  font-weight: 700;
+}
+
 .mantencion-submit-btn {
   border: none;
   border-radius: 10px;
