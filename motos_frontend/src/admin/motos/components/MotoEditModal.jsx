@@ -154,7 +154,7 @@ export default function MotoEditModal({
               value={motoEditModal.form.anio}
               onChange={onInputChange}
               options={motoYearOptions}
-              placeholder="Selecciona un a\u00f1o"
+              placeholder="Selecciona un A\u00f1o"
               required
             />
           </label>
@@ -273,3 +273,4 @@ export default function MotoEditModal({
     </div>
   );
 }
+

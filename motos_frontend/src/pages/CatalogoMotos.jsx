@@ -1,9 +1,10 @@
-﻿import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import Navbar from "../components/layout/Navbar";
 import Footer from "../components/layout/Footer";
 import { useMotos } from "../hooks/useMotos";
 import MotoCard from "../components/motos/MotoCard";
+import AdminYearDropdown from "../admin/shared/components/AdminYearDropdown";
 import { buildMediaUrl } from "../services/apiConfig";
 import { deleteMoto, getMotoAdminMeta, updateMoto } from "../services/motosService";
 import { getStoredToken, getStoredUser, hasAdminAccess } from "../services/authService";
@@ -12,6 +13,11 @@ import "../styles/catalogo-motos.css";
 /** Catálogo completo de motos con filtros y edición para admins */
 export default function CatalogoMotos() {
   const ITEMS_PER_PAGE = 16;
+  const currentYear = new Date().getFullYear();
+  const motoYearOptions = useMemo(
+    () => Array.from({ length: currentYear - 1980 + 1 }, (_, index) => String(currentYear - index)),
+    [currentYear]
+  );
   const { motos, setMotos, loading, error } = useMotos();
   const [selectedMarcas, setSelectedMarcas] = useState([]);
   const [selectedCategorias, setSelectedCategorias] = useState([]);
@@ -213,7 +219,7 @@ export default function CatalogoMotos() {
       orden_carrusel: String(moto.orden_carrusel ?? 1),
       es_destacada: Boolean(moto.es_destacada),
       activa: moto.activa !== false,
-      imagenes_galeria: [],
+      imágenes_galeria: [],
       imagen_con_maletas: null,
       video_presentacion: moto.video_presentacion || "",
     });
@@ -234,7 +240,7 @@ export default function CatalogoMotos() {
   function handleEditInputChange(event) {
     const { name, type, checked, value, files } = event.target;
     const file = type === "file"
-      ? name === "imagenes_galeria"
+      ? name === "imágenes_galeria"
         ? Array.from(files || [])
         : files?.[0] || null
       : null;
@@ -292,9 +298,9 @@ export default function CatalogoMotos() {
       return nextForm;
     });
 
-    if (type === "file" && (name === "imagen_principal" || name === "imagenes_galeria")) {
+    if (type === "file" && (name === "imagen_principal" || name === "imágenes_galeria")) {
       if (editImagePreview) URL.revokeObjectURL(editImagePreview);
-      const firstFile = name === "imagenes_galeria" ? files?.[0] : files?.[0];
+      const firstFile = name === "imágenes_galeria" ? files?.[0] : files?.[0];
       setEditImagePreview(firstFile ? URL.createObjectURL(firstFile) : "");
     }
 
@@ -378,14 +384,14 @@ export default function CatalogoMotos() {
     payload.append("es_destacada", String(editForm.es_destacada));
     payload.append("activa", String(editForm.activa));
 
-    const galleryFiles = Array.isArray(editForm.imagenes_galeria)
-      ? editForm.imagenes_galeria.filter(Boolean)
+    const galleryFiles = Array.isArray(editForm.imágenes_galeria)
+      ? editForm.imágenes_galeria.filter(Boolean)
       : [];
     const primaryImageFromGallery = galleryFiles[0] || null;
     if (primaryImageFromGallery) {
       payload.append("imagen_principal", primaryImageFromGallery);
     }
-    galleryFiles.forEach((file) => payload.append("imagenes", file));
+    galleryFiles.forEach((file) => payload.append("imágenes", file));
     if (editForm.imagen_con_maletas) {
       payload.append("imagen_con_maletas", editForm.imagen_con_maletas);
     }
@@ -560,7 +566,7 @@ export default function CatalogoMotos() {
                       <option value="precio-desc">Precio: mayor a menor</option>
                       <option value="cilindrada-asc">Cilindrada: menor a mayor</option>
                       <option value="cilindrada-desc">Cilindrada: mayor a menor</option>
-                      <option value="anio-desc">Mas reciente</option>
+                      <option value="anio-desc">Más reciente</option>
                     </select>
                   </div>
 
@@ -685,7 +691,7 @@ export default function CatalogoMotos() {
                       </button>
 
                       <span className="moto-page-indicator">
-                        Pagina {safePage} de {totalPages}
+                        Página {safePage} de {totalPages}
                       </span>
 
                       <button
@@ -772,12 +778,12 @@ export default function CatalogoMotos() {
 
               <label>
                 {"A\u00f1o *"}
-                <input
-                  type="number"
+                <AdminYearDropdown
                   name="anio"
                   value={editForm.anio}
                   onChange={handleEditInputChange}
-                  min="1900"
+                  options={motoYearOptions}
+                  placeholder="Selecciona un A\u00f1o"
                   required
                 />
               </label>
@@ -823,7 +829,7 @@ export default function CatalogoMotos() {
                     ref={editFileInputRef}
                     className="moto-edit-file-hidden"
                     type="file"
-                    name="imagenes_galeria"
+                    name="imágenes_galeria"
                     accept="image/*"
                     multiple
                     onChange={handleEditInputChange}
@@ -836,9 +842,9 @@ export default function CatalogoMotos() {
                     Examinar...
                   </button>
                   <span className="moto-edit-file-name">
-                    {Array.isArray(editForm.imagenes_galeria) && editForm.imagenes_galeria.length > 0
-                      ? `${editForm.imagenes_galeria.length} archivos seleccionados.`
-                      : "No se ha seleccionado ningun archivo."}
+                    {Array.isArray(editForm.imágenes_galeria) && editForm.imágenes_galeria.length > 0
+                      ? `${editForm.imágenes_galeria.length} archivos seleccionados.`
+                      : "No se ha seleccionado ningún archivo."}
                   </span>
                 </div>
               </label>
@@ -965,7 +971,7 @@ export default function CatalogoMotos() {
                       Examinar...
                     </button>
                     <span className="moto-edit-file-name">
-                      {editForm.imagen_con_maletas?.name || "No se ha seleccionado ningun archivo."}
+                      {editForm.imagen_con_maletas?.name || "No se ha seleccionado ningún archivo."}
                     </span>
                   </div>
                 </label>

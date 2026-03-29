@@ -739,3 +739,83 @@
     gap: 24px;
   }
 }
+
+/* Year dropdown used in admin edit modal mounted from catalog page */
+.admin-year-select {
+  position: relative;
+}
+
+.admin-year-select-trigger {
+  width: 100%;
+  min-height: 44px;
+  border-radius: 12px;
+  border: 1px solid #c5ccd8;
+  background: #fff;
+  color: #101010;
+  font: inherit;
+  font-size: 0.98rem;
+  font-weight: 600;
+  padding: 0 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  cursor: pointer;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.admin-year-select-trigger:hover {
+  border-color: rgba(14, 116, 144, 0.45);
+}
+
+.admin-year-select-trigger.open,
+.admin-year-select-trigger:focus {
+  outline: none;
+  border-color: #0f766e;
+  box-shadow: 0 0 0 3px rgba(15, 118, 110, 0.16);
+}
+
+.admin-year-select-menu {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  right: 0;
+  z-index: 30;
+  max-height: 396px;
+  overflow-y: auto;
+  border: 1px solid #c5ccd8;
+  border-radius: 12px;
+  background: #fff;
+  box-shadow: 0 10px 26px rgba(15, 23, 42, 0.14);
+}
+
+.admin-year-select-option {
+  width: 100%;
+  text-align: left;
+  border: none;
+  background: #fff;
+  color: #101010;
+  font: inherit;
+  font-size: 0.95rem;
+  padding: 10px 14px;
+  cursor: pointer;
+}
+
+.admin-year-select-option:hover {
+  background: #f3f4f6;
+}
+
+.admin-year-select-option.active {
+  background: #e5e7eb;
+  font-weight: 700;
+}
+
+.admin-year-select-native-proxy {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+  width: 1px;
+  height: 1px;
+  left: 0;
+  top: 0;
+}

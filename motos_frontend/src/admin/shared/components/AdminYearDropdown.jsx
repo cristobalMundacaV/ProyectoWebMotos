@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+﻿import { useEffect, useMemo, useRef, useState } from "react";
 
 function buildSyntheticSelectEvent(name, value) {
   return {
@@ -16,7 +16,7 @@ export default function AdminYearDropdown({
   name = "anio",
   value = "",
   options = [],
-  placeholder = "Selecciona un a\u00f1o",
+  placeholder = "Selecciona un A\u00f1o",
   required = false,
   disabled = false,
   onChange,
@@ -119,5 +119,3 @@ export default function AdminYearDropdown({
     </div>
   );
 }
-
-

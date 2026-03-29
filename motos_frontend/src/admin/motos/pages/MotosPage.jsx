@@ -435,7 +435,7 @@ export default function MotosPage({
                 value={motoForm.anio}
                 onChange={onMotoInputChange}
                 options={motoYearOptions}
-                placeholder="Selecciona un a\u00f1o"
+                placeholder="Selecciona un A\u00f1o"
                 required
               />
             </label>
@@ -618,4 +618,5 @@ export default function MotosPage({
 
   return null;
 }
+
 
