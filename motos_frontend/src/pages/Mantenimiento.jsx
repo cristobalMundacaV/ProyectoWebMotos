@@ -193,7 +193,7 @@ export default function Mantenimiento() {
           const [year, month] = firstDate.split("-").map(Number);
           setCalendarMonth(new Date(year, (month || 1) - 1, 1));
         }
-      } catch (_error) {
+      } catch {
         if (!mounted) return;
         setToast({ type: "error", message: "No pudimos cargar los horarios disponibles en este momento." });
       } finally {
