@@ -50,6 +50,8 @@ export default function MotosPage({
   // Limitamos el selector a los ultimos anos para evitar un desplegable excesivamente largo.
   const MOTO_YEAR_RANGE = 18;
   const MIN_MOTO_YEAR = currentYear - MOTO_YEAR_RANGE;
+  const yearLabel = `A${String.fromCharCode(241)}o *`;
+  const yearPlaceholder = `Selecciona un A${String.fromCharCode(241)}o`;
   const motoYearOptions = Array.from(
     { length: currentYear - MIN_MOTO_YEAR + 1 },
     (_, index) => String(currentYear - index)
@@ -429,13 +431,13 @@ export default function MotosPage({
             </label>
 
             <label>
-              {"A\u00f1o *"}
+              {yearLabel}
               <AdminYearDropdown
                 name="anio"
                 value={motoForm.anio}
                 onChange={onMotoInputChange}
                 options={motoYearOptions}
-                placeholder="Selecciona un A\u00f1o"
+                placeholder={yearPlaceholder}
                 required
               />
             </label>

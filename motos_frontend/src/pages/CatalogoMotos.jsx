@@ -10,9 +10,11 @@ import { deleteMoto, getMotoAdminMeta, updateMoto } from "../services/motosServi
 import { getStoredToken, getStoredUser, hasAdminAccess } from "../services/authService";
 import "../styles/catalogo-motos.css";
 
-/** Catálogo completo de motos con filtros y edición para admins */
+/** CatÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â‚¬Å¾Ã‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¡logo completo de motos con filtros y ediciÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â‚¬Å¾Ã‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â³n para admins */
 export default function CatalogoMotos() {
   const ITEMS_PER_PAGE = 16;
+  const yearLabel = `A${String.fromCharCode(241)}o *`;
+  const yearPlaceholder = `Selecciona un A${String.fromCharCode(241)}o`;
   const currentYear = new Date().getFullYear();
   const motoYearOptions = useMemo(
     () => Array.from({ length: currentYear - 1980 + 1 }, (_, index) => String(currentYear - index)),
@@ -219,7 +221,7 @@ export default function CatalogoMotos() {
       orden_carrusel: String(moto.orden_carrusel ?? 1),
       es_destacada: Boolean(moto.es_destacada),
       activa: moto.activa !== false,
-      imágenes_galeria: [],
+      imagenes_galeria: [],
       imagen_con_maletas: null,
       video_presentacion: moto.video_presentacion || "",
     });
@@ -240,7 +242,7 @@ export default function CatalogoMotos() {
   function handleEditInputChange(event) {
     const { name, type, checked, value, files } = event.target;
     const file = type === "file"
-      ? name === "imágenes_galeria"
+      ? name === "imagenes_galeria"
         ? Array.from(files || [])
         : files?.[0] || null
       : null;
@@ -298,9 +300,9 @@ export default function CatalogoMotos() {
       return nextForm;
     });
 
-    if (type === "file" && (name === "imagen_principal" || name === "imágenes_galeria")) {
+    if (type === "file" && (name === "imagen_principal" || name === "imagenes_galeria")) {
       if (editImagePreview) URL.revokeObjectURL(editImagePreview);
-      const firstFile = name === "imágenes_galeria" ? files?.[0] : files?.[0];
+      const firstFile = name === "imagenes_galeria" ? files?.[0] : files?.[0];
       setEditImagePreview(firstFile ? URL.createObjectURL(firstFile) : "");
     }
 
@@ -384,14 +386,14 @@ export default function CatalogoMotos() {
     payload.append("es_destacada", String(editForm.es_destacada));
     payload.append("activa", String(editForm.activa));
 
-    const galleryFiles = Array.isArray(editForm.imágenes_galeria)
-      ? editForm.imágenes_galeria.filter(Boolean)
+    const galleryFiles = Array.isArray(editForm.imagenes_galeria)
+      ? editForm.imagenes_galeria.filter(Boolean)
       : [];
     const primaryImageFromGallery = galleryFiles[0] || null;
     if (primaryImageFromGallery) {
       payload.append("imagen_principal", primaryImageFromGallery);
     }
-    galleryFiles.forEach((file) => payload.append("imágenes", file));
+    galleryFiles.forEach((file) => payload.append("imagenes", file));
     if (editForm.imagen_con_maletas) {
       payload.append("imagen_con_maletas", editForm.imagen_con_maletas);
     }
@@ -566,7 +568,7 @@ export default function CatalogoMotos() {
                       <option value="precio-desc">Precio: mayor a menor</option>
                       <option value="cilindrada-asc">Cilindrada: menor a mayor</option>
                       <option value="cilindrada-desc">Cilindrada: mayor a menor</option>
-                      <option value="anio-desc">Más reciente</option>
+                      <option value="anio-desc">MÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â‚¬Å¾Ã‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¡s reciente</option>
                     </select>
                   </div>
 
@@ -691,7 +693,7 @@ export default function CatalogoMotos() {
                       </button>
 
                       <span className="moto-page-indicator">
-                        Página {safePage} de {totalPages}
+                        PÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â‚¬Å¾Ã‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¡gina {safePage} de {totalPages}
                       </span>
 
                       <button
@@ -716,7 +718,7 @@ export default function CatalogoMotos() {
           <section className="moto-edit-modal" onClick={(event) => event.stopPropagation()}>
             <div className="moto-edit-header">
               <div>
-                <p className="moto-edit-kicker">Edición de moto</p>
+                <p className="moto-edit-kicker">EdiciÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â‚¬Å¾Ã‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â³n de moto</p>
                 <h3>{editingMoto.modelo || editingMoto.nombre}</h3>
               </div>
               <button
@@ -745,7 +747,7 @@ export default function CatalogoMotos() {
               <label>
                 Categoria *
                 <select name="categoria" value={editForm.categoria} onChange={handleEditInputChange} required disabled>
-                  <option value="">Selecciona una categoría</option>
+                  <option value="">Selecciona una categorÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â‚¬Å¾Ã‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â­a</option>
                   {meta.categorias.map((categoria) => (
                     <option key={categoria.id} value={categoria.id}>
                       {categoria.nombre}
@@ -777,19 +779,19 @@ export default function CatalogoMotos() {
               </label>
 
               <label>
-                {"A\u00f1o *"}
+                {yearLabel}
                 <AdminYearDropdown
                   name="anio"
                   value={editForm.anio}
                   onChange={handleEditInputChange}
                   options={motoYearOptions}
-                  placeholder="Selecciona un A\u00f1o"
+                  placeholder={yearPlaceholder}
                   required
                 />
               </label>
 
               <label className="moto-edit-span-2">
-                Descripción
+                DescripciÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â‚¬Å¾Ã‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â³n
                 <textarea
                   name="descripcion"
                   value={editForm.descripcion}
@@ -829,7 +831,7 @@ export default function CatalogoMotos() {
                     ref={editFileInputRef}
                     className="moto-edit-file-hidden"
                     type="file"
-                    name="imágenes_galeria"
+                    name="imagenes_galeria"
                     accept="image/*"
                     multiple
                     onChange={handleEditInputChange}
@@ -842,9 +844,9 @@ export default function CatalogoMotos() {
                     Examinar...
                   </button>
                   <span className="moto-edit-file-name">
-                    {Array.isArray(editForm.imágenes_galeria) && editForm.imágenes_galeria.length > 0
-                      ? `${editForm.imágenes_galeria.length} archivos seleccionados.`
-                      : "No se ha seleccionado ningún archivo."}
+                    {Array.isArray(editForm.imagenes_galeria) && editForm.imagenes_galeria.length > 0
+                      ? `${editForm.imagenes_galeria.length} archivos seleccionados.`
+                      : "No se ha seleccionado ningÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â‚¬Å¾Ã‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Âºn archivo."}
                   </span>
                 </div>
               </label>
@@ -971,7 +973,7 @@ export default function CatalogoMotos() {
                       Examinar...
                     </button>
                     <span className="moto-edit-file-name">
-                      {editForm.imagen_con_maletas?.name || "No se ha seleccionado ningún archivo."}
+                      {editForm.imagen_con_maletas?.name || "No se ha seleccionado ningÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â‚¬Å¾Ã‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Âºn archivo."}
                     </span>
                   </div>
                 </label>
@@ -997,7 +999,7 @@ export default function CatalogoMotos() {
           <section className="moto-delete-modal" onClick={(event) => event.stopPropagation()}>
             <img src="/images/informacion.png" alt="Informacion" className="moto-delete-modal-image" />
             <p className="moto-delete-modal-text">
-              ¿Estas seguro que quieres eliminar {deleteCandidate.modelo || deleteCandidate.nombre}?
+              ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Â¦Ãƒâ€šÃ‚Â¡ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¿Estas seguro que quieres eliminar {deleteCandidate.modelo || deleteCandidate.nombre}?
             </p>
             <div className="moto-delete-modal-actions">
               <button type="button" className="btn-back" onClick={closeDeleteModal} disabled={deletingMoto}>

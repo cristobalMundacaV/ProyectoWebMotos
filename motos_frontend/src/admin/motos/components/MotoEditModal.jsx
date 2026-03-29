@@ -17,6 +17,9 @@ export default function MotoEditModal({
   onPrecioConMaletasInputChange,
   onPrecioListaConMaletasInputChange,
 }) {
+  const yearLabel = `A${String.fromCharCode(241)}o *`;
+  const yearPlaceholder = `Selecciona un A${String.fromCharCode(241)}o`;
+
   if (!motoEditModal) return null;
 
   return (
@@ -148,13 +151,13 @@ export default function MotoEditModal({
           )}
 
           <label>
-            {"A\u00f1o *"}
+            {yearLabel}
             <AdminYearDropdown
               name="anio"
               value={motoEditModal.form.anio}
               onChange={onInputChange}
               options={motoYearOptions}
-              placeholder="Selecciona un A\u00f1o"
+              placeholder={yearPlaceholder}
               required
             />
           </label>
