@@ -1,3 +1,5 @@
+import AdminYearDropdown from "../../shared/components/AdminYearDropdown";
+
 export default function MotoEditModal({
   motoEditModal,
   motoEditSaving,
@@ -146,15 +148,15 @@ export default function MotoEditModal({
           )}
 
           <label>
-            Año *
-            <select name="anio" value={motoEditModal.form.anio} onChange={onInputChange} required>
-              <option value="">Selecciona un año</option>
-              {motoYearOptions.map((year) => (
-                <option key={year} value={year}>
-                  {year}
-                </option>
-              ))}
-            </select>
+            {"A\u00f1o *"}
+            <AdminYearDropdown
+              name="anio"
+              value={motoEditModal.form.anio}
+              onChange={onInputChange}
+              options={motoYearOptions}
+              placeholder="Selecciona un a\u00f1o"
+              required
+            />
           </label>
 
           <label className="admin-form-span-2">
@@ -271,4 +273,3 @@ export default function MotoEditModal({
     </div>
   );
 }
-

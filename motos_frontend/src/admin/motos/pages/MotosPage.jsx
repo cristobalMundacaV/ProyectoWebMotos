@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import AdminPagination, { paginateItems } from "../../shared/components/AdminPagination";
+import AdminYearDropdown from "../../shared/components/AdminYearDropdown";
 
 export default function MotosPage({
   activeSection,
@@ -102,14 +103,6 @@ export default function MotosPage({
       motoGaleriaPreviewUrls.forEach((url) => URL.revokeObjectURL(url));
     };
   }, [motoGaleriaPreviewUrls]);
-
-  function expandYearSelect(event) {
-    event.target.size = 10;
-  }
-
-  function collapseYearSelect(event) {
-    event.target.size = 1;
-  }
 
   if (activeSection === "marcas_motos" || activeSection === "marcas_acc_motos" || activeSection === "marcas_acc_rider") {
     const marcas =
@@ -437,24 +430,14 @@ export default function MotosPage({
 
             <label>
               {"A\u00f1o *"}
-              <select
+              <AdminYearDropdown
                 name="anio"
                 value={motoForm.anio}
-                onChange={(event) => {
-                  onMotoInputChange(event);
-                  collapseYearSelect(event);
-                }}
-                onFocus={expandYearSelect}
-                onBlur={collapseYearSelect}
+                onChange={onMotoInputChange}
+                options={motoYearOptions}
+                placeholder="Selecciona un a\u00f1o"
                 required
-              >
-                <option value="">{"Selecciona un a\u00f1o"}</option>
-                {motoYearOptions.map((year) => (
-                  <option key={year} value={year}>
-                    {year}
-                  </option>
-                ))}
-              </select>
+              />
             </label>
 
             <label>
@@ -635,3 +618,4 @@ export default function MotosPage({
 
   return null;
 }
+
