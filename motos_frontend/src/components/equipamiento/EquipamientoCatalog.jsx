@@ -881,50 +881,44 @@ export default function EquipamientoCatalog({ variant = "accesorios" }) {
                 <p>Vista previa</p>
 
                 {Array.isArray(editForm.imagenes_actuales) && editForm.imagenes_actuales.length > 0 && (
-                  <>
-                    <span className="equip-edit-preview-label">Imagenes actuales</span>
-                    <div className="equip-edit-preview-grid">
-                      {editForm.imagenes_actuales.map((imageItem) => (
-                        <div key={imageItem.id} className="equip-edit-preview-item">
-                          <button
-                            type="button"
-                            className="equip-edit-preview-remove"
-                            onClick={() => removeExistingImage(imageItem.id)}
-                            aria-label="Eliminar imagen actual"
-                            title="Eliminar imagen"
-                          >
-                            ×
-                          </button>
-                          <img
-                            src={buildMediaUrl(imageItem.imagen)}
-                            alt={`${editingProducto.nombre || "Producto"} ${imageItem.id}`}
-                          />
-                        </div>
-                      ))}
-                    </div>
-                  </>
+                  <div className="equip-edit-preview-grid">
+                    {editForm.imagenes_actuales.map((imageItem) => (
+                      <div key={imageItem.id} className="equip-edit-preview-item">
+                        <button
+                          type="button"
+                          className="equip-edit-preview-remove"
+                          onClick={() => removeExistingImage(imageItem.id)}
+                          aria-label="Eliminar imagen actual"
+                          title="Eliminar imagen"
+                        >
+                          ×
+                        </button>
+                        <img
+                          src={buildMediaUrl(imageItem.imagen)}
+                          alt={`${editingProducto.nombre || "Producto"} ${imageItem.id}`}
+                        />
+                      </div>
+                    ))}
+                  </div>
                 )}
 
                 {editNewImagePreviews.length > 0 && (
-                  <>
-                    <span className="equip-edit-preview-label">Nuevas imagenes a subir</span>
-                    <div className="equip-edit-preview-grid">
-                      {editNewImagePreviews.map((previewItem) => (
-                        <div key={previewItem.id} className="equip-edit-preview-item">
-                          <button
-                            type="button"
-                            className="equip-edit-preview-remove"
-                            onClick={() => removeNewImage(previewItem.id)}
-                            aria-label="Quitar imagen seleccionada"
-                            title="Quitar imagen"
-                          >
-                            ×
-                          </button>
-                          <img src={previewItem.url} alt={previewItem.name || "Imagen nueva"} />
-                        </div>
-                      ))}
-                    </div>
-                  </>
+                  <div className="equip-edit-preview-grid">
+                    {editNewImagePreviews.map((previewItem) => (
+                      <div key={previewItem.id} className="equip-edit-preview-item">
+                        <button
+                          type="button"
+                          className="equip-edit-preview-remove"
+                          onClick={() => removeNewImage(previewItem.id)}
+                          aria-label="Quitar imagen seleccionada"
+                          title="Quitar imagen"
+                        >
+                          ×
+                        </button>
+                        <img src={previewItem.url} alt={previewItem.name || "Imagen nueva"} />
+                      </div>
+                    ))}
+                  </div>
                 )}
 
                 {(!Array.isArray(editForm.imagenes_actuales) || editForm.imagenes_actuales.length === 0) &&

@@ -53,7 +53,9 @@ export default function useProductosAdmin({
   const [accesorioMotoImageInputKey, setAccesorioMotoImageInputKey] = useState(0);
   const [accesorioMotoImageUrl, setAccesorioMotoImageUrl] = useState("");
   const [accesorioMotoSaving, setAccesorioMotoSaving] = useState(false);
-  const [editingAccesorioMotoId, setEditingAccesorioMotoId] = useState(null);
+  const [accesorioMotoEditModal, setAccesorioMotoEditModal] = useState(null);
+  const [accesorioMotoEditSaving, setAccesorioMotoEditSaving] = useState(false);
+  const [accesorioMotoEditError, setAccesorioMotoEditError] = useState("");
   const [categoriasAccRiderMeta, setCategoriasAccRiderMeta] = useState({
     categorias_padre: [],
     subcategorias: [],
@@ -270,6 +272,96 @@ export default function useProductosAdmin({
     });
   }
 
+  function handleAccesorioMotoEditInputChange(event) {
+    clearInvalidFieldStyle(event.target);
+    const { name, type, value, checked, files } = event.target;
+    setAccesorioMotoEditModal((prev) => {
+      if (!prev) return prev;
+      let nextImagePreviewUrl = prev.imagePreviewUrl;
+      let nextPreviewIsObjectUrl = prev.previewIsObjectUrl;
+      let nextImageFileName = prev.imageFileName;
+      const galleryFiles = type === "file" && name === "imagenes_galeria" ? Array.from(files || []) : null;
+      const nextBrandId = name === "marca" ? value : prev.form.marca;
+      const selectedBrand = accesoriosMotosMeta.marcas.find((marca) => String(marca.id) === String(nextBrandId));
+      const brandName = selectedBrand?.nombre || "";
+      const normalizedValue = name === "nombre" ? forceBrandTokenInName(value, brandName) : value;
+      const nextValue =
+        type === "checkbox"
+          ? checked
+          : type === "file"
+            ? name === "imagenes_galeria"
+              ? galleryFiles
+              : files?.[0] || null
+            : normalizedValue;
+
+      if (type === "file") {
+        if (prev.previewIsObjectUrl && prev.imagePreviewUrl) URL.revokeObjectURL(prev.imagePreviewUrl);
+        const primaryImage = name === "imagenes_galeria" ? (Array.isArray(nextValue) ? nextValue[0] : null) : nextValue;
+        if (primaryImage) {
+          nextImagePreviewUrl = URL.createObjectURL(primaryImage);
+          nextPreviewIsObjectUrl = true;
+          nextImageFileName = primaryImage.name;
+        } else {
+          nextImagePreviewUrl = prev.originalImageUrl || "";
+          nextPreviewIsObjectUrl = false;
+          nextImageFileName = prev.originalImageName || "";
+        }
+      }
+
+      const nextForm = {
+        ...prev.form,
+        [name]: nextValue,
+        ...(name === "requiere_compatibilidad" && !checked ? { compatibilidad_motos: [] } : {}),
+      };
+
+      if (name === "marca" && nextForm.nombre) {
+        nextForm.nombre = forceBrandTokenInName(nextForm.nombre, brandName);
+      }
+      if (name === "nombre" || name === "marca") {
+        nextForm.slug = limitSlug(buildSlug(normalizeTitleCaseLabel(nextForm.nombre)), 50);
+      }
+
+      return {
+        ...prev,
+        form: nextForm,
+        imagePreviewUrl: nextImagePreviewUrl,
+        previewIsObjectUrl: nextPreviewIsObjectUrl,
+        imageFileName: nextImageFileName,
+      };
+    });
+  }
+
+  function handleAccesorioMotoEditPrecioInputChange(event) {
+    clearInvalidFieldStyle(event.target);
+    const precioNormalizado = normalizePrecioInput(event.target.value);
+    setAccesorioMotoEditModal((prev) => {
+      if (!prev) return prev;
+      return {
+        ...prev,
+        form: {
+          ...prev.form,
+          precio: precioNormalizado,
+        },
+      };
+    });
+  }
+
+  function toggleAccesorioMotoEditCompatibilidad(motoId) {
+    setAccesorioMotoEditModal((prev) => {
+      if (!prev) return prev;
+      const exists = prev.form.compatibilidad_motos.includes(motoId);
+      return {
+        ...prev,
+        form: {
+          ...prev.form,
+          compatibilidad_motos: exists
+            ? prev.form.compatibilidad_motos.filter((id) => id !== motoId)
+            : [...prev.form.compatibilidad_motos, motoId],
+        },
+      };
+    });
+  }
+
   async function handleCategoriaAccMotosSubmit(event) {
     event.preventDefault();
     if (!validateFormWithToast(event.currentTarget)) return;
@@ -314,26 +406,13 @@ export default function useProductosAdmin({
     setAccesorioMotoSaving(true);
     const payload = buildAccesorioMotoPayload(accesorioMotoForm);
     try {
-      if (editingAccesorioMotoId) {
-        const updatedAccesorio = await updateProductoAdmin(editingAccesorioMotoId, payload);
-        setAccesoriosMotosAdmin((prev) => prev.map((item) => (item.id === editingAccesorioMotoId ? updatedAccesorio : item)));
-        setDashboard((prev) => ({
-          ...prev,
-          productosAccesorios: prev.productosAccesorios.map((item) =>
-            item.id === editingAccesorioMotoId ? updatedAccesorio : item
-          ),
-        }));
-        pushToast("Accesorio de moto actualizado correctamente.", "success");
-      } else {
-        const nuevoAccesorio = await createAccesorioMoto(payload);
-        setAccesoriosMotosAdmin((prev) => [nuevoAccesorio, ...prev]);
-        setDashboard((prev) => ({ ...prev, productosAccesorios: [nuevoAccesorio, ...prev.productosAccesorios] }));
-        pushToast("Accesorio de moto creado correctamente.", "success");
-      }
+      const nuevoAccesorio = await createAccesorioMoto(payload);
+      setAccesoriosMotosAdmin((prev) => [nuevoAccesorio, ...prev]);
+      setDashboard((prev) => ({ ...prev, productosAccesorios: [nuevoAccesorio, ...prev.productosAccesorios] }));
+      pushToast("Accesorio de moto creado correctamente.", "success");
       setAccesorioMotoForm(initialAccesorioMotoForm);
       setAccesorioMotoImageInputKey((prev) => prev + 1);
       setAccesorioMotoImageUrl("");
-      setEditingAccesorioMotoId(null);
     } catch (error) {
       pushToast(getErrorText(error, "No se pudo guardar el accesorio de moto."), "error");
     } finally {
@@ -378,24 +457,33 @@ export default function useProductosAdmin({
       ? producto.compatibilidad_motos.map((item) => (typeof item === "object" ? item.id : item)).filter(Boolean)
       : [];
 
-    setEditingAccesorioMotoId(producto.id);
-    setAccesorioMotoForm({
-      subcategoria: subcategoriaId,
-      marca: marcaId,
-      nombre: producto.nombre || "",
-      slug: producto.slug || "",
-      descripcion: producto.descripcion || "",
-      precio: normalizePrecioFromApi(producto.precio),
-      orden_carrusel: String(producto.orden_carrusel ?? "1"),
-      imagen_principal: null,
-      imagenes_galeria: [],
-      es_destacado: Boolean(producto.es_destacado),
-      activo: producto.activo !== false,
-      requiere_compatibilidad: Boolean(producto.requiere_compatibilidad),
-      compatibilidad_motos: compatibilidad,
+    setAccesorioMotoEditError("");
+    setAccesorioMotoEditModal({
+      id: producto.id,
+      title: producto.nombre || "Editar accesorio moto",
+      kind: "accesorio_moto",
+      originalImageUrl: buildMediaUrl(producto.imagen_principal) || fallbackImage,
+      originalImageName: getFileNameFromPath(producto.imagen_principal),
+      imagePreviewUrl: buildMediaUrl(producto.imagen_principal) || fallbackImage,
+      imageFileName: getFileNameFromPath(producto.imagen_principal),
+      previewIsObjectUrl: false,
+      imageInputKey: Date.now(),
+      form: {
+        subcategoria: subcategoriaId,
+        marca: marcaId,
+        nombre: producto.nombre || "",
+        slug: producto.slug || "",
+        descripcion: producto.descripcion || "",
+        precio: normalizePrecioFromApi(producto.precio),
+        orden_carrusel: String(producto.orden_carrusel ?? "1"),
+        imagen_principal: null,
+        imagenes_galeria: [],
+        es_destacado: Boolean(producto.es_destacado),
+        activo: producto.activo !== false,
+        requiere_compatibilidad: Boolean(producto.requiere_compatibilidad),
+        compatibilidad_motos: compatibilidad,
+      },
     });
-    setAccesorioMotoImageUrl(buildMediaUrl(producto.imagen_principal) || fallbackImage);
-    setAccesorioMotoImageInputKey((prev) => prev + 1);
   }
 
   function handleAccesorioRiderEdit(producto) {
@@ -415,6 +503,7 @@ export default function useProductosAdmin({
     setAccesorioRiderEditModal({
       id: producto.id,
       title: producto.nombre || "Editar accesorio rider",
+      kind: "accesorio_rider",
       originalImageUrl: buildMediaUrl(producto.imagen_principal) || fallbackImage,
       originalImageName: getFileNameFromPath(producto.imagen_principal),
       imagePreviewUrl: buildMediaUrl(producto.imagen_principal) || fallbackImage,
@@ -444,6 +533,42 @@ export default function useProductosAdmin({
       return null;
     });
     setAccesorioRiderEditError("");
+  }
+
+  function closeAccesorioMotoEditModal(forceClose = false) {
+    if (accesorioMotoEditSaving && !forceClose) return;
+    setAccesorioMotoEditModal((prev) => {
+      if (prev?.previewIsObjectUrl && prev.imagePreviewUrl) URL.revokeObjectURL(prev.imagePreviewUrl);
+      return null;
+    });
+    setAccesorioMotoEditError("");
+  }
+
+  async function submitAccesorioMotoEditModal(event) {
+    event.preventDefault();
+    if (!accesorioMotoEditModal) return;
+    if (!validateFormWithToast(event.currentTarget)) return;
+    setAccesorioMotoEditSaving(true);
+    setAccesorioMotoEditError("");
+    const payload = buildAccesorioMotoPayload(accesorioMotoEditModal.form);
+    try {
+      const updatedAccesorio = await updateProductoAdmin(accesorioMotoEditModal.id, payload);
+      setAccesoriosMotosAdmin((prev) => prev.map((item) => (item.id === accesorioMotoEditModal.id ? updatedAccesorio : item)));
+      setDashboard((prev) => ({
+        ...prev,
+        productosAccesorios: prev.productosAccesorios.map((item) =>
+          item.id === accesorioMotoEditModal.id ? updatedAccesorio : item
+        ),
+      }));
+      pushToast("Accesorio de moto actualizado correctamente.", "success");
+      closeAccesorioMotoEditModal(true);
+    } catch (error) {
+      const message = getErrorText(error, "No se pudo actualizar el accesorio de moto.");
+      setAccesorioMotoEditError(message);
+      pushToast(message, "error");
+    } finally {
+      setAccesorioMotoEditSaving(false);
+    }
   }
 
   async function submitAccesorioRiderEditModal(event) {
@@ -505,12 +630,7 @@ export default function useProductosAdmin({
           ...prev,
           productosAccesorios: prev.productosAccesorios.filter((item) => item.id !== productoDeleteModal.id),
         }));
-        if (editingAccesorioMotoId === productoDeleteModal.id) {
-          setEditingAccesorioMotoId(null);
-          setAccesorioMotoForm(initialAccesorioMotoForm);
-          setAccesorioMotoImageInputKey((prev) => prev + 1);
-          setAccesorioMotoImageUrl("");
-        }
+        if (accesorioMotoEditModal?.id === productoDeleteModal.id) closeAccesorioMotoEditModal();
         pushToast("Accesorio de moto eliminado correctamente.", "success");
       } else {
         setAccesoriosRiderAdmin((prev) => prev.filter((item) => item.id !== productoDeleteModal.id));
@@ -534,10 +654,7 @@ export default function useProductosAdmin({
   }
 
   function handleCancelAccesorioMotoEdit() {
-    setEditingAccesorioMotoId(null);
-    setAccesorioMotoForm(initialAccesorioMotoForm);
-    setAccesorioMotoImageInputKey((prev) => prev + 1);
-    setAccesorioMotoImageUrl("");
+    closeAccesorioMotoEditModal();
   }
 
   return {
@@ -557,7 +674,9 @@ export default function useProductosAdmin({
     accesorioMotoImageInputKey,
     accesorioMotoImageUrl,
     accesorioMotoSaving,
-    editingAccesorioMotoId,
+    accesorioMotoEditModal,
+    accesorioMotoEditSaving,
+    accesorioMotoEditError,
     categoriasAccRiderMeta,
     setCategoriasAccRiderMeta,
     categoriaAccRiderForm,
@@ -583,6 +702,9 @@ export default function useProductosAdmin({
     toggleAccesorioCompatibilidadMoto,
     handleAccesorioRiderInputChange,
     handleAccesorioRiderPrecioInputChange,
+    handleAccesorioMotoEditInputChange,
+    handleAccesorioMotoEditPrecioInputChange,
+    toggleAccesorioMotoEditCompatibilidad,
     handleAccesorioRiderEditInputChange,
     handleAccesorioRiderEditPrecioInputChange,
     handleCategoriaAccMotosSubmit,
@@ -590,6 +712,8 @@ export default function useProductosAdmin({
     handleAccesorioMotoSubmit,
     handleAccesorioRiderSubmit,
     handleAccesorioMotoEdit,
+    closeAccesorioMotoEditModal,
+    submitAccesorioMotoEditModal,
     handleAccesorioRiderEdit,
     closeAccesorioRiderEditModal,
     submitAccesorioRiderEditModal,

@@ -25,7 +25,6 @@ export default function ProductosPage({
   accesorioMotoImageInputKey,
   accesorioMotoImageUrl,
   accesorioMotoSaving,
-  editingAccesorioMotoId,
   onAccesorioMotoInputChange,
   onAccesorioMotoPrecioInputChange,
   onAccesorioMotoSubmit,
@@ -35,7 +34,6 @@ export default function ProductosPage({
   productoDeleteSaving,
   onCloseProductoDeleteModal,
   onConfirmProductoDelete,
-  onCancelAccesorioMotoEdit,
   onToggleCompatibilidad,
   accesoriosRiderMeta,
   accesoriosRiderAdmin,
@@ -322,7 +320,7 @@ export default function ProductosPage({
         <section className="admin-content-grid lower">
           <article className="admin-panel-card">
           <div className="admin-card-header">
-            <h2>{editingAccesorioMotoId ? "Editar accesorio moto" : "Agregar accesorio moto"}</h2>
+            <h2>Agregar accesorio moto</h2>
             <span>Gestion de accesorios moto con o sin vinculo a modelos especificos.</span>
           </div>
 
@@ -442,13 +440,8 @@ export default function ProductosPage({
               </div>
 
                 <button type="submit" className="admin-primary-action admin-form-footer-submit" disabled={accesorioMotoSaving}>
-                  {editingAccesorioMotoId ? "Actualizar" : "Guardar"}
+                  Guardar
                 </button>
-                {editingAccesorioMotoId && (
-                  <button type="button" className="admin-page-btn ghost" onClick={onCancelAccesorioMotoEdit}>
-                  Cancelar edicion
-                </button>
-                )}
               </div>
 
               {accesorioMotoForm.es_destacado && (

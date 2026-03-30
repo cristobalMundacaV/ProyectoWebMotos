@@ -23,15 +23,19 @@ export default function useAdminModalProps({ fallbackImage, domains }) {
         onPrecioListaConMaletasInputChange: motos.handleMotoEditPrecioListaConMaletasInputChange,
       },
       producto: {
-        accesorioRiderEditModal: productos.accesorioRiderEditModal,
-        accesoriosRiderMeta: productos.accesoriosRiderMeta,
-        accesorioRiderEditSaving: productos.accesorioRiderEditSaving,
-        accesorioRiderEditError: productos.accesorioRiderEditError,
+        productoEditModal: productos.accesorioMotoEditModal || productos.accesorioRiderEditModal,
+        productoMeta:
+          productos.accesorioMotoEditModal
+            ? { subcategorias: productos.accesoriosMotosMeta.subcategorias, marcas: productos.accesoriosMotosMeta.marcas, motos: productos.accesoriosMotosMeta.motos }
+            : { subcategorias: productos.accesoriosRiderMeta.subcategorias, marcas: productos.accesoriosRiderMeta.marcas, motos: [] },
+        productoEditSaving: productos.accesorioMotoEditModal ? productos.accesorioMotoEditSaving : productos.accesorioRiderEditSaving,
+        productoEditError: productos.accesorioMotoEditModal ? productos.accesorioMotoEditError : productos.accesorioRiderEditError,
         fallbackImage,
-        onClose: productos.closeAccesorioRiderEditModal,
-        onSubmit: productos.submitAccesorioRiderEditModal,
-        onInputChange: productos.handleAccesorioRiderEditInputChange,
-        onPrecioInputChange: productos.handleAccesorioRiderEditPrecioInputChange,
+        onClose: productos.accesorioMotoEditModal ? productos.closeAccesorioMotoEditModal : productos.closeAccesorioRiderEditModal,
+        onSubmit: productos.accesorioMotoEditModal ? productos.submitAccesorioMotoEditModal : productos.submitAccesorioRiderEditModal,
+        onInputChange: productos.accesorioMotoEditModal ? productos.handleAccesorioMotoEditInputChange : productos.handleAccesorioRiderEditInputChange,
+        onPrecioInputChange: productos.accesorioMotoEditModal ? productos.handleAccesorioMotoEditPrecioInputChange : productos.handleAccesorioRiderEditPrecioInputChange,
+        onToggleCompatibilidad: productos.toggleAccesorioMotoEditCompatibilidad,
       },
       user: {
         editModal: users.adminUserEditModal,
