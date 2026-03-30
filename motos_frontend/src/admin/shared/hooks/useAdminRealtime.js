@@ -25,7 +25,7 @@ export default function useAdminRealtime({
       if (document.hidden || !mounted) return;
       try {
         if (isUsersSection) {
-          await fetchUsersList();
+          await fetchUsersList({ background: true });
           if (!mounted) return;
         }
 

@@ -52,8 +52,11 @@ export default function useAdminUsers({
   const [adminUserModalSaving, setAdminUserModalSaving] = useState(false);
   const [adminUserModalError, setAdminUserModalError] = useState("");
 
-  const fetchUsersList = useCallback(async () => {
-    setAdminUsersLoading(true);
+  const fetchUsersList = useCallback(async ({ background = false } = {}) => {
+    const shouldShowLoading = !background && adminUsers.length === 0;
+    if (shouldShowLoading) {
+      setAdminUsersLoading(true);
+    }
     try {
       const payload = await listAdminUsers();
       const users = normalizeAdminUsersResponse(payload);
@@ -64,9 +67,11 @@ export default function useAdminUsers({
       setAdminUsersLoadError(getErrorText(error, "No se pudo cargar la lista de usuarios."));
       throw error;
     } finally {
-      setAdminUsersLoading(false);
+      if (shouldShowLoading) {
+        setAdminUsersLoading(false);
+      }
     }
-  }, [getErrorText]);
+  }, [adminUsers.length, getErrorText]);
 
   const handleCreateUserInputChange = useCallback(
     (event) => {
@@ -100,7 +105,7 @@ export default function useAdminUsers({
           password: createUserForm.password,
           confirm_password: createUserForm.confirm_password,
         });
-        await fetchUsersList().catch(() => {});
+        await fetchUsersList({ background: true }).catch(() => {});
         setCreateUserForm(initialCreateUserForm);
         pushToast("Usuario creado correctamente.", "success");
       } catch (error) {
