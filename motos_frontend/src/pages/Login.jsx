@@ -1,4 +1,4 @@
-import { useState } from "react";
+﻿import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import "../styles/login.css";
 import { hasAdminAccess, loginUser, registerUser, saveAuthSession } from "../services/authService";
@@ -40,7 +40,7 @@ export default function Login() {
     }
 
     if (target.validity.tooShort) {
-      target.setCustomValidity("La contrase\u00f1a debe tener al menos 8 caracteres.");
+      target.setCustomValidity("La contraseña debe tener al menos 8 caracteres.");
     }
   };
 
@@ -94,7 +94,7 @@ export default function Login() {
         <article className="login-card">
           <img src="/images/logo.svg" alt="Delanoe Motos" className="login-logo" />
           <h1>Bienvenido</h1>
-          <p>{mode === "login" ? "Inicia sesi\u00f3n para continuar" : "Crea tu cuenta para continuar"}</p>
+          <p>{mode === "login" ? "Inicia sesión para continuar" : "Crea tu cuenta para continuar"}</p>
 
           <form className="login-form" onSubmit={handleSubmit}>
             {mode === "register" && (
@@ -141,7 +141,7 @@ export default function Login() {
             )}
 
             <label htmlFor="email">
-              {mode === "login" ? "Correo o nombre de usuario" : "Correo electr\u00f3nico"}
+              {mode === "login" ? "Correo o nombre de usuario" : "Correo electrónico"}
             </label>
             <input
               id="email"
@@ -162,7 +162,7 @@ export default function Login() {
               onInput={clearValidationMessage}
             />
 
-            <label htmlFor="password">Contrase\u00f1a</label>
+            <label htmlFor="password">Contraseña</label>
             <div className="password-field">
               <input
                 id="password"
@@ -186,7 +186,7 @@ export default function Login() {
                 type="button"
                 className="toggle-password"
                 onClick={() => setShowPassword((prev) => !prev)}
-                aria-label={showPassword ? "Ocultar contrase\u00f1a" : "Mostrar contrase\u00f1a"}
+                aria-label={showPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
               >
                 {showPassword ? "Ocultar" : "Ver"}
               </button>
@@ -209,7 +209,7 @@ export default function Login() {
                   onInput={clearValidationMessage}
                 />
 
-                <label htmlFor="confirm_password">Confirmar contrase\u00f1a</label>
+                <label htmlFor="confirm_password">Confirmar contraseña</label>
                 <input
                   id="confirm_password"
                   name="confirm_password"
@@ -239,13 +239,13 @@ export default function Login() {
                   <label>
                     <input type="checkbox" name="remember" /> Recordarme
                   </label>
-                  <Link to="/">\u00bfOlvidaste tu contrase\u00f1a?</Link>
+                  <Link to="/">¿Olvidaste tu contraseña?</Link>
                 </div>
 
                 <div className="login-register">
-                  \u00bfNo tienes cuenta?{" "}
+                  ¿No tienes cuenta?{" "}
                   <button type="button" className="register-link" onClick={() => setMode("register")}>
-                    Reg\u00edstrate
+                    Registrate
                   </button>
                 </div>
               </>
@@ -253,9 +253,9 @@ export default function Login() {
 
             {mode === "register" && (
               <div className="login-register">
-                \u00bfYa tienes cuenta?{" "}
+                ¿No tienes cuenta?{" "}
                 <button type="button" className="register-link" onClick={() => setMode("login")}>
-                  Inicia sesi\u00f3n
+                  Inicia sesión
                 </button>
               </div>
             )}

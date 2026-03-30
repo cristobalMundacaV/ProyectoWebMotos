@@ -29,7 +29,7 @@ export default function CtaWhatsApp() {
 
   return (
     <section className="cta-whatsapp">
-      <h2>{"\u00BFBuscas tu pr\u00F3xima moto?"}</h2>
+      <h2>{"¿Buscas tu próxima moto?"}</h2>
       <a href={whatsappHref || "#"} target="_blank" rel="noreferrer">
         Cotizar por WhatsApp
       </a>

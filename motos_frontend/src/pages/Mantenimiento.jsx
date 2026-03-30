@@ -300,7 +300,7 @@ export default function Mantenimiento() {
       ["matricula", "Matricula"],
       ["marca", "Marca"],
       ["modelo", "Modelo"],
-      ["anio", "A\u00F1o"],
+      ["anio", "Año"],
       ["kilometraje_actual", "Kilometraje actual"],
       ["fecha_agendada", "Dia de mantencion"],
       ["hora_agendada", "Hora de mantencion"],
@@ -494,7 +494,7 @@ export default function Mantenimiento() {
               </label>
 
               <label>
-                {"A\u00F1o"}
+                {"Año"}
                 <div className="mantencion-year-select" ref={yearDropdownRef}>
                   <button
                     type="button"
@@ -503,12 +503,12 @@ export default function Mantenimiento() {
                     aria-haspopup="listbox"
                     aria-expanded={yearDropdownOpen}
                   >
-                    <span>{form.anio || `Selecciona A\u00F1o`}</span>
+                    <span>{form.anio || `Selecciona Año`}</span>
                     <span aria-hidden="true">▾</span>
                   </button>
 
                   {yearDropdownOpen && (
-                    <div className="mantencion-year-menu" role="listbox" aria-label={"A\u00F1o"}>
+                    <div className="mantencion-year-menu" role="listbox" aria-label={"Año"}>
                       <button
                         type="button"
                         role="option"
@@ -516,7 +516,7 @@ export default function Mantenimiento() {
                         aria-selected={!form.anio}
                         onClick={() => handleSelectYear("")}
                       >
-                        {`Selecciona A\u00F1o`}
+                        {`Selecciona Año`}
                       </button>
                       {YEAR_OPTIONS.map((year) => (
                         <button

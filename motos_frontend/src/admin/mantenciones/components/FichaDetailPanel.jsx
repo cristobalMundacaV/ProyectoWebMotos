@@ -51,7 +51,7 @@ export default function FichaDetailPanel({ item, mode, transitions, savingById }
             <strong>{moto.modelo || "-"}</strong>
           </div>
           <div>
-            <span>{"A\u00F1o"}</span>
+            <span>{"Año"}</span>
             <strong>{moto.anio || "-"}</strong>
           </div>
           <div>
@@ -98,7 +98,7 @@ export default function FichaDetailPanel({ item, mode, transitions, savingById }
             <strong>{moto.matricula || "-"}</strong>
           </div>
           <div>
-            <span>{"A\u00F1o"}</span>
+            <span>{"Año"}</span>
             <strong>{moto.anio || "-"}</strong>
           </div>
           <div>

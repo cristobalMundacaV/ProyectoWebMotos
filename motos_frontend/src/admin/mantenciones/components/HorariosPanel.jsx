@@ -181,7 +181,7 @@ export default function HorariosPanel({
                     />
                   </div>
                   <div className="admin-horario-edit-field admin-horario-edit-field-checkbox">
-                    <span>{"\u00BFDisponible?"}</span>
+                    <span>{"¿Disponible?"}</span>
                     <label className="admin-inline-checkbox">
                       <input type="checkbox" checked readOnly />
                     </label>

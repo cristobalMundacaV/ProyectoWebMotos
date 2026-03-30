@@ -113,7 +113,7 @@ export default function useAdminUsers({
       const formElement = event.currentTarget;
       if (!validateFormWithToast(event.currentTarget)) return;
       if (createUserForm.password !== createUserForm.confirm_password) {
-        pushToast("Las contrase\u00f1as no coinciden.", "error");
+        pushToast("Las contraseñas no coinciden.", "error");
         markInvalidFields(formElement, ["password", "confirm_password"]);
         return;
       }
