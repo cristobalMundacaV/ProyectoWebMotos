@@ -744,6 +744,7 @@
 }
 
 .moto-hero-image-wrap {
+  width: 100%;
   min-height: 390px;
   display: flex;
   flex-direction: column;
@@ -756,6 +757,31 @@
   width: min(92vw, 940px);
   max-height: 480px;
   object-fit: contain;
+}
+
+.moto-gallery-controls {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: auto;
+  max-width: min(100%, calc(var(--thumb-columns, 1) * 156px + 92px));
+  align-self: center;
+}
+
+.moto-gallery-thumbs {
+  flex: 0 1 auto;
+  justify-content: center;
+  width: min(100%, calc(var(--thumb-columns, 1) * 156px));
+  max-width: calc(var(--thumb-columns, 1) * 156px);
+  overflow-x: auto;
+  overflow-y: hidden;
+}
+
+.moto-gallery-thumbs .detalle-gallery-thumb {
+  flex: 0 0 140px;
+  width: 140px;
+  max-width: 140px;
 }
 
 .moto-toggle-center {
@@ -1135,6 +1161,24 @@
   .moto-hero-image-wrap img {
     width: 100%;
     max-height: 330px;
+  }
+
+  .moto-gallery-controls {
+    max-width: 100%;
+    width: 100%;
+    gap: 8px;
+  }
+
+  .moto-gallery-thumbs {
+    width: 100%;
+    max-width: 100%;
+    justify-content: flex-start;
+  }
+
+  .moto-gallery-thumbs .detalle-gallery-thumb {
+    flex-basis: 120px;
+    width: 120px;
+    max-width: 120px;
   }
 
   .moto-toggle-center {

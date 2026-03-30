@@ -231,6 +231,7 @@ export default function MotoDetalle() {
 
   const galleryImages = buildDistinctGalleryImages(imagenActual, moto?.imagenes);
   const hasMultipleImages = galleryImages.length > 1;
+  const visibleThumbSlots = Math.min(galleryImages.length, 4);
 
   const activeImageSrc =
     galleryImages[activeImageIndex] || buildMediaUrl(imagenActual) || "";
@@ -297,7 +298,10 @@ export default function MotoDetalle() {
           <div className="moto-hero-image-wrap">
             <img src={activeImageSrc} alt={`${modelo} ${etiquetaVariante}`} />
             {hasMultipleImages && (
-              <div className="detalle-gallery-controls">
+              <div
+                className="detalle-gallery-controls moto-gallery-controls"
+                style={{ "--thumb-columns": visibleThumbSlots }}
+              >
                 <button
                   type="button"
                   className="detalle-gallery-arrow"
@@ -308,7 +312,7 @@ export default function MotoDetalle() {
                 >
                   ‹
                 </button>
-                <div className="detalle-gallery-thumbs">
+                <div className="detalle-gallery-thumbs moto-gallery-thumbs">
                   {galleryImages.map((imageSrc, index) => (
                     <button
                       key={`${imageSrc}-${index}`}
