@@ -123,16 +123,21 @@ export default function ProductoEditModal({
           </label>
 
           {productoEditModal.imagePreviewUrl && (
-            <div className="admin-form-span-2 admin-image-preview-box admin-moto-edit-preview">
-              <img
-                src={productoEditModal.imagePreviewUrl}
-                alt={productoEditModal.title || "Producto"}
-                className="admin-image-preview"
-                onError={(event) => {
-                  event.currentTarget.onerror = null;
-                  event.currentTarget.src = fallbackImage;
-                }}
-              />
+            <div className="admin-form-span-2 admin-product-edit-preview-block">
+              <p>Vista previa</p>
+              <div className="admin-product-edit-preview-grid">
+                <div className="admin-product-edit-preview-item">
+                  <img
+                    src={productoEditModal.imagePreviewUrl}
+                    alt={productoEditModal.title || "Producto"}
+                    className="admin-image-preview"
+                    onError={(event) => {
+                      event.currentTarget.onerror = null;
+                      event.currentTarget.src = fallbackImage;
+                    }}
+                  />
+                </div>
+              </div>
             </div>
           )}
 
