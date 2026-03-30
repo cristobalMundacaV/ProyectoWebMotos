@@ -232,8 +232,7 @@ export default function MotoDetalle() {
   const galleryImages = buildDistinctGalleryImages(imagenActual, moto?.imagenes);
   const hasMultipleImages = galleryImages.length > 1;
 
-  const activeImageSrc =
-    galleryImages[activeImageIndex] || buildMediaUrl(imagenActual) || "";
+  const activeImageSrc = galleryImages[activeImageIndex] || "";
 
   const precioDesdeActual =
     tieneVarianteMaletas && varianteConMaletas ? moto.precio_con_maletas : moto.precio;
@@ -295,7 +294,7 @@ export default function MotoDetalle() {
           <h1 className="moto-floating-title">{modelo}</h1>
 
           <div className="moto-hero-image-wrap">
-            <img src={activeImageSrc} alt={`${modelo} ${etiquetaVariante}`} />
+            {activeImageSrc ? <img src={activeImageSrc} alt={`${modelo} ${etiquetaVariante}`} /> : null}
             {hasMultipleImages && (
               <div className="detalle-gallery-controls moto-gallery-controls">
                 <button

@@ -69,7 +69,7 @@ def lista_motos(request):
     moto = create_or_update_moto_with_gallery(
         serializer=serializer,
         gallery_files=request.FILES.getlist("imagenes"),
-        gallery_keep_ids=request.data.getlist("gallery_keep_ids") if "gallery_keep_ids" in request.data else None,
+        gallery_keep_ids=request.data.getlist("gallery_keep_ids") if _parse_bool(request.data.get("sync_gallery_images", "")) else None,
         remove_primary_image=_parse_bool(request.data.get("remove_primary_image", "")),
         actor=request.user,
         metadata=_request_meta(request),
@@ -103,7 +103,7 @@ def detalle_moto_admin(request, moto_id):
     updated_moto = create_or_update_moto_with_gallery(
         serializer=serializer,
         gallery_files=request.FILES.getlist("imagenes"),
-        gallery_keep_ids=request.data.getlist("gallery_keep_ids") if "gallery_keep_ids" in request.data else None,
+        gallery_keep_ids=request.data.getlist("gallery_keep_ids") if _parse_bool(request.data.get("sync_gallery_images", "")) else None,
         remove_primary_image=_parse_bool(request.data.get("remove_primary_image", "")),
         actor=request.user,
         metadata=_request_meta(request),

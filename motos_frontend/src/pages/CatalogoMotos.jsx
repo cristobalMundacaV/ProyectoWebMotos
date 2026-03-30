@@ -492,6 +492,7 @@ export default function CatalogoMotos() {
     payload.append("orden_carrusel", editForm.orden_carrusel || "1");
     payload.append("es_destacada", String(editForm.es_destacada));
     payload.append("activa", String(editForm.activa));
+    payload.append("sync_gallery_images", "true");
 
     const galleryFiles = Array.isArray(editForm.imagenes_galeria)
       ? editForm.imagenes_galeria.filter(Boolean)
@@ -607,9 +608,7 @@ export default function CatalogoMotos() {
     );
   };
 
-  const previewSrc =
-    editImagePreview ||
-    (editingMoto?.imagen_principal ? buildMediaUrl(editingMoto.imagen_principal) : "");
+  const previewSrc = editImagePreview;
   const previewMaletasSrc =
     editImageMaletasPreview ||
     (editingMoto?.imagen_con_maletas ? buildMediaUrl(editingMoto.imagen_con_maletas) : "");
@@ -1034,31 +1033,6 @@ export default function CatalogoMotos() {
                     ))}
                   </div>
 
-                  <div className="moto-edit-gallery-grid">
-                    {existingGalleryImages.map((image) => {
-                      const imageSrc = buildMediaUrl(image.imagen);
-                      const cardClassName = image.keep
-                        ? "moto-edit-gallery-card"
-                        : "moto-edit-gallery-card is-removed";
-
-                      return (
-                        <article key={image.id} className={cardClassName}>
-                          <button
-                            type="button"
-                            className={image.keep ? "moto-edit-gallery-remove-btn" : "moto-edit-gallery-restore-btn"}
-                            onClick={() => toggleExistingGalleryImage(image.id)}
-                            aria-label={image.keep ? "Eliminar imagen de galeria" : "Restaurar imagen de galeria"}
-                          >
-                            {image.keep ? "×" : "Deshacer"}
-                          </button>
-                          <img src={imageSrc} alt={image.texto_alternativo || `${editingMoto.modelo || "Moto"} galeria`} />
-                          <div className="moto-edit-gallery-status">
-                            {image.keep ? "Se mantendra en galeria" : "Se eliminara de galeria al guardar"}
-                          </div>
-                        </article>
-                      );
-                    })}
-                  </div>
                 </div>
               ) : null}
 
@@ -1077,8 +1051,8 @@ export default function CatalogoMotos() {
                 <div className="moto-edit-preview-grid moto-edit-span-2">
                   {previewSrc ? (
                     <div className="moto-edit-preview">
-                      <p>Vista previa principal</p>
-                      <img src={previewSrc} alt={`${editingMoto.modelo || "Moto"} principal`} />
+                      <p>Nueva imagen principal seleccionada</p>
+                      <img src={previewSrc} alt={`${editingMoto.modelo || "Moto"} nueva principal`} />
                     </div>
                   ) : null}
                   {previewMaletasSrc ? (
