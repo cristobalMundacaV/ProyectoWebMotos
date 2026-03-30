@@ -194,6 +194,58 @@ export default function CatalogoMotos() {
     return Number.isFinite(parsed) ? parsed : 0;
   }
 
+  function extractImageValue(image) {
+    if (!image) return "";
+    if (typeof image === "string") return image;
+    if (typeof image === "object") return image.imagen || image.url || "";
+    return "";
+  }
+
+  function normalizeImageKey(image) {
+    const rawValue = String(extractImageValue(image) || "").trim();
+    if (!rawValue) return "";
+
+    let pathname = rawValue;
+
+    try {
+      pathname = new URL(rawValue, "http://local.test").pathname || rawValue;
+    } catch {
+      pathname = rawValue;
+    }
+
+    const normalizedPath = pathname.replace(/\\/g, "/").split("?")[0].split("#")[0].toLowerCase();
+    const fileName = normalizedPath.split("/").pop() || normalizedPath;
+    const fileStem = fileName.replace(/\.[a-z0-9]+$/i, "");
+
+    return fileStem || normalizedPath;
+  }
+
+  function buildVisibleMotoImages({ primaryImage, existingGalleryImages = [] }) {
+    const visibleImages = [];
+    const seenKeys = new Set();
+
+    const appendVisibleImage = (image, source) => {
+      const key = normalizeImageKey(image);
+      const rawImage = extractImageValue(image);
+      if (!key || !rawImage || seenKeys.has(key)) return;
+
+      seenKeys.add(key);
+      visibleImages.push({
+        key,
+        source,
+        image: rawImage,
+      });
+    };
+
+    appendVisibleImage(primaryImage, "principal");
+
+    (Array.isArray(existingGalleryImages) ? existingGalleryImages : [])
+      .filter((image) => image.keep)
+      .forEach((image) => appendVisibleImage(image.imagen, "galeria"));
+
+    return visibleImages;
+  }
+
   function openEditModal(moto) {
     setEditError("");
     setEditImagePreview("");
@@ -538,6 +590,10 @@ export default function CatalogoMotos() {
     (editingMoto?.imagen_con_maletas ? buildMediaUrl(editingMoto.imagen_con_maletas) : "");
   const existingGalleryImages = Array.isArray(editForm?.imagenes_existentes) ? editForm.imagenes_existentes : [];
   const keptExistingGalleryCount = existingGalleryImages.filter((image) => image.keep).length;
+  const visibleDetailImages = buildVisibleMotoImages({
+    primaryImage: editingMoto?.imagen_principal,
+    existingGalleryImages,
+  });
   const activeFiltersCount =
     selectedMarcas.length +
     selectedCategorias.length +
@@ -901,8 +957,21 @@ export default function CatalogoMotos() {
               {existingGalleryImages.length > 0 ? (
                 <div className="moto-edit-span-2 moto-edit-gallery-manager">
                   <div className="moto-edit-gallery-header">
-                    <p>Galeria actual visible en catalogo</p>
-                    <span>{keptExistingGalleryCount} de {existingGalleryImages.length} imagenes se conservaran</span>
+                    <p>Imagenes visibles en el detalle publico</p>
+                    <span>
+                      {visibleDetailImages.length} visibles en detalle. {keptExistingGalleryCount} de {existingGalleryImages.length} imagenes de galeria se conservaran
+                    </span>
+                  </div>
+
+                  <div className="moto-edit-visible-grid">
+                    {visibleDetailImages.map((image) => (
+                      <article key={`${image.source}-${image.key}`} className="moto-edit-visible-card">
+                        <span className="moto-edit-visible-badge">
+                          {image.source === "principal" ? "Imagen principal" : "Imagen de galeria"}
+                        </span>
+                        <img src={buildMediaUrl(image.image)} alt={`${editingMoto.modelo || "Moto"} ${image.source}`} />
+                      </article>
+                    ))}
                   </div>
 
                   <div className="moto-edit-gallery-grid">
