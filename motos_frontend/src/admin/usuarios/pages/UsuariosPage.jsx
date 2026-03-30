@@ -60,12 +60,12 @@ export default function UsuariosPage({
           </label>
 
           <label>
-            Contrasena *
+            Contraseña *
             <input type="password" name="password" value={createUserForm.password} onChange={onCreateUserInputChange} minLength={4} required />
           </label>
 
           <label>
-            Repetir contrasena *
+            Repetir Contraseña *
             <input type="password" name="confirm_password" value={createUserForm.confirm_password} onChange={onCreateUserInputChange} minLength={4} required />
           </label>
 

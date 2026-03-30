@@ -8,7 +8,9 @@ export default function AdminUsersTable({
   onDeleteUser,
   onPageChange,
 }) {
-  if (adminUsersLoading) return null;
+  if (adminUsersLoading) {
+    return <p className="admin-empty">Cargando usuarios...</p>;
+  }
   if (adminUsers.length === 0) {
     return <p className="admin-empty">No hay usuarios registrados.</p>;
   }
@@ -47,4 +49,3 @@ export default function AdminUsersTable({
     </>
   );
 }
-

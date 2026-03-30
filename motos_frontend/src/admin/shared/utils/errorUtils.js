@@ -19,6 +19,9 @@ export function translateBackendMessage(message) {
 
 export function getErrorText(error, fallback = "No se pudo completar la solicitud.") {
   const fieldLabels = {
+    username: "Nombre de usuario",
+    email: "Correo",
+    telefono: "Telefono",
     marca: "Marca",
     modelo: "Modelo",
     modelo_id: "Modelo",
@@ -45,12 +48,22 @@ export function getErrorText(error, fallback = "No se pudo completar la solicitu
   }
 
   if (data.error) return translateBackendMessage(data.error);
-  if (data.detail) return translateBackendMessage(data.detail);
+  if (data.detail) {
+    const detailText = translateBackendMessage(data.detail);
+    if (/username|nombre de usuario/i.test(detailText)) {
+      return "El nombre de usuario ingresado ya esta en uso.";
+    }
+    return detailText;
+  }
 
   const firstFieldEntry = Object.entries(data).find(([, value]) => Array.isArray(value) && value.length);
   if (firstFieldEntry) {
     const [fieldName, fieldErrors] = firstFieldEntry;
-    const translated = translateBackendMessage(fieldErrors[0]);
+    const rawFieldError = String(fieldErrors[0] || "");
+    if (fieldName === "username" && /(already exists|ya existe|ya esta en uso)/i.test(rawFieldError)) {
+      return "El nombre de usuario ingresado ya esta en uso.";
+    }
+    const translated = translateBackendMessage(rawFieldError);
     const label = fieldLabels[fieldName] || fieldName;
     return `${label}: ${translated}`;
   }

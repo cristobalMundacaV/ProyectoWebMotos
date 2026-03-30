@@ -46,6 +46,7 @@ export default function useAdminRealtime({
     };
 
     const intervalId = window.setInterval(syncData, 12000);
+    syncData();
     const onVisibilityChange = () => {
       if (!document.hidden) syncData();
     };

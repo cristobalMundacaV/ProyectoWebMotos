@@ -4,6 +4,37 @@ import { paginateItems } from "../../shared/components/AdminPagination";
 import { initialCreateUserForm } from "../../shared/constants/adminInitialState";
 import { normalizeAdminUsersResponse } from "../../shared/utils/adminText";
 
+function extractConflictFields(error) {
+  const data = error?.response?.data;
+  if (!data || typeof data !== "object") return [];
+
+  const knownFields = ["username", "email", "telefono", "first_name", "last_name", "rol", "password", "confirm_password"];
+  const fields = Object.keys(data).filter((key) => knownFields.includes(key));
+  if (fields.length) return fields;
+
+  const detail = String(data?.detail || "").toLowerCase();
+  const inferred = [];
+  if (detail.includes("username") || detail.includes("nombre de usuario")) inferred.push("username");
+  if (detail.includes("correo") || detail.includes("email")) inferred.push("email");
+  if (detail.includes("telefono")) inferred.push("telefono");
+  return inferred;
+}
+
+function markInvalidFields(formElement, fieldNames = []) {
+  if (!formElement || !Array.isArray(fieldNames) || fieldNames.length === 0) return;
+  let focused = false;
+
+  fieldNames.forEach((fieldName) => {
+    const field = formElement.querySelector(`[name="${fieldName}"]`);
+    if (!field) return;
+    field.classList.add("admin-field-invalid");
+    if (!focused && typeof field.focus === "function") {
+      field.focus();
+      focused = true;
+    }
+  });
+}
+
 export default function useAdminUsers({
   pushToast,
   getErrorText,
@@ -22,6 +53,7 @@ export default function useAdminUsers({
   const [adminUserModalError, setAdminUserModalError] = useState("");
 
   const fetchUsersList = useCallback(async () => {
+    setAdminUsersLoading(true);
     try {
       const payload = await listAdminUsers();
       const users = normalizeAdminUsersResponse(payload);
@@ -31,6 +63,8 @@ export default function useAdminUsers({
     } catch (error) {
       setAdminUsersLoadError(getErrorText(error, "No se pudo cargar la lista de usuarios."));
       throw error;
+    } finally {
+      setAdminUsersLoading(false);
     }
   }, [getErrorText]);
 
@@ -46,9 +80,11 @@ export default function useAdminUsers({
   const handleCreateUserSubmit = useCallback(
     async (event) => {
       event.preventDefault();
+      const formElement = event.currentTarget;
       if (!validateFormWithToast(event.currentTarget)) return;
       if (createUserForm.password !== createUserForm.confirm_password) {
-        pushToast("Las contrasenas no coinciden.", "error");
+        pushToast("Las contraseñas no coinciden.", "error");
+        markInvalidFields(formElement, ["password", "confirm_password"]);
         return;
       }
 
@@ -68,6 +104,8 @@ export default function useAdminUsers({
         setCreateUserForm(initialCreateUserForm);
         pushToast("Usuario creado correctamente.", "success");
       } catch (error) {
+        const conflictFields = extractConflictFields(error);
+        markInvalidFields(formElement, conflictFields);
         pushToast(getErrorText(error, "No se pudo crear el usuario."), "error");
       } finally {
         setCreateUserSaving(false);
@@ -129,7 +167,8 @@ export default function useAdminUsers({
     async (event) => {
       event.preventDefault();
       if (!adminUserEditModal) return;
-      if (!validateFormWithToast(event.currentTarget)) return;
+      const formElement = event.currentTarget;
+      if (!validateFormWithToast(formElement)) return;
       setAdminUserModalSaving(true);
       setAdminUserModalError("");
       try {
@@ -146,6 +185,8 @@ export default function useAdminUsers({
         pushToast("Usuario actualizado correctamente.", "success");
         closeAdminUserEditModal(true);
       } catch (error) {
+        const conflictFields = extractConflictFields(error);
+        markInvalidFields(formElement, conflictFields);
         const message = getErrorText(error, "No se pudo actualizar el usuario.");
         setAdminUserModalError(message);
         pushToast(message, "error");
