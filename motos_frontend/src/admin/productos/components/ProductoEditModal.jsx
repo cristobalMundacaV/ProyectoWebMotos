@@ -77,16 +77,6 @@ export default function ProductoEditModal({
             />
           </label>
 
-          <label className="admin-form-span-2">
-            Descripcion (opcional)
-            <textarea
-              name="descripcion"
-              value={productoEditModal.form.descripcion}
-              onChange={onInputChange}
-              rows={4}
-            />
-          </label>
-
           <label>
             Precio *
             <input
@@ -99,15 +89,13 @@ export default function ProductoEditModal({
             />
           </label>
 
-          <label>
-            Orden carrusel *
-            <input
-              type="number"
-              name="orden_carrusel"
-              value={productoEditModal.form.orden_carrusel}
+          <label className="admin-form-span-2">
+            Descripcion (opcional)
+            <textarea
+              name="descripcion"
+              value={productoEditModal.form.descripcion}
               onChange={onInputChange}
-              min="1"
-              required
+              rows={4}
             />
           </label>
 
@@ -167,8 +155,23 @@ export default function ProductoEditModal({
             </div>
           )}
 
-          {isAccesorioMoto && (
-            <div className="admin-form-span-2 admin-form-footer-checks">
+          <div className="admin-form-span-2 admin-moto-checks-row admin-product-edit-checks">
+            <label className="admin-form-check admin-form-check-compact">
+              <input
+                type="checkbox"
+                name="es_destacado"
+                checked={productoEditModal.form.es_destacado}
+                onChange={onInputChange}
+              />
+              Destacado
+            </label>
+
+            <label className="admin-form-check admin-form-check-compact">
+              <input type="checkbox" name="activo" checked={productoEditModal.form.activo} onChange={onInputChange} />
+              Activo
+            </label>
+
+            {isAccesorioMoto && (
               <label className="admin-form-check admin-form-check-compact">
                 <input
                   type="checkbox"
@@ -176,44 +179,47 @@ export default function ProductoEditModal({
                   checked={Boolean(productoEditModal.form.requiere_compatibilidad)}
                   onChange={onInputChange}
                 />
-                Vincular a modelos especificos (opcional)
+                Vincular a modelos especificos
               </label>
-            </div>
-          )}
+            )}
+          </div>
 
-          {isAccesorioMoto && productoEditModal.form.requiere_compatibilidad && (
-            <div className="admin-form-span-2 admin-checkbox-list">
-              {motos.map((moto) => (
-                <label key={moto.id} className="admin-form-check">
+          {(productoEditModal.form.es_destacado || (isAccesorioMoto && productoEditModal.form.requiere_compatibilidad)) && (
+            <div className="admin-form-span-2 admin-product-edit-extra-fields">
+              {productoEditModal.form.es_destacado && (
+                <label className="admin-product-edit-order-field">
+                  Orden carrusel *
                   <input
-                    type="checkbox"
-                    checked={productoEditModal.form.compatibilidad_motos.includes(moto.id)}
-                    onChange={() => onToggleCompatibilidad?.(moto.id)}
+                    type="number"
+                    name="orden_carrusel"
+                    value={productoEditModal.form.orden_carrusel}
+                    onChange={onInputChange}
+                    min="1"
+                    required={Boolean(productoEditModal.form.es_destacado)}
                   />
-                  {moto.modelo || moto.nombre}
                 </label>
-              ))}
+              )}
+
+              {isAccesorioMoto && productoEditModal.form.requiere_compatibilidad && (
+                <div className="admin-checkbox-list">
+                  {motos.map((moto) => (
+                    <label key={moto.id} className="admin-form-check">
+                      <input
+                        type="checkbox"
+                        checked={productoEditModal.form.compatibilidad_motos.includes(moto.id)}
+                        onChange={() => onToggleCompatibilidad?.(moto.id)}
+                      />
+                      {moto.modelo || moto.nombre}
+                    </label>
+                  ))}
+                </div>
+              )}
             </div>
           )}
 
           {productoEditError && <p className="admin-entity-modal-error">{productoEditError}</p>}
 
-          <div className="admin-form-footer">
-            <div className="admin-form-footer-checks">
-              <label className="admin-form-check admin-form-check-compact">
-                <input
-                  type="checkbox"
-                  name="es_destacado"
-                  checked={productoEditModal.form.es_destacado}
-                  onChange={onInputChange}
-                />
-                Destacado
-              </label>
-              <label className="admin-form-check admin-form-check-compact">
-                <input type="checkbox" name="activo" checked={productoEditModal.form.activo} onChange={onInputChange} />
-                Activo
-              </label>
-            </div>
+          <div className="admin-form-footer admin-form-footer-single-action">
             <div className="admin-moto-edit-modal-actions">
               <button type="button" className="btn-back" onClick={onClose} disabled={productoEditSaving}>
                 Cancelar

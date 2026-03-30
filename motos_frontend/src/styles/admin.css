@@ -1174,6 +1174,19 @@
   align-items: center;
 }
 
+.admin-product-edit-checks .admin-form-check {
+  margin-left: 0;
+}
+
+.admin-product-edit-extra-fields {
+  display: grid;
+  gap: 12px;
+}
+
+.admin-product-edit-order-field {
+  max-width: 320px;
+}
+
 .admin-selected-file-name {
   display: block;
   margin-top: 6px;

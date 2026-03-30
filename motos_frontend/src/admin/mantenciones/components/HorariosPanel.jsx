@@ -65,7 +65,7 @@ export default function HorariosPanel({
     <section className="admin-content-grid admin-content-grid-mantenciones">
       <article className="admin-panel-card">
         <div className="admin-card-header">
-          <h2>{showHorarioForm ? "horario del mes" : "Horario de la Semana"}</h2>
+          <h2>{showHorarioForm ? "Horario del mes" : "Horario de la Semana"}</h2>
           <button
             type="button"
             className="admin-primary-action admin-horario-toggle-btn"
