@@ -893,7 +893,7 @@ export default function EquipamientoCatalog({ variant = "accesorios" }) {
                             aria-label="Eliminar imagen actual"
                             title="Eliminar imagen"
                           >
-                            x
+                            ×
                           </button>
                           <img
                             src={buildMediaUrl(imageItem.imagen)}
@@ -918,7 +918,7 @@ export default function EquipamientoCatalog({ variant = "accesorios" }) {
                             aria-label="Quitar imagen seleccionada"
                             title="Quitar imagen"
                           >
-                            x
+                            ×
                           </button>
                           <img src={previewItem.url} alt={previewItem.name || "Imagen nueva"} />
                         </div>

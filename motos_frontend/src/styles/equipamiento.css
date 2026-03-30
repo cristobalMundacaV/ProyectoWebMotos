@@ -595,21 +595,24 @@
 
 .equip-edit-preview-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-  gap: 10px;
+  grid-template-columns: repeat(auto-fit, minmax(170px, 170px));
+  justify-content: center;
+  gap: 12px;
 }
 
 .equip-edit-preview-item {
   position: relative;
+  display: grid;
+  place-items: center;
   border-radius: 10px;
   border: 1px solid #d7deea;
   background: #f7f8fb;
-  padding: 8px;
-  min-height: 132px;
+  padding: 12px;
+  min-height: 148px;
 }
 
 .equip-edit-preview-item img {
-  width: 100%;
+  width: min(100%, 140px);
   height: 116px;
   object-fit: contain;
   border-radius: 8px;
@@ -618,22 +621,26 @@
 
 .equip-edit-preview-remove {
   position: absolute;
-  top: 6px;
-  right: 6px;
-  width: 24px;
-  height: 24px;
+  top: 10px;
+  right: 10px;
+  z-index: 2;
+  width: 28px;
+  height: 28px;
+  display: grid;
+  place-items: center;
   border-radius: 999px;
-  border: 1px solid #f7b4b4;
-  background: #ffe7e7;
-  color: #a31212;
-  font-size: 13px;
-  font-weight: 800;
+  border: none;
+  background: rgba(220, 38, 38, 0.92);
+  color: #fff;
+  font-size: 1rem;
+  font-weight: 700;
   line-height: 1;
   cursor: pointer;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.18);
 }
 
 .equip-edit-preview-remove:hover {
-  background: #ffd5d5;
+  background: rgba(185, 28, 28, 0.98);
 }
 
 .equip-edit-preview-empty {
