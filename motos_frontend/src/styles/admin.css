@@ -1202,19 +1202,20 @@
 .admin-product-edit-footer-layout {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
-  align-items: start;
+  align-items: center;
   gap: 10px 14px;
 }
 
 .admin-product-edit-footer-layout .admin-form-footer-checks {
   margin-top: 0;
   justify-self: start;
+  align-self: center;
 }
 
 .admin-product-edit-footer-layout .admin-moto-edit-modal-actions {
   margin-left: 0;
   justify-self: end;
-  align-self: start;
+  align-self: center;
 }
 
 .admin-product-edit-footer-layout .admin-product-edit-extra-fields {
