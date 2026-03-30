@@ -1181,6 +1181,42 @@
   color: #4b5563;
 }
 
+.admin-edit-file-picker {
+  min-height: 42px;
+  border: 1px solid #cfd5df;
+  border-radius: 10px;
+  background: #fff;
+  padding: 8px 12px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  text-align: center;
+}
+
+.admin-edit-file-hidden {
+  display: none;
+}
+
+.admin-edit-file-btn {
+  height: 30px;
+  padding: 0 12px;
+  border: 1px solid #c8cfdb;
+  border-radius: 8px;
+  background: #f4f6fa;
+  color: #202938;
+  font-weight: 600;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+}
+
+.admin-edit-file-name {
+  color: #3c4658;
+  font-size: 0.92rem;
+}
+
 .admin-image-preview-box {
   margin-top: 12px;
   border: 1px solid rgba(16, 16, 16, 0.14);
@@ -1303,6 +1339,7 @@
 }
 
 .admin-product-edit-preview-item {
+  position: relative;
   display: grid;
   place-items: center;
   min-height: 148px;
@@ -1315,6 +1352,30 @@
 .admin-product-edit-preview-item .admin-image-preview {
   width: min(100%, 140px);
   height: 116px;
+}
+
+.admin-product-edit-preview-remove {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  z-index: 2;
+  width: 28px;
+  height: 28px;
+  display: grid;
+  place-items: center;
+  border-radius: 999px;
+  border: none;
+  background: rgba(220, 38, 38, 0.92);
+  color: #fff;
+  font-size: 1rem;
+  font-weight: 700;
+  line-height: 1;
+  cursor: pointer;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.18);
+}
+
+.admin-product-edit-preview-remove:hover {
+  background: rgba(185, 28, 28, 0.98);
 }
 
 .admin-gallery-preview-row {

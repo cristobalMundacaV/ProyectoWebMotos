@@ -42,13 +42,25 @@ def _append_gallery_images(producto: Producto, files: Sequence) -> None:
         locked_producto.save(update_fields=["imagen_principal"])
 
 
-def _sync_main_image(producto: Producto) -> None:
+def _sync_main_image(
+    producto: Producto,
+    *,
+    preserve_legacy_main_without_gallery: bool = True,
+    clear_current_main: bool = False,
+) -> None:
     locked_producto = _lock_producto(producto.id)
+    if clear_current_main and locked_producto.imagen_principal:
+        locked_producto.imagen_principal = None
+        locked_producto.save(update_fields=["imagen_principal"])
     main_image_name = str(getattr(locked_producto.imagen_principal, "name", "") or "").strip()
     first_gallery_image = locked_producto.imagenes.order_by("orden", "id").first()
 
     # Compatibilidad con productos legacy sin registros en galeria.
     if not first_gallery_image and main_image_name:
+        if preserve_legacy_main_without_gallery:
+            return
+        locked_producto.imagen_principal = None
+        locked_producto.save(update_fields=["imagen_principal"])
         return
 
     if main_image_name:
@@ -109,6 +121,7 @@ def update_producto_with_relations(
     serializer,
     gallery_files: Sequence | None = None,
     image_ids_to_delete: set[int] | None = None,
+    remove_primary_image: bool = False,
     compatibilidad_motos: Sequence[int] | None = None,
     actor=None,
     metadata: dict | None = None,
@@ -125,7 +138,11 @@ def update_producto_with_relations(
             producto.imagenes.filter(id__in=image_ids_to_delete).delete()
 
         _append_gallery_images(producto, gallery_files)
-        _sync_main_image(producto)
+        _sync_main_image(
+            producto,
+            preserve_legacy_main_without_gallery=not image_ids_to_delete and not gallery_files and not remove_primary_image,
+            clear_current_main=remove_primary_image,
+        )
         producto_refreshed = Producto.objects.get(pk=producto.pk)
         create_audit_log(
             action="update",

@@ -240,6 +240,10 @@ export default function useProductosAdmin({
       }
 
       const nextForm = { ...prev.form, [name]: nextValue };
+      if (type === "file" && name === "imagenes_galeria" && Array.isArray(nextValue) && nextValue.length > 0) {
+        nextForm.imagenes_eliminar = [];
+        nextForm.remove_imagen_principal = false;
+      }
       if (name === "marca" && nextForm.nombre) {
         nextForm.nombre = forceBrandTokenInName(nextForm.nombre, brandName);
       }
@@ -313,6 +317,10 @@ export default function useProductosAdmin({
         [name]: nextValue,
         ...(name === "requiere_compatibilidad" && !checked ? { compatibilidad_motos: [] } : {}),
       };
+      if (type === "file" && name === "imagenes_galeria" && Array.isArray(nextValue) && nextValue.length > 0) {
+        nextForm.imagenes_eliminar = [];
+        nextForm.remove_imagen_principal = false;
+      }
 
       if (name === "marca" && nextForm.nombre) {
         nextForm.nombre = forceBrandTokenInName(nextForm.nombre, brandName);
@@ -357,6 +365,52 @@ export default function useProductosAdmin({
           compatibilidad_motos: exists
             ? prev.form.compatibilidad_motos.filter((id) => id !== motoId)
             : [...prev.form.compatibilidad_motos, motoId],
+        },
+      };
+    });
+  }
+
+  function removeAccesorioMotoEditImage() {
+    setAccesorioMotoEditModal((prev) => {
+      if (!prev) return prev;
+      if (prev.previewIsObjectUrl && prev.imagePreviewUrl) URL.revokeObjectURL(prev.imagePreviewUrl);
+      return {
+        ...prev,
+        imagePreviewUrl: "",
+        imageFileName: "",
+        originalImageUrl: "",
+        originalImageName: "",
+        previewIsObjectUrl: false,
+        imageInputKey: Date.now(),
+        form: {
+          ...prev.form,
+          imagen_principal: null,
+          imagenes_galeria: [],
+          imagenes_eliminar: Array.isArray(prev.currentImageIds) ? prev.currentImageIds : [],
+          remove_imagen_principal: true,
+        },
+      };
+    });
+  }
+
+  function removeAccesorioRiderEditImage() {
+    setAccesorioRiderEditModal((prev) => {
+      if (!prev) return prev;
+      if (prev.previewIsObjectUrl && prev.imagePreviewUrl) URL.revokeObjectURL(prev.imagePreviewUrl);
+      return {
+        ...prev,
+        imagePreviewUrl: "",
+        imageFileName: "",
+        originalImageUrl: "",
+        originalImageName: "",
+        previewIsObjectUrl: false,
+        imageInputKey: Date.now(),
+        form: {
+          ...prev.form,
+          imagen_principal: null,
+          imagenes_galeria: [],
+          imagenes_eliminar: Array.isArray(prev.currentImageIds) ? prev.currentImageIds : [],
+          remove_imagen_principal: true,
         },
       };
     });
@@ -462,12 +516,13 @@ export default function useProductosAdmin({
       id: producto.id,
       title: producto.nombre || "Editar accesorio moto",
       kind: "accesorio_moto",
-      originalImageUrl: buildMediaUrl(producto.imagen_principal) || fallbackImage,
+      originalImageUrl: buildMediaUrl(producto.imagen_principal) || "",
       originalImageName: getFileNameFromPath(producto.imagen_principal),
-      imagePreviewUrl: buildMediaUrl(producto.imagen_principal) || fallbackImage,
+      imagePreviewUrl: buildMediaUrl(producto.imagen_principal) || "",
       imageFileName: getFileNameFromPath(producto.imagen_principal),
       previewIsObjectUrl: false,
       imageInputKey: Date.now(),
+      currentImageIds: Array.isArray(producto.imagenes) ? producto.imagenes.map((item) => item.id).filter(Boolean) : [],
       form: {
         subcategoria: subcategoriaId,
         marca: marcaId,
@@ -478,6 +533,8 @@ export default function useProductosAdmin({
         orden_carrusel: String(producto.orden_carrusel ?? "1"),
         imagen_principal: null,
         imagenes_galeria: [],
+        imagenes_eliminar: [],
+        remove_imagen_principal: false,
         es_destacado: Boolean(producto.es_destacado),
         activo: producto.activo !== false,
         requiere_compatibilidad: Boolean(producto.requiere_compatibilidad),
@@ -504,12 +561,13 @@ export default function useProductosAdmin({
       id: producto.id,
       title: producto.nombre || "Editar accesorio rider",
       kind: "accesorio_rider",
-      originalImageUrl: buildMediaUrl(producto.imagen_principal) || fallbackImage,
+      originalImageUrl: buildMediaUrl(producto.imagen_principal) || "",
       originalImageName: getFileNameFromPath(producto.imagen_principal),
-      imagePreviewUrl: buildMediaUrl(producto.imagen_principal) || fallbackImage,
+      imagePreviewUrl: buildMediaUrl(producto.imagen_principal) || "",
       imageFileName: getFileNameFromPath(producto.imagen_principal),
       previewIsObjectUrl: false,
       imageInputKey: Date.now(),
+      currentImageIds: Array.isArray(producto.imagenes) ? producto.imagenes.map((item) => item.id).filter(Boolean) : [],
       form: {
         subcategoria: subcategoriaId,
         marca: marcaId,
@@ -522,6 +580,8 @@ export default function useProductosAdmin({
         activo: producto.activo !== false,
         imagen_principal: null,
         imagenes_galeria: [],
+        imagenes_eliminar: [],
+        remove_imagen_principal: false,
       },
     });
   }
@@ -712,9 +772,11 @@ export default function useProductosAdmin({
     handleAccesorioMotoSubmit,
     handleAccesorioRiderSubmit,
     handleAccesorioMotoEdit,
+    removeAccesorioMotoEditImage,
     closeAccesorioMotoEditModal,
     submitAccesorioMotoEditModal,
     handleAccesorioRiderEdit,
+    removeAccesorioRiderEditImage,
     closeAccesorioRiderEditModal,
     submitAccesorioRiderEditModal,
     handleAccesorioMotoDelete,

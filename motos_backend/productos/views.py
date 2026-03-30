@@ -78,6 +78,12 @@ def _is_falsey(value):
 	return str(value or "").strip().lower() in {"false", "0", "off", "no", ""}
 
 
+def _is_truthy(value):
+	if isinstance(value, bool):
+		return value is True
+	return str(value or "").strip().lower() in {"true", "1", "on", "yes", "si"}
+
+
 def _apply_tipo_filter(queryset, tipo):
 	if tipo == "accesorios":
 		return queryset.filter(subcategoria__categoria__slug__in=ACCESORIOS_CATEGORY_SLUGS)
@@ -321,6 +327,7 @@ def admin_producto_detalle(request, producto_id):
 			serializer=serializer,
 			gallery_files=request.FILES.getlist("imagenes"),
 			image_ids_to_delete=image_ids_to_delete,
+			remove_primary_image=_is_truthy(request.data.get("remove_primary_image")),
 			compatibilidad_motos=compatibilidad_motos,
 			actor=request.user,
 			metadata=_request_meta(request),

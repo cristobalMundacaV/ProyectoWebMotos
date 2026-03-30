@@ -1,3 +1,4 @@
+import { useRef } from "react";
 import { formatPrecioDisplay } from "../controllers/productoAdapters";
 
 export default function ProductoEditModal({
@@ -11,6 +12,7 @@ export default function ProductoEditModal({
   onInputChange,
   onPrecioInputChange,
   onToggleCompatibilidad,
+  onRemoveImage,
 }) {
   if (!productoEditModal) return null;
 
@@ -18,6 +20,8 @@ export default function ProductoEditModal({
   const subcategorias = Array.isArray(productoMeta?.subcategorias) ? productoMeta.subcategorias : [];
   const marcas = Array.isArray(productoMeta?.marcas) ? productoMeta.marcas : [];
   const motos = Array.isArray(productoMeta?.motos) ? productoMeta.motos : [];
+  const fileInputRef = useRef(null);
+  const hasNewImages = Array.isArray(productoEditModal.form.imagenes_galeria) && productoEditModal.form.imagenes_galeria.length > 0;
 
   return (
     <div className="admin-entity-modal-overlay" onClick={onClose}>
@@ -109,17 +113,30 @@ export default function ProductoEditModal({
 
           <label className="admin-form-span-2">
             Imagenes
-            <input
-              key={`${productoEditModal.kind}-edit-images-${productoEditModal.imageInputKey}`}
-              type="file"
-              name="imagenes_galeria"
-              accept="image/*"
-              multiple
-              onChange={onInputChange}
-            />
-            {productoEditModal.imageFileName && (
-              <span className="admin-selected-file-name">{productoEditModal.imageFileName}</span>
-            )}
+            <div className="admin-edit-file-picker">
+              <input
+                ref={fileInputRef}
+                key={`${productoEditModal.kind}-edit-images-${productoEditModal.imageInputKey}`}
+                className="admin-edit-file-hidden"
+                type="file"
+                name="imagenes_galeria"
+                accept="image/*"
+                multiple
+                onChange={onInputChange}
+              />
+              <button
+                type="button"
+                className="admin-edit-file-btn"
+                onClick={() => fileInputRef.current?.click()}
+              >
+                Examinar...
+              </button>
+              <span className="admin-edit-file-name">
+                {hasNewImages
+                  ? `${productoEditModal.form.imagenes_galeria.length} archivos seleccionados.`
+                  : "No se han seleccionado archivos nuevos."}
+              </span>
+            </div>
           </label>
 
           {productoEditModal.imagePreviewUrl && (
@@ -127,6 +144,15 @@ export default function ProductoEditModal({
               <p>Vista previa</p>
               <div className="admin-product-edit-preview-grid">
                 <div className="admin-product-edit-preview-item">
+                  <button
+                    type="button"
+                    className="admin-product-edit-preview-remove"
+                    onClick={onRemoveImage}
+                    aria-label="Eliminar imagen mostrada"
+                    title="Eliminar imagen"
+                  >
+                    &times;
+                  </button>
                   <img
                     src={productoEditModal.imagePreviewUrl}
                     alt={productoEditModal.title || "Producto"}

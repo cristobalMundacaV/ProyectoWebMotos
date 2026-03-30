@@ -17,6 +17,11 @@ export function buildAccesorioMotoPayload(form) {
     payload.append("imagen_principal", form.imagen_principal || primaryImageFromGallery);
   }
   galleryFiles.forEach((file) => payload.append("imagenes", file));
+  if (form.remove_imagen_principal) {
+    payload.append("remove_primary_image", "true");
+  }
+  const imageIdsToDelete = Array.isArray(form.imagenes_eliminar) ? form.imagenes_eliminar : [];
+  imageIdsToDelete.forEach((imageId) => payload.append("imagenes_eliminar", String(imageId)));
 
   if (form.requiere_compatibilidad) {
     form.compatibilidad_motos.forEach((motoId) => {
@@ -44,5 +49,10 @@ export function buildAccesorioRiderPayload(form) {
     payload.append("imagen_principal", form.imagen_principal || primaryImageFromGallery);
   }
   galleryFiles.forEach((file) => payload.append("imagenes", file));
+  if (form.remove_imagen_principal) {
+    payload.append("remove_primary_image", "true");
+  }
+  const imageIdsToDelete = Array.isArray(form.imagenes_eliminar) ? form.imagenes_eliminar : [];
+  imageIdsToDelete.forEach((imageId) => payload.append("imagenes_eliminar", String(imageId)));
   return payload;
 }

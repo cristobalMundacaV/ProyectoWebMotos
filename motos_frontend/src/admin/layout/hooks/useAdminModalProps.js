@@ -36,6 +36,7 @@ export default function useAdminModalProps({ fallbackImage, domains }) {
         onInputChange: productos.accesorioMotoEditModal ? productos.handleAccesorioMotoEditInputChange : productos.handleAccesorioRiderEditInputChange,
         onPrecioInputChange: productos.accesorioMotoEditModal ? productos.handleAccesorioMotoEditPrecioInputChange : productos.handleAccesorioRiderEditPrecioInputChange,
         onToggleCompatibilidad: productos.toggleAccesorioMotoEditCompatibilidad,
+        onRemoveImage: productos.accesorioMotoEditModal ? productos.removeAccesorioMotoEditImage : productos.removeAccesorioRiderEditImage,
       },
       user: {
         editModal: users.adminUserEditModal,
