@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import AdminPagination, { paginateItems } from "../../shared/components/AdminPagination";
 import AdminDeleteConfirmModal from "../../shared/components/AdminDeleteConfirmModal";
 
@@ -87,6 +87,10 @@ export default function ProductosPage({
 
   const [accesorioMotoLocalPreview, setAccesorioMotoLocalPreview] = useState("");
   const [accesorioRiderLocalPreview, setAccesorioRiderLocalPreview] = useState("");
+  const accesorioMotoFileInputRef = useRef(null);
+  const accesorioRiderFileInputRef = useRef(null);
+  const hasNewAccesorioMotoImages = Array.isArray(accesorioMotoForm.imagenes_galeria) && accesorioMotoForm.imagenes_galeria.length > 0;
+  const hasNewAccesorioRiderImages = Array.isArray(accesorioRiderForm.imagenes_galeria) && accesorioRiderForm.imagenes_galeria.length > 0;
   const productoDeleteMessage =
     productoDeleteModal?.tipo === "indumentaria"
       ? `Estas seguro que quieres eliminar la indumentaria ${productoDeleteModal?.nombre || ""}?`
@@ -321,7 +325,6 @@ export default function ProductosPage({
           <article className="admin-panel-card">
           <div className="admin-card-header">
             <h2>Agregar accesorio moto</h2>
-            <span>Gestion de accesorios moto con o sin vinculo a modelos especificos.</span>
           </div>
 
           <form className="admin-moto-form" onSubmit={onAccesorioMotoSubmit} noValidate>
@@ -390,14 +393,30 @@ export default function ProductosPage({
 
             <label className="admin-form-span-2">
               Imagenes
-              <input
-                key={`acc-moto-images-${accesorioMotoImageInputKey}`}
-                type="file"
-                name="imagenes_galeria"
-                accept="image/*"
-                multiple
-                onChange={onAccesorioMotoInputChange}
-              />
+              <div className="admin-edit-file-picker">
+                <input
+                  ref={accesorioMotoFileInputRef}
+                  key={`acc-moto-images-${accesorioMotoImageInputKey}`}
+                  className="admin-edit-file-hidden"
+                  type="file"
+                  name="imagenes_galeria"
+                  accept="image/*"
+                  multiple
+                  onChange={onAccesorioMotoInputChange}
+                />
+                <button
+                  type="button"
+                  className="admin-edit-file-btn"
+                  onClick={() => accesorioMotoFileInputRef.current?.click()}
+                >
+                  Examinar...
+                </button>
+                <span className="admin-edit-file-name">
+                  {hasNewAccesorioMotoImages
+                    ? `${accesorioMotoForm.imagenes_galeria.length} archivos seleccionados.`
+                    : "No se han seleccionado archivos nuevos."}
+                </span>
+              </div>
               {(accesorioMotoLocalPreview || accesorioMotoImageUrl) && (
                 <div className="admin-image-preview-box">
                   <img
@@ -494,7 +513,7 @@ export default function ProductosPage({
                       {producto.precio ? `$${Number(producto.precio).toLocaleString("es-CL")}` : "Sin precio"}
                     </strong>
                     <span className="admin-rider-product-status">
-                      {producto.activo ? "Disponible" : "No disponible"} | Orden: {producto.orden_carrusel ?? 1}
+                      {producto.activo ? "Disponible" : "No disponible"}
                     </span>
                   </div>
                   <div className="admin-row-actions admin-rider-product-actions">
@@ -613,14 +632,30 @@ export default function ProductosPage({
 
             <label className="admin-form-span-2">
               Imagenes
-              <input
-                key={`acc-rider-images-${accesorioRiderImageInputKey}`}
-                type="file"
-                name="imagenes_galeria"
-                accept="image/*"
-                multiple
-                onChange={onAccesorioRiderInputChange}
-              />
+              <div className="admin-edit-file-picker">
+                <input
+                  ref={accesorioRiderFileInputRef}
+                  key={`acc-rider-images-${accesorioRiderImageInputKey}`}
+                  className="admin-edit-file-hidden"
+                  type="file"
+                  name="imagenes_galeria"
+                  accept="image/*"
+                  multiple
+                  onChange={onAccesorioRiderInputChange}
+                />
+                <button
+                  type="button"
+                  className="admin-edit-file-btn"
+                  onClick={() => accesorioRiderFileInputRef.current?.click()}
+                >
+                  Examinar...
+                </button>
+                <span className="admin-edit-file-name">
+                  {hasNewAccesorioRiderImages
+                    ? `${accesorioRiderForm.imagenes_galeria.length} archivos seleccionados.`
+                    : "No se han seleccionado archivos nuevos."}
+                </span>
+              </div>
               {(accesorioRiderLocalPreview || accesorioRiderImageUrl) && (
                 <div className="admin-image-preview-box">
                   <img

@@ -958,6 +958,7 @@
   -webkit-appearance: none;
   -moz-appearance: none;
   cursor: pointer;
+  font-family: "Inter", "Segoe UI", sans-serif;
   padding-right: 40px;
   background-image:
     linear-gradient(45deg, transparent 50%, #516179 50%),
@@ -967,6 +968,11 @@
     calc(100% - 12px) calc(50% - 2px);
   background-size: 6px 6px, 6px 6px;
   background-repeat: no-repeat;
+}
+
+.admin-moto-form select option,
+.admin-entity-modal-form select option {
+  font-family: "Inter", "Segoe UI", sans-serif;
 }
 
 .admin-moto-form select:hover,
