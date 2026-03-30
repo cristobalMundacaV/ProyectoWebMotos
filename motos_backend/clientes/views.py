@@ -109,6 +109,8 @@ def current_user(request):
 	username = (data.get("username") or "").strip()
 	email = (data.get("email") or "").strip()
 	telefono = (data.get("telefono") or "").strip()
+	current_email = (request.user.email or "").strip()
+	current_telefono = (getattr(getattr(request.user, "perfil_usuario", None), "telefono", "") or "").strip()
 
 	if not first_name or not last_name or not username:
 		return Response(
@@ -119,8 +121,11 @@ def current_user(request):
 	if User.objects.filter(username__iexact=username).exclude(id=request.user.id).exists():
 		return Response({"detail": "El nombre de usuario ya esta en uso."}, status=status.HTTP_400_BAD_REQUEST)
 
-	if email and User.objects.filter(email__iexact=email).exclude(id=request.user.id).exists():
+	if email and email.lower() != current_email.lower() and User.objects.filter(email__iexact=email).exclude(id=request.user.id).exists():
 		return Response({"detail": "El correo ya esta en uso."}, status=status.HTTP_400_BAD_REQUEST)
+
+	if telefono and telefono != current_telefono and PerfilUsuario.objects.filter(telefono=telefono).exclude(user_id=request.user.id).exists():
+		return Response({"detail": "El telefono ya esta en uso."}, status=status.HTTP_400_BAD_REQUEST)
 
 	try:
 		with transaction.atomic():
@@ -266,6 +271,9 @@ def admin_manage_user(request, user_id: int):
 
 	if email and User.objects.filter(email__iexact=email).exclude(id=target_user.id).exists():
 		return Response({"detail": "El correo ya esta en uso."}, status=status.HTTP_400_BAD_REQUEST)
+
+	if telefono and PerfilUsuario.objects.filter(telefono=telefono).exclude(user_id=target_user.id).exists():
+		return Response({"detail": "El telefono ya esta en uso."}, status=status.HTTP_400_BAD_REQUEST)
 
 	try:
 		with transaction.atomic():

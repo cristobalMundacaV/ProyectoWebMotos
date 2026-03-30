@@ -55,6 +55,14 @@ class UserRegisterSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError("El correo ya esta registrado.")
         return email
 
+    def validate_telefono(self, value):
+        telefono = value.strip()
+        if not telefono:
+            raise serializers.ValidationError("El telefono es obligatorio.")
+        if PerfilUsuario.objects.filter(telefono=telefono).exists():
+            raise serializers.ValidationError("El telefono ya esta registrado.")
+        return telefono
+
     def validate_username(self, value):
         username = value.strip()
         if not username:
@@ -117,6 +125,14 @@ class AdminUserCreateSerializer(serializers.Serializer):
         if User.objects.filter(email__iexact=email).exists():
             raise serializers.ValidationError("El correo ya esta registrado.")
         return email
+
+    def validate_telefono(self, value):
+        telefono = value.strip()
+        if not telefono:
+            raise serializers.ValidationError("El telefono es obligatorio.")
+        if PerfilUsuario.objects.filter(telefono=telefono).exists():
+            raise serializers.ValidationError("El telefono ya esta registrado.")
+        return telefono
 
     def validate(self, attrs):
         if attrs["password"] != attrs["confirm_password"]:
