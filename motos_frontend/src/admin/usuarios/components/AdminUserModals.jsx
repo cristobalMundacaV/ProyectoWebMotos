@@ -13,15 +13,12 @@ export default function AdminUserModals({
     <>
       {editModal && (
         <div className="admin-entity-modal-overlay" onClick={onCloseEdit}>
-          <section className="admin-entity-modal" onClick={(event) => event.stopPropagation()}>
+          <section className="admin-entity-modal admin-entity-modal-compact admin-user-edit-modal" onClick={(event) => event.stopPropagation()}>
             <div className="admin-entity-modal-header">
               <div>
                 <p className="admin-entity-modal-kicker">Edicion de usuario</p>
                 <h3>Editar usuario</h3>
               </div>
-              <button type="button" onClick={onCloseEdit} disabled={modalSaving}>
-                Cerrar
-              </button>
             </div>
 
             <form className="admin-entity-modal-form" onSubmit={onSubmitEdit} noValidate>
@@ -95,4 +92,3 @@ export default function AdminUserModals({
     </>
   );
 }
-

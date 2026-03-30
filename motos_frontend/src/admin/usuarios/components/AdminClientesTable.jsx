@@ -14,6 +14,12 @@ export default function AdminClientesTable({
     return <p className="admin-empty">No hay clientes registrados.</p>;
   }
 
+  function formatRoleLabel(roleValue) {
+    const raw = String(roleValue || "").trim().toLowerCase();
+    if (!raw) return "Cliente";
+    return raw.charAt(0).toUpperCase() + raw.slice(1);
+  }
+
   return (
     <>
       <div className="admin-table">
@@ -34,7 +40,7 @@ export default function AdminClientesTable({
                 <span>{cliente?.telefono || "Sin telefono"}</span>
               </div>
               <div className="admin-moto-table-cell">
-                <strong>{cliente?.rol || "cliente"}</strong>
+                <strong>{formatRoleLabel(cliente?.rol || cliente?.role || "cliente")}</strong>
                 <span>Registro: {joined}</span>
               </div>
             </div>

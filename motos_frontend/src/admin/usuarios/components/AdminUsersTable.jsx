@@ -15,6 +15,12 @@ export default function AdminUsersTable({
     return <p className="admin-empty">No hay usuarios registrados.</p>;
   }
 
+  function formatRoleLabel(roleValue) {
+    const raw = String(roleValue || "").trim().toLowerCase();
+    if (!raw) return "-";
+    return raw.charAt(0).toUpperCase() + raw.slice(1);
+  }
+
   return (
     <>
       <div className="admin-table">
@@ -30,7 +36,7 @@ export default function AdminUsersTable({
                 <span>@{user?.username || "-"}</span>
               </div>
               <div className="admin-moto-table-cell">
-                <strong>{user?.rol || "-"}</strong>
+                <strong>{formatRoleLabel(user?.rol || user?.role)}</strong>
                 <span>{user?.email || user?.telefono || "Sin contacto"}</span>
               </div>
               <div className="admin-row-actions">

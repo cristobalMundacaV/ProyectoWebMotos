@@ -44,10 +44,9 @@ export default function UsuariosPage({
 
   return (
     <section className="admin-content-grid lower">
-      <article className="admin-panel-card">
+        <article className="admin-panel-card">
         <div className="admin-card-header">
           <h2>Crear usuario</h2>
-          <span>Gestion de usuarios internos del sistema.</span>
         </div>
 
         <form className="admin-moto-form" onSubmit={onCreateUserSubmit} noValidate>
