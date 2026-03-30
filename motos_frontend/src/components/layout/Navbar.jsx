@@ -317,7 +317,7 @@ export default function Navbar() {
                         Editar perfil
                       </button>
                       <button type="button" className="admin-user-btn danger" onClick={handleLogout}>
-                        Cerrar sesi\u00f3n
+                        Cerrar sesión
                       </button>
                     </div>
                   </div>
