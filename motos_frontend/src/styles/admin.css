@@ -1178,6 +1178,14 @@
   margin-left: 0;
 }
 
+.admin-product-edit-checks {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 24px;
+  flex-wrap: wrap;
+}
+
 .admin-product-edit-extra-fields {
   display: grid;
   gap: 12px;
