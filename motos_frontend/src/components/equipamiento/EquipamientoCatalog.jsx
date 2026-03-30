@@ -298,10 +298,6 @@ export default function EquipamientoCatalog({ variant = "accesorios" }) {
   }
 
   function openEditModal(producto) {
-    if (tipoApi === "accesorios") {
-      navigate("/admin-panel?section=accesorios_motos");
-      return;
-    }
     setEditError("");
     editNewImagePreviews.forEach((preview) => {
       if (preview?.url) URL.revokeObjectURL(preview.url);
