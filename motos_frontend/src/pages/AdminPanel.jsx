@@ -1,4 +1,4 @@
-﻿import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import {
   clearAuthSession,
@@ -39,7 +39,7 @@ export default function AdminPanel() {
   const [currentUser, setCurrentUser] = useState(() => getStoredUser());
   const [activeSection, setActiveSection] = useState("resumen");
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
-  const [isLoggingOut, setIsLoggingOut] = useState(false);
+  const isLoggingOutRef = useRef(false);
   const [dashboard, setDashboard] = useState({
     motos: [],
     productosIndumentaria: [],
@@ -51,10 +51,10 @@ export default function AdminPanel() {
   const { toasts, pushToast, dismissToast, clearToasts } = useAdminToasts();
   const pushToastSafe = useCallback(
     (message, variant = "success") => {
-      if (isLoggingOut) return;
+      if (isLoggingOutRef.current) return;
       pushToast(message, variant);
     },
-    [isLoggingOut, pushToast]
+    [pushToast]
   );
   const getErrorText = getErrorTextUtil;
   const validateFormWithToast = useCallback((formElement) => validateFormWithToastUtil(formElement, pushToastSafe), [pushToastSafe]);
@@ -140,8 +140,8 @@ export default function AdminPanel() {
   }, []);
 
   const handleLogout = useCallback(async () => {
-    if (isLoggingOut) return;
-    setIsLoggingOut(true);
+    if (isLoggingOutRef.current) return;
+    isLoggingOutRef.current = true;
     if (typeof window !== "undefined") {
       window.__ADMIN_LOGOUT_IN_PROGRESS = true;
     }
@@ -156,9 +156,9 @@ export default function AdminPanel() {
       clearToasts();
       clearAuthSession();
       navigate("/", { replace: true });
-      setIsLoggingOut(false);
+      isLoggingOutRef.current = false;
     }
-  }, [clearToasts, isLoggingOut, navigate]);
+  }, [clearToasts, navigate]);
 
   const handleTopbarProfileSave = useCallback(
     async (payload) => {
@@ -234,3 +234,4 @@ export default function AdminPanel() {
     </div>
   );
 }
+
