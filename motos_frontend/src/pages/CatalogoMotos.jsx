@@ -619,8 +619,13 @@ export default function CatalogoMotos() {
     keepPrimaryImage: Boolean(editForm?.keep_imagen_principal),
     existingGalleryImages,
   });
-  const visibleDetailCount = visibleDetailImages.filter((image) => image.visible).length;
-  const hasEditablePublishedImages = Boolean(editingMoto?.imagen_principal) || existingGalleryImages.length > 0;
+  const publishedDetailImages = visibleDetailImages.filter((image) => image.keep && image.visible);
+  const visibleDetailCount = publishedDetailImages.length;
+  const displayDetailImages =
+    publishedDetailImages.length === 1
+      ? publishedDetailImages.map((image) => ({ ...image, displaySource: "principal" }))
+      : publishedDetailImages.map((image) => ({ ...image, displaySource: image.source }));
+  const hasEditablePublishedImages = displayDetailImages.length > 0;
   const activeFiltersCount =
     selectedMarcas.length +
     selectedCategorias.length +
@@ -986,19 +991,19 @@ export default function CatalogoMotos() {
                   <div className="moto-edit-gallery-header">
                     <p>Imagenes visibles en el detalle publico</p>
                     <span>
-                      {visibleDetailCount} visibles en detalle. Imagen principal {editForm.keep_imagen_principal ? "se mantendra" : "se eliminara"} y {keptExistingGalleryCount} de {existingGalleryImages.length} imagenes de galeria se conservaran
+                      {visibleDetailCount} visibles en detalle. {visibleDetailCount === 1 ? "La unica imagen se tratara como principal." : `Imagen principal ${editForm.keep_imagen_principal ? "se mantendra" : "se eliminara"} y ${keptExistingGalleryCount} de ${existingGalleryImages.length} imagenes de galeria se conservaran.`}
                     </span>
                   </div>
 
                   <div className="moto-edit-visible-grid">
-                    {visibleDetailImages.map((image) => (
+                    {displayDetailImages.map((image) => (
                       <article
                         key={`${image.source}-${image.imageId ?? image.key}`}
-                        className={image.keep ? "moto-edit-visible-card" : "moto-edit-visible-card is-removed"}
+                        className="moto-edit-visible-card"
                       >
                         <button
                           type="button"
-                          className={image.keep ? "moto-edit-gallery-remove-btn" : "moto-edit-gallery-restore-btn"}
+                          className="moto-edit-gallery-remove-btn"
                           onClick={() =>
                             image.source === "principal"
                               ? togglePrimaryImageVisibility()
@@ -1006,28 +1011,18 @@ export default function CatalogoMotos() {
                           }
                           aria-label={
                             image.source === "principal"
-                              ? image.keep
-                                ? "Eliminar imagen principal"
-                                : "Restaurar imagen principal"
-                              : image.keep
-                                ? "Eliminar imagen de galeria"
-                                : "Restaurar imagen de galeria"
+                              ? "Eliminar imagen principal"
+                              : "Eliminar imagen de galeria"
                           }
                         >
-                          {image.keep ? "×" : "Deshacer"}
+                          ×
                         </button>
                         <span className="moto-edit-visible-badge">
-                          {image.source === "principal" ? "Imagen principal" : "Imagen de galeria"}
+                          {image.displaySource === "principal" ? "Imagen principal" : "Imagen de galeria"}
                         </span>
-                        <img src={buildMediaUrl(image.image)} alt={`${editingMoto.modelo || "Moto"} ${image.source}`} />
+                        <img src={buildMediaUrl(image.image)} alt={`${editingMoto.modelo || "Moto"} ${image.displaySource}`} />
                         <div className="moto-edit-gallery-status">
-                          {image.keep
-                            ? image.visible
-                              ? "Se mostrara en el detalle publico"
-                              : "No se mostrara porque duplica otra imagen visible"
-                            : image.source === "principal"
-                              ? "Se eliminara la imagen principal al guardar"
-                              : "Se eliminara de la galeria al guardar"}
+                          Se mostrara en el detalle publico
                         </div>
                       </article>
                     ))}
