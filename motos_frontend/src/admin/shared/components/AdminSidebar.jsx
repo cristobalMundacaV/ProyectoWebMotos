@@ -1,5 +1,4 @@
 import { useEffect, useMemo, useState } from "react";
-import { useNavigate } from "react-router-dom";
 
 function SidebarIcon({ kind }) {
   if (kind === "dashboard") {
@@ -310,7 +309,6 @@ export default function AdminSidebar({
   onLogout,
   userRole = "admin",
 }) {
-  const navigate = useNavigate();
   const visibleNavigation = useMemo(() => getVisibleNavigation(userRole), [userRole]);
   const groups = useMemo(() => flattenVisibleGroups(visibleNavigation), [visibleNavigation]);
   const activeGroupLabel = useMemo(
@@ -337,7 +335,7 @@ export default function AdminSidebar({
   function handleExternalNavigate(groupLabel, path) {
     setExpandedGroup(groupLabel);
     onNavigate?.();
-    navigate(path);
+    window.location.assign(path);
   }
 
   return (

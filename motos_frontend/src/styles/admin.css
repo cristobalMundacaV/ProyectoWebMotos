@@ -70,6 +70,12 @@
   border-color: #f6bcbc;
 }
 
+.admin-toast-neutral {
+  background: #eef2f7;
+  color: #334155;
+  border-color: #d7dee8;
+}
+
 .admin-toast-success .admin-toast-icon {
   background: #14a44d;
   color: #fff;
@@ -80,6 +86,21 @@
   color: #fff;
 }
 
+.admin-toast-neutral .admin-toast-icon {
+  background: #64748b;
+  color: #fff;
+}
+
+.admin-toast-spinner {
+  width: 12px;
+  height: 12px;
+  border: 2px solid rgba(255, 255, 255, 0.45);
+  border-top-color: #fff;
+  border-radius: 50%;
+  display: inline-block;
+  animation: admin-toast-spin 0.85s linear infinite;
+}
+
 @keyframes admin-toast-in {
   from {
     transform: translateY(-8px);
@@ -88,6 +109,15 @@
   to {
     transform: translateY(0);
     opacity: 1;
+  }
+}
+
+@keyframes admin-toast-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
   }
 }
 
@@ -1099,6 +1129,18 @@
 
 .admin-horario-create-form {
   margin-bottom: 24px;
+}
+
+.admin-horario-toggle-btn {
+  background: #0ea5e9 !important;
+  border-color: #0ea5e9 !important;
+  color: #ffffff !important;
+  box-shadow: 0 6px 16px rgba(14, 165, 233, 0.24);
+}
+
+.admin-horario-toggle-btn:hover:not(:disabled) {
+  background: #0284c7 !important;
+  border-color: #0284c7 !important;
 }
 
 .admin-form-footer {

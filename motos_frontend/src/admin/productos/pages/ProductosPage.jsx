@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import AdminPagination, { paginateItems } from "../../shared/components/AdminPagination";
+import AdminDeleteConfirmModal from "../../shared/components/AdminDeleteConfirmModal";
 
 export default function ProductosPage({
   activeSection,
@@ -30,6 +31,10 @@ export default function ProductosPage({
   onAccesorioMotoSubmit,
   onAccesorioMotoEdit,
   onAccesorioMotoDelete,
+  productoDeleteModal,
+  productoDeleteSaving,
+  onCloseProductoDeleteModal,
+  onConfirmProductoDelete,
   onCancelAccesorioMotoEdit,
   onToggleCompatibilidad,
   accesoriosRiderMeta,
@@ -84,6 +89,10 @@ export default function ProductosPage({
 
   const [accesorioMotoLocalPreview, setAccesorioMotoLocalPreview] = useState("");
   const [accesorioRiderLocalPreview, setAccesorioRiderLocalPreview] = useState("");
+  const productoDeleteMessage =
+    productoDeleteModal?.tipo === "indumentaria"
+      ? `Estas seguro que quieres eliminar la indumentaria ${productoDeleteModal?.nombre || ""}?`
+      : `Estas seguro que quieres eliminar el accesorio ${productoDeleteModal?.nombre || ""}?`;
 
   useEffect(() => {
     const firstImage = Array.isArray(accesorioMotoForm.imagenes_galeria) ? accesorioMotoForm.imagenes_galeria[0] : null;
@@ -309,8 +318,9 @@ export default function ProductosPage({
     const paginatedAccesoriosMotos = paginateItems(accesoriosMotosAdmin, tablePages.accesoriosMotos, PAGE_SIZE);
 
     return (
-      <section className="admin-content-grid lower">
-        <article className="admin-panel-card">
+      <>
+        <section className="admin-content-grid lower">
+          <article className="admin-panel-card">
           <div className="admin-card-header">
             <h2>{editingAccesorioMotoId ? "Editar accesorio moto" : "Agregar accesorio moto"}</h2>
             <span>Gestion de accesorios moto con o sin vinculo a modelos especificos.</span>
@@ -471,49 +481,60 @@ export default function ProductosPage({
             )}
 
           </form>
-        </article>
+          </article>
 
-        <article className="admin-panel-card">
-          <div className="admin-card-header">
-            <h2>Accesorios Motos</h2>
-            <span>{accesoriosMotosAdmin.length} registrados</span>
-          </div>
+          <article className="admin-panel-card">
+            <div className="admin-card-header">
+              <h2>Accesorios Motos</h2>
+              <span>{accesoriosMotosAdmin.length} registrados</span>
+            </div>
 
-          <div className="admin-table">
-            {paginatedAccesoriosMotos.items.map((producto) => (
-              <div key={producto.id} className="admin-table-row admin-rider-product-row">
-                <div className="admin-rider-product-main">
-                  <strong>{producto.nombre}</strong>
-                  <span className="admin-rider-product-category">{formatCategoryLabel(producto.subcategoria_nombre)}</span>
+            <div className="admin-table">
+              {paginatedAccesoriosMotos.items.map((producto) => (
+                <div key={producto.id} className="admin-table-row admin-rider-product-row">
+                  <div className="admin-rider-product-main">
+                    <strong>{producto.nombre}</strong>
+                    <span className="admin-rider-product-category">{formatCategoryLabel(producto.subcategoria_nombre)}</span>
+                  </div>
+                  <div className="admin-rider-product-meta">
+                    <strong className="admin-rider-product-price">
+                      {producto.precio ? `$${Number(producto.precio).toLocaleString("es-CL")}` : "Sin precio"}
+                    </strong>
+                    <span className="admin-rider-product-status">
+                      {producto.activo ? "Disponible" : "No disponible"} | Orden: {producto.orden_carrusel ?? 1}
+                    </span>
+                  </div>
+                  <div className="admin-row-actions admin-rider-product-actions">
+                    <button type="button" className="admin-row-action-btn edit" title="Editar" onClick={() => onAccesorioMotoEdit?.(producto)}>
+                      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                    </button>
+                    <button type="button" className="admin-row-action-btn delete" title="Eliminar" onClick={() => onAccesorioMotoDelete?.(producto)}>
+                      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+                    </button>
+                  </div>
                 </div>
-                <div className="admin-rider-product-meta">
-                  <strong className="admin-rider-product-price">
-                    {producto.precio ? `$${Number(producto.precio).toLocaleString("es-CL")}` : "Sin precio"}
-                  </strong>
-                  <span className="admin-rider-product-status">
-                    {producto.activo ? "Disponible" : "No disponible"} | Orden: {producto.orden_carrusel ?? 1}
-                  </span>
-                </div>
-                <div className="admin-row-actions admin-rider-product-actions">
-                  <button type="button" className="admin-row-action-btn edit" title="Editar" onClick={() => onAccesorioMotoEdit?.(producto)}>
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
-                  </button>
-                  <button type="button" className="admin-row-action-btn delete" title="Eliminar" onClick={() => onAccesorioMotoDelete?.(producto)}>
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
-                  </button>
-                </div>
-              </div>
-            ))}
-            {!loading && accesoriosMotosAdmin.length === 0 && (
-              <p className="admin-empty">No hay accesorios de moto cargados.</p>
-            )}
-          </div>
-          <AdminPagination
-            pagination={paginatedAccesoriosMotos}
-            onPageChange={(page) => setTablePages((prev) => ({ ...prev, accesoriosMotos: page }))}
-          />
-        </article>
-      </section>
+              ))}
+              {!loading && accesoriosMotosAdmin.length === 0 && (
+                <p className="admin-empty">No hay accesorios de moto cargados.</p>
+              )}
+            </div>
+            <AdminPagination
+              pagination={paginatedAccesoriosMotos}
+              onPageChange={(page) => setTablePages((prev) => ({ ...prev, accesoriosMotos: page }))}
+            />
+          </article>
+        </section>
+
+        <AdminDeleteConfirmModal
+          isOpen={Boolean(productoDeleteModal)}
+          isSaving={productoDeleteSaving}
+          title="Confirmar eliminacion"
+          message={productoDeleteMessage}
+          confirmLabel="Eliminar"
+          onClose={onCloseProductoDeleteModal}
+          onConfirm={onConfirmProductoDelete}
+        />
+      </>
     );
   }
 
@@ -525,8 +546,9 @@ export default function ProductosPage({
     );
 
     return (
-      <section className="admin-content-grid lower">
-        <article className="admin-panel-card">
+      <>
+        <section className="admin-content-grid lower">
+          <article className="admin-panel-card">
           <div className="admin-card-header">
             <h2>Agregar Indumentaria Rider</h2>
             <span>Gestion de productos para uso del piloto.</span>
@@ -642,47 +664,58 @@ export default function ProductosPage({
               </button>
             </div>
           </form>
-        </article>
+          </article>
 
-        <article className="admin-panel-card">
-          <div className="admin-card-header">
-            <h2>Indumentaria Rider</h2>
-            <span>{accesoriosRiderAdmin.length} registrados</span>
-          </div>
+          <article className="admin-panel-card">
+            <div className="admin-card-header">
+              <h2>Indumentaria Rider</h2>
+              <span>{accesoriosRiderAdmin.length} registrados</span>
+            </div>
 
-          <div className="admin-table">
-            {paginatedAccesoriosRider.items.map((producto) => (
-              <div key={producto.id} className="admin-table-row admin-rider-product-row">
-                <div className="admin-rider-product-main">
-                  <strong>{producto.nombre}</strong>
-                  <span className="admin-rider-product-category">{formatCategoryLabel(producto.subcategoria_nombre)}</span>
+            <div className="admin-table">
+              {paginatedAccesoriosRider.items.map((producto) => (
+                <div key={producto.id} className="admin-table-row admin-rider-product-row">
+                  <div className="admin-rider-product-main">
+                    <strong>{producto.nombre}</strong>
+                    <span className="admin-rider-product-category">{formatCategoryLabel(producto.subcategoria_nombre)}</span>
+                  </div>
+                  <div className="admin-rider-product-meta">
+                    <strong className="admin-rider-product-price">
+                      {producto.precio ? `$${Number(producto.precio).toLocaleString("es-CL")}` : "Sin precio"}
+                    </strong>
+                    <span className="admin-rider-product-status">{producto.activo ? "Disponible" : "No disponible"}</span>
+                  </div>
+                  <div className="admin-row-actions admin-rider-product-actions">
+                    <button type="button" className="admin-row-action-btn edit" title="Editar" onClick={() => onAccesorioRiderEdit?.(producto)}>
+                      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                    </button>
+                    <button type="button" className="admin-row-action-btn delete" title="Eliminar" onClick={() => onAccesorioRiderDelete?.(producto)}>
+                      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+                    </button>
+                  </div>
                 </div>
-                <div className="admin-rider-product-meta">
-                  <strong className="admin-rider-product-price">
-                    {producto.precio ? `$${Number(producto.precio).toLocaleString("es-CL")}` : "Sin precio"}
-                  </strong>
-                  <span className="admin-rider-product-status">{producto.activo ? "Disponible" : "No disponible"}</span>
-                </div>
-                <div className="admin-row-actions admin-rider-product-actions">
-                  <button type="button" className="admin-row-action-btn edit" title="Editar" onClick={() => onAccesorioRiderEdit?.(producto)}>
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
-                  </button>
-                  <button type="button" className="admin-row-action-btn delete" title="Eliminar" onClick={() => onAccesorioRiderDelete?.(producto)}>
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
-                  </button>
-                </div>
-              </div>
-            ))}
-            {!loading && accesoriosRiderAdmin.length === 0 && (
-              <p className="admin-empty">No hay accesorios rider cargados.</p>
-            )}
-          </div>
-          <AdminPagination
-            pagination={paginatedAccesoriosRider}
-            onPageChange={(page) => setTablePages((prev) => ({ ...prev, accesoriosRider: page }))}
-          />
-        </article>
-      </section>
+              ))}
+              {!loading && accesoriosRiderAdmin.length === 0 && (
+                <p className="admin-empty">No hay accesorios rider cargados.</p>
+              )}
+            </div>
+            <AdminPagination
+              pagination={paginatedAccesoriosRider}
+              onPageChange={(page) => setTablePages((prev) => ({ ...prev, accesoriosRider: page }))}
+            />
+          </article>
+        </section>
+
+        <AdminDeleteConfirmModal
+          isOpen={Boolean(productoDeleteModal)}
+          isSaving={productoDeleteSaving}
+          title="Confirmar eliminacion"
+          message={productoDeleteMessage}
+          confirmLabel="Eliminar"
+          onClose={onCloseProductoDeleteModal}
+          onConfirm={onConfirmProductoDelete}
+        />
+      </>
     );
   }
 

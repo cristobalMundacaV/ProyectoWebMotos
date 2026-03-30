@@ -59,7 +59,7 @@ export default function AdminPagination({ pagination, onPageChange }) {
             disabled={currentPage === 1}
             aria-label="Primera pagina"
           >
-            «
+            {"<<"}
           </button>
 
           <button
@@ -101,7 +101,7 @@ export default function AdminPagination({ pagination, onPageChange }) {
             disabled={currentPage === totalPages}
             aria-label="Ultima pagina"
           >
-            »
+            {">>"}
           </button>
         </div>
       )}

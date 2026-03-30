@@ -16,6 +16,8 @@ from .models import (
     MantencionHorarioFecha,
 )
 
+MAX_DISPONIBILIDAD_DAYS_AHEAD = 31
+
 
 def _to_minutes(value: time) -> int:
     return value.hour * 60 + value.minute
@@ -27,11 +29,29 @@ def _from_minutes(value: int) -> time:
     return time(hour=hour, minute=minute)
 
 
-def get_disponibilidad(days_ahead: int = 21) -> list[dict]:
+def get_disponibilidad(
+    days_ahead: int = 21,
+    *,
+    start_date: date | None = None,
+    end_date: date | None = None,
+) -> list[dict]:
     mark_expired_unaccepted_requests()
     today = timezone.localdate()
     now_local = timezone.localtime()
-    end_date = today + timedelta(days=max(days_ahead, 1) - 1)
+
+    if start_date is None and end_date is None:
+        start_date = today
+        end_date = today + timedelta(days=max(days_ahead, 1) - 1)
+    else:
+        start_date = start_date or today
+        end_date = end_date or (start_date + timedelta(days=max(days_ahead, 1) - 1))
+
+    start_date = max(start_date, today)
+    max_end_date = today + timedelta(days=MAX_DISPONIBILIDAD_DAYS_AHEAD - 1)
+    end_date = min(end_date, max_end_date)
+
+    if start_date > end_date:
+        return []
 
     horarios = (
         HorarioMantencion.objects.filter(activo=True)
@@ -40,7 +60,7 @@ def get_disponibilidad(days_ahead: int = 21) -> list[dict]:
     )
     ocupadas = (
         Mantencion.objects.filter(
-            fecha_ingreso__gte=today,
+            fecha_ingreso__gte=start_date,
             fecha_ingreso__lte=end_date,
             hora_ingreso__isnull=False,
         )
@@ -61,7 +81,7 @@ def get_disponibilidad(days_ahead: int = 21) -> list[dict]:
     fechas_bloqueadas = set(
         MantencionDiaBloqueado.objects.filter(
             bloqueado=True,
-            fecha__gte=today,
+            fecha__gte=start_date,
             fecha__lte=end_date,
         ).values_list("fecha", flat=True)
     )
@@ -69,7 +89,7 @@ def get_disponibilidad(days_ahead: int = 21) -> list[dict]:
         item.fecha: item
         for item in MantencionHorarioFecha.objects.filter(
             activo=True,
-            fecha__gte=today,
+            fecha__gte=start_date,
             fecha__lte=end_date,
         ).all()
     }
@@ -77,7 +97,7 @@ def get_disponibilidad(days_ahead: int = 21) -> list[dict]:
         (item.fecha, item.hora): True
         for item in MantencionHoraBloqueada.objects.filter(
             bloqueado=True,
-            fecha__gte=today,
+            fecha__gte=start_date,
             fecha__lte=end_date,
         ).all()
     }
@@ -89,8 +109,8 @@ def get_disponibilidad(days_ahead: int = 21) -> list[dict]:
         grouped_horarios[horario.dia_semana].append(horario)
 
     disponibilidad: list[dict] = []
-    for offset in range((end_date - today).days + 1):
-        current_date = today + timedelta(days=offset)
+    for offset in range((end_date - start_date).days + 1):
+        current_date = start_date + timedelta(days=offset)
         horario_exacto = horarios_por_fecha.get(current_date)
 
         if current_date in fechas_bloqueadas:
@@ -149,7 +169,7 @@ def slot_disponible(fecha: date, hora: time) -> bool:
     if fecha < timezone.localdate():
         return False
 
-    day_slots = get_disponibilidad(days_ahead=60)
+    day_slots = get_disponibilidad(days_ahead=MAX_DISPONIBILIDAD_DAYS_AHEAD)
     fecha_text = fecha.isoformat()
     hora_text = hora.strftime("%H:%M")
     for day in day_slots:

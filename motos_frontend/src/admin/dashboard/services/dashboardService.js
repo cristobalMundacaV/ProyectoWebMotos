@@ -13,6 +13,10 @@ import {
 import { getContactoAdmin } from "../../configuracion/services/configuracionAdminService";
 
 export async function fetchAdminBootstrapData() {
+  const contactoAdminRequest = getContactoAdmin()
+    .then((data) => ({ data, error: null }))
+    .catch((error) => ({ data: null, error }));
+
   const [
     motos,
     productosIndumentaria,
@@ -31,7 +35,7 @@ export async function fetchAdminBootstrapData() {
     accesoriosMotosMetaData,
     accesoriosRiderList,
     accesoriosRiderMetaData,
-    contactoAdmin,
+    contactoAdminResult,
   ] = await Promise.all([
     getMotos().catch(() => []),
     getProductos({ tipo: "indumentaria" }).catch(() => []),
@@ -50,7 +54,7 @@ export async function fetchAdminBootstrapData() {
     getAccesoriosMotosMeta().catch(() => ({ subcategorias: [], marcas: [], motos: [] })),
     getAccesoriosRiderAdmin().catch(() => []),
     getAccesoriosRiderMeta().catch(() => ({ subcategorias: [], marcas: [] })),
-    getContactoAdmin().catch(() => ({ instagram: "", telefono: "", ubicacion: "" })),
+    contactoAdminRequest,
   ]);
 
   return {
@@ -71,7 +75,8 @@ export async function fetchAdminBootstrapData() {
     accesoriosMotosMetaData,
     accesoriosRiderList,
     accesoriosRiderMetaData,
-    contactoAdmin,
+    contactoAdmin: contactoAdminResult?.data || null,
+    contactoAdminLoadError: Boolean(contactoAdminResult?.error),
   };
 }
 
@@ -249,8 +254,12 @@ function mapLegacyToSummary({ period, catalogo, mantenciones, range }) {
 export async function fetchDashboardAnalytics({ period = "this_month", year, month, start, end, groupBy } = {}) {
   try {
     return await fetchDashboardSummary({ period });
-  } catch (_error) {
-    // Fallback defensivo al esquema anterior.
+  } catch (error) {
+    // Evitamos mezclar semanticas de periodo en fallback legacy.
+    if (period !== "this_month") {
+      throw error;
+    }
+
     const range = getPeriodRange(period);
     const now = new Date();
     const [catalogo, mantenciones] = await Promise.all([

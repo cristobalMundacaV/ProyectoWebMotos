@@ -12,6 +12,33 @@ import {
   toIsoDate,
 } from "../utils/mantencionesViewUtils";
 
+function parseLocalIsoDate(value) {
+  const [year, month, day] = String(value || "").split("-").map(Number);
+  const parsed = new Date(year, (month || 1) - 1, day || 1);
+  if (Number.isNaN(parsed.getTime())) return null;
+  return parsed;
+}
+
+const CALENDAR_MAX_DAYS_AHEAD = 31;
+
+function getMonthDateRange(calendarMonth) {
+  const monthStart = new Date(calendarMonth.getFullYear(), calendarMonth.getMonth(), 1);
+  const monthEnd = new Date(calendarMonth.getFullYear(), calendarMonth.getMonth() + 1, 0);
+  return {
+    from: toIsoDate(monthStart),
+    to: toIsoDate(monthEnd),
+  };
+}
+
+function getMonthNavigationBounds() {
+  const today = new Date();
+  const minMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+  const maxDate = new Date(today);
+  maxDate.setDate(maxDate.getDate() + (CALENDAR_MAX_DAYS_AHEAD - 1));
+  const maxMonth = new Date(maxDate.getFullYear(), maxDate.getMonth(), 1);
+  return { minMonth, maxMonth };
+}
+
 function buildInitialCalendarMonth() {
   const now = new Date();
   return new Date(now.getFullYear(), now.getMonth(), 1);
@@ -52,6 +79,15 @@ export default function useMantencionesCalendar({ activeSection, horarios }) {
   const calendarMonthLabel = useMemo(
     () => calendarMonth.toLocaleDateString("es-CL", { month: "long", year: "numeric" }),
     [calendarMonth]
+  );
+  const monthBounds = useMemo(() => getMonthNavigationBounds(), []);
+  const canGoPrevMonth = useMemo(
+    () => calendarMonth.getTime() > monthBounds.minMonth.getTime(),
+    [calendarMonth, monthBounds.minMonth]
+  );
+  const canGoNextMonth = useMemo(
+    () => calendarMonth.getTime() < monthBounds.maxMonth.getTime(),
+    [calendarMonth, monthBounds.maxMonth]
   );
 
   const calendarCells = useMemo(() => {
@@ -122,7 +158,8 @@ export default function useMantencionesCalendar({ activeSection, horarios }) {
 
   const selectedCalendarIsHoliday = useMemo(() => {
     if (!selectedCalendarDate) return false;
-    const parsed = new Date(selectedCalendarDate);
+    const parsed = parseLocalIsoDate(selectedCalendarDate);
+    if (!parsed) return false;
     return isChileanHolidayDate(parsed);
   }, [selectedCalendarDate]);
 
@@ -132,11 +169,23 @@ export default function useMantencionesCalendar({ activeSection, horarios }) {
       if (!silent) setCalendarLoading(true);
       setCalendarError("");
       try {
-        const data = await getDisponibilidadMantenciones(60);
+        const { from, to } = getMonthDateRange(calendarMonth);
+        const data = await getDisponibilidadMantenciones({ from, to });
         const days = Array.isArray(data?.slots) ? data.slots : [];
         setAvailabilityDays(days);
         if (days.length > 0) {
-          setSelectedCalendarDate((prev) => (prev && days.some((day) => day.fecha === prev) ? prev : days[0].fecha));
+          setSelectedCalendarDate((prev) => {
+            if (prev && days.some((day) => day.fecha === prev)) return prev;
+            const firstFromVisibleMonth = days.find((day) => {
+              const parsed = parseLocalIsoDate(day.fecha);
+              return (
+                parsed &&
+                parsed.getFullYear() === calendarMonth.getFullYear() &&
+                parsed.getMonth() === calendarMonth.getMonth()
+              );
+            });
+            return firstFromVisibleMonth?.fecha || days[0].fecha;
+          });
         } else {
           setSelectedCalendarDate("");
         }
@@ -148,7 +197,7 @@ export default function useMantencionesCalendar({ activeSection, horarios }) {
         if (!silent) setCalendarLoading(false);
       }
     },
-    [activeSection]
+    [activeSection, calendarMonth]
   );
 
   useEffect(() => {
@@ -262,8 +311,8 @@ export default function useMantencionesCalendar({ activeSection, horarios }) {
       };
       if (!targetDateIso) return fallback;
 
-      const parsed = new Date(targetDateIso);
-      if (Number.isNaN(parsed.getTime())) return fallback;
+      const parsed = parseLocalIsoDate(targetDateIso);
+      if (!parsed) return fallback;
       const weekday = (parsed.getDay() + 6) % 7;
       const base = [...horarios]
         .filter((item) => Number(item?.dia_semana ?? -1) === weekday)
@@ -341,12 +390,18 @@ export default function useMantencionesCalendar({ activeSection, horarios }) {
   );
 
   const goToPrevMonth = useCallback(() => {
-    setCalendarMonth((prev) => addMonths(prev, -1));
-  }, []);
+    setCalendarMonth((prev) => {
+      if (!canGoPrevMonth) return prev;
+      return addMonths(prev, -1);
+    });
+  }, [canGoPrevMonth]);
 
   const goToNextMonth = useCallback(() => {
-    setCalendarMonth((prev) => addMonths(prev, 1));
-  }, []);
+    setCalendarMonth((prev) => {
+      if (!canGoNextMonth) return prev;
+      return addMonths(prev, 1);
+    });
+  }, [canGoNextMonth]);
 
   const closeDayBlockConfirm = useCallback(() => {
     setDayBlockConfirm(null);
@@ -392,6 +447,8 @@ export default function useMantencionesCalendar({ activeSection, horarios }) {
     slotToggleError,
     goToPrevMonth,
     goToNextMonth,
+    canGoPrevMonth,
+    canGoNextMonth,
     openActivateDayModal,
     executeDayBlocking,
     executeDayActivation,
@@ -402,4 +459,3 @@ export default function useMantencionesCalendar({ activeSection, horarios }) {
     handleDayActivateFieldChange,
   };
 }
-

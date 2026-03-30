@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { formatDate, formatIntegerCL, sanitizeIntegerInput, sanitizeRutInput, toWholeNumber } from "../utils/mantencionesViewUtils";
+import { extractErrorMessage, formatDate, formatIntegerCL, sanitizeIntegerInput, sanitizeRutInput, toWholeNumber } from "../utils/mantencionesViewUtils";
 
 export default function useMantencionesTransitions({ savingById, onAcceptSolicitud, onUpdateMantencion }) {
   const [editsById, setEditsById] = useState({});
@@ -39,18 +39,25 @@ export default function useMantencionesTransitions({ savingById, onAcceptSolicit
 
   const buildEditablePayload = useCallback((item, estadoSiguiente = item.estado) => {
     const draft = getDraft(item);
-    return {
+    const edits = editsById[item.id] || {};
+    const payload = {
       estado: estadoSiguiente,
       kilometraje_ingreso:
         draft.kilometraje_ingreso === "" || draft.kilometraje_ingreso === null
           ? null
           : Number.parseInt(draft.kilometraje_ingreso, 10),
-      costo_total: Number.parseInt(draft.costo_total ?? item.costo_total ?? 0, 10) || 0,
       diagnostico: draft.diagnostico ?? item.diagnostico ?? "",
       trabajo_realizado: draft.trabajo_realizado ?? item.trabajo_realizado ?? "",
       observaciones: draft.observaciones ?? item.observaciones ?? "",
     };
-  }, [getDraft]);
+
+    if (Object.prototype.hasOwnProperty.call(edits, "costo_total")) {
+      const rawCosto = String(draft.costo_total ?? "").trim();
+      payload.costo_total = rawCosto === "" ? null : Number.parseInt(rawCosto, 10) || 0;
+    }
+
+    return payload;
+  }, [editsById, getDraft]);
 
   const canEditRecord = useCallback((itemId) => Boolean(editableFinalizadaById[itemId]), [editableFinalizadaById]);
 
@@ -83,8 +90,12 @@ export default function useMantencionesTransitions({ savingById, onAcceptSolicit
   const submitCancelConfirm = useCallback(async () => {
     if (!cancelConfirm) return;
     const targetId = cancelConfirm.id;
-    await onUpdateMantencion(targetId, { estado: "cancelado" }, "cancel");
-    setCancelConfirm(null);
+    try {
+      await onUpdateMantencion(targetId, { estado: "cancelado" }, "cancel");
+      setCancelConfirm(null);
+    } catch {
+      // Keep modal open so operator can retry after backend errors.
+    }
   }, [cancelConfirm, onUpdateMantencion]);
 
   const approveSolicitud = useCallback((itemId) => onAcceptSolicitud(itemId, "approve"), [onAcceptSolicitud]);
@@ -121,9 +132,13 @@ export default function useMantencionesTransitions({ savingById, onAcceptSolicit
       return;
     }
 
-    await onUpdateMantencion(targetId, { estado: "en_proceso", kilometraje_ingreso: km }, "ingreso");
-    setIngresoConfirm(null);
-    setIngresoError("");
+    try {
+      await onUpdateMantencion(targetId, { estado: "en_proceso", kilometraje_ingreso: km }, "ingreso");
+      setIngresoConfirm(null);
+      setIngresoError("");
+    } catch (error) {
+      setIngresoError(extractErrorMessage(error, "No se pudo confirmar el ingreso. Revisa los datos e intenta de nuevo."));
+    }
   }, [ingresoConfirm, onUpdateMantencion]);
 
   const openEntregaConfirm = useCallback((item) => {
@@ -174,25 +189,41 @@ export default function useMantencionesTransitions({ savingById, onAcceptSolicit
     const retiroNote = `Entrega a ${nombreRetira} (RUT: ${rutRetira}). Valor cobrado: ${formatIntegerCL(valor)}.`;
     const observaciones = [deliverConfirm.observacionesBase, retiroNote].filter(Boolean).join(" | ");
 
-    await onUpdateMantencion(
-      targetId,
-      {
-        estado: "entregada",
-        costo_total: valor,
-        observaciones,
-      },
-      "deliver"
-    );
-    setDeliverConfirm(null);
-    setDeliverError("");
+    try {
+      await onUpdateMantencion(
+        targetId,
+        {
+          estado: "entregada",
+          costo_total: valor,
+          observaciones,
+        },
+        "deliver"
+      );
+      setDeliverConfirm(null);
+      setDeliverError("");
+    } catch (error) {
+      setDeliverError(extractErrorMessage(error, "No se pudo confirmar la entrega. Revisa los datos e intenta de nuevo."));
+    }
   }, [deliverConfirm, onUpdateMantencion]);
 
   const updateItemEstado = useCallback(
     async ({ item, estado, action }) => {
-      await onUpdateMantencion(item.id, buildEditablePayload(item, estado), action);
+      try {
+        await onUpdateMantencion(item.id, buildEditablePayload(item, estado), action);
+      } catch {
+        // Error toast is handled by useMantencionesAdmin; avoid unhandled rejections on click handlers.
+      }
     },
     [buildEditablePayload, onUpdateMantencion]
   );
+
+  const clearAllModalState = useCallback(() => {
+    setCancelConfirm(null);
+    setIngresoConfirm(null);
+    setIngresoError("");
+    setDeliverConfirm(null);
+    setDeliverError("");
+  }, []);
 
   useEffect(() => {
     if (!cancelConfirm) return undefined;
@@ -258,6 +289,7 @@ export default function useMantencionesTransitions({ savingById, onAcceptSolicit
       submitEntregaConfirm,
       approveSolicitud,
       updateItemEstado,
+      clearAllModalState,
     }),
     [
       approveSolicitud,
@@ -287,7 +319,7 @@ export default function useMantencionesTransitions({ savingById, onAcceptSolicit
       submitEntregaConfirm,
       submitIngresoConfirm,
       updateItemEstado,
+      clearAllModalState,
     ]
   );
 }
-

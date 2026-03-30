@@ -63,9 +63,13 @@ export default function LineChartCard({ title, subtitle = "", items = [], loadin
     ? Math.max(300, Math.min(700, (items.length - 1) * pointSpacing + 34))
     : Math.max(760, Math.min(1360, (items.length - 1) * pointSpacing + 74));
   const height = isMobile ? 220 : 280;
-  const padding = isMobile
-    ? { top: 12, right: 4, bottom: 24, left: 22 }
-    : { top: 18, right: 10, bottom: 34, left: 34 };
+  const padding = useMemo(
+    () =>
+      isMobile
+        ? { top: 12, right: 4, bottom: 24, left: 22 }
+        : { top: 18, right: 10, bottom: 34, left: 34 },
+    [isMobile]
+  );
   const svgPixelWidth = isMobile
     ? Math.max(320, Math.min(760, 140 + (Math.max(items.length, 2) - 1) * 34))
     : Math.max(640, Math.min(1180, 260 + (Math.max(items.length, 2) - 1) * 70));
@@ -81,7 +85,7 @@ export default function LineChartCard({ title, subtitle = "", items = [], loadin
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
-  const chart = useMemo(() => getCoords(items, width, height, padding), [items]);
+  const chart = useMemo(() => getCoords(items, width, height, padding), [items, width, height, padding]);
   const { points, max } = chart;
   const ticks = useMemo(() => getTicks(max, 4), [max]);
   const activePoint = hoverIndex === null ? null : points[hoverIndex] || null;

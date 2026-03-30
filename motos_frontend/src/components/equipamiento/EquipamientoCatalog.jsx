@@ -1,6 +1,7 @@
 ﻿import { Link } from "react-router-dom";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { buildFallbackImageDataUrl, buildMediaUrl } from "../../services/apiConfig";
+import AdminDeleteConfirmModal from "../../admin/shared/components/AdminDeleteConfirmModal";
 import {
   deleteProductoAdmin,
   getAccesoriosMotosMeta,
@@ -73,6 +74,7 @@ export default function EquipamientoCatalog({ variant = "accesorios" }) {
   const [editNewImagePreviews, setEditNewImagePreviews] = useState([]);
   const [deleteCandidate, setDeleteCandidate] = useState(null);
   const [deletingProducto, setDeletingProducto] = useState(false);
+  const [feedback, setFeedback] = useState({ type: "", message: "" });
   const editFileInputRef = useRef(null);
   const fallbackImage = buildFallbackImageDataUrl({ width: 600, height: 600, text: "Sin Imagen" });
 
@@ -173,6 +175,12 @@ export default function EquipamientoCatalog({ variant = "accesorios" }) {
       });
     };
   }, [editNewImagePreviews]);
+
+  useEffect(() => {
+    if (!feedback.message) return undefined;
+    const timeoutId = window.setTimeout(() => setFeedback({ type: "", message: "" }), 3500);
+    return () => window.clearTimeout(timeoutId);
+  }, [feedback.message]);
 
   useEffect(() => {
     if (!editingProducto && !deleteCandidate) return undefined;
@@ -290,6 +298,10 @@ export default function EquipamientoCatalog({ variant = "accesorios" }) {
   }
 
   function openEditModal(producto) {
+    if (tipoApi === "accesorios") {
+      navigate("/admin-panel?section=accesorios_motos");
+      return;
+    }
     setEditError("");
     editNewImagePreviews.forEach((preview) => {
       if (preview?.url) URL.revokeObjectURL(preview.url);
@@ -429,8 +441,9 @@ export default function EquipamientoCatalog({ variant = "accesorios" }) {
       await deleteProductoAdmin(deleteCandidate.id);
       setProductos((prev) => prev.filter((item) => item.id !== deleteCandidate.id));
       setDeleteCandidate(null);
+      setFeedback({ type: "success", message: "Producto eliminado correctamente." });
     } catch (err) {
-      window.alert(getErrorText(err, "No se pudo eliminar el producto."));
+      setFeedback({ type: "error", message: getErrorText(err, "No se pudo eliminar el producto.") });
     } finally {
       setDeletingProducto(false);
     }
@@ -513,6 +526,11 @@ export default function EquipamientoCatalog({ variant = "accesorios" }) {
         <div className="equip-title-block">
           <h1>{formatTitleCase(title)}</h1>
           <p className="equip-results-meta">{productosFiltrados.length} articulos</p>
+          {feedback.message ? (
+            <p role="status" aria-live="polite" className="equip-results-meta">
+              {feedback.message}
+            </p>
+          ) : null}
         </div>
         <div className="equip-sort-row">
           <label className="equip-search" htmlFor={`equip-search-${variant}`}>
@@ -948,26 +966,23 @@ export default function EquipamientoCatalog({ variant = "accesorios" }) {
         </div>
       )}
 
-      {deleteCandidate && (
-        <div className="equip-delete-modal-overlay" onClick={closeDeleteModal}>
-          <section className="equip-delete-modal" onClick={(event) => event.stopPropagation()}>
-            <img src="/images/informacion.png" alt="Informacion" className="equip-delete-modal-image" />
-            <p className="equip-delete-modal-text">
-              Estas seguro que quieres eliminar {deleteCandidate.nombre}?
-            </p>
-            <div className="equip-delete-modal-actions">
-              <button type="button" className="btn-back" onClick={closeDeleteModal} disabled={deletingProducto}>
-                Volver
-              </button>
-              <button type="button" className="btn-delete" onClick={confirmDeleteProducto} disabled={deletingProducto}>
-                {"Eliminar"}
-              </button>
-            </div>
-          </section>
-        </div>
-      )}
+      <AdminDeleteConfirmModal
+        isOpen={Boolean(deleteCandidate)}
+        isSaving={deletingProducto}
+        title="Confirmar eliminacion"
+        message={
+          tipoApi === "indumentaria"
+            ? `Estas seguro que quieres eliminar la indumentaria ${deleteCandidate?.nombre || ""}?`
+            : `Estas seguro que quieres eliminar el accesorio ${deleteCandidate?.nombre || ""}?`
+        }
+        confirmLabel="Eliminar"
+        onClose={closeDeleteModal}
+        onConfirm={confirmDeleteProducto}
+      />
     </main>
   );
 }
+
+
 
 

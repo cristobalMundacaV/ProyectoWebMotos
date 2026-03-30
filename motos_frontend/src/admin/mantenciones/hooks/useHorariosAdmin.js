@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import {
+  activarDiaCalendarioMantencion,
   createHorarioMantencionAdmin,
   deleteHorarioMantencionAdmin,
   getHorariosMantencionAdmin,
@@ -8,18 +9,37 @@ import {
 import { initialHorarioMantencionForm } from "../../shared/constants/adminInitialState";
 
 const HORARIOS_SECTIONS = new Set(["horarios_operativos", "mantenciones_horarios"]);
+const HORARIO_HORIZON_DAYS = 31;
+
+function formatLocalISODate(date) {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
+
+function toBackendWeekday(localJsDate) {
+  return (localJsDate.getDay() + 6) % 7;
+}
 
 export default function useHorariosAdmin({ activeSection, pushToast, getErrorText }) {
   const [horariosMantencion, setHorariosMantencion] = useState([]);
   const [horariosMantencionLoading, setHorariosMantencionLoading] = useState(false);
+  const [horariosLoadError, setHorariosLoadError] = useState("");
   const [horarioMantencionSaving, setHorarioMantencionSaving] = useState(false);
   const [horarioMantencionForm, setHorarioMantencionForm] = useState(initialHorarioMantencionForm);
 
   const fetchHorariosMantencionList = useCallback(async () => {
-    const rows = await getHorariosMantencionAdmin();
-    setHorariosMantencion(rows);
-    return rows;
-  }, []);
+    try {
+      const rows = await getHorariosMantencionAdmin();
+      setHorariosMantencion(rows);
+      setHorariosLoadError("");
+      return rows;
+    } catch (error) {
+      setHorariosLoadError(getErrorText(error, "No se pudo cargar la configuracion de horarios."));
+      throw error;
+    }
+  }, [getErrorText]);
 
   useEffect(() => {
     if (!HORARIOS_SECTIONS.has(activeSection)) return;
@@ -30,10 +50,12 @@ export default function useHorariosAdmin({ activeSection, pushToast, getErrorTex
       .then((rows) => {
         if (!isMounted) return;
         setHorariosMantencion(rows);
+        setHorariosLoadError("");
       })
       .catch((error) => {
         if (!isMounted) return;
         setHorariosMantencion([]);
+        setHorariosLoadError(getErrorText(error, "No se pudo cargar la configuracion de horarios."));
         pushToast(getErrorText(error, "No se pudo cargar la configuracion de horarios."), "error");
       })
       .finally(() => {
@@ -122,8 +144,33 @@ export default function useHorariosAdmin({ activeSection, pushToast, getErrorTex
           await Promise.all(fueraDeRango.map((item) => deleteHorarioMantencionAdmin(item.id)));
         }
 
+        const hoy = new Date();
+        const diasActivaciones = [];
+        for (let offset = 0; offset < HORARIO_HORIZON_DAYS; offset += 1) {
+          const fecha = new Date(hoy);
+          fecha.setHours(0, 0, 0, 0);
+          fecha.setDate(hoy.getDate() + offset);
+
+          const diaSemana = toBackendWeekday(fecha);
+          if (diaSemana < diaInicio || diaSemana > diaFin) continue;
+
+          diasActivaciones.push(
+            activarDiaCalendarioMantencion({
+              fecha: formatLocalISODate(fecha),
+              hora_inicio: payloadBase.hora_inicio,
+              hora_fin: payloadBase.hora_fin,
+              intervalo_minutos: payloadBase.intervalo_minutos,
+              cupos_por_bloque: payloadBase.cupos_por_bloque,
+            })
+          );
+        }
+
+        if (diasActivaciones.length > 0) {
+          await Promise.all(diasActivaciones);
+        }
+
         await fetchHorariosMantencionList();
-        pushToast("Horario operativo guardado correctamente.", "success");
+        pushToast(`Horario operativo guardado para los proximos ${HORARIO_HORIZON_DAYS} dias.`, "success");
       } catch (error) {
         pushToast(getErrorText(error, "No se pudo crear el horario operativo."), "error");
       } finally {
@@ -162,8 +209,10 @@ export default function useHorariosAdmin({ activeSection, pushToast, getErrorTex
 
         await fetchHorariosMantencionList();
         pushToast("Horario actualizado correctamente.", "success");
+        return true;
       } catch (error) {
         pushToast(getErrorText(error, "No se pudo actualizar el horario."), "error");
+        return false;
       }
     },
     [fetchHorariosMantencionList, getErrorText, horariosMantencion, pushToast]
@@ -173,6 +222,8 @@ export default function useHorariosAdmin({ activeSection, pushToast, getErrorTex
     horariosMantencion,
     setHorariosMantencion,
     horariosMantencionLoading,
+    horariosLoadError,
+    setHorariosLoadError,
     setHorariosMantencionLoading,
     horarioMantencionSaving,
     horarioMantencionForm,

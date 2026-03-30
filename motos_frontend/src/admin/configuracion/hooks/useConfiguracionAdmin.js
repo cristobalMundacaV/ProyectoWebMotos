@@ -1,12 +1,21 @@
 import { useCallback, useState } from "react";
 import { updateContactoAdmin } from "../services/configuracionAdminService";
+import { getContactoAdmin } from "../../../services/productosService";
 import { initialContactoForm } from "../../shared/constants/adminInitialState";
 
 export default function useConfiguracionAdmin({ pushToast, getErrorText, clearInvalidFieldStyle, validateFormWithToast }) {
   const [contactoForm, setContactoForm] = useState(initialContactoForm);
   const [contactoSaving, setContactoSaving] = useState(false);
+  const [contactoLoading, setContactoLoading] = useState(false);
+  const [contactoLoadError, setContactoLoadError] = useState("");
 
-  const bootstrapContacto = useCallback((contacto = {}) => {
+  const bootstrapContacto = useCallback((contacto = {}, options = {}) => {
+    const hasLoadError = Boolean(options?.loadError);
+    if (hasLoadError) {
+      setContactoLoadError("No se pudieron cargar los datos actuales de contacto.");
+      return;
+    }
+    setContactoLoadError("");
     setContactoForm({
       instagram: contacto.instagram || "",
       telefono: contacto.telefono || "",
@@ -42,12 +51,33 @@ export default function useConfiguracionAdmin({ pushToast, getErrorText, clearIn
     [bootstrapContacto, contactoForm, getErrorText, pushToast, validateFormWithToast]
   );
 
+  const reloadContacto = useCallback(async () => {
+    setContactoLoading(true);
+    setContactoLoadError("");
+    try {
+      const data = await getContactoAdmin();
+      bootstrapContacto(data);
+      pushToast("Datos de contacto cargados correctamente.", "success");
+      return true;
+    } catch (error) {
+      const message = getErrorText(error, "No se pudieron cargar los datos de contacto.");
+      setContactoLoadError(message);
+      pushToast(message, "error");
+      return false;
+    } finally {
+      setContactoLoading(false);
+    }
+  }, [bootstrapContacto, getErrorText, pushToast]);
+
   return {
     contactoForm,
     contactoSaving,
+    contactoLoading,
+    contactoLoadError,
     setContactoForm,
     bootstrapContacto,
     handleContactoInputChange,
     handleContactoSubmit,
+    reloadContacto,
   };
 }

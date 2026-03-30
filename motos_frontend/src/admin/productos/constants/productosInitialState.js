@@ -12,7 +12,7 @@ export const initialAccesorioMotoForm = {
   slug: "",
   descripcion: "",
   precio: "",
-  stock: "0",
+  orden_carrusel: "1",
   imagen_principal: null,
   imagenes_galeria: [],
   es_destacado: false,
@@ -28,7 +28,6 @@ export const initialAccesorioRiderForm = {
   slug: "",
   descripcion: "",
   precio: "",
-  stock: "0",
   orden_carrusel: "1",
   imagen_principal: null,
   imagenes_galeria: [],
@@ -42,4 +41,3 @@ export const initialCategoriaAccRiderForm = {
   descripcion: "",
   activa: true,
 };
-

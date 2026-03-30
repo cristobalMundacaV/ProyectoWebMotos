@@ -11,13 +11,20 @@ const MANTENCIONES_SECTIONS = new Set([
 export default function useMantencionesAdmin({ activeSection, pushToast, getErrorText }) {
   const [mantenciones, setMantenciones] = useState([]);
   const [mantencionesLoading, setMantencionesLoading] = useState(true);
+  const [mantencionesLoadError, setMantencionesLoadError] = useState("");
   const [mantencionSavingById, setMantencionSavingById] = useState({});
 
   const fetchMantencionesList = useCallback(async () => {
-    const rows = await getMantencionesAdmin();
-    setMantenciones(rows);
-    return rows;
-  }, []);
+    try {
+      const rows = await getMantencionesAdmin();
+      setMantenciones(rows);
+      setMantencionesLoadError("");
+      return rows;
+    } catch (error) {
+      setMantencionesLoadError(getErrorText(error, "No se pudo cargar la lista de mantenciones."));
+      throw error;
+    }
+  }, [getErrorText]);
 
   useEffect(() => {
     if (!MANTENCIONES_SECTIONS.has(activeSection)) return;
@@ -28,10 +35,12 @@ export default function useMantencionesAdmin({ activeSection, pushToast, getErro
       .then((rows) => {
         if (!isMounted) return;
         setMantenciones(rows);
+        setMantencionesLoadError("");
       })
       .catch((error) => {
         if (!isMounted) return;
         setMantenciones([]);
+        setMantencionesLoadError(getErrorText(error, "No se pudo cargar la lista de mantenciones."));
         pushToast(getErrorText(error, "No se pudo cargar la lista de mantenciones."), "error");
       })
       .finally(() => {
@@ -72,6 +81,7 @@ export default function useMantencionesAdmin({ activeSection, pushToast, getErro
         }
       } catch (error) {
         pushToast(getErrorText(error, "No se pudo actualizar la mantencion."), "error");
+        throw error;
       } finally {
         setMantencionSavingById((prev) => ({ ...prev, [mantencionId]: "" }));
       }
@@ -83,6 +93,8 @@ export default function useMantencionesAdmin({ activeSection, pushToast, getErro
     mantenciones,
     setMantenciones,
     mantencionesLoading,
+    mantencionesLoadError,
+    setMantencionesLoadError,
     setMantencionesLoading,
     mantencionSavingById,
     fetchMantencionesList,

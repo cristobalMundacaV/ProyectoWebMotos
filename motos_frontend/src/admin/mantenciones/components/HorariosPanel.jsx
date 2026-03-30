@@ -14,6 +14,7 @@ const DIAS_LABEL = {
 export default function HorariosPanel({
   horarios = [],
   horariosLoading = false,
+  horariosLoadError = "",
   showHorarioForm,
   onToggleHorarioForm,
   horarioForm,
@@ -64,10 +65,10 @@ export default function HorariosPanel({
     <section className="admin-content-grid admin-content-grid-mantenciones">
       <article className="admin-panel-card">
         <div className="admin-card-header">
-          <h2>Horario de la Semana</h2>
+          <h2>{showHorarioForm ? "horario del mes" : "Horario de la Semana"}</h2>
           <button
             type="button"
-            className="admin-primary-action"
+            className="admin-primary-action admin-horario-toggle-btn"
             onClick={onToggleHorarioForm}
           >
             {showHorarioForm ? "Cerrar formulario" : "Agregar horario"}
@@ -189,16 +190,22 @@ export default function HorariosPanel({
                     <button
                       type="button"
                       className="admin-primary-action admin-mantencion-action-btn admin-mantencion-save-btn"
-                      onClick={() =>
-                        onHorarioUpdate(item.id, {
+                      onClick={async () => {
+                        const updatedOk = await onHorarioUpdate(item.id, {
                           dia_semana: Number(item.dia_semana ?? 0),
                           hora_inicio: draft.hora_inicio,
                           hora_fin: draft.hora_fin,
                           intervalo_minutos: toPositiveInteger(draft.intervalo_minutos, Number(item.intervalo_minutos ?? 60) || 60),
                           cupos_por_bloque: toPositiveInteger(draft.cupos_por_bloque, Number(item.cupos_por_bloque ?? 1) || 1),
                           activo: true,
-                        })
-                      }
+                        });
+                        if (updatedOk !== true) return;
+                        setHorarioEditsById((prev) => {
+                          const next = { ...prev };
+                          delete next[item.id];
+                          return next;
+                        });
+                      }}
                     >
                       Guardar
                     </button>
@@ -215,10 +222,10 @@ export default function HorariosPanel({
             );
           })}
 
-          {!horariosLoading && horarios.length === 0 && <p className="admin-empty">No hay horario de la semana configurado.</p>}
+          {!horariosLoading && horarios.length === 0 && <p className="admin-empty">No hay horario del mes configurado.</p>}
+          {horariosLoadError ? <p className="admin-empty">{horariosLoadError}</p> : null}
         </div>
       </article>
     </section>
   );
 }
-

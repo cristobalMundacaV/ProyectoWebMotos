@@ -43,10 +43,10 @@ export default function CalendarioPanel({ model }) {
                 <strong>{month.label}</strong>
               </div>
               <div className="admin-horarios-calendar-nav">
-                <button type="button" onClick={month.prev}>
+                <button type="button" onClick={month.prev} disabled={!month.canPrev}>
                   {"<"}
                 </button>
-                <button type="button" onClick={month.next}>
+                <button type="button" onClick={month.next} disabled={!month.canNext}>
                   {">"}
                 </button>
               </div>

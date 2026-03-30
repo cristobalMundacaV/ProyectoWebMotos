@@ -9,9 +9,15 @@ export default function useAdminModalEscape({
   motoEditModal,
   motoEditSaving,
   closeMotoEditModal,
+  motoDeleteModal,
+  motoDeleteSaving,
+  closeMotoDeleteModal,
   accesorioRiderEditModal,
   accesorioRiderEditSaving,
   closeAccesorioRiderEditModal,
+  productoDeleteModal,
+  productoDeleteSaving,
+  closeProductoDeleteModal,
   adminUserEditModal,
   adminUserDeleteModal,
   adminUserModalSaving,
@@ -23,7 +29,9 @@ export default function useAdminModalEscape({
       !entityEditModal &&
       !entityDeleteModal &&
       !motoEditModal &&
+      !motoDeleteModal &&
       !accesorioRiderEditModal &&
+      !productoDeleteModal &&
       !adminUserEditModal &&
       !adminUserDeleteModal
     ) {
@@ -35,7 +43,9 @@ export default function useAdminModalEscape({
       if (entityEditModal && !entityModalSaving) closeEntityEditModal();
       if (entityDeleteModal && !entityModalSaving) closeEntityDeleteModal();
       if (motoEditModal && !motoEditSaving) closeMotoEditModal();
+      if (motoDeleteModal && !motoDeleteSaving) closeMotoDeleteModal();
       if (accesorioRiderEditModal && !accesorioRiderEditSaving) closeAccesorioRiderEditModal();
+      if (productoDeleteModal && !productoDeleteSaving) closeProductoDeleteModal();
       if (adminUserEditModal && !adminUserModalSaving) closeAdminUserEditModal();
       if (adminUserDeleteModal && !adminUserModalSaving) closeAdminUserDeleteModal();
     };
@@ -51,9 +61,15 @@ export default function useAdminModalEscape({
     motoEditModal,
     motoEditSaving,
     closeMotoEditModal,
+    motoDeleteModal,
+    motoDeleteSaving,
+    closeMotoDeleteModal,
     accesorioRiderEditModal,
     accesorioRiderEditSaving,
     closeAccesorioRiderEditModal,
+    productoDeleteModal,
+    productoDeleteSaving,
+    closeProductoDeleteModal,
     adminUserEditModal,
     adminUserDeleteModal,
     adminUserModalSaving,

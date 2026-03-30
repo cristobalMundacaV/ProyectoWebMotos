@@ -11,6 +11,8 @@ export default function useCalendarioPanelModel(calendar) {
         summary: calendar.monthSummary,
         prev: calendar.goToPrevMonth,
         next: calendar.goToNextMonth,
+        canPrev: calendar.canGoPrevMonth,
+        canNext: calendar.canGoNextMonth,
       },
       day: {
         selectedDate: calendar.selectedCalendarDate,
@@ -44,4 +46,3 @@ export default function useCalendarioPanelModel(calendar) {
     [calendar]
   );
 }
-

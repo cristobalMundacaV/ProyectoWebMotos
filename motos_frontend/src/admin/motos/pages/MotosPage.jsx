@@ -1,6 +1,8 @@
 import { useEffect, useMemo, useState } from "react";
 import AdminPagination, { paginateItems } from "../../shared/components/AdminPagination";
 import AdminYearDropdown from "../../shared/components/AdminYearDropdown";
+import AdminDeleteConfirmModal from "../../shared/components/AdminDeleteConfirmModal";
+import { MOTO_YEAR_RANGE } from "../constants/motoYearRange";
 
 export default function MotosPage({
   activeSection,
@@ -35,6 +37,10 @@ export default function MotosPage({
   onMotoSubmit,
   onMotoEdit,
   onMotoDelete,
+  motoDeleteModal,
+  motoDeleteSaving,
+  onCloseMotoDeleteModal,
+  onConfirmMotoDelete,
   categoriasMoto,
   categoriaMotoForm,
   categoriaMotoSaving,
@@ -47,8 +53,6 @@ export default function MotosPage({
   const MODELOS_PAGE_SIZE = 6;
   const RECENT_MOTOS_PAGE_SIZE = 7;
   const currentYear = new Date().getFullYear();
-  // Limitamos el selector a los ultimos anos para evitar un desplegable excesivamente largo.
-  const MOTO_YEAR_RANGE = 18;
   const MIN_MOTO_YEAR = currentYear - MOTO_YEAR_RANGE;
   const yearLabel = `A${String.fromCharCode(241)}o *`;
   const yearPlaceholder = `Selecciona un A${String.fromCharCode(241)}o`;
@@ -374,8 +378,9 @@ export default function MotosPage({
     const modelosFiltrados = motoMeta.modelos.filter((modelo) => String(modelo.marca) === String(motoForm.marca));
 
     return (
-      <section className="admin-content-grid lower">
-        <article className="admin-panel-card">
+      <>
+        <section className="admin-content-grid lower">
+          <article className="admin-panel-card">
           <div className="admin-card-header">
             <h2>Agregar moto</h2>
             <span>Completa todos los atributos</span>
@@ -576,49 +581,61 @@ export default function MotosPage({
               </button>
             </div>
           </form>
-        </article>
+          </article>
 
-        <article className="admin-panel-card">
-          <div className="admin-card-header">
-            <h2>Motos registradas</h2>
-            <span>{dashboard.motos.length} registradas</span>
-          </div>
-          <div className="admin-table">
-            {paginatedMotos.items.map((moto) => (
-              <div key={moto.id} className="admin-table-row admin-moto-table-row admin-moto-table-row-actions admin-recent-moto-row">
-                <div className="admin-moto-table-cell admin-recent-moto-main">
-                  <span className="admin-row-label">Nombre Modelo</span>
-                  <strong>{moto.modelo}</strong>
-                  <span>{moto.marca_nombre || "Sin marca"}</span>
+          <article className="admin-panel-card">
+            <div className="admin-card-header">
+              <h2>Motos registradas</h2>
+              <span>{dashboard.motos.length} registradas</span>
+            </div>
+            <div className="admin-table">
+              {paginatedMotos.items.map((moto) => (
+                <div key={moto.id} className="admin-table-row admin-moto-table-row admin-moto-table-row-actions admin-recent-moto-row">
+                  <div className="admin-moto-table-cell admin-recent-moto-main">
+                    <span className="admin-row-label">Nombre Modelo</span>
+                    <strong>{moto.modelo}</strong>
+                    <span>{moto.marca_nombre || "Sin marca"}</span>
+                  </div>
+                  <div className="admin-moto-table-cell admin-recent-moto-meta">
+                    <span className="admin-row-label">Tipo</span>
+                    <strong>{formatCategoryLabel(moto.categoria_nombre)}</strong>
+                    <span>{moto.anio} | Orden: {moto.orden_carrusel ?? 1}</span>
+                    <span>{moto.permite_variante_maletas ? "Variante: con/sin maletas" : "Variante: no aplica"}</span>
+                  </div>
+                  <div className="admin-row-actions admin-recent-moto-actions">
+                    <button type="button" className="admin-row-action-btn edit" title="Editar" onClick={() => onMotoEdit?.(moto)}>
+                      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                    </button>
+                    <button type="button" className="admin-row-action-btn delete" title="Eliminar" onClick={() => onMotoDelete?.(moto)}>
+                      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+                    </button>
+                  </div>
                 </div>
-                <div className="admin-moto-table-cell admin-recent-moto-meta">
-                  <span className="admin-row-label">Tipo</span>
-                  <strong>{formatCategoryLabel(moto.categoria_nombre)}</strong>
-                  <span>{moto.anio} | Orden: {moto.orden_carrusel ?? 1}</span>
-                  <span>{moto.permite_variante_maletas ? "Variante: con/sin maletas" : "Variante: no aplica"}</span>
-                </div>
-                <div className="admin-row-actions admin-recent-moto-actions">
-                  <button type="button" className="admin-row-action-btn edit" title="Editar" onClick={() => onMotoEdit?.(moto)}>
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
-                  </button>
-                  <button type="button" className="admin-row-action-btn delete" title="Eliminar" onClick={() => onMotoDelete?.(moto)}>
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
-                  </button>
-                </div>
-              </div>
-            ))}
-            {!loading && dashboard.motos.length === 0 && <p className="admin-empty">No hay motos cargadas.</p>}
-          </div>
-          <AdminPagination
-            pagination={paginatedMotos}
-            onPageChange={(page) => setTablePages((prev) => ({ ...prev, motos: page }))}
-          />
-        </article>
-      </section>
+              ))}
+              {!loading && dashboard.motos.length === 0 && <p className="admin-empty">No hay motos cargadas.</p>}
+            </div>
+            <AdminPagination
+              pagination={paginatedMotos}
+              onPageChange={(page) => setTablePages((prev) => ({ ...prev, motos: page }))}
+            />
+          </article>
+        </section>
+
+        <AdminDeleteConfirmModal
+          isOpen={Boolean(motoDeleteModal)}
+          isSaving={motoDeleteSaving}
+          title="Confirmar eliminacion"
+          message={`Estas seguro que quieres eliminar la moto ${motoDeleteModal?.modelo || ""}?`}
+          confirmLabel="Eliminar"
+          onClose={onCloseMotoDeleteModal}
+          onConfirm={onConfirmMotoDelete}
+        />
+      </>
     );
   }
 
   return null;
 }
+
 
 

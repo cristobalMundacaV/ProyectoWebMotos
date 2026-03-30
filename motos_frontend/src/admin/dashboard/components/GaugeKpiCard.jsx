@@ -11,9 +11,11 @@ export default function GaugeKpiCard({
   supportText = "",
   loading = false,
 }) {
-  const safeValue = Math.max(0, Math.min(100, Number(value || 0)));
+  const numericValue = Number(value || 0);
+  const safeValue = Math.max(0, Math.min(100, numericValue));
   const gaugeColor = getGaugeColor(safeValue);
   const degrees = (safeValue / 100) * 180 - 90;
+  const isOverCapacity = numericValue > 100;
 
   return (
     <article className="admin-analytics-kpi-card admin-analytics-gauge-card">
@@ -26,7 +28,7 @@ export default function GaugeKpiCard({
             <div className="admin-analytics-gauge-track" />
             <div className="admin-analytics-gauge-fill" style={{ transform: `rotate(${degrees}deg)` }} />
             <div className="admin-analytics-gauge-center">
-              <strong>{safeValue.toFixed(2)}%</strong>
+              <strong>{numericValue.toFixed(2)}%</strong>
             </div>
           </div>
         </div>
@@ -34,6 +36,7 @@ export default function GaugeKpiCard({
       <div className="admin-analytics-kpi-foot">
         {subtitle ? <span className="admin-analytics-kpi-subtitle">{subtitle}</span> : null}
         {supportText ? <span className="admin-analytics-kpi-support">{supportText}</span> : null}
+        {isOverCapacity ? <span className="admin-analytics-kpi-support">Sobrecapacidad detectada</span> : null}
       </div>
     </article>
   );

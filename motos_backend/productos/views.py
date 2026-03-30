@@ -187,10 +187,10 @@ def admin_accesorios_motos(request):
 		productos = (
 			Producto.objects.filter(subcategoria__categoria__slug__in=ACCESORIOS_CATEGORY_SLUGS)
 			.select_related("subcategoria", "subcategoria__categoria", "marca")
-			.prefetch_related("imagenes")
+			.prefetch_related("imagenes", "compatibilidades")
 			.order_by("-fecha_creacion")
 		)
-		serializer = ProductoSerializer(productos, many=True)
+		serializer = ProductoSerializer(productos, many=True, context={"request": request})
 		return Response(serializer.data)
 
 	payload = request.data.copy()
@@ -212,7 +212,7 @@ def admin_accesorios_motos(request):
 			status=status.HTTP_400_BAD_REQUEST,
 		)
 
-	response_serializer = ProductoSerializer(producto)
+	response_serializer = ProductoSerializer(producto, context={"request": request})
 	return Response(response_serializer.data, status=status.HTTP_201_CREATED)
 
 
@@ -253,10 +253,10 @@ def admin_accesorios_rider(request):
 		productos = (
 			Producto.objects.exclude(subcategoria__categoria__slug__in=ACCESORIOS_CATEGORY_SLUGS)
 			.select_related("subcategoria", "subcategoria__categoria", "marca")
-			.prefetch_related("imagenes")
+			.prefetch_related("imagenes", "compatibilidades")
 			.order_by("-es_destacado", "orden_carrusel", "id")
 		)
-		serializer = ProductoSerializer(productos, many=True)
+		serializer = ProductoSerializer(productos, many=True, context={"request": request})
 		return Response(serializer.data)
 
 	serializer = ProductoAccesorioRiderAdminSerializer(data=request.data)
@@ -274,7 +274,7 @@ def admin_accesorios_rider(request):
 			status=status.HTTP_400_BAD_REQUEST,
 		)
 
-	response_serializer = ProductoSerializer(producto)
+	response_serializer = ProductoSerializer(producto, context={"request": request})
 	return Response(response_serializer.data, status=status.HTTP_201_CREATED)
 
 
@@ -331,6 +331,6 @@ def admin_producto_detalle(request, producto_id):
 			status=status.HTTP_400_BAD_REQUEST,
 		)
 
-	response_serializer = ProductoSerializer(producto)
+	response_serializer = ProductoSerializer(producto, context={"request": request})
 	return Response(response_serializer.data)
 

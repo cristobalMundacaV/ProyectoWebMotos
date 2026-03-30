@@ -55,8 +55,8 @@ export default function useAdminModalProps({ fallbackImage, domains }) {
         onSubmitEntityEdit: entityModals.submitEntityEdit,
         onSubmitEntityDelete: entityModals.submitEntityDelete,
         getEntityKindLabel: entityModals.getEntityKindLabel,
+        motoMeta: entityModals.motoMeta,
       },
     };
   }, [domains, fallbackImage]);
 }
-

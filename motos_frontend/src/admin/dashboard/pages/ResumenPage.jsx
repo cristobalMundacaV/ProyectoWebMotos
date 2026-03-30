@@ -12,7 +12,7 @@ const PERIOD_OPTIONS = [
   { value: "last_3_months", label: "Ultimos 3 meses" },
   { value: "last_6_months", label: "Ultimos 6 meses" },
   { value: "last_9_months", label: "Ultimos 9 meses" },
-  { value: "last_year", label: "Ultimo año" },
+  { value: "last_year", label: "Ultimo ano" },
   { value: "all", label: "Todos" },
 ];
 
@@ -106,6 +106,19 @@ function formatServiceLabel(value) {
   return clean.charAt(0).toUpperCase() + clean.slice(1);
 }
 
+function qualityFlagLabel(flag) {
+  const map = {
+    low_sample: "Muestra baja en el periodo",
+    fallback_rolling_30d: "Fallback aplicado a ventana movil 30 dias",
+    fallback_rolling_90d: "Fallback aplicado a ventana movil 90 dias",
+    fallback_rolling_180d: "Fallback aplicado a ventana movil 180 dias",
+    no_percentage_due_low_sample: "Variacion porcentual omitida por muestra baja",
+    insufficient_sample_for_stable_rate: "Tasa con muestra insuficiente para estabilidad",
+    no_capacity_configured: "No hay capacidad configurada en horarios",
+  };
+  return map[flag] || null;
+}
+
 export default function ResumenPage() {
   const [period, setPeriod] = useState("this_month");
   const [loading, setLoading] = useState(true);
@@ -125,7 +138,7 @@ export default function ResumenPage() {
           setError("");
         }
         setSummary(data);
-      } catch (_error) {
+      } catch {
         if (!active) return;
         setError("No se pudieron cargar las metricas del dashboard.");
         setSummary(null);
@@ -143,6 +156,7 @@ export default function ResumenPage() {
   const kpis = summary?.kpis || {};
   const range = summary?.range || {};
   const periodSubtitle = getPeriodSubtitle(period, range);
+  const generatedAt = summary?.generated_at || null;
 
   const topMotos = useMemo(
     () => (summary?.top_modelos_moto || []).map((item) => ({ label: item.modelo, value: item.total })),
@@ -211,6 +225,21 @@ export default function ResumenPage() {
     [summary?.reservas_mensuales]
   );
 
+  const qualityMessages = useMemo(() => {
+    const contracts = summary?.kpi_contracts || {};
+    const messages = new Set();
+
+    Object.values(contracts).forEach((contract) => {
+      const flags = Array.isArray(contract?.quality_flags) ? contract.quality_flags : [];
+      flags.forEach((flag) => {
+        const text = qualityFlagLabel(flag);
+        if (text) messages.add(text);
+      });
+    });
+
+    return Array.from(messages);
+  }, [summary?.kpi_contracts]);
+
   return (
     <div className="admin-dashboard-stack admin-analytics-dashboard">
       <section className="admin-hero-card">
@@ -232,6 +261,16 @@ export default function ResumenPage() {
             </select>
           </label>
         </div>
+        {generatedAt ? (
+          <p className="admin-analytics-card-subtitle">
+            Datos actualizados: {new Date(generatedAt).toLocaleString("es-CL")}
+          </p>
+        ) : null}
+        {qualityMessages.length > 0 ? (
+          <p className="admin-analytics-card-subtitle">
+            Calidad de datos: {qualityMessages.join(" | ")}
+          </p>
+        ) : null}
       </section>
 
       {error ? <section className="admin-panel-card"><p className="admin-empty">{error}</p></section> : null}

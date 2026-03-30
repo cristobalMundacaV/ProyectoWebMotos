@@ -45,6 +45,13 @@ class ProductoSerializer(serializers.ModelSerializer):
     categoria_slug = serializers.CharField(source="subcategoria.categoria.slug", read_only=True)
     subcategoria_nombre = serializers.CharField(source="subcategoria.nombre", read_only=True)
     subcategoria_slug = serializers.CharField(source="subcategoria.slug", read_only=True)
+    compatibilidad_motos = serializers.SerializerMethodField()
+
+    def get_compatibilidad_motos(self, obj):
+        request = self.context.get("request")
+        if not request or not getattr(request.user, "is_authenticated", False):
+            return []
+        return list(obj.compatibilidades.values_list("moto_id", flat=True))
 
     class Meta:
         model = Producto
@@ -54,13 +61,13 @@ class ProductoSerializer(serializers.ModelSerializer):
             "slug",
             "descripcion",
             "precio",
-            "stock",
             "imagen_principal",
             "imagenes",
             "es_destacado",
             "orden_carrusel",
             "activo",
             "requiere_compatibilidad",
+            "compatibilidad_motos",
             "fecha_creacion",
             "marca_nombre",
             "categoria_nombre",
@@ -97,7 +104,6 @@ class ProductoAccesorioAdminSerializer(serializers.ModelSerializer):
             "slug",
             "descripcion",
             "precio",
-            "stock",
             "imagen_principal",
             "es_destacado",
             "orden_carrusel",
@@ -177,7 +183,6 @@ class ProductoAccesorioRiderAdminSerializer(serializers.ModelSerializer):
             "slug",
             "descripcion",
             "precio",
-            "stock",
             "imagen_principal",
             "es_destacado",
             "orden_carrusel",
@@ -233,7 +238,6 @@ class ProductoAdminUpdateSerializer(serializers.ModelSerializer):
             "nombre",
             "descripcion",
             "precio",
-            "stock",
             "imagen_principal",
             "es_destacado",
             "orden_carrusel",

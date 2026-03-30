@@ -27,10 +27,27 @@ export async function agendarMantencion(payload) {
   return response.data;
 }
 
-export async function getDisponibilidadMantenciones(days = 21) {
+export async function getDisponibilidadMantenciones(options = 21) {
+  let query = "days=21";
+  if (typeof options === "number") {
+    query = `days=${options}`;
+  } else if (options && typeof options === "object") {
+    const from = String(options.from || "").trim();
+    const to = String(options.to || "").trim();
+    const days = Number.parseInt(String(options.days || ""), 10);
+    if (from || to) {
+      const params = [];
+      if (from) params.push(`from=${encodeURIComponent(from)}`);
+      if (to) params.push(`to=${encodeURIComponent(to)}`);
+      query = params.join("&");
+    } else if (Number.isFinite(days) && days > 0) {
+      query = `days=${days}`;
+    }
+  }
+
   const response = await getWithFallback(
-    `/mantenciones/disponibilidad/?days=${days}`,
-    `/mantenciones/disponibilidad/?days=${days}`
+    `/mantenciones/disponibilidad/?${query}`,
+    `/mantenciones/disponibilidad/?${query}`
   );
   return response.data;
 }

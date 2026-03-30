@@ -6,7 +6,7 @@ export function buildAccesorioMotoPayload(form) {
   payload.append("slug", form.slug);
   payload.append("descripcion", form.descripcion);
   payload.append("precio", form.precio);
-  payload.append("stock", form.stock);
+  payload.append("orden_carrusel", form.orden_carrusel || "1");
   payload.append("es_destacado", String(form.es_destacado));
   payload.append("activo", String(form.activo));
   payload.append("requiere_compatibilidad", String(form.requiere_compatibilidad));
@@ -34,7 +34,6 @@ export function buildAccesorioRiderPayload(form) {
   payload.append("slug", form.slug);
   payload.append("descripcion", form.descripcion);
   payload.append("precio", form.precio);
-  payload.append("stock", form.stock);
   payload.append("orden_carrusel", form.orden_carrusel || "1");
   payload.append("es_destacado", String(form.es_destacado));
   payload.append("activo", String(form.activo));
@@ -47,4 +46,3 @@ export function buildAccesorioRiderPayload(form) {
   galleryFiles.forEach((file) => payload.append("imagenes", file));
   return payload;
 }
-

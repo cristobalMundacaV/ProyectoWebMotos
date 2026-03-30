@@ -25,6 +25,7 @@ const WEEK_DAYS = ["Lun", "Mar", "Mie", "Jue", "Vie", "Sab", "Dom"];
 const CURRENT_YEAR = new Date().getFullYear();
 const MIN_MOTO_YEAR = 1980;
 const YEAR_OPTIONS = Array.from({ length: CURRENT_YEAR - MIN_MOTO_YEAR + 1 }, (_, index) => String(CURRENT_YEAR - index));
+const DISPONIBILIDAD_DAYS_AHEAD = 31;
 
 function getInitialForm() {
   const user = getStoredUser();
@@ -185,7 +186,7 @@ export default function Mantenimiento() {
     async function loadSlots() {
       setLoadingSlots(true);
       try {
-        const data = await getDisponibilidadMantenciones(30);
+        const data = await getDisponibilidadMantenciones(DISPONIBILIDAD_DAYS_AHEAD);
         if (!mounted) return;
         const slots = Array.isArray(data?.slots) ? data.slots : [];
         setSlotsByDate(slots);
@@ -212,7 +213,7 @@ export default function Mantenimiento() {
   useEffect(() => {
     const intervalId = window.setInterval(async () => {
       try {
-        const data = await getDisponibilidadMantenciones(30);
+        const data = await getDisponibilidadMantenciones(DISPONIBILIDAD_DAYS_AHEAD);
         const slots = Array.isArray(data?.slots) ? data.slots : [];
         setSlotsByDate(slots);
         setForm((prev) => {
@@ -335,7 +336,7 @@ export default function Mantenimiento() {
     setToast({ type: "", message: "" });
 
     try {
-      const disponibilidadActual = await getDisponibilidadMantenciones(30);
+      const disponibilidadActual = await getDisponibilidadMantenciones(DISPONIBILIDAD_DAYS_AHEAD);
       const slotsActualizados = Array.isArray(disponibilidadActual?.slots) ? disponibilidadActual.slots : [];
       setSlotsByDate(slotsActualizados);
 
@@ -383,7 +384,7 @@ export default function Mantenimiento() {
         setToast({ type: "error", message: apiErrors });
       } else if (apiErrors && typeof apiErrors === "object") {
         if (apiErrors.hora_agendada) {
-          const disponibilidadActual = await getDisponibilidadMantenciones(30).catch(() => null);
+          const disponibilidadActual = await getDisponibilidadMantenciones(DISPONIBILIDAD_DAYS_AHEAD).catch(() => null);
           const slotsActualizados = Array.isArray(disponibilidadActual?.slots) ? disponibilidadActual.slots : null;
           if (slotsActualizados) {
             setSlotsByDate(slotsActualizados);

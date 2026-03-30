@@ -204,12 +204,15 @@ export default function FichasTecnicasPage({ activeSection, motos = [] }) {
     setToasts((prev) => prev.filter((toast) => toast.id !== id));
   }
 
-  function showToast(message, variant = "success") {
+  function showToast(message, variant = "success", { autoDismiss = true, timeoutMs = 3500 } = {}) {
     const id = `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
     setToasts((prev) => [...prev, { id, message, variant }]);
-    window.setTimeout(() => {
-      setToasts((prev) => prev.filter((toast) => toast.id !== id));
-    }, 3500);
+    if (autoDismiss) {
+      window.setTimeout(() => {
+        setToasts((prev) => prev.filter((toast) => toast.id !== id));
+      }, timeoutMs);
+    }
+    return id;
   }
 
   const isFichaSection =
@@ -467,6 +470,7 @@ export default function FichasTecnicasPage({ activeSection, motos = [] }) {
   async function handleSave() {
     if (!hasChanges || saving) return;
     setSaving(true);
+    const loadingToastId = showToast("Guardando cambios", "loading", { autoDismiss: false });
 
     const changed = normalizeArray(valores).filter(
       (item) => normalizeText(item.valor) !== normalizeText(draftById[item.id])
@@ -517,6 +521,7 @@ export default function FichasTecnicasPage({ activeSection, motos = [] }) {
         );
       }
     } finally {
+      dismissToast(loadingToastId);
       setSaving(false);
     }
   }

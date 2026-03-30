@@ -69,13 +69,12 @@ export default function MotoEditModal({
           </label>
 
           <label className="admin-form-span-2">
-            Descripcion *
+            Descripcion (opcional)
             <textarea
               name="descripcion"
               value={motoEditModal.form.descripcion}
               onChange={onInputChange}
               rows={4}
-              required
             />
           </label>
 
@@ -112,44 +111,6 @@ export default function MotoEditModal({
             />
           </label>
 
-          <label className="admin-form-check admin-form-span-2">
-            <input
-              type="checkbox"
-              name="permite_variante_maletas"
-              checked={Boolean(motoEditModal.form.permite_variante_maletas)}
-              onChange={onInputChange}
-            />
-            Habilitar variante con maletas
-          </label>
-
-          {motoEditModal.form.permite_variante_maletas && (
-            <label>
-              Precio con maletas *
-              <input
-                name="precio_con_maletas"
-                inputMode="numeric"
-                value={formatPrecioDisplay(motoEditModal.form.precio_con_maletas)}
-                onChange={onPrecioConMaletasInputChange}
-                required={Boolean(motoEditModal.form.permite_variante_maletas)}
-                disabled={!motoEditModal.form.permite_variante_maletas}
-              />
-            </label>
-          )}
-
-          {motoEditModal.form.permite_variante_maletas && (
-            <label>
-              Precio lista con maletas *
-              <input
-                name="precio_lista_con_maletas"
-                inputMode="numeric"
-                value={formatPrecioDisplay(motoEditModal.form.precio_lista_con_maletas)}
-                onChange={onPrecioListaConMaletasInputChange}
-                required={Boolean(motoEditModal.form.permite_variante_maletas)}
-                disabled={!motoEditModal.form.permite_variante_maletas}
-              />
-            </label>
-          )}
-
           <label>
             {yearLabel}
             <AdminYearDropdown
@@ -175,38 +136,6 @@ export default function MotoEditModal({
               <span className="admin-selected-file-name">{motoEditModal.imageFileName}</span>
             )}
           </label>
-
-          {motoEditModal.form.es_destacada && (
-            <label>
-              Orden en carrusel *
-              <input
-                type="number"
-                name="orden_carrusel"
-                value={motoEditModal.form.orden_carrusel}
-                onChange={onInputChange}
-                min={1}
-                required={Boolean(motoEditModal.form.es_destacada)}
-              />
-            </label>
-          )}
-
-          {motoEditModal.form.permite_variante_maletas && (
-            <label className="admin-form-span-2">
-              Imagen con maletas *
-              <input
-                key={`moto-edit-image-maletas-${motoEditModal.imageInputKey}`}
-                type="file"
-                name="imagen_con_maletas"
-                accept="image/*"
-                onChange={onInputChange}
-                required={Boolean(motoEditModal.form.permite_variante_maletas)}
-                disabled={!motoEditModal.form.permite_variante_maletas}
-              />
-              {motoEditModal.imageMaletasFileName && (
-                <span className="admin-selected-file-name">{motoEditModal.imageMaletasFileName}</span>
-              )}
-            </label>
-          )}
 
           {(motoEditModal.imagePreviewUrl || motoEditModal.imageMaletasPreviewUrl) && (
             <div className="admin-form-span-2 admin-moto-edit-preview-grid">
@@ -239,37 +168,105 @@ export default function MotoEditModal({
             </div>
           )}
 
+          <div className="admin-form-span-2 admin-moto-checks-row">
+            <label className="admin-form-check admin-form-check-compact">
+              <input
+                type="checkbox"
+                name="permite_variante_maletas"
+                checked={Boolean(motoEditModal.form.permite_variante_maletas)}
+                onChange={onInputChange}
+              />
+              Habilitar variante con maletas
+            </label>
+            <label className="admin-form-check admin-form-check-compact">
+              <input
+                type="checkbox"
+                name="es_destacada"
+                checked={motoEditModal.form.es_destacada}
+                onChange={onInputChange}
+              />
+              Destacada
+            </label>
+            <label className="admin-form-check admin-form-check-compact">
+              <input
+                type="checkbox"
+                name="activa"
+                checked={motoEditModal.form.activa}
+                onChange={onInputChange}
+              />
+              Activa
+            </label>
+          </div>
+
+          {motoEditModal.form.es_destacada && (
+            <label className="admin-form-span-2">
+              Orden en carrusel *
+              <input
+                type="number"
+                name="orden_carrusel"
+                value={motoEditModal.form.orden_carrusel}
+                onChange={onInputChange}
+                min={1}
+                required={Boolean(motoEditModal.form.es_destacada)}
+              />
+            </label>
+          )}
+
+          {motoEditModal.form.permite_variante_maletas && (
+            <label>
+              Precio con maletas *
+              <input
+                name="precio_con_maletas"
+                inputMode="numeric"
+                value={formatPrecioDisplay(motoEditModal.form.precio_con_maletas)}
+                onChange={onPrecioConMaletasInputChange}
+                required={Boolean(motoEditModal.form.permite_variante_maletas)}
+                disabled={!motoEditModal.form.permite_variante_maletas}
+              />
+            </label>
+          )}
+
+          {motoEditModal.form.permite_variante_maletas && (
+            <label>
+              Precio lista con maletas *
+              <input
+                name="precio_lista_con_maletas"
+                inputMode="numeric"
+                value={formatPrecioDisplay(motoEditModal.form.precio_lista_con_maletas)}
+                onChange={onPrecioListaConMaletasInputChange}
+                required={Boolean(motoEditModal.form.permite_variante_maletas)}
+                disabled={!motoEditModal.form.permite_variante_maletas}
+              />
+            </label>
+          )}
+
+          {motoEditModal.form.permite_variante_maletas && (
+            <label className="admin-form-span-2">
+              Imagen con maletas *
+              <input
+                key={`moto-edit-image-maletas-${motoEditModal.imageInputKey}`}
+                type="file"
+                name="imagen_con_maletas"
+                accept="image/*"
+                onChange={onInputChange}
+                required={Boolean(motoEditModal.form.permite_variante_maletas)}
+                disabled={!motoEditModal.form.permite_variante_maletas}
+              />
+              {motoEditModal.imageMaletasFileName && (
+                <span className="admin-selected-file-name">{motoEditModal.imageMaletasFileName}</span>
+              )}
+            </label>
+          )}
+
           {motoEditError && <p className="admin-entity-modal-error">{motoEditError}</p>}
 
-          <div className="admin-form-footer">
-            <div className="admin-form-footer-checks">
-              <label className="admin-form-check admin-form-check-compact">
-                <input
-                  type="checkbox"
-                  name="es_destacada"
-                  checked={motoEditModal.form.es_destacada}
-                  onChange={onInputChange}
-                />
-                Destacada
-              </label>
-              <label className="admin-form-check admin-form-check-compact">
-                <input
-                  type="checkbox"
-                  name="activa"
-                  checked={motoEditModal.form.activa}
-                  onChange={onInputChange}
-                />
-                Activa
-              </label>
-            </div>
-            <div className="admin-moto-edit-modal-actions">
-              <button type="button" className="btn-back" onClick={onClose} disabled={motoEditSaving}>
-                Cancelar
-              </button>
-              <button type="submit" className="btn-save" disabled={motoEditSaving}>
-                Guardar cambios
-              </button>
-            </div>
+          <div className="admin-form-span-2 admin-moto-edit-modal-actions">
+            <button type="button" className="btn-back" onClick={onClose} disabled={motoEditSaving}>
+              Cancelar
+            </button>
+            <button type="submit" className="btn-save" disabled={motoEditSaving}>
+              Guardar cambios
+            </button>
           </div>
         </form>
       </section>

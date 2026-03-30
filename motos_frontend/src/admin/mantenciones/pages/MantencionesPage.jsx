@@ -22,12 +22,14 @@ import CalendarioPanel from "../components/CalendarioPanel";
 export default function MantencionesPage({
   activeSection,
   loading,
+  mantencionesLoadError = "",
   mantenciones,
   savingById,
   onAcceptSolicitud,
   onUpdateMantencion,
   horarios = [],
   horariosLoading = false,
+  horariosLoadError = "",
   horarioForm,
   horarioSaving = false,
   onHorarioInputChange,
@@ -35,6 +37,14 @@ export default function MantencionesPage({
   onHorarioUpdate,
   onHorarioDelete,
 }) {
+  const buildClienteKey = (value) =>
+    String(value || "")
+      .trim()
+      .toLowerCase()
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .replace(/\s+/g, " ");
+
   const fichasHistoricas = useMemo(
     () =>
       mantenciones
@@ -52,10 +62,12 @@ export default function MantencionesPage({
     const uniques = new Map();
     fichasHistoricas.forEach((item) => {
       const moto = item?.moto_cliente_detalle || {};
-      const cliente = (moto.cliente_nombre || "").trim() || "Cliente sin nombre";
-      if (!uniques.has(cliente)) uniques.set(cliente, cliente);
+      const label = (moto.cliente_nombre || "").trim() || "Cliente sin nombre";
+      const value = buildClienteKey(label);
+      if (!value) return;
+      if (!uniques.has(value)) uniques.set(value, { value, label });
     });
-    return Array.from(uniques.values()).sort((a, b) => a.localeCompare(b, "es"));
+    return Array.from(uniques.values()).sort((a, b) => a.label.localeCompare(b.label, "es"));
   }, [fichasHistoricas]);
 
   const {
@@ -119,6 +131,7 @@ export default function MantencionesPage({
     onAcceptSolicitud,
     onUpdateMantencion,
   });
+  const clearAllMantencionModals = transitions.clearAllModalState;
 
   const calendarioPanelModel = useCalendarioPanelModel({
     calendarLoading,
@@ -159,6 +172,10 @@ export default function MantencionesPage({
       historicas: false,
     });
   }, [activeSection, setMobilePickerOpen]);
+
+  useEffect(() => {
+    clearAllMantencionModals();
+  }, [activeSection, clearAllMantencionModals]);
 
   useEffect(() => {
     transitions.resetEditableRecords();
@@ -230,15 +247,15 @@ export default function MantencionesPage({
   }, [tallerEstadoFilter]);
 
   const selectedHistoricoClienteEffective = useMemo(
-    () => (historicoClientes.includes(selectedHistoricoCliente) ? selectedHistoricoCliente : ""),
+    () => (historicoClientes.some((item) => item.value === selectedHistoricoCliente) ? selectedHistoricoCliente : ""),
     [historicoClientes, selectedHistoricoCliente]
   );
 
   const fichasHistoricasByCliente = useMemo(() => {
     if (!selectedHistoricoClienteEffective) return [];
     return fichasHistoricas.filter((item) => {
-      const cliente = (item?.moto_cliente_detalle?.cliente_nombre || "").trim() || "Cliente sin nombre";
-      return cliente === selectedHistoricoClienteEffective;
+      const clienteLabel = (item?.moto_cliente_detalle?.cliente_nombre || "").trim() || "Cliente sin nombre";
+      return buildClienteKey(clienteLabel) === selectedHistoricoClienteEffective;
     });
   }, [fichasHistoricas, selectedHistoricoClienteEffective]);
 
@@ -260,6 +277,11 @@ export default function MantencionesPage({
   if (activeSection === "mantenciones_solicitudes") {
     return (
       <>
+        {mantencionesLoadError ? (
+          <section className="admin-panel-card">
+            <p className="admin-empty">{mantencionesLoadError}</p>
+          </section>
+        ) : null}
         <SolicitudesPanel
           loading={loading}
           solicitudes={solicitudes}
@@ -282,6 +304,11 @@ export default function MantencionesPage({
   if (activeSection === "mantenciones_fichas" || activeSection === "taller_en_taller") {
     return (
       <>
+        {mantencionesLoadError ? (
+          <section className="admin-panel-card">
+            <p className="admin-empty">{mantencionesLoadError}</p>
+          </section>
+        ) : null}
         <TallerPanel
           loading={loading}
           fichasMantencion={fichasMantencion}
@@ -303,20 +330,27 @@ export default function MantencionesPage({
 
   if (activeSection === "mantenciones_historicas") {
     return (
-      <HistoricasPanel
-        loading={loading}
-        historicoClientes={historicoClientes}
-        selectedHistoricoClienteEffective={selectedHistoricoClienteEffective}
-        onHistoricoClienteChange={handleHistoricoClienteChange}
-        fichasHistoricasByCliente={fichasHistoricasByCliente}
-        selectedHistorica={selectedHistorica}
-        onSelectHistorica={setSelectedHistoricaId}
-        mobilePickerOpen={mobilePickerOpen}
-        onToggleMobilePicker={handleToggleMobilePicker}
-        onCloseMobilePicker={handleCloseMobilePicker}
-        transitions={transitions}
-        savingById={savingById}
-      />
+      <>
+        {mantencionesLoadError ? (
+          <section className="admin-panel-card">
+            <p className="admin-empty">{mantencionesLoadError}</p>
+          </section>
+        ) : null}
+        <HistoricasPanel
+          loading={loading}
+          historicoClientes={historicoClientes}
+          selectedHistoricoClienteEffective={selectedHistoricoClienteEffective}
+          onHistoricoClienteChange={handleHistoricoClienteChange}
+          fichasHistoricasByCliente={fichasHistoricasByCliente}
+          selectedHistorica={selectedHistorica}
+          onSelectHistorica={setSelectedHistoricaId}
+          mobilePickerOpen={mobilePickerOpen}
+          onToggleMobilePicker={handleToggleMobilePicker}
+          onCloseMobilePicker={handleCloseMobilePicker}
+          transitions={transitions}
+          savingById={savingById}
+        />
+      </>
     );
   }
 
@@ -325,6 +359,7 @@ export default function MantencionesPage({
       <HorariosPanel
         horarios={horarios}
         horariosLoading={horariosLoading}
+        horariosLoadError={horariosLoadError}
         showHorarioForm={showHorarioForm}
         onToggleHorarioForm={() => setShowHorarioForm((prev) => !prev)}
         horarioForm={horarioForm}

@@ -2,8 +2,11 @@ export default function ConfiguracionPage({
   activeSection,
   contactoForm,
   contactoSaving,
+  contactoLoading,
+  contactoLoadError,
   onContactoInputChange,
   onContactoSubmit,
+  onContactoRetry,
 }) {
   if (activeSection !== "contacto") {
     return null;
@@ -18,6 +21,20 @@ export default function ConfiguracionPage({
         </div>
 
         <form className="admin-moto-form" onSubmit={onContactoSubmit} noValidate>
+          {contactoLoadError ? (
+            <>
+              <p className="admin-empty">{contactoLoadError}</p>
+              <button
+                type="button"
+                className="admin-page-btn"
+                onClick={onContactoRetry}
+                disabled={contactoLoading || contactoSaving}
+              >
+                {contactoLoading ? "Reintentando..." : "Reintentar"}
+              </button>
+            </>
+          ) : null}
+
           <label>
             Instagram *
             <input
@@ -26,6 +43,7 @@ export default function ConfiguracionPage({
               onChange={onContactoInputChange}
               maxLength={120}
               required
+              disabled={Boolean(contactoLoadError) || contactoLoading}
             />
           </label>
 
@@ -37,6 +55,7 @@ export default function ConfiguracionPage({
               onChange={onContactoInputChange}
               maxLength={60}
               required
+              disabled={Boolean(contactoLoadError) || contactoLoading}
             />
           </label>
 
@@ -48,10 +67,11 @@ export default function ConfiguracionPage({
               onChange={onContactoInputChange}
               maxLength={180}
               required
+              disabled={Boolean(contactoLoadError) || contactoLoading}
             />
           </label>
 
-          <button type="submit" className="admin-primary-action" disabled={contactoSaving}>
+          <button type="submit" className="admin-primary-action" disabled={contactoSaving || contactoLoading || Boolean(contactoLoadError)}>
             {"Guardar contacto"}
           </button>
         </form>

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+﻿import { useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 
 function roleLabel(value) {
@@ -29,6 +29,10 @@ export default function AdminTopbar({
     telefono: "",
   });
   const menuRef = useRef(null);
+  const goToSiteHome = (event) => {
+    if (event) event.preventDefault();
+    window.location.assign("/");
+  };
 
   const displayName = useMemo(() => {
     const full = `${user?.first_name || ""} ${user?.last_name || ""}`.trim();
@@ -95,7 +99,7 @@ export default function AdminTopbar({
 
   return (
     <header className="admin-topbar">
-      <Link to="/" className="admin-brand">
+      <Link to="/" className="admin-brand" onClick={goToSiteHome}>
         <img src="/images/logo.svg" alt="Delanoe Motos" className="admin-brand-logo" />
         <div>
           <p>Panel de administracion</p>
@@ -104,7 +108,7 @@ export default function AdminTopbar({
       </Link>
 
       <div className="admin-topbar-actions">
-        <Link to="/" className="admin-topbar-link admin-topbar-link-pill">
+        <Link to="/" className="admin-topbar-link admin-topbar-link-pill" onClick={goToSiteHome}>
           Ver sitio
         </Link>
 
@@ -127,7 +131,7 @@ export default function AdminTopbar({
             <div className="admin-user-dropdown">
               <div className="admin-user-dropdown-header">
                 <strong>{displayName}</strong>
-                <span>{roleLabel(user?.rol)}</span>
+                <span>{roleLabel(user?.rol || user?.role)}</span>
               </div>
 
               {!isEditing ? (
@@ -149,7 +153,7 @@ export default function AdminTopbar({
                       Editar perfil
                     </button>
                     <button type="button" className="admin-user-btn danger" onClick={onLogout}>
-                      Cerrar sesión
+                      Cerrar sesion
                     </button>
                   </div>
                 </div>
@@ -204,3 +208,4 @@ export default function AdminTopbar({
     </header>
   );
 }
+

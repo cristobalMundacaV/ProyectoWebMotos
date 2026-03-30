@@ -5,9 +5,13 @@ export default function useAdminBootstrap({
   bootstrapMotoData,
   bootstrapProductosData,
   bootstrapContacto,
+  pushToast,
   fetchUsersList,
   fetchMantencionesList,
   fetchHorariosMantencionList,
+  setAdminUsersLoadError,
+  setMantencionesLoadError,
+  setHorariosLoadError,
   setDashboard,
   setAdminUsers,
   setAdminUsersLoading,
@@ -52,18 +56,24 @@ export default function useAdminBootstrap({
           accesoriosRiderMetaData: data.accesoriosRiderMetaData,
         });
 
-        bootstrapContacto(data.contactoAdmin || {});
+        bootstrapContacto(data.contactoAdmin || {}, { loadError: data.contactoAdminLoadError });
+        if (data.contactoAdminLoadError) {
+          pushToast("No se pudieron cargar los datos actuales de contacto.", "error");
+        }
 
-        await fetchUsersList().catch(() => {
-          if (isMounted) setAdminUsers([]);
+        await fetchUsersList().catch((error) => {
+          if (!isMounted) return;
+          setAdminUsersLoadError(error?.message || "No se pudo cargar la lista de usuarios.");
         });
 
-        await fetchMantencionesList().catch(() => {
-          if (isMounted) setMantenciones([]);
+        await fetchMantencionesList().catch((error) => {
+          if (!isMounted) return;
+          setMantencionesLoadError(error?.message || "No se pudo cargar la lista de mantenciones.");
         });
 
-        await fetchHorariosMantencionList().catch(() => {
-          if (isMounted) setHorariosMantencion([]);
+        await fetchHorariosMantencionList().catch((error) => {
+          if (!isMounted) return;
+          setHorariosLoadError(error?.message || "No se pudo cargar la configuracion de horarios.");
         });
       } finally {
         if (isMounted) {
@@ -84,14 +94,18 @@ export default function useAdminBootstrap({
     bootstrapContacto,
     bootstrapMotoData,
     bootstrapProductosData,
+    pushToast,
     fetchHorariosMantencionList,
     fetchMantencionesList,
     fetchUsersList,
+    setAdminUsersLoadError,
     setAdminUsers,
     setAdminUsersLoading,
+    setHorariosLoadError,
     setDashboard,
     setHorariosMantencion,
     setHorariosMantencionLoading,
+    setMantencionesLoadError,
     setMantenciones,
     setMantencionesLoading,
   ]);

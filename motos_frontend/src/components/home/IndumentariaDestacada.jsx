@@ -13,6 +13,7 @@ export default function IndumentariaDestacada() {
   const [error, setError] = useState("");
   const [isAdmin, setIsAdmin] = useState(false);
   const [deletingId, setDeletingId] = useState(null);
+  const [feedback, setFeedback] = useState({ type: "", message: "" });
   const trackRef = useRef(null);
 
   useEffect(() => {
@@ -20,6 +21,12 @@ export default function IndumentariaDestacada() {
     const user = getStoredUser();
     setIsAdmin(Boolean(token && hasAdminAccess(user)));
   }, []);
+
+  useEffect(() => {
+    if (!feedback.message) return undefined;
+    const timeoutId = window.setTimeout(() => setFeedback({ type: "", message: "" }), 3500);
+    return () => window.clearTimeout(timeoutId);
+  }, [feedback.message]);
 
   useEffect(() => {
     let isMounted = true;
@@ -94,8 +101,9 @@ export default function IndumentariaDestacada() {
     try {
       await deleteProductoAdmin(producto.id);
       setProductos((prev) => (Array.isArray(prev) ? prev.filter((item) => item.id !== producto.id) : []));
+      setFeedback({ type: "success", message: "Producto eliminado correctamente." });
     } catch {
-      window.alert("No se pudo eliminar el producto.");
+      setFeedback({ type: "error", message: "No se pudo eliminar el producto." });
     } finally {
       setDeletingId(null);
     }
@@ -110,6 +118,7 @@ export default function IndumentariaDestacada() {
   return (
     <section className="destacadas destacadas-rider">
       <h2>Indumentaria Rider Destacada</h2>
+      {feedback.message ? <p className="home-carousel-empty">{feedback.message}</p> : null}
 
       {loading ? (
         null

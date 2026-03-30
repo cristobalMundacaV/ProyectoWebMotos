@@ -1,4 +1,4 @@
-from datetime import date, datetime
+from datetime import date, datetime, timedelta
 import logging
 
 from django.db import transaction
@@ -76,15 +76,64 @@ class AgendarMantencionAPIView(APIView):
 class MantencionDisponibilidadAPIView(APIView):
     authentication_classes = []
     permission_classes = [AllowAny]
+    MAX_DAYS_AHEAD = 31
 
     def get(self, request):
+        today = date.today()
+        max_end = today + timedelta(days=self.MAX_DAYS_AHEAD - 1)
+        raw_from = (request.query_params.get("from") or "").strip()
+        raw_to = (request.query_params.get("to") or "").strip()
+
+        if raw_from or raw_to:
+            try:
+                from_date = date.fromisoformat(raw_from) if raw_from else today
+                to_date = date.fromisoformat(raw_to) if raw_to else from_date
+            except ValueError:
+                return Response(
+                    {"detail": "Formato de fecha invalido. Usa YYYY-MM-DD en from/to."},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+
+            start_date = max(from_date, today)
+            end_date = min(to_date, max_end)
+            if start_date > end_date:
+                return Response(
+                    {
+                        "from": start_date.isoformat(),
+                        "to": end_date.isoformat(),
+                        "slots": [],
+                        "max_days_ahead": self.MAX_DAYS_AHEAD,
+                    },
+                    status=status.HTTP_200_OK,
+                )
+
+            return Response(
+                {
+                    "from": start_date.isoformat(),
+                    "to": end_date.isoformat(),
+                    "slots": get_disponibilidad(start_date=start_date, end_date=end_date),
+                    "max_days_ahead": self.MAX_DAYS_AHEAD,
+                },
+                status=status.HTTP_200_OK,
+            )
+
         raw_days = request.query_params.get("days")
         try:
-            days = int(raw_days) if raw_days is not None else 21
+            days = int(raw_days) if raw_days is not None else self.MAX_DAYS_AHEAD
         except (TypeError, ValueError):
-            days = 21
-        days = min(max(days, 1), 60)
-        return Response({"days": days, "slots": get_disponibilidad(days_ahead=days)}, status=status.HTTP_200_OK)
+            days = self.MAX_DAYS_AHEAD
+        days = min(max(days, 1), self.MAX_DAYS_AHEAD)
+        end_date = min(today + timedelta(days=days - 1), max_end)
+        return Response(
+            {
+                "days": days,
+                "from": today.isoformat(),
+                "to": end_date.isoformat(),
+                "slots": get_disponibilidad(days_ahead=days),
+                "max_days_ahead": self.MAX_DAYS_AHEAD,
+            },
+            status=status.HTTP_200_OK,
+        )
 
 
 class MantencionBloquearDiaAPIView(APIView):

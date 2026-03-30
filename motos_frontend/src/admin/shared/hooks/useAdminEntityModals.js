@@ -15,6 +15,8 @@ import {
 } from "../../motos/services/motosAdminService";
 
 export default function useAdminEntityModals({
+  setDashboard,
+  motoMeta,
   clearInvalidFieldStyle,
   normalizeUppercaseLabel,
   normalizeTitleCaseForInput,
@@ -54,9 +56,10 @@ export default function useAdminEntityModals({
         kind,
         id: item.id,
         nombre: normalizedNombre,
+        nombreOriginal: item.nombre || "",
         slug: item.slug || "",
-        marca: item.marca ?? item.marca_id ?? null,
-        categoria: item.categoria ?? item.categoria_id ?? null,
+        marca: item.marca ?? item.marca_id ?? "",
+        categoria: item.categoria ?? item.categoria_id ?? "",
       });
     },
     [normalizeTitleCaseLabel, normalizeUppercaseLabel]
@@ -175,17 +178,44 @@ export default function useAdminEntityModals({
               ...prev,
               marcas: prev.marcas.map((item) => (item.id === entityEditModal.id ? { ...item, nombre: updated.nombre } : item)),
             }));
+            setDashboard((prev) => ({
+              ...prev,
+              motos: prev.motos.map((item) =>
+                Number(item.marca) === Number(entityEditModal.id) ||
+                normalizeUppercaseLabel(item.marca_nombre) === normalizeUppercaseLabel(entityEditModal.nombreOriginal)
+                  ? { ...item, marca_nombre: updated.nombre }
+                  : item
+              ),
+            }));
           } else if (entityEditModal.kind === "marca_acc_motos") {
             setMarcasAccMotosAdmin((prev) => prev.map((item) => (item.id === entityEditModal.id ? updated : item)));
             setAccesoriosMotosMeta((prev) => ({
               ...prev,
               marcas: prev.marcas.map((item) => (item.id === entityEditModal.id ? { ...item, nombre: updated.nombre } : item)),
             }));
+            setDashboard((prev) => ({
+              ...prev,
+              productosAccesorios: prev.productosAccesorios.map((item) =>
+                Number(item.marca) === Number(entityEditModal.id) ||
+                normalizeUppercaseLabel(item.marca_nombre) === normalizeUppercaseLabel(entityEditModal.nombreOriginal)
+                  ? { ...item, marca_nombre: updated.nombre }
+                  : item
+              ),
+            }));
           } else {
             setMarcasAccRiderAdmin((prev) => prev.map((item) => (item.id === entityEditModal.id ? updated : item)));
             setAccesoriosRiderMeta((prev) => ({
               ...prev,
               marcas: prev.marcas.map((item) => (item.id === entityEditModal.id ? { ...item, nombre: updated.nombre } : item)),
+            }));
+            setDashboard((prev) => ({
+              ...prev,
+              productosIndumentaria: prev.productosIndumentaria.map((item) =>
+                Number(item.marca) === Number(entityEditModal.id) ||
+                normalizeUppercaseLabel(item.marca_nombre) === normalizeUppercaseLabel(entityEditModal.nombreOriginal)
+                  ? { ...item, marca_nombre: updated.nombre }
+                  : item
+              ),
             }));
           }
           pushToast("Marca actualizada correctamente.", "success");
@@ -195,6 +225,14 @@ export default function useAdminEntityModals({
           setMotoMeta((prev) => ({
             ...prev,
             categorias: prev.categorias.map((item) => (item.id === entityEditModal.id ? { ...item, nombre: updated.nombre } : item)),
+          }));
+          setDashboard((prev) => ({
+            ...prev,
+            motos: prev.motos.map((item) =>
+              Number(item.categoria) === Number(entityEditModal.id)
+                ? { ...item, categoria_nombre: updated.nombre }
+                : item
+            ),
           }));
           pushToast("Categoria actualizada correctamente.", "success");
         } else if (entityEditModal.kind === "categoria_acc_motos") {
@@ -207,6 +245,15 @@ export default function useAdminEntityModals({
             ...prev,
             subcategorias: prev.subcategorias.map((item) => (item.id === entityEditModal.id ? updated : item)),
           }));
+          setDashboard((prev) => ({
+              ...prev,
+              productosAccesorios: prev.productosAccesorios.map((item) =>
+                Number(item.subcategoria) === Number(entityEditModal.id) ||
+                normalizeTitleCaseLabel(item.subcategoria_nombre) === normalizeTitleCaseLabel(entityEditModal.nombreOriginal)
+                  ? { ...item, subcategoria_nombre: updated.nombre }
+                  : item
+              ),
+            }));
           pushToast("Categoria actualizada correctamente.", "success");
         } else if (entityEditModal.kind === "categoria_acc_rider") {
           const updated = await updateCategoriaAccesoriosRider(entityEditModal.id, { nombre, slug });
@@ -218,18 +265,42 @@ export default function useAdminEntityModals({
             ...prev,
             subcategorias: prev.subcategorias.map((item) => (item.id === entityEditModal.id ? updated : item)),
           }));
+          setDashboard((prev) => ({
+              ...prev,
+              productosIndumentaria: prev.productosIndumentaria.map((item) =>
+                Number(item.subcategoria) === Number(entityEditModal.id) ||
+                normalizeTitleCaseLabel(item.subcategoria_nombre) === normalizeTitleCaseLabel(entityEditModal.nombreOriginal)
+                  ? { ...item, subcategoria_nombre: updated.nombre }
+                  : item
+              ),
+            }));
           pushToast("Categoria actualizada correctamente.", "success");
         } else if (entityEditModal.kind === "modelo_moto") {
           const modelPayload = { nombre };
-          if (entityEditModal.marca) modelPayload.marca = entityEditModal.marca;
-          if (entityEditModal.categoria !== null && entityEditModal.categoria !== undefined) {
-            modelPayload.categoria = entityEditModal.categoria;
+          if (entityEditModal.marca) modelPayload.marca = Number(entityEditModal.marca);
+          if (entityEditModal.categoria !== null && entityEditModal.categoria !== undefined && entityEditModal.categoria !== "") {
+            modelPayload.categoria = Number(entityEditModal.categoria);
           }
           const updated = await updateModeloMoto(entityEditModal.id, modelPayload);
           setModelosMotosAdmin((prev) => prev.map((item) => (item.id === entityEditModal.id ? updated : item)));
           setMotoMeta((prev) => ({
             ...prev,
             modelos: prev.modelos.map((item) => (item.id === entityEditModal.id ? updated : item)),
+          }));
+          setDashboard((prev) => ({
+            ...prev,
+            motos: prev.motos.map((item) =>
+              Number(item.modelo_ref) === Number(entityEditModal.id)
+                ? {
+                    ...item,
+                    modelo: updated.nombre || updated.nombre_modelo || item.modelo,
+                    marca_nombre: updated.marca_nombre || item.marca_nombre,
+                    categoria_nombre: updated.categoria_nombre || item.categoria_nombre,
+                    marca: updated.marca ?? item.marca,
+                    categoria: updated.categoria ?? item.categoria,
+                  }
+                : item
+            ),
           }));
           pushToast("Modelo actualizado correctamente.", "success");
         }
@@ -246,6 +317,7 @@ export default function useAdminEntityModals({
       normalizeTitleCaseLabel,
       normalizeUppercaseLabel,
       pushToast,
+      setDashboard,
       setAccesoriosMotosMeta,
       setAccesoriosRiderMeta,
       setCategoriasAccMotosMeta,
@@ -341,6 +413,7 @@ export default function useAdminEntityModals({
     entityDeleteModal,
     entityModalSaving,
     entityModalError,
+    motoMeta,
     openEntityEditModal,
     closeEntityEditModal,
     openEntityDeleteModal,
@@ -351,4 +424,3 @@ export default function useAdminEntityModals({
     submitEntityDelete,
   };
 }
-

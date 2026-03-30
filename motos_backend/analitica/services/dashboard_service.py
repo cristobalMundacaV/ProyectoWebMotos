@@ -3,6 +3,7 @@ from __future__ import annotations
 from datetime import date
 
 from django.core.cache import cache
+from django.utils import timezone
 
 from analitica.models import CatalogoEvento
 from mantenciones.models import Mantencion
@@ -36,6 +37,6 @@ def build_dashboard_summary(period: str) -> dict:
         return cached
 
     payload = DashboardSummaryBuilder(period_context=period_context).build()
-    cache.set(cache_key, payload, timeout=60 * 10)
+    payload["generated_at"] = timezone.now().isoformat()
+    cache.set(cache_key, payload, timeout=60)
     return payload
-

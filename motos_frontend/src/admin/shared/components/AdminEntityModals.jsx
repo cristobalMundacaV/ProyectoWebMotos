@@ -9,7 +9,12 @@ export default function AdminEntityModals({
   onSubmitEntityEdit,
   onSubmitEntityDelete,
   getEntityKindLabel,
+  motoMeta,
 }) {
+  const marcasMoto = Array.isArray(motoMeta?.marcas) ? motoMeta.marcas : [];
+  const categoriasMoto = Array.isArray(motoMeta?.categorias) ? motoMeta.categorias : [];
+  const isModeloMotoEdit = entityEditModal?.kind === "modelo_moto";
+
   return (
     <>
       {entityEditModal && (
@@ -41,6 +46,44 @@ export default function AdminEntityModals({
                   required
                 />
               </label>
+
+              {isModeloMotoEdit && (
+                <label>
+                  Marca *
+                  <select
+                    name="marca"
+                    value={entityEditModal.marca || ""}
+                    onChange={onEntityEditInputChange}
+                    required
+                  >
+                    <option value="">Selecciona una marca</option>
+                    {marcasMoto.map((marca) => (
+                      <option key={marca.id} value={marca.id}>
+                        {marca.nombre}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+              )}
+
+              {isModeloMotoEdit && (
+                <label>
+                  Categoria *
+                  <select
+                    name="categoria"
+                    value={entityEditModal.categoria || ""}
+                    onChange={onEntityEditInputChange}
+                    required
+                  >
+                    <option value="">Selecciona una categoria</option>
+                    {categoriasMoto.map((categoria) => (
+                      <option key={categoria.id} value={categoria.id}>
+                        {categoria.nombre}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+              )}
 
               {entityModalError && <p className="admin-entity-modal-error">{entityModalError}</p>}
 
@@ -79,4 +122,3 @@ export default function AdminEntityModals({
     </>
   );
 }
-

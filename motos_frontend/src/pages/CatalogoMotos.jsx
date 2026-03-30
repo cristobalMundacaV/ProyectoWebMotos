@@ -5,6 +5,8 @@ import Footer from "../components/layout/Footer";
 import { useMotos } from "../hooks/useMotos";
 import MotoCard from "../components/motos/MotoCard";
 import AdminYearDropdown from "../admin/shared/components/AdminYearDropdown";
+import AdminDeleteConfirmModal from "../admin/shared/components/AdminDeleteConfirmModal";
+import { MOTO_YEAR_RANGE } from "../admin/motos/constants/motoYearRange";
 import { buildMediaUrl } from "../services/apiConfig";
 import { deleteMoto, getMotoAdminMeta, updateMoto } from "../services/motosService";
 import { getStoredToken, getStoredUser, hasAdminAccess } from "../services/authService";
@@ -16,9 +18,10 @@ export default function CatalogoMotos() {
   const yearLabel = `A${String.fromCharCode(241)}o *`;
   const yearPlaceholder = `Selecciona un A${String.fromCharCode(241)}o`;
   const currentYear = new Date().getFullYear();
+  const minMotoYear = currentYear - MOTO_YEAR_RANGE;
   const motoYearOptions = useMemo(
-    () => Array.from({ length: currentYear - 1980 + 1 }, (_, index) => String(currentYear - index)),
-    [currentYear]
+    () => Array.from({ length: currentYear - minMotoYear + 1 }, (_, index) => String(currentYear - index)),
+    [currentYear, minMotoYear]
   );
   const { motos, setMotos, loading, error } = useMotos();
   const [selectedMarcas, setSelectedMarcas] = useState([]);
@@ -39,6 +42,7 @@ export default function CatalogoMotos() {
   const [editImageMaletasPreview, setEditImageMaletasPreview] = useState("");
   const [deleteCandidate, setDeleteCandidate] = useState(null);
   const [deletingMoto, setDeletingMoto] = useState(false);
+  const [feedback, setFeedback] = useState({ type: "", message: "" });
   const editFileInputRef = useRef(null);
   const editMaletasFileInputRef = useRef(null);
   const formatTitleCase = (value) =>
@@ -86,6 +90,12 @@ export default function CatalogoMotos() {
       if (editImageMaletasPreview) URL.revokeObjectURL(editImageMaletasPreview);
     };
   }, [editImagePreview, editImageMaletasPreview]);
+
+  useEffect(() => {
+    if (!feedback.message) return undefined;
+    const timeoutId = window.setTimeout(() => setFeedback({ type: "", message: "" }), 3500);
+    return () => window.clearTimeout(timeoutId);
+  }, [feedback.message]);
 
   useEffect(() => {
     if (!editingMoto && !deleteCandidate) return undefined;
@@ -330,8 +340,9 @@ export default function CatalogoMotos() {
       await deleteMoto(deleteCandidate.id);
       setMotos((prev) => prev.filter((item) => item.id !== deleteCandidate.id));
       setDeleteCandidate(null);
+      setFeedback({ type: "success", message: "Moto eliminada correctamente." });
     } catch {
-      window.alert("No se pudo eliminar la moto.");
+      setFeedback({ type: "error", message: "No se pudo eliminar la moto." });
     } finally {
       setDeletingMoto(false);
     }
@@ -532,6 +543,11 @@ export default function CatalogoMotos() {
                 <div className="moto-title-block">
                   <h2>Catalogo de Motos</h2>
                   <p className="moto-results-meta">{filteredMotos.length} motos</p>
+                  {feedback.message ? (
+                    <p role="status" aria-live="polite" className="moto-results-meta">
+                      {feedback.message}
+                    </p>
+                  ) : null}
                 </div>
 
                 <div className="moto-catalog-toolbar-actions">
@@ -994,27 +1010,25 @@ export default function CatalogoMotos() {
         </div>
       )}
 
-      {deleteCandidate && (
-        <div className="moto-delete-modal-overlay" onClick={closeDeleteModal}>
-          <section className="moto-delete-modal" onClick={(event) => event.stopPropagation()}>
-            <img src="/images/informacion.png" alt="Informacion" className="moto-delete-modal-image" />
-            <p className="moto-delete-modal-text">Estas seguro que quieres eliminar {deleteCandidate.modelo || deleteCandidate.nombre}?</p>
-            <div className="moto-delete-modal-actions">
-              <button type="button" className="btn-back" onClick={closeDeleteModal} disabled={deletingMoto}>
-                Volver
-              </button>
-              <button type="button" className="btn-delete" onClick={confirmDeleteMoto} disabled={deletingMoto}>
-                {"Eliminar"}
-              </button>
-            </div>
-          </section>
-        </div>
-      )}
+      <AdminDeleteConfirmModal
+        isOpen={Boolean(deleteCandidate)}
+        isSaving={deletingMoto}
+        title="Confirmar eliminacion"
+        message={`Estas seguro que quieres eliminar la moto ${deleteCandidate?.modelo || deleteCandidate?.nombre || ""}?`}
+        confirmLabel="Eliminar"
+        onClose={closeDeleteModal}
+        onConfirm={confirmDeleteMoto}
+      />
 
       <Footer />
     </div>
   );
 }
+
+
+
+
+
 
 
 

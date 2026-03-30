@@ -8,12 +8,13 @@ export default function UsuariosPage({
   onCreateUserSubmit,
   adminUsers,
   adminUsersLoading,
+  adminUsersLoadError,
   paginatedAdminUsers,
   onEditUser,
   onDeleteUser,
   onPageChange,
 }) {
-  if (activeSection !== "crear_usuario") return null;
+  if (activeSection !== "crear_usuario" && activeSection !== "lista_usuarios") return null;
 
   return (
     <section className="admin-content-grid lower">
@@ -78,6 +79,7 @@ export default function UsuariosPage({
         <div className="admin-card-header">
           <h2>Lista de usuarios</h2>
         </div>
+        {adminUsersLoadError ? <p className="admin-empty">{adminUsersLoadError}</p> : null}
         <AdminUsersTable
           adminUsers={adminUsers}
           adminUsersLoading={adminUsersLoading}

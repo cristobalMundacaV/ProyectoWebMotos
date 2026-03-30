@@ -35,8 +35,8 @@ export default function HistoricasPanel({
               >
                 <option value="">Seleccione un cliente</option>
                 {historicoClientes.map((cliente) => (
-                  <option key={cliente} value={cliente}>
-                    {cliente}
+                  <option key={cliente.value} value={cliente.value}>
+                    {cliente.label}
                   </option>
                 ))}
               </select>
@@ -73,4 +73,3 @@ export default function HistoricasPanel({
     </section>
   );
 }
-

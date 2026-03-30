@@ -57,7 +57,6 @@ class MotoAdmin(admin.ModelAdmin):
         "marca",
         "modelo_moto",
         "anio",
-        "stock",
         "precio",
         "precio_lista",
         "permite_variante_maletas",

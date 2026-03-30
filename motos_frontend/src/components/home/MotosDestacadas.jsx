@@ -23,12 +23,19 @@ export default function MotosDestacadas() {
   const trackRef = useRef(null);
   const [isAdmin, setIsAdmin] = useState(false);
   const [deletingId, setDeletingId] = useState(null);
+  const [feedback, setFeedback] = useState({ type: "", message: "" });
 
   useEffect(() => {
     const token = getStoredToken();
     const user = getStoredUser();
     setIsAdmin(Boolean(token && hasAdminAccess(user)));
   }, []);
+
+  useEffect(() => {
+    if (!feedback.message) return undefined;
+    const timeoutId = window.setTimeout(() => setFeedback({ type: "", message: "" }), 3500);
+    return () => window.clearTimeout(timeoutId);
+  }, [feedback.message]);
 
   function scroll(direction) {
     const track = trackRef.current;
@@ -68,8 +75,9 @@ export default function MotosDestacadas() {
     try {
       await deleteMoto(moto.id);
       setMotos((prev) => (Array.isArray(prev) ? prev.filter((item) => item.id !== moto.id) : []));
+      setFeedback({ type: "success", message: "Moto eliminada correctamente." });
     } catch {
-      window.alert("No se pudo eliminar la moto.");
+      setFeedback({ type: "error", message: "No se pudo eliminar la moto." });
     } finally {
       setDeletingId(null);
     }
@@ -82,6 +90,7 @@ export default function MotosDestacadas() {
   return (
     <section className="destacadas" id="catalogo">
       <h2>Modelos Destacados</h2>
+      {feedback.message ? <p className="home-carousel-empty">{feedback.message}</p> : null}
 
       {loading && null}
       {!loading && error && <p className="home-carousel-empty">{error}</p>}

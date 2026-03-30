@@ -14,6 +14,7 @@ export default function useAdminUsers({
   const [createUserSaving, setCreateUserSaving] = useState(false);
   const [adminUsers, setAdminUsers] = useState([]);
   const [adminUsersLoading, setAdminUsersLoading] = useState(true);
+  const [adminUsersLoadError, setAdminUsersLoadError] = useState("");
   const [adminUsersPage, setAdminUsersPage] = useState(1);
   const [adminUserEditModal, setAdminUserEditModal] = useState(null);
   const [adminUserDeleteModal, setAdminUserDeleteModal] = useState(null);
@@ -21,11 +22,17 @@ export default function useAdminUsers({
   const [adminUserModalError, setAdminUserModalError] = useState("");
 
   const fetchUsersList = useCallback(async () => {
-    const payload = await listAdminUsers();
-    const users = normalizeAdminUsersResponse(payload);
-    setAdminUsers(users);
-    return users;
-  }, []);
+    try {
+      const payload = await listAdminUsers();
+      const users = normalizeAdminUsersResponse(payload);
+      setAdminUsers(users);
+      setAdminUsersLoadError("");
+      return users;
+    } catch (error) {
+      setAdminUsersLoadError(getErrorText(error, "No se pudo cargar la lista de usuarios."));
+      throw error;
+    }
+  }, [getErrorText]);
 
   const handleCreateUserInputChange = useCallback(
     (event) => {
@@ -134,7 +141,8 @@ export default function useAdminUsers({
           telefono: adminUserEditModal.telefono,
           rol: adminUserEditModal.rol,
         });
-        setAdminUsers((prev) => prev.map((item) => (item.id === adminUserEditModal.id ? { ...item, ...updated } : item)));
+        const nextUser = updated?.user || updated;
+        setAdminUsers((prev) => prev.map((item) => (item.id === adminUserEditModal.id ? { ...item, ...nextUser } : item)));
         pushToast("Usuario actualizado correctamente.", "success");
         closeAdminUserEditModal(true);
       } catch (error) {
@@ -175,6 +183,8 @@ export default function useAdminUsers({
     adminUsers,
     setAdminUsers,
     adminUsersLoading,
+    adminUsersLoadError,
+    setAdminUsersLoadError,
     setAdminUsersLoading,
     adminUsersPage,
     setAdminUsersPage,
@@ -195,4 +205,3 @@ export default function useAdminUsers({
     paginatedAdminUsers,
   };
 }
-

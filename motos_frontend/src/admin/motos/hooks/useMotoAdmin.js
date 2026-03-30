@@ -14,6 +14,7 @@ import {
   initialMotoForm,
 } from "../../shared/constants/adminInitialState";
 import { buildMediaUrl } from "../../../services/apiConfig";
+import { MOTO_YEAR_RANGE } from "../constants/motoYearRange";
 
 export default function useMotoAdmin({
   setDashboard,
@@ -43,6 +44,8 @@ export default function useMotoAdmin({
   const [motoEditModal, setMotoEditModal] = useState(null);
   const [motoEditSaving, setMotoEditSaving] = useState(false);
   const [motoEditError, setMotoEditError] = useState("");
+  const [motoDeleteModal, setMotoDeleteModal] = useState(null);
+  const [motoDeleteSaving, setMotoDeleteSaving] = useState(false);
   const [modeloMotoForm, setModeloMotoForm] = useState(initialModeloMotoForm);
   const [modeloMotoSaving, setModeloMotoSaving] = useState(false);
   const [categoriaMotoForm, setCategoriaMotoForm] = useState(initialCategoriaMotoForm);
@@ -118,7 +121,7 @@ export default function useMotoAdmin({
   }
 
   const currentYear = new Date().getFullYear();
-  const MIN_MOTO_YEAR = Math.max(2010, currentYear - 12);
+  const MIN_MOTO_YEAR = Math.max(2010, currentYear - MOTO_YEAR_RANGE);
   const motoYearOptions = useMemo(
     () => Array.from({ length: currentYear - MIN_MOTO_YEAR + 1 }, (_, index) => String(currentYear - index)),
     [currentYear, MIN_MOTO_YEAR]
@@ -416,17 +419,34 @@ export default function useMotoAdmin({
     }
   }
 
-  async function handleMotoDelete(moto) {
+  function handleMotoDelete(moto) {
+    setMotoDeleteModal({
+      id: moto.id,
+      modelo: moto.modelo || "sin modelo",
+    });
+  }
+
+  function closeMotoDeleteModal() {
+    if (motoDeleteSaving) return;
+    setMotoDeleteModal(null);
+  }
+
+  async function submitMotoDelete() {
+    if (!motoDeleteModal) return;
+    setMotoDeleteSaving(true);
     try {
-      await deleteMoto(moto.id);
+      await deleteMoto(motoDeleteModal.id);
       setDashboard((prev) => ({
         ...prev,
-        motos: prev.motos.filter((item) => item.id !== moto.id),
+        motos: prev.motos.filter((item) => item.id !== motoDeleteModal.id),
       }));
-      if (motoEditModal?.id === moto.id) closeMotoEditModal();
+      if (motoEditModal?.id === motoDeleteModal.id) closeMotoEditModal();
+      setMotoDeleteModal(null);
       pushToast("Moto eliminada correctamente.", "success");
     } catch (error) {
       pushToast(getErrorText(error, "No se pudo eliminar la moto."), "error");
+    } finally {
+      setMotoDeleteSaving(false);
     }
   }
 
@@ -532,6 +552,8 @@ export default function useMotoAdmin({
     motoEditModal,
     motoEditSaving,
     motoEditError,
+    motoDeleteModal,
+    motoDeleteSaving,
     modeloMotoForm,
     modeloMotoSaving,
     categoriaMotoForm,
@@ -559,6 +581,8 @@ export default function useMotoAdmin({
     closeMotoEditModal,
     submitMotoEditModal,
     handleMotoDelete,
+    closeMotoDeleteModal,
+    submitMotoDelete,
     handleModeloMotoSubmit,
     handleCategoriaMotoSubmit,
     handleMarcaSubmit,

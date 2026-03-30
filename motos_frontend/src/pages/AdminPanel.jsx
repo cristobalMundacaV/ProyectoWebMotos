@@ -2,6 +2,9 @@
 import { useLocation, useNavigate } from "react-router-dom";
 import {
   clearAuthSession,
+  fetchCurrentUser,
+  getStoredToken,
+  hasAdminAccess,
   getStoredUser,
   logoutUser,
   updateStoredUser,
@@ -70,6 +73,44 @@ export default function AdminPanel() {
   });
 
   useEffect(() => {
+    let mounted = true;
+
+    async function verifyAdminSession() {
+      const token = getStoredToken();
+      if (!token) {
+        clearAuthSession();
+        navigate("/login", { replace: true });
+        return;
+      }
+
+      try {
+        const response = await fetchCurrentUser();
+        const user = response?.user || response;
+        if (!mounted) return;
+
+        if (!hasAdminAccess(user)) {
+          clearAuthSession();
+          navigate("/", { replace: true });
+          return;
+        }
+
+        setCurrentUser(user);
+        updateStoredUser(user);
+      } catch {
+        if (!mounted) return;
+        clearAuthSession();
+        navigate("/login", { replace: true });
+      }
+    }
+
+    verifyAdminSession();
+
+    return () => {
+      mounted = false;
+    };
+  }, [navigate]);
+
+  useEffect(() => {
     setIsMobileSidebarOpen(false);
   }, [activeSection]);
 
@@ -97,11 +138,12 @@ export default function AdminPanel() {
 
   const handleTopbarProfileSave = useCallback(
     async (payload) => {
+      const currentRole = currentUser?.rol || currentUser?.role;
       if (!currentUser?.id) {
         pushToast("No se encontro la sesion del usuario.", "error");
         return false;
       }
-      if (!currentUser?.rol) {
+      if (!currentRole) {
         pushToast("No se pudo identificar el rol del usuario actual.", "error");
         return false;
       }
@@ -113,7 +155,7 @@ export default function AdminPanel() {
           username: payload.username,
           email: payload.email,
           telefono: payload.telefono,
-          rol: currentUser.rol,
+          rol: currentRole,
         });
         const updatedUser = response?.user || response;
         setCurrentUser(updatedUser);

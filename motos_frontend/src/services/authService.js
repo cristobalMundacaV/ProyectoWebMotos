@@ -4,6 +4,12 @@ const TOKEN_KEY = "authToken";
 const REFRESH_TOKEN_KEY = "authRefreshToken";
 const USER_KEY = "authUser";
 
+function normalizeUserRoleShape(user) {
+  if (!user || typeof user !== "object") return user;
+  const rol = user.rol || user.role || "";
+  return { ...user, rol, role: rol };
+}
+
 export function getStoredToken() {
   return localStorage.getItem(TOKEN_KEY);
 }
@@ -16,7 +22,7 @@ export function getStoredUser() {
   const raw = localStorage.getItem(USER_KEY);
   if (!raw) return null;
   try {
-    return JSON.parse(raw);
+    return normalizeUserRoleShape(JSON.parse(raw));
   } catch {
     return null;
   }
@@ -27,15 +33,16 @@ export function saveAuthSession(token, user, refreshToken = null) {
   if (refreshToken) {
     localStorage.setItem(REFRESH_TOKEN_KEY, refreshToken);
   }
-  localStorage.setItem(USER_KEY, JSON.stringify(user));
+  localStorage.setItem(USER_KEY, JSON.stringify(normalizeUserRoleShape(user)));
 }
 
 export function hasAdminAccess(user) {
   if (!user) return false;
+  const userRole = (user.rol || user.role || "").toLowerCase();
   return Boolean(
     user.is_superuser ||
     user.is_staff ||
-    ["superadmin", "admin", "encargado"].includes((user.rol || "").toLowerCase())
+    ["superadmin", "admin", "encargado"].includes(userRole)
   );
 }
 
@@ -53,7 +60,7 @@ export function clearAuthSession() {
 
 export function updateStoredUser(user) {
   if (!user) return;
-  localStorage.setItem(USER_KEY, JSON.stringify(user));
+  localStorage.setItem(USER_KEY, JSON.stringify(normalizeUserRoleShape(user)));
 }
 
 export async function registerUser(payload) {

@@ -63,7 +63,6 @@ class Moto(models.Model):
     precio_lista = models.DecimalField(max_digits=12, decimal_places=2, default=0)
     anio = models.IntegerField()
     color = models.CharField(max_length=60, blank=True)
-    stock = models.IntegerField(default=0)
     estado = models.CharField(
         max_length=20,
         choices=[
@@ -98,7 +97,6 @@ class Moto(models.Model):
             models.CheckConstraint(condition=Q(precio__gte=0), name="chk_moto_precio_gte_0"),
             models.CheckConstraint(condition=Q(precio_lista__gte=0), name="chk_moto_precio_lista_gte_0"),
             models.CheckConstraint(condition=Q(precio_lista__gte=models.F("precio")), name="chk_moto_lista_gte_precio"),
-            models.CheckConstraint(condition=Q(stock__gte=0), name="chk_moto_stock_gte_0"),
             models.CheckConstraint(condition=Q(anio__gte=1990) & Q(anio__lte=2100), name="chk_moto_anio_range"),
             models.CheckConstraint(condition=Q(orden_carrusel__gte=1), name="chk_moto_orden_carrusel_gte_1"),
             models.CheckConstraint(

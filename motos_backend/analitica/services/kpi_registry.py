@@ -1,4 +1,4 @@
-from dataclasses import dataclass
+﻿from dataclasses import dataclass
 
 
 class KPIType:
@@ -155,7 +155,7 @@ KPI_REGISTRY: dict[str, KPIDefinition] = {
         fallback_policy="fallback_rolling_30d",
         empty_state_rule="return_empty_rank",
         comparison_rule="none",
-        business_decision="priorizar especializacion y stock",
+        business_decision="priorizar especializacion y capacidad operativa",
     ),
     "tasa_cancelaciones": KPIDefinition(
         kpi_key="tasa_cancelaciones",

@@ -1,4 +1,4 @@
-import { useState } from "react";
+﻿import { useState } from "react";
 import { Link } from "react-router-dom";
 import "../styles/login.css";
 import { useNavigate } from "react-router-dom";
@@ -40,7 +40,7 @@ export default function Login() {
     }
 
     if (target.validity.tooShort) {
-      target.setCustomValidity("La contraseña debe tener al menos 8 caracteres.");
+      target.setCustomValidity("La contrasena debe tener al menos 8 caracteres.");
     }
   };
 
@@ -94,7 +94,7 @@ export default function Login() {
         <article className="login-card">
           <img src="/images/logo.svg" alt="Delanoe Motos" className="login-logo" />
           <h1>Bienvenido</h1>
-          <p>{mode === "login" ? "Inicia sesión para continuar" : "Crea tu cuenta para continuar"}</p>
+          <p>{mode === "login" ? "Inicia sesion para continuar" : "Crea tu cuenta para continuar"}</p>
 
           <form className="login-form" onSubmit={handleSubmit}>
             {mode === "register" && (
@@ -162,7 +162,7 @@ export default function Login() {
               onInput={clearValidationMessage}
             />
 
-            <label htmlFor="password">Contraseña</label>
+            <label htmlFor="password">Contrasena</label>
             <div className="password-field">
               <input
                 id="password"
@@ -186,7 +186,7 @@ export default function Login() {
                 type="button"
                 className="toggle-password"
                 onClick={() => setShowPassword((prev) => !prev)}
-                aria-label={showPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
+                aria-label={showPassword ? "Ocultar contrasena" : "Mostrar contrasena"}
               >
                 {showPassword ? "Ocultar" : "Ver"}
               </button>
@@ -194,7 +194,7 @@ export default function Login() {
 
             {mode === "register" && (
               <>
-                <label htmlFor="confirm_password">Confirmar contraseña</label>
+                <label htmlFor="confirm_password">Confirmar contrasena</label>
                 <input
                   id="confirm_password"
                   name="confirm_password"
@@ -214,8 +214,8 @@ export default function Login() {
 
             {error && <p className="login-error">{error}</p>}
 
-            <button type="submit" className="login-submit">
-              {mode === "login" ? "Continuar" : "Crear cuenta"}
+            <button type="submit" className="login-submit" disabled={loading}>
+              {loading ? "Procesando..." : mode === "login" ? "Continuar" : "Crear cuenta"}
             </button>
 
             {mode === "login" && (
@@ -224,11 +224,11 @@ export default function Login() {
                   <label>
                     <input type="checkbox" name="remember" /> Recordarme
                   </label>
-                  <Link to="/">¿Olvidaste tu contraseña?</Link>
+                  <Link to="/">Olvidaste tu contrasena?</Link>
                 </div>
 
                 <div className="login-register">
-                  ¿No tienes cuenta?{" "}
+                  No tienes cuenta?{" "}
                   <button type="button" className="register-link" onClick={() => setMode("register")}>
                     Registrate
                   </button>
@@ -238,9 +238,9 @@ export default function Login() {
 
             {mode === "register" && (
               <div className="login-register">
-                ¿Ya tienes cuenta?{" "}
+                Ya tienes cuenta?{" "}
                 <button type="button" className="register-link" onClick={() => setMode("login")}>
-                  Inicia sesión
+                  Inicia sesion
                 </button>
               </div>
             )}
@@ -250,3 +250,7 @@ export default function Login() {
     </main>
   );
 }
+
+
+
+

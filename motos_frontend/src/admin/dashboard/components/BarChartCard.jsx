@@ -66,7 +66,7 @@ export default function BarChartCard({
                   {sideMetric ? <small>{sideMetric}</small> : null}
                   {item.trend ? (
                     <span className={`admin-analytics-mini-trend ${trend}`}>
-                      {trend === "up" ? "↑" : trend === "down" ? "↓" : "→"}
+                      {trend === "up" ? "^" : trend === "down" ? "v" : ">"}
                     </span>
                   ) : null}
                 </strong>
