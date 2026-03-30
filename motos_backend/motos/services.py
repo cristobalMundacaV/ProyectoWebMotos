@@ -42,23 +42,52 @@ def append_moto_gallery_images(moto: Moto, files: Sequence | None = None) -> Non
         locked_moto.save(update_fields=["imagen_principal"])
 
 
+def _normalize_keep_ids(keep_ids: Iterable | None = None) -> list[int]:
+    normalized = []
+    if not keep_ids:
+        return normalized
+
+    for raw_id in keep_ids:
+        try:
+            normalized.append(int(raw_id))
+        except (TypeError, ValueError):
+            continue
+
+    return normalized
+
+
+def sync_moto_gallery_images(moto: Moto, keep_ids: Iterable | None = None, files: Sequence | None = None) -> None:
+    locked_moto = _lock_moto(moto.id)
+    normalized_keep_ids = _normalize_keep_ids(keep_ids)
+
+    if keep_ids is not None:
+        locked_moto.imagenes.exclude(id__in=normalized_keep_ids).delete()
+
+    append_moto_gallery_images(locked_moto, files)
+
+
 def create_or_update_moto_with_gallery(
     *,
     serializer,
     gallery_files: Sequence | None = None,
+    gallery_keep_ids: Iterable | None = None,
     actor=None,
     metadata: dict | None = None,
 ) -> Moto:
     with transaction.atomic():
-        action = "create" if serializer.instance is None else "update"
+        is_create = serializer.instance is None
+        action = "create" if is_create else "update"
         before = None
-        if serializer.instance is not None:
+        if not is_create:
             locked_moto = Moto.objects.select_for_update().get(pk=serializer.instance.pk)
             serializer.instance = locked_moto
             before = serialize_instance_for_audit(locked_moto)
 
         moto = serializer.save()
-        append_moto_gallery_images(moto, gallery_files)
+        if is_create:
+            append_moto_gallery_images(moto, gallery_files)
+        else:
+            sync_moto_gallery_images(moto, keep_ids=gallery_keep_ids, files=gallery_files)
         moto_refreshed = Moto.objects.get(pk=moto.pk)
         create_audit_log(
             action=action,

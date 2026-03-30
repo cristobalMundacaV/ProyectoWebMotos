@@ -232,6 +232,15 @@ export default function CatalogoMotos() {
       es_destacada: Boolean(moto.es_destacada),
       activa: moto.activa !== false,
       imagenes_galeria: [],
+      imagenes_existentes: Array.isArray(moto.imagenes)
+        ? moto.imagenes.map((imagen) => ({
+            id: imagen.id,
+            imagen: imagen.imagen,
+            texto_alternativo: imagen.texto_alternativo || "",
+            orden: imagen.orden ?? 0,
+            keep: true,
+          }))
+        : [],
       imagen_con_maletas: null,
       video_presentacion: moto.video_presentacion || "",
     });
@@ -323,6 +332,19 @@ export default function CatalogoMotos() {
     }
   }
 
+  function toggleExistingGalleryImage(imageId) {
+    setEditForm((prev) => {
+      if (!prev) return prev;
+
+      return {
+        ...prev,
+        imagenes_existentes: (Array.isArray(prev.imagenes_existentes) ? prev.imagenes_existentes : []).map((image) =>
+          image.id === imageId ? { ...image, keep: !image.keep } : image
+        ),
+      };
+    });
+  }
+
   function openDeleteModal(moto) {
     setDeleteCandidate(moto);
   }
@@ -400,10 +422,14 @@ export default function CatalogoMotos() {
     const galleryFiles = Array.isArray(editForm.imagenes_galeria)
       ? editForm.imagenes_galeria.filter(Boolean)
       : [];
+    const keptExistingGalleryIds = Array.isArray(editForm.imagenes_existentes)
+      ? editForm.imagenes_existentes.filter((image) => image.keep).map((image) => image.id)
+      : [];
     const primaryImageFromGallery = galleryFiles[0] || null;
     if (primaryImageFromGallery) {
       payload.append("imagen_principal", primaryImageFromGallery);
     }
+    keptExistingGalleryIds.forEach((imageId) => payload.append("gallery_keep_ids", String(imageId)));
     galleryFiles.forEach((file) => payload.append("imagenes", file));
     if (editForm.imagen_con_maletas) {
       payload.append("imagen_con_maletas", editForm.imagen_con_maletas);
@@ -510,6 +536,8 @@ export default function CatalogoMotos() {
   const previewMaletasSrc =
     editImageMaletasPreview ||
     (editingMoto?.imagen_con_maletas ? buildMediaUrl(editingMoto.imagen_con_maletas) : "");
+  const existingGalleryImages = Array.isArray(editForm?.imagenes_existentes) ? editForm.imagenes_existentes : [];
+  const keptExistingGalleryCount = existingGalleryImages.filter((image) => image.keep).length;
   const activeFiltersCount =
     selectedMarcas.length +
     selectedCategorias.length +
@@ -865,7 +893,42 @@ export default function CatalogoMotos() {
                       : "No se ha seleccionado ningun archivo."}
                   </span>
                 </div>
+                <p className="moto-edit-gallery-help">
+                  Las imagenes seleccionadas se agregaran a la galeria actual. Puedes desmarcar las existentes para eliminarlas.
+                </p>
               </label>
+
+              {existingGalleryImages.length > 0 ? (
+                <div className="moto-edit-span-2 moto-edit-gallery-manager">
+                  <div className="moto-edit-gallery-header">
+                    <p>Galeria actual visible en catalogo</p>
+                    <span>{keptExistingGalleryCount} de {existingGalleryImages.length} imagenes se conservaran</span>
+                  </div>
+
+                  <div className="moto-edit-gallery-grid">
+                    {existingGalleryImages.map((image) => {
+                      const imageSrc = buildMediaUrl(image.imagen);
+                      const cardClassName = image.keep
+                        ? "moto-edit-gallery-card"
+                        : "moto-edit-gallery-card is-removed";
+
+                      return (
+                        <article key={image.id} className={cardClassName}>
+                          <img src={imageSrc} alt={image.texto_alternativo || `${editingMoto.modelo || "Moto"} galeria`} />
+                          <label className="moto-edit-gallery-toggle">
+                            <input
+                              type="checkbox"
+                              checked={Boolean(image.keep)}
+                              onChange={() => toggleExistingGalleryImage(image.id)}
+                            />
+                            <span>{image.keep ? "Mantener en galeria" : "Eliminar de galeria"}</span>
+                          </label>
+                        </article>
+                      );
+                    })}
+                  </div>
+                </div>
+              ) : null}
 
               <label className="moto-edit-span-2">
                 Video de presentacion (opcional)

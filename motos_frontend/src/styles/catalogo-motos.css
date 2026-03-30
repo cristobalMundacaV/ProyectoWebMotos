@@ -467,6 +467,88 @@
   font-size: 0.92rem;
 }
 
+.moto-edit-gallery-help {
+  margin: 8px 2px 0;
+  color: #5f6b7c;
+  font-size: 0.88rem;
+  font-weight: 500;
+}
+
+.moto-edit-gallery-manager {
+  display: grid;
+  gap: 12px;
+  padding: 14px;
+  background: #f7f8fb;
+  border: 1px solid #d8deea;
+  border-radius: 14px;
+}
+
+.moto-edit-gallery-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.moto-edit-gallery-header p {
+  margin: 0;
+  color: #1f2937;
+  font-size: 0.96rem;
+  font-weight: 700;
+}
+
+.moto-edit-gallery-header span {
+  color: #5f6b7c;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.moto-edit-gallery-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 12px;
+}
+
+.moto-edit-gallery-card {
+  display: grid;
+  gap: 10px;
+  padding: 10px;
+  background: #fff;
+  border: 1px solid #d6dbe6;
+  border-radius: 12px;
+  transition: opacity 0.18s ease, border-color 0.18s ease, background-color 0.18s ease;
+}
+
+.moto-edit-gallery-card.is-removed {
+  opacity: 0.55;
+  background: #f3f4f6;
+  border-color: #c7ceda;
+}
+
+.moto-edit-gallery-card img {
+  width: 100%;
+  height: 120px;
+  object-fit: contain;
+  border-radius: 8px;
+  background: #eef1f5;
+}
+
+.moto-edit-gallery-toggle {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: #2d3442;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.moto-edit-gallery-toggle input {
+  width: 17px;
+  height: 17px;
+  accent-color: #d60000;
+}
+
 .moto-edit-check {
   flex-direction: row;
   align-items: center;
