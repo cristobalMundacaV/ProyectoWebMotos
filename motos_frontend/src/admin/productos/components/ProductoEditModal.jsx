@@ -156,6 +156,18 @@ export default function ProductoEditModal({
           )}
 
           <div className="admin-form-span-2 admin-moto-checks-row admin-product-edit-checks">
+            {isAccesorioMoto && (
+              <label className="admin-form-check admin-form-check-compact">
+                <input
+                  type="checkbox"
+                  name="requiere_compatibilidad"
+                  checked={Boolean(productoEditModal.form.requiere_compatibilidad)}
+                  onChange={onInputChange}
+                />
+                Vincular a modelos especificos
+              </label>
+            )}
+
             <label className="admin-form-check admin-form-check-compact">
               <input
                 type="checkbox"
@@ -170,18 +182,6 @@ export default function ProductoEditModal({
               <input type="checkbox" name="activo" checked={productoEditModal.form.activo} onChange={onInputChange} />
               Activo
             </label>
-
-            {isAccesorioMoto && (
-              <label className="admin-form-check admin-form-check-compact">
-                <input
-                  type="checkbox"
-                  name="requiere_compatibilidad"
-                  checked={Boolean(productoEditModal.form.requiere_compatibilidad)}
-                  onChange={onInputChange}
-                />
-                Vincular a modelos especificos
-              </label>
-            )}
           </div>
 
           {(productoEditModal.form.es_destacado || (isAccesorioMoto && productoEditModal.form.requiere_compatibilidad)) && (
@@ -219,7 +219,7 @@ export default function ProductoEditModal({
 
           {productoEditError && <p className="admin-entity-modal-error">{productoEditError}</p>}
 
-          <div className="admin-form-footer admin-form-footer-single-action">
+          <div className="admin-form-footer admin-form-footer-single-action admin-product-edit-footer">
             <div className="admin-moto-edit-modal-actions">
               <button type="button" className="btn-back" onClick={onClose} disabled={productoEditSaving}>
                 Cancelar

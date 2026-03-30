@@ -1195,6 +1195,10 @@
   max-width: 320px;
 }
 
+.admin-product-edit-footer {
+  margin-top: 0;
+}
+
 .admin-selected-file-name {
   display: block;
   margin-top: 6px;
