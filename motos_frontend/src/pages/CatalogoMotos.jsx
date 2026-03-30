@@ -983,15 +983,18 @@ export default function CatalogoMotos() {
 
                       return (
                         <article key={image.id} className={cardClassName}>
+                          <button
+                            type="button"
+                            className={image.keep ? "moto-edit-gallery-remove-btn" : "moto-edit-gallery-restore-btn"}
+                            onClick={() => toggleExistingGalleryImage(image.id)}
+                            aria-label={image.keep ? "Eliminar imagen de galeria" : "Restaurar imagen de galeria"}
+                          >
+                            {image.keep ? "×" : "Deshacer"}
+                          </button>
                           <img src={imageSrc} alt={image.texto_alternativo || `${editingMoto.modelo || "Moto"} galeria`} />
-                          <label className="moto-edit-gallery-toggle">
-                            <input
-                              type="checkbox"
-                              checked={Boolean(image.keep)}
-                              onChange={() => toggleExistingGalleryImage(image.id)}
-                            />
-                            <span>{image.keep ? "Mantener en galeria" : "Eliminar de galeria"}</span>
-                          </label>
+                          <div className="moto-edit-gallery-status">
+                            {image.keep ? "Se mantendra en galeria" : "Se eliminara de galeria al guardar"}
+                          </div>
                         </article>
                       );
                     })}
