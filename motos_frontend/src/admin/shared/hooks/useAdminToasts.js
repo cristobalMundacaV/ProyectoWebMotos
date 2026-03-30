@@ -21,6 +21,13 @@ export default function useAdminToasts({ maxVisible = 4, timeoutMs = 3500 } = {}
     setToasts((prev) => prev.filter((toast) => toast.id !== id));
   }, []);
 
+  const clearToasts = useCallback(() => {
+    const timers = timersRef.current;
+    timers.forEach((timerId) => window.clearTimeout(timerId));
+    timers.clear();
+    setToasts([]);
+  }, []);
+
   const pushToast = useCallback(
     (message, variant = "success") => {
       const normalizedMessage = String(message || "").trim();
@@ -53,5 +60,6 @@ export default function useAdminToasts({ maxVisible = 4, timeoutMs = 3500 } = {}
     toasts,
     pushToast,
     dismissToast,
+    clearToasts,
   };
 }

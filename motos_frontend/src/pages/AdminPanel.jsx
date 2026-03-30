@@ -39,6 +39,7 @@ export default function AdminPanel() {
   const [currentUser, setCurrentUser] = useState(() => getStoredUser());
   const [activeSection, setActiveSection] = useState("resumen");
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
   const [dashboard, setDashboard] = useState({
     motos: [],
     productosIndumentaria: [],
@@ -47,9 +48,16 @@ export default function AdminPanel() {
     categoriasAccesorios: [],
   });
 
-  const { toasts, pushToast, dismissToast } = useAdminToasts();
+  const { toasts, pushToast, dismissToast, clearToasts } = useAdminToasts();
+  const pushToastSafe = useCallback(
+    (message, variant = "success") => {
+      if (isLoggingOut) return;
+      pushToast(message, variant);
+    },
+    [isLoggingOut, pushToast]
+  );
   const getErrorText = getErrorTextUtil;
-  const validateFormWithToast = useCallback((formElement) => validateFormWithToastUtil(formElement, pushToast), [pushToast]);
+  const validateFormWithToast = useCallback((formElement) => validateFormWithToastUtil(formElement, pushToastSafe), [pushToastSafe]);
 
   const { sectionRouterProps, modalHostProps } = useAdminDomains({
     activeSection,
@@ -59,7 +67,7 @@ export default function AdminPanel() {
     dashboard,
     setDashboard,
     fallbackImage,
-    pushToast,
+    pushToast: pushToastSafe,
     getErrorText,
     clearInvalidFieldStyle,
     validateFormWithToast,
@@ -126,25 +134,29 @@ export default function AdminPanel() {
   }, []);
 
   const handleLogout = useCallback(async () => {
+    if (isLoggingOut) return;
+    setIsLoggingOut(true);
+    clearToasts();
     try {
       await logoutUser();
     } catch {
       // token expirado: igual cerramos sesion local.
     } finally {
+      clearToasts();
       clearAuthSession();
       navigate("/", { replace: true });
     }
-  }, [navigate]);
+  }, [clearToasts, isLoggingOut, navigate]);
 
   const handleTopbarProfileSave = useCallback(
     async (payload) => {
       const currentRole = currentUser?.rol || currentUser?.role;
       if (!currentUser?.id) {
-        pushToast("No se encontro la sesion del usuario.", "error");
+        pushToastSafe("No se encontro la sesion del usuario.", "error");
         return false;
       }
       if (!currentRole) {
-        pushToast("No se pudo identificar el rol del usuario actual.", "error");
+        pushToastSafe("No se pudo identificar el rol del usuario actual.", "error");
         return false;
       }
 
@@ -160,14 +172,14 @@ export default function AdminPanel() {
         const updatedUser = response?.user || response;
         setCurrentUser(updatedUser);
         updateStoredUser(updatedUser);
-        pushToast("Perfil actualizado correctamente.");
+        pushToastSafe("Perfil actualizado correctamente.");
         return true;
       } catch (error) {
-        pushToast(getErrorText(error, "No se pudo actualizar el perfil."), "error");
+        pushToastSafe(getErrorText(error, "No se pudo actualizar el perfil."), "error");
         return false;
       }
     },
-    [currentUser, getErrorText, pushToast]
+    [currentUser, getErrorText, pushToastSafe]
   );
 
   return (
