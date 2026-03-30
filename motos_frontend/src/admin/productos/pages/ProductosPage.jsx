@@ -419,23 +419,23 @@ export default function ProductosPage({
             <div className="admin-form-footer">
               <div className="admin-form-footer-checks">
                 <label className="admin-form-check admin-form-check-compact">
-                  <input type="checkbox" name="es_destacado" checked={accesorioMotoForm.es_destacado} onChange={onAccesorioMotoInputChange} />
-                  Marcar como destacado (opcional)
-                </label>
-
-                <label className="admin-form-check admin-form-check-compact">
-                  <input type="checkbox" name="activo" checked={accesorioMotoForm.activo} onChange={onAccesorioMotoInputChange} />
-                  Publicar como activo (opcional)
-                </label>
-
-                <label className="admin-form-check admin-form-check-compact">
                   <input
                     type="checkbox"
                     name="requiere_compatibilidad"
                     checked={accesorioMotoForm.requiere_compatibilidad}
                     onChange={onAccesorioMotoInputChange}
                   />
-                  Vincular a modelos especificos (opcional)
+                  Vincular a modelos especificos
+                </label>
+
+                <label className="admin-form-check admin-form-check-compact">
+                  <input type="checkbox" name="es_destacado" checked={accesorioMotoForm.es_destacado} onChange={onAccesorioMotoInputChange} />
+                  Marcar como destacado
+                </label>
+
+                <label className="admin-form-check admin-form-check-compact">
+                  <input type="checkbox" name="activo" checked={accesorioMotoForm.activo} onChange={onAccesorioMotoInputChange} />
+                  Publicar como activo
                 </label>
               </div>
 
@@ -643,12 +643,12 @@ export default function ProductosPage({
               <div className="admin-form-footer-checks">
                 <label className="admin-form-check admin-form-check-compact">
                   <input type="checkbox" name="es_destacado" checked={accesorioRiderForm.es_destacado} onChange={onAccesorioRiderInputChange} />
-                  Marcar como destacado (opcional)
+                  Marcar como destacado
                 </label>
 
                 <label className="admin-form-check admin-form-check-compact">
                   <input type="checkbox" name="activo" checked={accesorioRiderForm.activo} onChange={onAccesorioRiderInputChange} />
-                  Publicar como activo (opcional)
+                  Publicar como activo
                 </label>
               </div>
 
