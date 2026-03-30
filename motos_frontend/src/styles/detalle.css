@@ -753,7 +753,7 @@
   gap: 14px;
 }
 
-.moto-hero-image-wrap img {
+.moto-hero-image-wrap > img {
   width: min(92vw, 940px);
   max-height: 480px;
   object-fit: contain;
@@ -1164,7 +1164,7 @@
     min-height: 290px;
   }
 
-  .moto-hero-image-wrap img {
+  .moto-hero-image-wrap > img {
     width: 100%;
     max-height: 330px;
   }
