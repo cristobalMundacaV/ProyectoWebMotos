@@ -176,7 +176,7 @@ export default function MotoEditModal({
                 checked={Boolean(motoEditModal.form.permite_variante_maletas)}
                 onChange={onInputChange}
               />
-              Habilitar variante con maletas
+              Variante con maletas
             </label>
             <label className="admin-form-check admin-form-check-compact">
               <input

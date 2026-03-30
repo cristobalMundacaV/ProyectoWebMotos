@@ -563,7 +563,6 @@ export default function ProductosPage({
           <article className="admin-panel-card">
           <div className="admin-card-header">
             <h2>Agregar Indumentaria Rider</h2>
-            <span>Gestion de productos para uso del piloto.</span>
           </div>
 
           <form className="admin-moto-form" onSubmit={onAccesorioRiderSubmit} noValidate>

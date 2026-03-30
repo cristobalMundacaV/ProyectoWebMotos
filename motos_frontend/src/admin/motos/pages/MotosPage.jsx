@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import AdminPagination, { paginateItems } from "../../shared/components/AdminPagination";
 import AdminYearDropdown from "../../shared/components/AdminYearDropdown";
 import AdminDeleteConfirmModal from "../../shared/components/AdminDeleteConfirmModal";
@@ -109,6 +109,10 @@ export default function MotosPage({
       motoGaleriaPreviewUrls.forEach((url) => URL.revokeObjectURL(url));
     };
   }, [motoGaleriaPreviewUrls]);
+  const motoFileInputRef = useRef(null);
+  const motoMaletasFileInputRef = useRef(null);
+  const hasNewMotoImages = Array.isArray(motoForm.imagenes_galeria) && motoForm.imagenes_galeria.length > 0;
+  const hasNewMotoMaletasImage = motoForm.imagen_con_maletas instanceof File;
 
   if (activeSection === "marcas_motos" || activeSection === "marcas_acc_motos" || activeSection === "marcas_acc_rider") {
     const marcas =
@@ -383,7 +387,6 @@ export default function MotosPage({
           <article className="admin-panel-card">
           <div className="admin-card-header">
             <h2>Agregar moto</h2>
-            <span>Completa todos los atributos</span>
           </div>
 
           <form className="admin-moto-form" onSubmit={onMotoSubmit} noValidate>
@@ -475,14 +478,30 @@ export default function MotosPage({
 
             <label className="admin-form-span-2">
               Imagenes
-              <input
-                key={`moto-images-${motoImageInputKey}`}
-                type="file"
-                name="imagenes_galeria"
-                accept="image/*"
-                multiple
-                onChange={onMotoInputChange}
-              />
+              <div className="admin-edit-file-picker">
+                <input
+                  ref={motoFileInputRef}
+                  key={`moto-images-${motoImageInputKey}`}
+                  className="admin-edit-file-hidden"
+                  type="file"
+                  name="imagenes_galeria"
+                  accept="image/*"
+                  multiple
+                  onChange={onMotoInputChange}
+                />
+                <button
+                  type="button"
+                  className="admin-edit-file-btn"
+                  onClick={() => motoFileInputRef.current?.click()}
+                >
+                  Examinar...
+                </button>
+                <span className="admin-edit-file-name">
+                  {hasNewMotoImages
+                    ? `${motoForm.imagenes_galeria.length} archivos seleccionados.`
+                    : "No se han seleccionado archivos nuevos."}
+                </span>
+              </div>
               {motoGaleriaPreviewUrls.length > 0 && (
                 <div className="admin-gallery-preview-row">
                   {motoGaleriaPreviewUrls.map((previewUrl, index) => (
@@ -491,28 +510,6 @@ export default function MotosPage({
                 </div>
               )}
             </label>
-
-            <div className="admin-moto-checks-row admin-form-span-2">
-              <label className="admin-form-check admin-form-check-compact">
-                <input
-                  type="checkbox"
-                  name="permite_variante_maletas"
-                  checked={Boolean(motoForm.permite_variante_maletas)}
-                  onChange={onMotoInputChange}
-                />
-                Habilitar variante con maletas
-              </label>
-
-              <label className="admin-form-check admin-form-check-compact">
-                <input type="checkbox" name="es_destacada" checked={motoForm.es_destacada} onChange={onMotoInputChange} />
-                Marcar como destacada
-              </label>
-
-              <label className="admin-form-check admin-form-check-compact">
-                <input type="checkbox" name="activa" checked={motoForm.activa} onChange={onMotoInputChange} />
-                Publicar como activa
-              </label>
-            </div>
 
             {motoForm.es_destacada && (
               <label className="admin-form-span-2">
@@ -563,19 +560,56 @@ export default function MotosPage({
             {motoForm.permite_variante_maletas && (
               <label className="admin-form-span-2">
                 Imagen con maletas *
-                <input
-                  key={`moto-maletas-image-${motoImageInputKey}`}
-                  type="file"
-                  name="imagen_con_maletas"
-                  accept="image/*"
-                  onChange={onMotoInputChange}
-                  required={Boolean(motoForm.permite_variante_maletas)}
-                  disabled={!motoForm.permite_variante_maletas}
-                />
+                <div className="admin-edit-file-picker">
+                  <input
+                    ref={motoMaletasFileInputRef}
+                    key={`moto-maletas-image-${motoImageInputKey}`}
+                    className="admin-edit-file-hidden"
+                    type="file"
+                    name="imagen_con_maletas"
+                    accept="image/*"
+                    onChange={onMotoInputChange}
+                    required={Boolean(motoForm.permite_variante_maletas)}
+                    disabled={!motoForm.permite_variante_maletas}
+                  />
+                  <button
+                    type="button"
+                    className="admin-edit-file-btn"
+                    onClick={() => motoMaletasFileInputRef.current?.click()}
+                    disabled={!motoForm.permite_variante_maletas}
+                  >
+                    Examinar...
+                  </button>
+                  <span className="admin-edit-file-name">
+                    {hasNewMotoMaletasImage ? motoForm.imagen_con_maletas.name : "No se ha seleccionado archivo nuevo."}
+                  </span>
+                </div>
               </label>
             )}
 
-            <div className="admin-form-footer admin-form-footer-single-action">
+            <div className="admin-form-footer">
+              <div className="admin-form-footer-checks admin-moto-footer-checks">
+                <label className="admin-form-check admin-form-check-compact">
+                  <input
+                    type="checkbox"
+                    name="permite_variante_maletas"
+                    checked={Boolean(motoForm.permite_variante_maletas)}
+                    onChange={onMotoInputChange}
+                  />
+                  Variante con maletas
+                </label>
+
+                <label className="admin-form-check admin-form-check-compact">
+                  <input type="checkbox" name="es_destacada" checked={motoForm.es_destacada} onChange={onMotoInputChange} />
+                  Marcar como destacada
+                </label>
+
+                <label className="admin-form-check admin-form-check-compact">
+                  <input type="checkbox" name="activa" checked={motoForm.activa} onChange={onMotoInputChange} />
+                  Publicar como activa
+                </label>
+              </div>
+
               <button type="submit" className="admin-primary-action admin-form-footer-submit" disabled={motoSaving}>
                 {"Guardar moto"}
               </button>
@@ -599,7 +633,7 @@ export default function MotosPage({
                   <div className="admin-moto-table-cell admin-recent-moto-meta">
                     <span className="admin-row-label">Tipo</span>
                     <strong>{formatCategoryLabel(moto.categoria_nombre)}</strong>
-                    <span>{moto.anio} | Orden: {moto.orden_carrusel ?? 1}</span>
+                    <span>{moto.es_destacada ? `${moto.anio} | Orden: ${moto.orden_carrusel ?? 1}` : moto.anio}</span>
                     <span>{moto.permite_variante_maletas ? "Variante: con/sin maletas" : "Variante: no aplica"}</span>
                   </div>
                   <div className="admin-row-actions admin-recent-moto-actions">

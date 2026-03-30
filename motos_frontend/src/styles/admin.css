@@ -1165,6 +1165,12 @@
   margin-top: 6px;
 }
 
+.admin-moto-footer-checks {
+  gap: 16px;
+  margin-top: 0;
+  flex-wrap: wrap;
+}
+
 .admin-form-check.admin-form-check-compact {
   margin-left: 0;
 }
