@@ -48,25 +48,32 @@
   border-radius: 8px;
   min-height: 350px;
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
+  gap: 12px;
 }
 
 .detalle-image-wrap img {
   width: 100%;
   max-height: 350px;
   object-fit: contain;
+  display: block;
 }
 
 .detalle-gallery-controls {
-  margin-top: 12px;
   display: grid;
-  grid-template-columns: 36px 1fr 36px;
+  grid-template-columns: 36px auto 36px;
   align-items: center;
   gap: 10px;
+  width: fit-content;
+  max-width: 100%;
+  margin: 0 auto;
 }
 
 .detalle-gallery-arrow {
+  display: grid;
+  place-items: center;
   width: 36px;
   height: 36px;
   border-radius: 999px;
@@ -80,12 +87,18 @@
 }
 
 .detalle-gallery-thumbs {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  max-width: min(100%, 720px);
+  overflow-x: auto;
+  padding: 2px;
+  scrollbar-width: thin;
 }
 
 .detalle-gallery-thumb {
+  flex: 0 0 140px;
   border: 1px solid #d3d9e3;
   border-radius: 10px;
   background: #fff;
@@ -101,7 +114,7 @@
 .detalle-gallery-thumb img {
   width: 100%;
   height: 68px;
-  object-fit: cover;
+  object-fit: contain;
   border-radius: 8px;
   display: block;
 }
@@ -454,6 +467,10 @@
     max-height: 280px;
   }
 
+  .detalle-gallery-thumb {
+    flex-basis: 120px;
+  }
+
   .detalle-price {
     font-size: 30px;
     margin-bottom: 2px;
@@ -587,6 +604,30 @@
     max-height: 228px;
   }
 
+  .detalle-gallery-controls {
+    grid-template-columns: 32px minmax(0, 1fr) 32px;
+    gap: 8px;
+    width: 100%;
+  }
+
+  .detalle-gallery-arrow {
+    width: 32px;
+    height: 32px;
+  }
+
+  .detalle-gallery-thumbs {
+    justify-content: flex-start;
+    gap: 8px;
+  }
+
+  .detalle-gallery-thumb {
+    flex-basis: 96px;
+  }
+
+  .detalle-gallery-thumb img {
+    height: 56px;
+  }
+
   .detalle-price {
     font-size: 26px;
   }
@@ -704,8 +745,11 @@
 
 .moto-hero-image-wrap {
   min-height: 390px;
-  display: grid;
-  place-items: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
 }
 
 .moto-hero-image-wrap img {

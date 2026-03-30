@@ -26,6 +26,51 @@ function formatFichaItemLabel(itemName) {
   return itemName;
 }
 
+function extractImageValue(image) {
+  if (!image) return "";
+  if (typeof image === "string") return image;
+  if (typeof image === "object") return image.imagen || image.url || "";
+  return "";
+}
+
+function normalizeImageKey(image) {
+  const rawValue = String(extractImageValue(image) || "").trim();
+  if (!rawValue) return "";
+
+  let pathname = rawValue;
+
+  try {
+    pathname = new URL(rawValue, "http://local.test").pathname || rawValue;
+  } catch {
+    pathname = rawValue;
+  }
+
+  const normalizedPath = pathname.replace(/\\/g, "/").split("?")[0].split("#")[0].toLowerCase();
+  const fileName = normalizedPath.split("/").pop() || normalizedPath;
+  const fileStem = fileName.replace(/\.[a-z0-9]+$/i, "");
+
+  return fileStem || normalizedPath;
+}
+
+function buildDistinctGalleryImages(primaryImage, galleryImages = []) {
+  const uniqueImages = new Map();
+  const candidates = [primaryImage, ...(Array.isArray(galleryImages) ? galleryImages : [])];
+
+  candidates.forEach((image) => {
+    const key = normalizeImageKey(image);
+    const source = extractImageValue(image);
+    const url = buildMediaUrl(source);
+
+    if (!key || !url || uniqueImages.has(key)) {
+      return;
+    }
+
+    uniqueImages.set(key, url);
+  });
+
+  return Array.from(uniqueImages.values());
+}
+
 export default function MotoDetalle() {
   const { slug } = useParams();
   const [moto, setMoto] = useState(null);
@@ -184,16 +229,8 @@ export default function MotoDetalle() {
   const imagenActual =
     tieneVarianteMaletas && varianteConMaletas ? moto.imagen_con_maletas : moto.imagen_principal;
 
-  const galleryImages = (() => {
-    const fromGallery = Array.isArray(moto?.imagenes) ? moto.imagenes : [];
-    const candidates = [
-      buildMediaUrl(imagenActual),
-      ...fromGallery.map((item) => buildMediaUrl(item?.imagen || item)),
-    ]
-      .map((url) => String(url || "").trim())
-      .filter(Boolean);
-    return [...new Set(candidates)];
-  })();
+  const galleryImages = buildDistinctGalleryImages(imagenActual, moto?.imagenes);
+  const hasMultipleImages = galleryImages.length > 1;
 
   const activeImageSrc =
     galleryImages[activeImageIndex] || buildMediaUrl(imagenActual) || "";
@@ -259,7 +296,7 @@ export default function MotoDetalle() {
 
           <div className="moto-hero-image-wrap">
             <img src={activeImageSrc} alt={`${modelo} ${etiquetaVariante}`} />
-            {galleryImages.length > 1 && (
+            {hasMultipleImages && (
               <div className="detalle-gallery-controls">
                 <button
                   type="button"
