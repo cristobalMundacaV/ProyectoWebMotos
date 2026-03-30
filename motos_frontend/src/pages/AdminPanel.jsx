@@ -146,6 +146,8 @@ export default function AdminPanel() {
       window.__ADMIN_LOGOUT_IN_PROGRESS = true;
     }
     clearToasts();
+    clearAuthSession();
+
     try {
       logoutUser().catch(() => {
         // token expirado o backend no disponible: no bloqueamos el logout local.
@@ -154,7 +156,10 @@ export default function AdminPanel() {
       // defensa extra (no bloqueante).
     } finally {
       clearToasts();
-      clearAuthSession();
+      if (typeof window !== "undefined") {
+        window.location.replace("/");
+        return;
+      }
       navigate("/", { replace: true });
       isLoggingOutRef.current = false;
     }
