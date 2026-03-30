@@ -28,6 +28,10 @@ ACCESORIOS_CATEGORY_SLUGS = ["accesorios-para-la-moto", "accesorios"]
 logger = logging.getLogger(__name__)
 
 
+def _parse_bool(value) -> bool:
+    return str(value).strip().lower() in {"1", "true", "si", "yes", "on"}
+
+
 def _request_meta(request):
     return build_request_metadata(request)
 
@@ -66,6 +70,7 @@ def lista_motos(request):
         serializer=serializer,
         gallery_files=request.FILES.getlist("imagenes"),
         gallery_keep_ids=request.data.getlist("gallery_keep_ids") if "gallery_keep_ids" in request.data else None,
+        remove_primary_image=_parse_bool(request.data.get("remove_primary_image", "")),
         actor=request.user,
         metadata=_request_meta(request),
     )
@@ -99,6 +104,7 @@ def detalle_moto_admin(request, moto_id):
         serializer=serializer,
         gallery_files=request.FILES.getlist("imagenes"),
         gallery_keep_ids=request.data.getlist("gallery_keep_ids") if "gallery_keep_ids" in request.data else None,
+        remove_primary_image=_parse_bool(request.data.get("remove_primary_image", "")),
         actor=request.user,
         metadata=_request_meta(request),
     )

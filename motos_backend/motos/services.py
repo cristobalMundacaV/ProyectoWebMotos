@@ -66,11 +66,22 @@ def sync_moto_gallery_images(moto: Moto, keep_ids: Iterable | None = None, files
     append_moto_gallery_images(locked_moto, files)
 
 
+def update_moto_primary_image(moto: Moto, *, remove_primary_image: bool = False) -> None:
+    if not remove_primary_image:
+        return
+
+    locked_moto = _lock_moto(moto.id)
+    if locked_moto.imagen_principal:
+        locked_moto.imagen_principal = None
+        locked_moto.save(update_fields=["imagen_principal"])
+
+
 def create_or_update_moto_with_gallery(
     *,
     serializer,
     gallery_files: Sequence | None = None,
     gallery_keep_ids: Iterable | None = None,
+    remove_primary_image: bool = False,
     actor=None,
     metadata: dict | None = None,
 ) -> Moto:
@@ -88,6 +99,8 @@ def create_or_update_moto_with_gallery(
             append_moto_gallery_images(moto, gallery_files)
         else:
             sync_moto_gallery_images(moto, keep_ids=gallery_keep_ids, files=gallery_files)
+            if "imagen_principal" not in serializer.validated_data:
+                update_moto_primary_image(moto, remove_primary_image=remove_primary_image)
         moto_refreshed = Moto.objects.get(pk=moto.pk)
         create_audit_log(
             action=action,

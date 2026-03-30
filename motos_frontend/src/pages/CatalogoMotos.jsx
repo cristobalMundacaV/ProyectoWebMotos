@@ -220,28 +220,38 @@ export default function CatalogoMotos() {
     return fileStem || normalizedPath;
   }
 
-  function buildVisibleMotoImages({ primaryImage, existingGalleryImages = [] }) {
+  function buildVisibleMotoImages({ primaryImage, keepPrimaryImage = true, existingGalleryImages = [] }) {
     const visibleImages = [];
     const seenKeys = new Set();
 
-    const appendVisibleImage = (image, source) => {
+    const appendVisibleImage = (image, source, options = {}) => {
       const key = normalizeImageKey(image);
       const rawImage = extractImageValue(image);
-      if (!key || !rawImage || seenKeys.has(key)) return;
+      if (!key || !rawImage) return;
 
-      seenKeys.add(key);
+      const visible = Boolean(options.keep) && !seenKeys.has(key);
+      if (visible) {
+        seenKeys.add(key);
+      }
       visibleImages.push({
         key,
         source,
         image: rawImage,
+        visible,
+        keep: Boolean(options.keep),
+        imageId: options.imageId ?? null,
       });
     };
 
-    appendVisibleImage(primaryImage, "principal");
+    appendVisibleImage(primaryImage, "principal", { keep: keepPrimaryImage });
 
     (Array.isArray(existingGalleryImages) ? existingGalleryImages : [])
-      .filter((image) => image.keep)
-      .forEach((image) => appendVisibleImage(image.imagen, "galeria"));
+      .forEach((image) =>
+        appendVisibleImage(image.imagen, "galeria", {
+          keep: image.keep,
+          imageId: image.id,
+        })
+      );
 
     return visibleImages;
   }
@@ -283,6 +293,7 @@ export default function CatalogoMotos() {
       orden_carrusel: String(moto.orden_carrusel ?? 1),
       es_destacada: Boolean(moto.es_destacada),
       activa: moto.activa !== false,
+      keep_imagen_principal: Boolean(moto.imagen_principal),
       imagenes_galeria: [],
       imagenes_existentes: Array.isArray(moto.imagenes)
         ? moto.imagenes.map((imagen) => ({
@@ -397,6 +408,17 @@ export default function CatalogoMotos() {
     });
   }
 
+  function togglePrimaryImageVisibility() {
+    setEditForm((prev) => {
+      if (!prev) return prev;
+
+      return {
+        ...prev,
+        keep_imagen_principal: !prev.keep_imagen_principal,
+      };
+    });
+  }
+
   function openDeleteModal(moto) {
     setDeleteCandidate(moto);
   }
@@ -480,6 +502,9 @@ export default function CatalogoMotos() {
     const primaryImageFromGallery = galleryFiles[0] || null;
     if (primaryImageFromGallery) {
       payload.append("imagen_principal", primaryImageFromGallery);
+    }
+    if (editingMoto?.imagen_principal && !editForm.keep_imagen_principal && !primaryImageFromGallery) {
+      payload.append("remove_primary_image", "true");
     }
     keptExistingGalleryIds.forEach((imageId) => payload.append("gallery_keep_ids", String(imageId)));
     galleryFiles.forEach((file) => payload.append("imagenes", file));
@@ -592,8 +617,11 @@ export default function CatalogoMotos() {
   const keptExistingGalleryCount = existingGalleryImages.filter((image) => image.keep).length;
   const visibleDetailImages = buildVisibleMotoImages({
     primaryImage: editingMoto?.imagen_principal,
+    keepPrimaryImage: Boolean(editForm?.keep_imagen_principal),
     existingGalleryImages,
   });
+  const visibleDetailCount = visibleDetailImages.filter((image) => image.visible).length;
+  const hasEditablePublishedImages = Boolean(editingMoto?.imagen_principal) || existingGalleryImages.length > 0;
   const activeFiltersCount =
     selectedMarcas.length +
     selectedCategorias.length +
@@ -954,22 +982,54 @@ export default function CatalogoMotos() {
                 </p>
               </label>
 
-              {existingGalleryImages.length > 0 ? (
+              {hasEditablePublishedImages ? (
                 <div className="moto-edit-span-2 moto-edit-gallery-manager">
                   <div className="moto-edit-gallery-header">
                     <p>Imagenes visibles en el detalle publico</p>
                     <span>
-                      {visibleDetailImages.length} visibles en detalle. {keptExistingGalleryCount} de {existingGalleryImages.length} imagenes de galeria se conservaran
+                      {visibleDetailCount} visibles en detalle. Imagen principal {editForm.keep_imagen_principal ? "se mantendra" : "se eliminara"} y {keptExistingGalleryCount} de {existingGalleryImages.length} imagenes de galeria se conservaran
                     </span>
                   </div>
 
                   <div className="moto-edit-visible-grid">
                     {visibleDetailImages.map((image) => (
-                      <article key={`${image.source}-${image.key}`} className="moto-edit-visible-card">
+                      <article
+                        key={`${image.source}-${image.imageId ?? image.key}`}
+                        className={image.keep ? "moto-edit-visible-card" : "moto-edit-visible-card is-removed"}
+                      >
+                        <button
+                          type="button"
+                          className={image.keep ? "moto-edit-gallery-remove-btn" : "moto-edit-gallery-restore-btn"}
+                          onClick={() =>
+                            image.source === "principal"
+                              ? togglePrimaryImageVisibility()
+                              : toggleExistingGalleryImage(image.imageId)
+                          }
+                          aria-label={
+                            image.source === "principal"
+                              ? image.keep
+                                ? "Eliminar imagen principal"
+                                : "Restaurar imagen principal"
+                              : image.keep
+                                ? "Eliminar imagen de galeria"
+                                : "Restaurar imagen de galeria"
+                          }
+                        >
+                          {image.keep ? "×" : "Deshacer"}
+                        </button>
                         <span className="moto-edit-visible-badge">
                           {image.source === "principal" ? "Imagen principal" : "Imagen de galeria"}
                         </span>
                         <img src={buildMediaUrl(image.image)} alt={`${editingMoto.modelo || "Moto"} ${image.source}`} />
+                        <div className="moto-edit-gallery-status">
+                          {image.keep
+                            ? image.visible
+                              ? "Se mostrara en el detalle publico"
+                              : "No se mostrara porque duplica otra imagen visible"
+                            : image.source === "principal"
+                              ? "Se eliminara la imagen principal al guardar"
+                              : "Se eliminara de la galeria al guardar"}
+                        </div>
                       </article>
                     ))}
                   </div>

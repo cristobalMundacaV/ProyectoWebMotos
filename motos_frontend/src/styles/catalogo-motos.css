@@ -517,12 +517,20 @@
 }
 
 .moto-edit-visible-card {
+  position: relative;
   display: grid;
   gap: 8px;
   padding: 10px;
   background: #ffffff;
   border: 1px solid #d6dbe6;
   border-radius: 12px;
+  transition: opacity 0.18s ease, border-color 0.18s ease, background-color 0.18s ease;
+}
+
+.moto-edit-visible-card.is-removed {
+  opacity: 0.55;
+  background: #f3f4f6;
+  border-color: #c7ceda;
 }
 
 .moto-edit-visible-badge {
