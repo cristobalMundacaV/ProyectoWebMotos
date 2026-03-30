@@ -46,6 +46,31 @@ function shouldAttachAuthHeader(config) {
   return true;
 }
 
+function isAdminOrProtectedPath(path = "") {
+  const normalized = normalizeRequestPath(path);
+  return (
+    normalized.startsWith("/clientes/admin/") ||
+    normalized.startsWith("/mantenciones/") ||
+    normalized.startsWith("/motos/meta/") ||
+    normalized.startsWith("/tienda/admin/") ||
+    normalized.startsWith("/catalogo/accesorios-moto/") ||
+    normalized.startsWith("/catalogo/accesorios-rider/")
+  );
+}
+
+function shouldSilence401(error) {
+  const status = error?.response?.status;
+  if (status !== 401) return false;
+
+  const hasAccessToken = Boolean(localStorage.getItem(ACCESS_TOKEN_KEY));
+  const logoutInProgress =
+    typeof window !== "undefined" && window.__ADMIN_LOGOUT_IN_PROGRESS === true;
+  const requestPath = normalizeRequestPath(error?.config?.url || "");
+
+  // 401 esperado: token ausente/expirado en rutas protegidas o logout en curso.
+  return logoutInProgress || (!hasAccessToken && isAdminOrProtectedPath(requestPath));
+}
+
 api.interceptors.request.use((config) => {
   const token = localStorage.getItem(ACCESS_TOKEN_KEY);
   if (token && shouldAttachAuthHeader(config)) {
@@ -62,7 +87,8 @@ api.interceptors.response.use(
       errorCode === "ERR_CANCELED" ||
       errorCode === "ECONNABORTED" ||
       String(error?.message || "").toLowerCase().includes("aborted");
-    if (!isCanceled) {
+    const silence401 = shouldSilence401(error);
+    if (!isCanceled && !silence401) {
       console.error("API request failed:", error);
     }
 

@@ -81,6 +81,12 @@ export default function AdminPanel() {
   });
 
   useEffect(() => {
+    if (typeof window !== "undefined") {
+      window.__ADMIN_LOGOUT_IN_PROGRESS = false;
+    }
+  }, []);
+
+  useEffect(() => {
     let mounted = true;
 
     async function verifyAdminSession() {
@@ -136,15 +142,21 @@ export default function AdminPanel() {
   const handleLogout = useCallback(async () => {
     if (isLoggingOut) return;
     setIsLoggingOut(true);
+    if (typeof window !== "undefined") {
+      window.__ADMIN_LOGOUT_IN_PROGRESS = true;
+    }
     clearToasts();
     try {
-      await logoutUser();
+      logoutUser().catch(() => {
+        // token expirado o backend no disponible: no bloqueamos el logout local.
+      });
     } catch {
-      // token expirado: igual cerramos sesion local.
+      // defensa extra (no bloqueante).
     } finally {
       clearToasts();
       clearAuthSession();
       navigate("/", { replace: true });
+      setIsLoggingOut(false);
     }
   }, [clearToasts, isLoggingOut, navigate]);
 
