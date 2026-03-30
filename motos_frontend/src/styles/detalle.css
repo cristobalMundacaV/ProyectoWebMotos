@@ -760,28 +760,34 @@
 }
 
 .moto-gallery-controls {
-  display: flex;
+  display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 10px;
   width: auto;
-  max-width: min(100%, calc(var(--thumb-columns, 1) * 156px + 92px));
+  max-width: 100%;
   align-self: center;
 }
 
 .moto-gallery-thumbs {
-  flex: 0 1 auto;
+  display: inline-flex;
+  flex: 0 0 auto;
   justify-content: center;
-  width: min(100%, calc(var(--thumb-columns, 1) * 156px));
-  max-width: calc(var(--thumb-columns, 1) * 156px);
-  overflow-x: auto;
-  overflow-y: hidden;
+  width: auto;
+  max-width: 100%;
+  overflow: visible;
 }
 
 .moto-gallery-thumbs .detalle-gallery-thumb {
-  flex: 0 0 140px;
-  width: 140px;
-  max-width: 140px;
+  flex: 0 0 auto;
+  width: 108px;
+  min-width: 108px;
+  max-width: 108px;
+  padding: 4px;
+}
+
+.moto-gallery-thumbs .detalle-gallery-thumb img {
+  height: 60px;
 }
 
 .moto-toggle-center {
@@ -1165,20 +1171,26 @@
 
   .moto-gallery-controls {
     max-width: 100%;
-    width: 100%;
+    width: auto;
     gap: 8px;
   }
 
   .moto-gallery-thumbs {
-    width: 100%;
-    max-width: 100%;
+    width: min(100%, calc(100vw - 120px));
+    max-width: calc(100vw - 120px);
     justify-content: flex-start;
+    overflow-x: auto;
+    overflow-y: hidden;
   }
 
   .moto-gallery-thumbs .detalle-gallery-thumb {
-    flex-basis: 120px;
-    width: 120px;
-    max-width: 120px;
+    width: 96px;
+    min-width: 96px;
+    max-width: 96px;
+  }
+
+  .moto-gallery-thumbs .detalle-gallery-thumb img {
+    height: 52px;
   }
 
   .moto-toggle-center {
