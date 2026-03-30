@@ -78,6 +78,11 @@ export async function listAdminUsers() {
   return response.data;
 }
 
+export async function listAdminClientes() {
+  const response = await api.get("/clientes/admin/clientes/");
+  return response.data;
+}
+
 export async function updateAdminUser(userId, payload) {
   const response = await api.patch(`/clientes/admin/users/${userId}/`, payload);
   return response.data;
@@ -94,6 +99,11 @@ export async function loginUser(payload) {
 
 export async function fetchCurrentUser() {
   const response = await api.get("/clientes/me/");
+  return response.data;
+}
+
+export async function updateCurrentUser(payload) {
+  const response = await api.patch("/clientes/me/", payload);
   return response.data;
 }
 

@@ -148,9 +148,14 @@ export default function useAdminSectionProps({ activeSection, loading, dashboard
         adminUsersLoading: users.adminUsersLoading,
         adminUsersLoadError: users.adminUsersLoadError,
         paginatedAdminUsers: users.paginatedAdminUsers,
+        adminClientes: users.adminClientes,
+        adminClientesLoading: users.adminClientesLoading,
+        adminClientesLoadError: users.adminClientesLoadError,
+        paginatedAdminClientes: users.paginatedAdminClientes,
         onEditUser: users.openAdminUserEditModal,
         onDeleteUser: users.openAdminUserDeleteModal,
         onPageChange: users.setAdminUsersPage,
+        onClientesPageChange: users.setAdminClientesPage,
       },
     };
   }, [activeSection, activeMarcaConfig, dashboard, domains, loading]);

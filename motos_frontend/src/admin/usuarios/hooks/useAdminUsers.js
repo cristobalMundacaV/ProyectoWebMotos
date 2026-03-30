@@ -1,5 +1,5 @@
 import { useCallback, useMemo, useState } from "react";
-import { createAdminUser, deleteAdminUser, listAdminUsers, updateAdminUser } from "../../../services/authService";
+import { createAdminUser, deleteAdminUser, listAdminClientes, listAdminUsers, updateAdminUser } from "../../../services/authService";
 import { paginateItems } from "../../shared/components/AdminPagination";
 import { initialCreateUserForm } from "../../shared/constants/adminInitialState";
 import { normalizeAdminUsersResponse } from "../../shared/utils/adminText";
@@ -47,6 +47,10 @@ export default function useAdminUsers({
   const [adminUsersLoading, setAdminUsersLoading] = useState(true);
   const [adminUsersLoadError, setAdminUsersLoadError] = useState("");
   const [adminUsersPage, setAdminUsersPage] = useState(1);
+  const [adminClientes, setAdminClientes] = useState([]);
+  const [adminClientesLoading, setAdminClientesLoading] = useState(true);
+  const [adminClientesLoadError, setAdminClientesLoadError] = useState("");
+  const [adminClientesPage, setAdminClientesPage] = useState(1);
   const [adminUserEditModal, setAdminUserEditModal] = useState(null);
   const [adminUserDeleteModal, setAdminUserDeleteModal] = useState(null);
   const [adminUserModalSaving, setAdminUserModalSaving] = useState(false);
@@ -73,6 +77,27 @@ export default function useAdminUsers({
     }
   }, [adminUsers.length, getErrorText]);
 
+  const fetchClientesList = useCallback(async ({ background = false } = {}) => {
+    const shouldShowLoading = !background && adminClientes.length === 0;
+    if (shouldShowLoading) {
+      setAdminClientesLoading(true);
+    }
+    try {
+      const payload = await listAdminClientes();
+      const clientes = Array.isArray(payload?.clientes) ? payload.clientes : [];
+      setAdminClientes(clientes);
+      setAdminClientesLoadError("");
+      return clientes;
+    } catch (error) {
+      setAdminClientesLoadError(getErrorText(error, "No se pudo cargar la lista de clientes."));
+      throw error;
+    } finally {
+      if (shouldShowLoading) {
+        setAdminClientesLoading(false);
+      }
+    }
+  }, [adminClientes.length, getErrorText]);
+
   const handleCreateUserInputChange = useCallback(
     (event) => {
       clearInvalidFieldStyle(event.target);
@@ -88,7 +113,7 @@ export default function useAdminUsers({
       const formElement = event.currentTarget;
       if (!validateFormWithToast(event.currentTarget)) return;
       if (createUserForm.password !== createUserForm.confirm_password) {
-        pushToast("Las contraseñas no coinciden.", "error");
+        pushToast("Las contrase\u00f1as no coinciden.", "error");
         markInvalidFields(formElement, ["password", "confirm_password"]);
         return;
       }
@@ -221,6 +246,7 @@ export default function useAdminUsers({
   }, [adminUserDeleteModal, closeAdminUserDeleteModal, getErrorText, pushToast]);
 
   const paginatedAdminUsers = useMemo(() => paginateItems(adminUsers, adminUsersPage, 10), [adminUsers, adminUsersPage]);
+  const paginatedAdminClientes = useMemo(() => paginateItems(adminClientes, adminClientesPage, 10), [adminClientes, adminClientesPage]);
 
   return {
     createUserForm,
@@ -234,11 +260,20 @@ export default function useAdminUsers({
     setAdminUsersLoading,
     adminUsersPage,
     setAdminUsersPage,
+    adminClientes,
+    setAdminClientes,
+    adminClientesLoading,
+    setAdminClientesLoading,
+    adminClientesLoadError,
+    setAdminClientesLoadError,
+    adminClientesPage,
+    setAdminClientesPage,
     adminUserEditModal,
     adminUserDeleteModal,
     adminUserModalSaving,
     adminUserModalError,
     fetchUsersList,
+    fetchClientesList,
     handleCreateUserInputChange,
     handleCreateUserSubmit,
     openAdminUserEditModal,
@@ -249,5 +284,8 @@ export default function useAdminUsers({
     submitAdminUserEdit,
     submitAdminUserDelete,
     paginatedAdminUsers,
+    paginatedAdminClientes,
   };
 }
+
+

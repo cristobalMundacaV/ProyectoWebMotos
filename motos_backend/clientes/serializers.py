@@ -37,10 +37,17 @@ class UserRegisterSerializer(serializers.ModelSerializer):
             "min_length": "La contrasena debe tener al menos 8 caracteres.",
         },
     )
+    telefono = serializers.CharField(
+        max_length=30,
+        error_messages={
+            "required": "El telefono es obligatorio.",
+            "blank": "El telefono es obligatorio.",
+        },
+    )
 
     class Meta:
         model = User
-        fields = ["username", "email", "password", "confirm_password", "first_name", "last_name"]
+        fields = ["username", "email", "telefono", "password", "confirm_password", "first_name", "last_name"]
 
     def validate_email(self, value):
         email = value.strip().lower()
@@ -63,6 +70,7 @@ class UserRegisterSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         validated_data.pop("confirm_password")
+        telefono = validated_data.pop("telefono", "").strip()
         password = validated_data.pop("password")
         with transaction.atomic():
             user = User(**validated_data)
@@ -71,7 +79,7 @@ class UserRegisterSerializer(serializers.ModelSerializer):
             user.save()
             PerfilUsuario.objects.update_or_create(
                 user=user,
-                defaults={"rol": PerfilUsuario.ROL_CLIENTE},
+                defaults={"rol": PerfilUsuario.ROL_CLIENTE, "telefono": telefono},
             )
         return user
 

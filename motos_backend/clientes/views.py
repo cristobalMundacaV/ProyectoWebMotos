@@ -96,11 +96,71 @@ def login_user(request):
 	)
 
 
-@api_view(["GET"])
+@api_view(["GET", "PATCH"])
 @authentication_classes([JWTAuthentication])
 @permission_classes([IsAuthenticated])
 def current_user(request):
-	return Response({"user": _serialize_user(request.user)})
+	if request.method == "GET":
+		return Response({"user": _serialize_user(request.user)})
+
+	data = request.data
+	first_name = (data.get("first_name") or "").strip()
+	last_name = (data.get("last_name") or "").strip()
+	username = (data.get("username") or "").strip()
+	email = (data.get("email") or "").strip()
+	telefono = (data.get("telefono") or "").strip()
+
+	if not first_name or not last_name or not username:
+		return Response(
+			{"detail": "Nombres, apellidos y nombre de usuario son obligatorios."},
+			status=status.HTTP_400_BAD_REQUEST,
+		)
+
+	if User.objects.filter(username__iexact=username).exclude(id=request.user.id).exists():
+		return Response({"detail": "El nombre de usuario ya esta en uso."}, status=status.HTTP_400_BAD_REQUEST)
+
+	if email and User.objects.filter(email__iexact=email).exclude(id=request.user.id).exists():
+		return Response({"detail": "El correo ya esta en uso."}, status=status.HTTP_400_BAD_REQUEST)
+
+	try:
+		with transaction.atomic():
+			request.user.first_name = first_name
+			request.user.last_name = last_name
+			request.user.username = username
+			request.user.email = email
+			request.user.save()
+
+			PerfilUsuario.objects.update_or_create(
+				user=request.user,
+				defaults={"telefono": telefono, "rol": get_user_role(request.user)},
+			)
+	except IntegrityError:
+		return Response(
+			{"detail": "No se pudo actualizar el perfil por conflicto de integridad."},
+			status=status.HTTP_409_CONFLICT,
+		)
+
+	request.user.refresh_from_db()
+	return Response({"detail": "Perfil actualizado correctamente.", "user": _serialize_user(request.user)})
+
+
+@api_view(["GET"])
+@authentication_classes([JWTAuthentication])
+@permission_classes([IsAuthenticated, IsBackofficeAdmin])
+def admin_list_clientes(request):
+	clientes = (
+		User.objects.select_related("perfil_usuario")
+		.filter(Q(perfil_usuario__rol=PerfilUsuario.ROL_CLIENTE) | (Q(is_staff=False) & Q(is_superuser=False)))
+		.order_by("-date_joined", "-id")
+	)
+
+	results = []
+	for user in clientes:
+		payload = _serialize_user(user)
+		payload["date_joined"] = user.date_joined.isoformat() if user.date_joined else None
+		results.append(payload)
+
+	return Response({"clientes": results})
 
 
 @api_view(["POST"])

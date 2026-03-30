@@ -1,7 +1,6 @@
-﻿import { useState } from "react";
-import { Link } from "react-router-dom";
+import { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import "../styles/login.css";
-import { useNavigate } from "react-router-dom";
 import { hasAdminAccess, loginUser, registerUser, saveAuthSession } from "../services/authService";
 
 export default function Login() {
@@ -19,6 +18,7 @@ export default function Login() {
   const [registerForm, setRegisterForm] = useState({
     username: "",
     email: "",
+    telefono: "",
     password: "",
     confirm_password: "",
     first_name: "",
@@ -40,7 +40,7 @@ export default function Login() {
     }
 
     if (target.validity.tooShort) {
-      target.setCustomValidity("La contrasena debe tener al menos 8 caracteres.");
+      target.setCustomValidity("La contrase\u00f1a debe tener al menos 8 caracteres.");
     }
   };
 
@@ -81,7 +81,7 @@ export default function Login() {
       const isAdmin = hasAdminAccess(data.user);
       navigate(isAdmin ? "/admin-panel" : "/");
     } catch (err) {
-      const detail = pickApiError(err.response?.data);
+      const detail = pickApiError(err?.response?.data);
       setError(detail);
     } finally {
       setLoading(false);
@@ -94,7 +94,7 @@ export default function Login() {
         <article className="login-card">
           <img src="/images/logo.svg" alt="Delanoe Motos" className="login-logo" />
           <h1>Bienvenido</h1>
-          <p>{mode === "login" ? "Inicia sesion para continuar" : "Crea tu cuenta para continuar"}</p>
+          <p>{mode === "login" ? "Inicia sesi\u00f3n para continuar" : "Crea tu cuenta para continuar"}</p>
 
           <form className="login-form" onSubmit={handleSubmit}>
             {mode === "register" && (
@@ -141,7 +141,7 @@ export default function Login() {
             )}
 
             <label htmlFor="email">
-              {mode === "login" ? "Correo o nombre de usuario" : "Correo electronico"}
+              {mode === "login" ? "Correo o nombre de usuario" : "Correo electr\u00f3nico"}
             </label>
             <input
               id="email"
@@ -162,7 +162,7 @@ export default function Login() {
               onInput={clearValidationMessage}
             />
 
-            <label htmlFor="password">Contrasena</label>
+            <label htmlFor="password">Contrase\u00f1a</label>
             <div className="password-field">
               <input
                 id="password"
@@ -186,7 +186,7 @@ export default function Login() {
                 type="button"
                 className="toggle-password"
                 onClick={() => setShowPassword((prev) => !prev)}
-                aria-label={showPassword ? "Ocultar contrasena" : "Mostrar contrasena"}
+                aria-label={showPassword ? "Ocultar contrase\u00f1a" : "Mostrar contrase\u00f1a"}
               >
                 {showPassword ? "Ocultar" : "Ver"}
               </button>
@@ -194,7 +194,22 @@ export default function Login() {
 
             {mode === "register" && (
               <>
-                <label htmlFor="confirm_password">Confirmar contrasena</label>
+                <label htmlFor="telefono">Telefono</label>
+                <input
+                  id="telefono"
+                  name="telefono"
+                  type="text"
+                  placeholder="+569..."
+                  value={registerForm.telefono}
+                  onChange={(event) =>
+                    setRegisterForm((prev) => ({ ...prev, telefono: event.target.value }))
+                  }
+                  required
+                  onInvalid={setValidationMessage}
+                  onInput={clearValidationMessage}
+                />
+
+                <label htmlFor="confirm_password">Confirmar contrase\u00f1a</label>
                 <input
                   id="confirm_password"
                   name="confirm_password"
@@ -224,13 +239,13 @@ export default function Login() {
                   <label>
                     <input type="checkbox" name="remember" /> Recordarme
                   </label>
-                  <Link to="/">Olvidaste tu contrasena?</Link>
+                  <Link to="/">\u00bfOlvidaste tu contrase\u00f1a?</Link>
                 </div>
 
                 <div className="login-register">
-                  No tienes cuenta?{" "}
+                  \u00bfNo tienes cuenta?{" "}
                   <button type="button" className="register-link" onClick={() => setMode("register")}>
-                    Registrate
+                    Reg\u00edstrate
                   </button>
                 </div>
               </>
@@ -238,9 +253,9 @@ export default function Login() {
 
             {mode === "register" && (
               <div className="login-register">
-                Ya tienes cuenta?{" "}
+                \u00bfYa tienes cuenta?{" "}
                 <button type="button" className="register-link" onClick={() => setMode("login")}>
-                  Inicia sesion
+                  Inicia sesi\u00f3n
                 </button>
               </div>
             )}
@@ -250,7 +265,3 @@ export default function Login() {
     </main>
   );
 }
-
-
-
-

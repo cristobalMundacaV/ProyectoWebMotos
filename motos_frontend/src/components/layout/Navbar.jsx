@@ -1,9 +1,27 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { clearAuthSession, getStoredToken, getStoredUser, hasAdminAccess } from "../../services/authService";
+import {
+  clearAuthSession,
+  fetchCurrentUser,
+  getStoredToken,
+  getStoredUser,
+  hasAdminAccess,
+  logoutUser,
+  updateCurrentUser,
+  updateStoredUser,
+} from "../../services/authService";
 import "../../styles/layout.css";
 
-/** Navbar compartido por todas las paginas */
+function roleLabel(value) {
+  const map = {
+    superadmin: "Super Admin",
+    admin: "Administrador",
+    encargado: "Encargado",
+    cliente: "Cliente",
+  };
+  return map[String(value || "").toLowerCase()] || "Usuario";
+}
+
 export default function Navbar() {
   const [user, setUser] = useState(() => {
     const token = getStoredToken();
@@ -11,6 +29,18 @@ export default function Navbar() {
   });
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isMaintenanceMenuOpen, setIsMaintenanceMenuOpen] = useState(false);
+  const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
+  const [isEditingProfile, setIsEditingProfile] = useState(false);
+  const [profileSaving, setProfileSaving] = useState(false);
+  const [profileError, setProfileError] = useState("");
+  const [profileForm, setProfileForm] = useState({
+    first_name: "",
+    last_name: "",
+    username: "",
+    email: "",
+    telefono: "",
+  });
+  const userMenuRef = useRef(null);
   const location = useLocation();
   const navigate = useNavigate();
   const canAccessAdminPanel = hasAdminAccess(user);
@@ -20,9 +50,16 @@ export default function Navbar() {
       ? window.matchMedia("(hover: hover) and (pointer: fine)").matches
       : false;
 
+  const displayName = useMemo(() => {
+    const full = `${user?.first_name || ""} ${user?.last_name || ""}`.trim();
+    return full || user?.username || "Usuario";
+  }, [user?.first_name, user?.last_name, user?.username]);
+
   useEffect(() => {
     setIsMenuOpen(false);
     setIsMaintenanceMenuOpen(false);
+    setIsUserMenuOpen(false);
+    setIsEditingProfile(false);
   }, [location.pathname, location.hash]);
 
   useEffect(() => {
@@ -30,10 +67,67 @@ export default function Navbar() {
     return () => document.body.classList.remove("mobile-menu-open");
   }, [isMenuOpen]);
 
-  function handleLogout() {
+  useEffect(() => {
+    setProfileForm({
+      first_name: user?.first_name || "",
+      last_name: user?.last_name || "",
+      username: user?.username || "",
+      email: user?.email || "",
+      telefono: user?.telefono || "",
+    });
+  }, [user?.first_name, user?.last_name, user?.username, user?.email, user?.telefono]);
+
+  useEffect(() => {
+    const token = getStoredToken();
+    if (!token) return;
+
+    let active = true;
+    fetchCurrentUser()
+      .then((response) => {
+        if (!active) return;
+        const current = response?.user || response;
+        setUser(current);
+        updateStoredUser(current);
+      })
+      .catch(() => {});
+
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!isUserMenuOpen) return undefined;
+
+    const handleClickOutside = (event) => {
+      if (!userMenuRef.current || userMenuRef.current.contains(event.target)) return;
+      setIsUserMenuOpen(false);
+      setIsEditingProfile(false);
+    };
+
+    const handleEsc = (event) => {
+      if (event.key !== "Escape") return;
+      setIsUserMenuOpen(false);
+      setIsEditingProfile(false);
+    };
+
+    window.addEventListener("mousedown", handleClickOutside);
+    window.addEventListener("keydown", handleEsc);
+    return () => {
+      window.removeEventListener("mousedown", handleClickOutside);
+      window.removeEventListener("keydown", handleEsc);
+    };
+  }, [isUserMenuOpen]);
+
+  async function handleLogout() {
+    try {
+      logoutUser().catch(() => {});
+    } catch {}
     clearAuthSession();
     setUser(null);
     setIsMenuOpen(false);
+    setIsUserMenuOpen(false);
+    setIsEditingProfile(false);
     navigate("/");
   }
 
@@ -67,6 +161,39 @@ export default function Navbar() {
   function handleMaintenanceLinkClick() {
     setIsMaintenanceMenuOpen(false);
     setIsMenuOpen(false);
+  }
+
+  function handleProfileInputChange(event) {
+    const { name, value } = event.target;
+    setProfileForm((prev) => ({ ...prev, [name]: value }));
+  }
+
+  async function handleSaveProfile(event) {
+    event.preventDefault();
+    if (!user?.id || profileSaving) return;
+    setProfileSaving(true);
+    setProfileError("");
+
+    try {
+      const response = await updateCurrentUser({
+        first_name: profileForm.first_name,
+        last_name: profileForm.last_name,
+        username: profileForm.username,
+        email: profileForm.email,
+        telefono: profileForm.telefono,
+      });
+      const updatedUser = response?.user || response;
+      setUser(updatedUser);
+      updateStoredUser(updatedUser);
+      setIsEditingProfile(false);
+    } catch (error) {
+      const message =
+        error?.response?.data?.detail ||
+        "No se pudo actualizar el perfil.";
+      setProfileError(String(message));
+    } finally {
+      setProfileSaving(false);
+    }
   }
 
   return (
@@ -141,11 +268,7 @@ export default function Navbar() {
           )}
 
           <div className="nav-mobile-session">
-            {user ? (
-              <button type="button" className="btn-nav btn-nav-logout" onClick={handleLogout}>
-                Cerrar sesión
-              </button>
-            ) : (
+            {!user && (
               <Link className="btn-nav btn-nav-subtle" to="/login" onClick={() => setIsMenuOpen(false)}>
                 Login
               </Link>
@@ -154,19 +277,47 @@ export default function Navbar() {
         </nav>
 
         {user ? (
-          <div className="nav-user">
-            <div className="nav-user-meta">
-              <span className="nav-user-icon" aria-hidden="true">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M20 21a8 8 0 0 0-16 0" />
-                  <circle cx="12" cy="8" r="4" />
-                </svg>
-              </span>
-              <span className="nav-username">{user.username}</span>
-            </div>
-            <button type="button" className="btn-nav btn-nav-logout nav-user-logout-desktop" onClick={handleLogout}>
-              Cerrar sesión
+          <div className={`nav-dropdown ${isUserMenuOpen ? "open" : ""}`} ref={userMenuRef}>
+            <button
+              type="button"
+              className="nav-dropdown-trigger"
+              aria-expanded={isUserMenuOpen}
+              onClick={() => setIsUserMenuOpen((prev) => !prev)}
+            >
+              {displayName}
             </button>
+            <div className="nav-dropdown-menu">
+              {!isEditingProfile ? (
+                <>
+                  <p style={{ margin: "6px 8px", color: "#101010", fontWeight: 700 }}>{displayName}</p>
+                  <p style={{ margin: "0 8px 4px", color: "#555", fontSize: "0.9rem" }}>{roleLabel(user?.rol || user?.role)}</p>
+                  <p style={{ margin: "0 8px 4px", color: "#333", fontSize: "0.9rem" }}>Usuario: {user?.username || "-"}</p>
+                  <p style={{ margin: "0 8px 4px", color: "#333", fontSize: "0.9rem" }}>Email: {user?.email || "-"}</p>
+                  <p style={{ margin: "0 8px 8px", color: "#333", fontSize: "0.9rem" }}>Telefono: {user?.telefono || "-"}</p>
+                  <button type="button" className="btn-nav btn-nav-subtle" style={{ width: "100%" }} onClick={() => setIsEditingProfile(true)}>
+                    Editar perfil
+                  </button>
+                  <button type="button" className="btn-nav btn-nav-logout" style={{ width: "100%", marginTop: "8px" }} onClick={handleLogout}>
+                    Cerrar sesión
+                  </button>
+                </>
+              ) : (
+                <form onSubmit={handleSaveProfile}>
+                  <input name="first_name" placeholder="Nombres" value={profileForm.first_name} onChange={handleProfileInputChange} required style={{ width: "100%", marginBottom: "6px" }} />
+                  <input name="last_name" placeholder="Apellidos" value={profileForm.last_name} onChange={handleProfileInputChange} required style={{ width: "100%", marginBottom: "6px" }} />
+                  <input name="username" placeholder="Usuario" value={profileForm.username} onChange={handleProfileInputChange} required style={{ width: "100%", marginBottom: "6px" }} />
+                  <input name="email" type="email" placeholder="Email" value={profileForm.email} onChange={handleProfileInputChange} style={{ width: "100%", marginBottom: "6px" }} />
+                  <input name="telefono" placeholder="Telefono" value={profileForm.telefono} onChange={handleProfileInputChange} style={{ width: "100%", marginBottom: "6px" }} />
+                  {profileError ? <p style={{ color: "#d62828", margin: "4px 0 8px" }}>{profileError}</p> : null}
+                  <button type="submit" className="btn-nav" style={{ width: "100%" }} disabled={profileSaving}>
+                    {profileSaving ? "Guardando..." : "Guardar cambios"}
+                  </button>
+                  <button type="button" className="btn-nav btn-nav-subtle" style={{ width: "100%", marginTop: "8px" }} onClick={() => setIsEditingProfile(false)} disabled={profileSaving}>
+                    Cancelar
+                  </button>
+                </form>
+              )}
+            </div>
           </div>
         ) : (
           <Link className="btn-nav btn-nav-subtle nav-desktop-admin" to="/login">

@@ -199,6 +199,7 @@ const SIDEBAR_STRUCTURE = {
           roles: ["admin"],
           items: [
             { label: "Crear Usuario", value: "crear_usuario", roles: ["admin"] },
+            { label: "Clientes", value: "clientes_admin", roles: ["admin"] },
           ],
         },
         {
