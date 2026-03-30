@@ -40,6 +40,7 @@ export default function Navbar() {
     email: "",
     telefono: "",
   });
+
   const userMenuRef = useRef(null);
   const location = useLocation();
   const navigate = useNavigate();
@@ -187,9 +188,7 @@ export default function Navbar() {
       updateStoredUser(updatedUser);
       setIsEditingProfile(false);
     } catch (error) {
-      const message =
-        error?.response?.data?.detail ||
-        "No se pudo actualizar el perfil.";
+      const message = error?.response?.data?.detail || "No se pudo actualizar el perfil.";
       setProfileError(String(message));
     } finally {
       setProfileSaving(false);
@@ -277,47 +276,86 @@ export default function Navbar() {
         </nav>
 
         {user ? (
-          <div className={`nav-dropdown ${isUserMenuOpen ? "open" : ""}`} ref={userMenuRef}>
+          <div className="admin-topbar-user-menu nav-user-menu" ref={userMenuRef}>
             <button
               type="button"
-              className="nav-dropdown-trigger"
-              aria-expanded={isUserMenuOpen}
+              className="admin-topbar-user-icon"
+              aria-label="Abrir menu de usuario"
+              title="Menu de usuario"
               onClick={() => setIsUserMenuOpen((prev) => !prev)}
+              aria-expanded={isUserMenuOpen}
             >
-              {displayName}
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M20 21a8 8 0 0 0-16 0" />
+                <circle cx="12" cy="8" r="4" />
+              </svg>
             </button>
-            <div className="nav-dropdown-menu">
-              {!isEditingProfile ? (
-                <>
-                  <p style={{ margin: "6px 8px", color: "#101010", fontWeight: 700 }}>{displayName}</p>
-                  <p style={{ margin: "0 8px 4px", color: "#555", fontSize: "0.9rem" }}>{roleLabel(user?.rol || user?.role)}</p>
-                  <p style={{ margin: "0 8px 4px", color: "#333", fontSize: "0.9rem" }}>Usuario: {user?.username || "-"}</p>
-                  <p style={{ margin: "0 8px 4px", color: "#333", fontSize: "0.9rem" }}>Email: {user?.email || "-"}</p>
-                  <p style={{ margin: "0 8px 8px", color: "#333", fontSize: "0.9rem" }}>Telefono: {user?.telefono || "-"}</p>
-                  <button type="button" className="btn-nav btn-nav-subtle" style={{ width: "100%" }} onClick={() => setIsEditingProfile(true)}>
-                    Editar perfil
-                  </button>
-                  <button type="button" className="btn-nav btn-nav-logout" style={{ width: "100%", marginTop: "8px" }} onClick={handleLogout}>
-                    Cerrar sesión
-                  </button>
-                </>
-              ) : (
-                <form onSubmit={handleSaveProfile}>
-                  <input name="first_name" placeholder="Nombres" value={profileForm.first_name} onChange={handleProfileInputChange} required style={{ width: "100%", marginBottom: "6px" }} />
-                  <input name="last_name" placeholder="Apellidos" value={profileForm.last_name} onChange={handleProfileInputChange} required style={{ width: "100%", marginBottom: "6px" }} />
-                  <input name="username" placeholder="Usuario" value={profileForm.username} onChange={handleProfileInputChange} required style={{ width: "100%", marginBottom: "6px" }} />
-                  <input name="email" type="email" placeholder="Email" value={profileForm.email} onChange={handleProfileInputChange} style={{ width: "100%", marginBottom: "6px" }} />
-                  <input name="telefono" placeholder="Telefono" value={profileForm.telefono} onChange={handleProfileInputChange} style={{ width: "100%", marginBottom: "6px" }} />
-                  {profileError ? <p style={{ color: "#d62828", margin: "4px 0 8px" }}>{profileError}</p> : null}
-                  <button type="submit" className="btn-nav" style={{ width: "100%" }} disabled={profileSaving}>
-                    {profileSaving ? "Guardando..." : "Guardar cambios"}
-                  </button>
-                  <button type="button" className="btn-nav btn-nav-subtle" style={{ width: "100%", marginTop: "8px" }} onClick={() => setIsEditingProfile(false)} disabled={profileSaving}>
-                    Cancelar
-                  </button>
-                </form>
-              )}
-            </div>
+
+            {isUserMenuOpen && (
+              <div className="admin-user-dropdown">
+                <div className="admin-user-dropdown-header">
+                  <strong>{displayName}</strong>
+                  <span>{roleLabel(user?.rol || user?.role)}</span>
+                </div>
+
+                {!isEditingProfile ? (
+                  <div className="admin-user-dropdown-content">
+                    <p>
+                      <span>Usuario</span>
+                      <strong>{user?.username || "-"}</strong>
+                    </p>
+                    <p>
+                      <span>Email</span>
+                      <strong>{user?.email || "-"}</strong>
+                    </p>
+                    <p>
+                      <span>Telefono</span>
+                      <strong>{user?.telefono || "-"}</strong>
+                    </p>
+                    <div className="admin-user-dropdown-actions">
+                      <button type="button" className="admin-user-btn" onClick={() => setIsEditingProfile(true)}>
+                        Editar perfil
+                      </button>
+                      <button type="button" className="admin-user-btn danger" onClick={handleLogout}>
+                        Cerrar sesi\u00f3n
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <form className="admin-user-dropdown-form" onSubmit={handleSaveProfile}>
+                    <label>
+                      Nombres
+                      <input name="first_name" value={profileForm.first_name} onChange={handleProfileInputChange} required />
+                    </label>
+                    <label>
+                      Apellidos
+                      <input name="last_name" value={profileForm.last_name} onChange={handleProfileInputChange} required />
+                    </label>
+                    <label>
+                      Usuario
+                      <input name="username" value={profileForm.username} onChange={handleProfileInputChange} required />
+                    </label>
+                    <label>
+                      Email
+                      <input name="email" type="email" value={profileForm.email} onChange={handleProfileInputChange} />
+                    </label>
+                    <label>
+                      Telefono
+                      <input name="telefono" value={profileForm.telefono} onChange={handleProfileInputChange} />
+                    </label>
+                    {profileError ? <p className="nav-profile-error">{profileError}</p> : null}
+                    <div className="admin-user-dropdown-actions">
+                      <button type="button" className="admin-user-btn" onClick={() => setIsEditingProfile(false)} disabled={profileSaving}>
+                        Cancelar
+                      </button>
+                      <button type="submit" className="admin-user-btn save" disabled={profileSaving}>
+                        {profileSaving ? "Guardando..." : "Guardar cambios"}
+                      </button>
+                    </div>
+                  </form>
+                )}
+              </div>
+            )}
           </div>
         ) : (
           <Link className="btn-nav btn-nav-subtle nav-desktop-admin" to="/login">
