@@ -464,6 +464,7 @@ export default function useMotoAdmin({
         marca: modeloMotoForm.marca,
         categoria: modeloMotoForm.categoria,
         nombre: normalizedNombre,
+        nombre_modelo: normalizedNombre,
         descripcion: modeloMotoForm.descripcion,
         activo: Boolean(modeloMotoForm.activo),
       };

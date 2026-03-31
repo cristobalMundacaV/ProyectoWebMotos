@@ -152,7 +152,6 @@ export default function ProductosPage({
         <article className="admin-panel-card">
           <div className="admin-card-header">
             <h2>Crear categorias indumentaria rider</h2>
-            <span>Gestion de categorias de Indumentaria Rider</span>
           </div>
 
           <form className="admin-moto-form admin-inline-submit-form" onSubmit={onCategoriaAccRiderSubmit} noValidate>
@@ -240,7 +239,6 @@ export default function ProductosPage({
         <article className="admin-panel-card">
           <div className="admin-card-header">
             <h2>Crear categoria accesorios motos</h2>
-            <span>Gestion de categorias de accesorios moto</span>
           </div>
 
           <form className="admin-moto-form admin-inline-submit-form" onSubmit={onCategoriaAccMotosSubmit} noValidate>
