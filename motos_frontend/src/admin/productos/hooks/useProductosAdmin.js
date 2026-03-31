@@ -97,22 +97,20 @@ export default function useProductosAdmin({
   function handleCategoriaAccMotosInputChange(event) {
     clearInvalidFieldStyle(event.target);
     const { name, type, value, checked } = event.target;
-    const normalizedValue = name === "nombre" ? normalizeTitleCaseForInput(value) : value;
     setCategoriaAccMotosForm((prev) => ({
       ...prev,
-      [name]: type === "checkbox" ? checked : normalizedValue,
-      ...(name === "nombre" ? { slug: buildSlug(normalizeTitleCaseLabel(normalizedValue)) } : {}),
+      [name]: type === "checkbox" ? checked : value,
+      ...(name === "nombre" ? { slug: buildSlug(normalizeTitleCaseLabel(value)) } : {}),
     }));
   }
 
   function handleCategoriaAccRiderInputChange(event) {
     clearInvalidFieldStyle(event.target);
     const { name, type, value, checked } = event.target;
-    const normalizedValue = name === "nombre" ? normalizeTitleCaseForInput(value) : value;
     setCategoriaAccRiderForm((prev) => ({
       ...prev,
-      [name]: type === "checkbox" ? checked : normalizedValue,
-      ...(name === "nombre" ? { slug: buildSlug(normalizeTitleCaseLabel(normalizedValue)) } : {}),
+      [name]: type === "checkbox" ? checked : value,
+      ...(name === "nombre" ? { slug: buildSlug(normalizeTitleCaseLabel(value)) } : {}),
     }));
   }
 
@@ -130,7 +128,6 @@ export default function useProductosAdmin({
       const nextBrandId = name === "marca" ? value : prev.marca;
       const selectedBrand = accesoriosMotosMeta.marcas.find((marca) => String(marca.id) === String(nextBrandId));
       const brandName = selectedBrand?.nombre || "";
-      const normalizedValue = name === "nombre" ? forceBrandTokenInName(value, brandName) : value;
       const nextForm = {
         ...prev,
         [name]:
@@ -140,14 +137,10 @@ export default function useProductosAdmin({
               ? name === "imagenes_galeria"
                 ? galleryFiles
                 : files?.[0] || null
-              : normalizedValue,
+              : value,
         ...(name === "requiere_compatibilidad" && !checked ? { compatibilidad_motos: [] } : {}),
         ...(name === "es_destacado" && !checked ? { orden_carrusel: "1" } : {}),
       };
-
-      if (name === "marca" && nextForm.nombre) {
-        nextForm.nombre = forceBrandTokenInName(nextForm.nombre, brandName);
-      }
       if (name === "nombre" || name === "marca") {
         nextForm.slug = limitSlug(buildSlug(normalizeTitleCaseLabel(nextForm.nombre)), 50);
       }
@@ -175,7 +168,6 @@ export default function useProductosAdmin({
       const nextBrandId = name === "marca" ? value : prev.marca;
       const selectedBrand = accesoriosRiderMeta.marcas.find((marca) => String(marca.id) === String(nextBrandId));
       const brandName = selectedBrand?.nombre || "";
-      const normalizedValue = name === "nombre" ? forceBrandTokenInName(value, brandName) : value;
       const nextForm = {
         ...prev,
         [name]:
@@ -185,11 +177,8 @@ export default function useProductosAdmin({
               ? name === "imagenes_galeria"
                 ? galleryFiles
                 : files?.[0] || null
-              : normalizedValue,
+              : value,
       };
-      if (name === "marca" && nextForm.nombre) {
-        nextForm.nombre = forceBrandTokenInName(nextForm.nombre, brandName);
-      }
       if (name === "nombre" || name === "marca") {
         nextForm.slug = limitSlug(buildSlug(normalizeTitleCaseLabel(nextForm.nombre)), 50);
       }

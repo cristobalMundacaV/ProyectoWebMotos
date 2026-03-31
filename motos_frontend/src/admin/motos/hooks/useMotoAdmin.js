@@ -138,33 +138,30 @@ export default function useMotoAdmin({
   function handleMarcaInputChange(event) {
     clearInvalidFieldStyle(event.target);
     const { name, type, value, checked } = event.target;
-    const normalizedValue = name === "nombre" ? normalizeUppercaseLabel(value) : value;
     setMarcaForm((prev) => ({
       ...prev,
-      [name]: type === "checkbox" ? checked : normalizedValue,
-      ...(name === "nombre" ? { slug: buildSlug(normalizeUppercaseLabel(normalizedValue)) } : {}),
+      [name]: type === "checkbox" ? checked : value,
+      ...(name === "nombre" ? { slug: buildSlug(normalizeUppercaseLabel(value)) } : {}),
     }));
   }
 
   function handleModeloMotoInputChange(event) {
     clearInvalidFieldStyle(event.target);
     const { name, type, value, checked } = event.target;
-    const normalizedValue = name === "nombre" ? normalizeUppercaseLabel(value) : value;
     setModeloMotoForm((prev) => ({
       ...prev,
-      [name]: type === "checkbox" ? checked : normalizedValue,
-      ...(name === "nombre" ? { slug: limitSlug(buildSlug(normalizedValue), 50) } : {}),
+      [name]: type === "checkbox" ? checked : value,
+      ...(name === "nombre" ? { slug: limitSlug(buildSlug(value), 50) } : {}),
     }));
   }
 
   function handleCategoriaMotoInputChange(event) {
     clearInvalidFieldStyle(event.target);
     const { name, type, value, checked } = event.target;
-    const normalizedValue = name === "nombre" ? normalizeTitleCaseForInput(value) : value;
     setCategoriaMotoForm((prev) => ({
       ...prev,
-      [name]: type === "checkbox" ? checked : normalizedValue,
-      ...(name === "nombre" ? { slug: buildSlug(normalizeTitleCaseLabel(normalizedValue)) } : {}),
+      [name]: type === "checkbox" ? checked : value,
+      ...(name === "nombre" ? { slug: buildSlug(normalizeTitleCaseLabel(value)) } : {}),
     }));
   }
 
