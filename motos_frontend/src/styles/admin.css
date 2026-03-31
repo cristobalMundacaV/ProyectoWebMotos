@@ -1636,6 +1636,10 @@
   align-items: center;
 }
 
+.admin-entity-delete-overlay {
+  align-items: center;
+}
+
 .admin-mantenedores-edit-overlay {
   align-items: center;
 }
@@ -4545,6 +4549,11 @@
     padding: 8px;
     align-items: start;
     overflow: auto;
+  }
+
+  .admin-user-delete-overlay,
+  .admin-entity-delete-overlay {
+    align-items: center;
   }
 
   .admin-entity-modal,

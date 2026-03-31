@@ -60,8 +60,24 @@ export function getErrorText(error, fallback = "No se pudo completar la solicitu
   if (firstFieldEntry) {
     const [fieldName, fieldErrors] = firstFieldEntry;
     const rawFieldError = String(fieldErrors[0] || "");
+    const rawLower = rawFieldError.toLowerCase();
     if (fieldName === "username" && /(already exists|ya existe|ya esta en uso)/i.test(rawFieldError)) {
       return "El nombre de usuario ingresado ya esta en uso.";
+    }
+    if (fieldName === "nombre_modelo") {
+      if (/(this field is required|este campo es requerido|obligatorio)/i.test(rawFieldError)) {
+        return "Debes ingresar el nombre del modelo.";
+      }
+      return `Nombre del modelo: ${translateBackendMessage(rawFieldError)}`;
+    }
+    if (fieldName === "slug") {
+      if (/(this field is required|este campo es requerido|obligatorio)/i.test(rawFieldError)) {
+        return "No se pudo generar el identificador del registro. Intenta nuevamente.";
+      }
+      if (/(already exists|ya existe|unique|duplicado)/i.test(rawLower)) {
+        return "Ya existe un registro con ese nombre. Cambia el nombre e intenta nuevamente.";
+      }
+      return translateBackendMessage(rawFieldError);
     }
     const translated = translateBackendMessage(rawFieldError);
     const label = fieldLabels[fieldName] || fieldName;

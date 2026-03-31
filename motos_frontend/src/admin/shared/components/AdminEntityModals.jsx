@@ -101,7 +101,7 @@ export default function AdminEntityModals({
       )}
 
       {entityDeleteModal && (
-        <div className="admin-entity-modal-overlay" onClick={onCloseEntityDeleteModal}>
+        <div className="admin-entity-modal-overlay admin-entity-delete-overlay" onClick={onCloseEntityDeleteModal}>
           <section className="admin-entity-delete-modal" onClick={(event) => event.stopPropagation()}>
             <img src="/images/informacion.png" alt="Informacion" className="admin-entity-delete-image" />
             <p className="admin-entity-delete-text">

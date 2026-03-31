@@ -109,6 +109,9 @@ class ModeloMotoSerializer(serializers.ModelSerializer):
             "capacidad_estanque",
             "activo",
         ]
+        extra_kwargs = {
+            "slug": {"required": False, "allow_blank": True},
+        }
 
 
 class MotoSerializer(serializers.ModelSerializer):
