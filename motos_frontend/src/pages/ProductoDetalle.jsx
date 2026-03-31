@@ -64,7 +64,9 @@ export default function ProductoDetalle() {
     return (
       <div className="detalle-empty">
         <p>{error || "No encontramos este producto."}</p>
-        <Link to="/">Volver al inicio</Link>
+        <Link to="/" className="detalle-empty-link">
+          Volver al inicio
+        </Link>
       </div>
     );
   }

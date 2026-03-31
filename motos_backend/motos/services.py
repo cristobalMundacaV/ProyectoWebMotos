@@ -8,6 +8,8 @@ from django.db.models import Max
 from core.audit import create_audit_log, serialize_instance_for_audit
 from .models import ImagenMoto, ModeloMoto, Moto
 
+MAX_MOTO_GALLERY_IMAGES = 3
+
 
 def _to_file_list(files: Iterable | None) -> list:
     if not files:
@@ -25,6 +27,13 @@ def append_moto_gallery_images(moto: Moto, files: Sequence | None = None) -> Non
         return
 
     locked_moto = _lock_moto(moto.id)
+    current_images_count = locked_moto.imagenes.count()
+    remaining_slots = max(0, MAX_MOTO_GALLERY_IMAGES - current_images_count)
+    if remaining_slots <= 0:
+        return
+    files = list(files)[:remaining_slots]
+    if not files:
+        return
     current_max_order = locked_moto.imagenes.aggregate(max_order=Max("orden")).get("max_order") or 0
 
     created_first = None

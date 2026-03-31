@@ -23,7 +23,6 @@ export default function ProductosPage({
   accesoriosMotosAdmin,
   accesorioMotoForm,
   accesorioMotoImageInputKey,
-  accesorioMotoImageUrl,
   accesorioMotoSaving,
   onAccesorioMotoInputChange,
   onAccesorioMotoPrecioInputChange,
@@ -39,7 +38,6 @@ export default function ProductosPage({
   accesoriosRiderAdmin,
   accesorioRiderForm,
   accesorioRiderImageInputKey,
-  accesorioRiderImageUrl,
   accesorioRiderSaving,
   onAccesorioRiderInputChange,
   onAccesorioRiderPrecioInputChange,
@@ -85,8 +83,6 @@ export default function ProductosPage({
       .join(" ");
   }
 
-  const [accesorioMotoLocalPreview, setAccesorioMotoLocalPreview] = useState("");
-  const [accesorioRiderLocalPreview, setAccesorioRiderLocalPreview] = useState("");
   const accesorioMotoFileInputRef = useRef(null);
   const accesorioRiderFileInputRef = useRef(null);
   const hasNewAccesorioMotoImages = Array.isArray(accesorioMotoForm.imagenes_galeria) && accesorioMotoForm.imagenes_galeria.length > 0;
@@ -95,28 +91,6 @@ export default function ProductosPage({
     productoDeleteModal?.tipo === "indumentaria"
       ? `Estas seguro que quieres eliminar la indumentaria ${productoDeleteModal?.nombre || ""}?`
       : `Estas seguro que quieres eliminar el accesorio ${productoDeleteModal?.nombre || ""}?`;
-
-  useEffect(() => {
-    const firstImage = Array.isArray(accesorioMotoForm.imagenes_galeria) ? accesorioMotoForm.imagenes_galeria[0] : null;
-    if (!(firstImage instanceof File)) {
-      setAccesorioMotoLocalPreview("");
-      return;
-    }
-    const objectUrl = URL.createObjectURL(firstImage);
-    setAccesorioMotoLocalPreview(objectUrl);
-    return () => URL.revokeObjectURL(objectUrl);
-  }, [accesorioMotoForm.imagenes_galeria]);
-
-  useEffect(() => {
-    const firstImage = Array.isArray(accesorioRiderForm.imagenes_galeria) ? accesorioRiderForm.imagenes_galeria[0] : null;
-    if (!(firstImage instanceof File)) {
-      setAccesorioRiderLocalPreview("");
-      return;
-    }
-    const objectUrl = URL.createObjectURL(firstImage);
-    setAccesorioRiderLocalPreview(objectUrl);
-    return () => URL.revokeObjectURL(objectUrl);
-  }, [accesorioRiderForm.imagenes_galeria]);
 
   const accesorioMotoGaleriaPreviewUrls = useMemo(() => {
     const files = Array.isArray(accesorioMotoForm.imagenes_galeria) ? accesorioMotoForm.imagenes_galeria : [];
@@ -415,15 +389,6 @@ export default function ProductosPage({
                     : "No se han seleccionado archivos nuevos."}
                 </span>
               </div>
-              {(accesorioMotoLocalPreview || accesorioMotoImageUrl) && (
-                <div className="admin-image-preview-box">
-                  <img
-                    src={accesorioMotoLocalPreview || accesorioMotoImageUrl}
-                    alt="Vista previa accesorio moto"
-                    className="admin-image-preview"
-                  />
-                </div>
-              )}
               {accesorioMotoGaleriaPreviewUrls.length > 0 && (
                 <div className="admin-gallery-preview-row">
                   {accesorioMotoGaleriaPreviewUrls.map((previewUrl, index) => (
@@ -653,15 +618,6 @@ export default function ProductosPage({
                     : "No se han seleccionado archivos nuevos."}
                 </span>
               </div>
-              {(accesorioRiderLocalPreview || accesorioRiderImageUrl) && (
-                <div className="admin-image-preview-box">
-                  <img
-                    src={accesorioRiderLocalPreview || accesorioRiderImageUrl}
-                    alt="Vista previa accesorio rider"
-                    className="admin-image-preview"
-                  />
-                </div>
-              )}
               {accesorioRiderGaleriaPreviewUrls.length > 0 && (
                 <div className="admin-gallery-preview-row">
                   {accesorioRiderGaleriaPreviewUrls.map((previewUrl, index) => (

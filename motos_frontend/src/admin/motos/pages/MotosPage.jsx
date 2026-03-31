@@ -348,11 +348,11 @@ export default function MotosPage({
                 <div className="admin-model-brand-cell admin-recent-model-main">
                   <span className="admin-row-label">Marca</span>
                   <strong>{modelo.marca_nombre || "-"}</strong>
-                  <span>{formatCategoryLabel(modelo.categoria_nombre) || "-"}</span>
                 </div>
-                <div className="admin-model-name-center">
+                <div className="admin-model-name-cell">
                   <span className="admin-row-label">Nombre modelo</span>
                   <strong>{modelo.nombre}</strong>
+                  <span>{formatCategoryLabel(modelo.categoria_nombre) || "-"}</span>
                 </div>
                 <div className="admin-row-actions admin-recent-model-actions">
                   <button type="button" className="admin-row-action-btn edit" title="Editar" onClick={() => onModeloMotoEdit?.(modelo)}>

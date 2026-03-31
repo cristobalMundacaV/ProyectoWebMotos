@@ -34,6 +34,7 @@ export default function useMotoAdmin({
   fallbackImage,
   onCreateMarcaForProductoDomain,
 }) {
+  const MAX_MOTO_GALLERY_IMAGES = 3;
   const [motoMeta, setMotoMeta] = useState({ marcas: [], categorias: [], modelos: [] });
   const [marcasMotosAdmin, setMarcasMotosAdmin] = useState([]);
   const [modelosMotosAdmin, setModelosMotosAdmin] = useState([]);
@@ -89,7 +90,9 @@ export default function useMotoAdmin({
 
   function buildMotoPayload(form) {
     const payload = new FormData();
-    const galleryFiles = Array.isArray(form.imagenes_galeria) ? form.imagenes_galeria.filter(Boolean) : [];
+    const galleryFiles = Array.isArray(form.imagenes_galeria)
+      ? form.imagenes_galeria.filter(Boolean).slice(0, MAX_MOTO_GALLERY_IMAGES)
+      : [];
     const primaryImageFromGallery = galleryFiles[0] || null;
     const selectedModelo = motoMeta.modelos.find(
       (item) => String(item.id) === String(form.modelo) && String(item.marca) === String(form.marca)
@@ -168,7 +171,11 @@ export default function useMotoAdmin({
   function handleMotoInputChange(event) {
     clearInvalidFieldStyle(event.target);
     const { name, type, value, checked, files } = event.target;
-    const galleryFiles = type === "file" && name === "imagenes_galeria" ? Array.from(files || []) : null;
+    let galleryFiles = type === "file" && name === "imagenes_galeria" ? Array.from(files || []) : null;
+    if (name === "imagenes_galeria" && Array.isArray(galleryFiles) && galleryFiles.length > MAX_MOTO_GALLERY_IMAGES) {
+      galleryFiles = galleryFiles.slice(0, MAX_MOTO_GALLERY_IMAGES);
+      pushToast("Solo puedes subir hasta 3 imagenes por moto.", "neutral");
+    }
     setMotoForm((prev) => ({
       ...prev,
       [name]:
@@ -219,7 +226,11 @@ export default function useMotoAdmin({
       let nextImageMaletasPreviewUrl = prev.imageMaletasPreviewUrl;
       let nextPreviewMaletasIsObjectUrl = prev.previewMaletasIsObjectUrl;
       let nextImageMaletasFileName = prev.imageMaletasFileName;
-      const galleryFiles = type === "file" && name === "imagenes_galeria" ? Array.from(files || []) : null;
+      let galleryFiles = type === "file" && name === "imagenes_galeria" ? Array.from(files || []) : null;
+      if (name === "imagenes_galeria" && Array.isArray(galleryFiles) && galleryFiles.length > MAX_MOTO_GALLERY_IMAGES) {
+        galleryFiles = galleryFiles.slice(0, MAX_MOTO_GALLERY_IMAGES);
+        pushToast("Solo puedes subir hasta 3 imagenes por moto.", "neutral");
+      }
       const nextValue =
         type === "checkbox"
           ? checked

@@ -796,16 +796,19 @@
 .admin-model-brand-cell {
   min-width: 0;
   display: grid;
-  gap: 3px;
+  grid-template-rows: auto minmax(36px, 1fr);
+  gap: 2px;
   justify-items: start;
+  align-items: start;
 }
 
-.admin-model-name-center {
+.admin-model-name-cell {
   min-width: 0;
   display: grid;
   gap: 3px;
-  justify-items: center;
-  text-align: center;
+  justify-items: start;
+  text-align: left;
+  align-items: start;
 }
 
 .admin-recent-model-actions {
