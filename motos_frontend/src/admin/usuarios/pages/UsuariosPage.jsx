@@ -28,7 +28,6 @@ export default function UsuariosPage({
         <article className="admin-panel-card">
           <div className="admin-card-header">
             <h2>Clientes</h2>
-            <span>Listado de clientes registrados en el sistema.</span>
           </div>
           {adminClientesLoadError ? <p className="admin-empty">{adminClientesLoadError}</p> : null}
           <AdminClientesTable

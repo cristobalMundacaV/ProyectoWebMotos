@@ -1613,11 +1613,54 @@
   width: min(560px, 100%);
 }
 
+.admin-user-edit-overlay {
+  align-items: center;
+}
+
+.admin-mantenedores-edit-overlay {
+  align-items: center;
+}
+
 .admin-user-edit-modal .admin-entity-modal-header {
   justify-content: center;
   text-align: center;
   gap: 10px;
   margin-bottom: 16px;
+}
+
+.admin-clientes-table-wrap {
+  width: 100%;
+  overflow-x: auto;
+  border: 1px solid rgba(16, 16, 16, 0.1);
+  border-radius: 14px;
+  background: #fff;
+}
+
+.admin-clientes-table {
+  width: 100%;
+  min-width: 860px;
+  border-collapse: collapse;
+  font-size: 0.96rem;
+}
+
+.admin-clientes-table thead th {
+  text-align: left;
+  padding: 12px 14px;
+  background: #f4f6fa;
+  color: #374151;
+  font-weight: 700;
+  border-bottom: 1px solid rgba(16, 16, 16, 0.12);
+  white-space: nowrap;
+}
+
+.admin-clientes-table tbody td {
+  padding: 12px 14px;
+  color: #111827;
+  border-bottom: 1px solid rgba(16, 16, 16, 0.08);
+}
+
+.admin-clientes-table tbody tr:last-child td {
+  border-bottom: none;
 }
 
 .admin-entity-modal-form-single > label {

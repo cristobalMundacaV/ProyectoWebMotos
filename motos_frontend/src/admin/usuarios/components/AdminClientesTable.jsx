@@ -14,38 +14,36 @@ export default function AdminClientesTable({
     return <p className="admin-empty">No hay clientes registrados.</p>;
   }
 
-  function formatRoleLabel(roleValue) {
-    const raw = String(roleValue || "").trim().toLowerCase();
-    if (!raw) return "Cliente";
-    return raw.charAt(0).toUpperCase() + raw.slice(1);
-  }
-
   return (
     <>
-      <div className="admin-table">
-        {paginatedAdminClientes.items.map((cliente, index) => {
-          const fullName = `${cliente?.first_name || ""} ${cliente?.last_name || ""}`.trim();
-          const joined = cliente?.date_joined ? new Date(cliente.date_joined).toLocaleDateString("es-CL") : "-";
-          return (
-            <div
-              key={cliente?.id || cliente?.username || `cliente-row-${index}`}
-              className="admin-table-row admin-moto-table-row"
-            >
-              <div className="admin-moto-table-cell">
-                <strong>{fullName || cliente?.username || "Sin nombre"}</strong>
-                <span>@{cliente?.username || "-"}</span>
-              </div>
-              <div className="admin-moto-table-cell">
-                <strong>{cliente?.email || "Sin correo"}</strong>
-                <span>{cliente?.telefono || "Sin telefono"}</span>
-              </div>
-              <div className="admin-moto-table-cell">
-                <strong>{formatRoleLabel(cliente?.rol || cliente?.role || "cliente")}</strong>
-                <span>Registro: {joined}</span>
-              </div>
-            </div>
-          );
-        })}
+      <div className="admin-clientes-table-wrap">
+        <table className="admin-clientes-table">
+          <thead>
+            <tr>
+              <th>Username</th>
+              <th>Nombres</th>
+              <th>Apellidos</th>
+              <th>Correo</th>
+              <th>Telefono</th>
+              <th>Fecha Registro</th>
+            </tr>
+          </thead>
+          <tbody>
+            {paginatedAdminClientes.items.map((cliente, index) => {
+              const joined = cliente?.date_joined ? new Date(cliente.date_joined).toLocaleDateString("es-CL") : "-";
+              return (
+                <tr key={cliente?.id || cliente?.username || `cliente-row-${index}`}>
+                  <td>{cliente?.username || "-"}</td>
+                  <td>{cliente?.first_name || "-"}</td>
+                  <td>{cliente?.last_name || "-"}</td>
+                  <td>{cliente?.email || "-"}</td>
+                  <td>{cliente?.telefono || "-"}</td>
+                  <td>{joined}</td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
       </div>
       <AdminPagination pagination={paginatedAdminClientes} onPageChange={onPageChange} />
     </>

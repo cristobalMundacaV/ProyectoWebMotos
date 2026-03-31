@@ -18,7 +18,7 @@ export default function AdminEntityModals({
   return (
     <>
       {entityEditModal && (
-        <div className="admin-entity-modal-overlay" onClick={onCloseEntityEditModal}>
+        <div className="admin-entity-modal-overlay admin-mantenedores-edit-overlay" onClick={onCloseEntityEditModal}>
           <section className="admin-entity-modal admin-entity-modal-compact" onClick={(event) => event.stopPropagation()}>
             <div className="admin-entity-modal-header">
               <div>

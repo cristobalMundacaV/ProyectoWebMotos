@@ -12,7 +12,7 @@ export default function AdminUserModals({
   return (
     <>
       {editModal && (
-        <div className="admin-entity-modal-overlay" onClick={onCloseEdit}>
+        <div className="admin-entity-modal-overlay admin-user-edit-overlay" onClick={onCloseEdit}>
           <section className="admin-entity-modal admin-entity-modal-compact admin-user-edit-modal" onClick={(event) => event.stopPropagation()}>
             <div className="admin-entity-modal-header">
               <div>
