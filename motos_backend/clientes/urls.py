@@ -8,11 +8,11 @@ from .views import (
     current_user,
     login_user,
     logout_user,
-    register_user,
+    password_reset_confirm,
+    password_reset_request,
 )
 
 urlpatterns = [
-    path("register/", register_user, name="register_user"),
     path("admin/users/", admin_create_user, name="admin_create_user"),
     path("admin/clientes/", admin_list_clientes, name="admin_list_clientes"),
     path("admin/users/<int:user_id>/", admin_manage_user, name="admin_manage_user"),
@@ -20,4 +20,6 @@ urlpatterns = [
     path("token/refresh/", TokenRefreshView.as_view(), name="token_refresh"),
     path("me/", current_user, name="current_user"),
     path("logout/", logout_user, name="logout_user"),
+    path("password-reset/request/", password_reset_request, name="password_reset_request"),
+    path("password-reset/confirm/", password_reset_confirm, name="password_reset_confirm"),
 ]

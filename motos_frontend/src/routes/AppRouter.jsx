@@ -9,6 +9,8 @@ import ConsultarHora from "../pages/ConsultarHora";
 import AdminPanel from "../pages/AdminPanel";
 import ProductoDetalle from "../pages/ProductoDetalle";
 import Login from "../pages/Login";
+import PasswordResetRequest from "../pages/PasswordResetRequest";
+import PasswordResetConfirm from "../pages/PasswordResetConfirm";
 import { getStoredToken, getStoredUser, hasAdminAccess } from "../services/authService";
 
 function ProtectedRoute({ children }) {
@@ -48,6 +50,8 @@ export default function AppRouter() {
           }
         />
         <Route path="/login" element={<Login />} />
+        <Route path="/recuperar-contrasena" element={<PasswordResetRequest />} />
+        <Route path="/recuperar-contrasena/confirmar" element={<PasswordResetConfirm />} />
         <Route
           path="/equipamiento/indumentaria"
           element={<CatalogoIndumentaria />}

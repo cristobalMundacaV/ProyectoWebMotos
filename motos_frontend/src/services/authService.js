@@ -63,11 +63,6 @@ export function updateStoredUser(user) {
   localStorage.setItem(USER_KEY, JSON.stringify(normalizeUserRoleShape(user)));
 }
 
-export async function registerUser(payload) {
-  const response = await api.post("/clientes/register/", payload);
-  return response.data;
-}
-
 export async function createAdminUser(payload) {
   const response = await api.post("/clientes/admin/users/", payload);
   return response.data;
@@ -110,4 +105,14 @@ export async function updateCurrentUser(payload) {
 export async function logoutUser() {
   const refresh = getStoredRefreshToken();
   await api.post("/clientes/logout/", refresh ? { refresh } : {});
+}
+
+export async function requestPasswordReset(email) {
+  const response = await api.post("/clientes/password-reset/request/", { email });
+  return response.data;
+}
+
+export async function confirmPasswordReset(payload) {
+  const response = await api.post("/clientes/password-reset/confirm/", payload);
+  return response.data;
 }

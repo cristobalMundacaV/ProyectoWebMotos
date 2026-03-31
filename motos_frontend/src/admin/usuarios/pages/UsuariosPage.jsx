@@ -1,5 +1,4 @@
 import AdminUsersTable from "../components/AdminUsersTable";
-import AdminClientesTable from "../components/AdminClientesTable";
 
 export default function UsuariosPage({
   activeSection,
@@ -11,35 +10,11 @@ export default function UsuariosPage({
   adminUsersLoading,
   adminUsersLoadError,
   paginatedAdminUsers,
-  adminClientes,
-  adminClientesLoading,
-  adminClientesLoadError,
-  paginatedAdminClientes,
   onEditUser,
   onDeleteUser,
   onPageChange,
-  onClientesPageChange,
 }) {
-  if (activeSection !== "crear_usuario" && activeSection !== "lista_usuarios" && activeSection !== "clientes_admin") return null;
-
-  if (activeSection === "clientes_admin") {
-    return (
-      <section className="admin-content-grid lower">
-        <article className="admin-panel-card">
-          <div className="admin-card-header">
-            <h2>Clientes</h2>
-          </div>
-          {adminClientesLoadError ? <p className="admin-empty">{adminClientesLoadError}</p> : null}
-          <AdminClientesTable
-            adminClientes={adminClientes}
-            adminClientesLoading={adminClientesLoading}
-            paginatedAdminClientes={paginatedAdminClientes}
-            onPageChange={onClientesPageChange}
-          />
-        </article>
-      </section>
-    );
-  }
+  if (activeSection !== "crear_usuario" && activeSection !== "lista_usuarios") return null;
 
   return (
     <section className="admin-content-grid lower">

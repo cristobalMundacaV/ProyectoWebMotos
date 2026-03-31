@@ -6,12 +6,6 @@ from .models import PerfilUsuario
 
 
 class UserRegisterSerializer(serializers.ModelSerializer):
-    username = serializers.CharField(
-        error_messages={
-            "required": "El nombre de usuario es obligatorio.",
-            "blank": "El nombre de usuario es obligatorio.",
-        }
-    )
     email = serializers.EmailField(
         error_messages={
             "required": "El correo electronico es obligatorio.",
@@ -47,7 +41,7 @@ class UserRegisterSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ["username", "email", "telefono", "password", "confirm_password", "first_name", "last_name"]
+        fields = ["email", "telefono", "password", "confirm_password", "first_name", "last_name"]
 
     def validate_email(self, value):
         email = value.strip().lower()
@@ -63,18 +57,24 @@ class UserRegisterSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError("El telefono ya esta registrado.")
         return telefono
 
-    def validate_username(self, value):
-        username = value.strip()
-        if not username:
-            raise serializers.ValidationError("El nombre de usuario es obligatorio.")
-        if User.objects.filter(username__iexact=username).exists():
-            raise serializers.ValidationError("El nombre de usuario ya existe.")
-        return username
-
     def validate(self, attrs):
         if attrs["password"] != attrs["confirm_password"]:
             raise serializers.ValidationError({"confirm_password": "Las contrasenas no coinciden."})
         return attrs
+
+    def _generate_username(self, email: str, first_name: str, last_name: str) -> str:
+        local_part = (email.split("@")[0] if "@" in email else "").strip().lower()
+        if not local_part:
+            composed = f"{first_name}.{last_name}".strip(". ").lower().replace(" ", ".")
+            local_part = composed or "cliente"
+
+        base = local_part[:130] or "cliente"
+        candidate = base
+        suffix = 1
+        while User.objects.filter(username__iexact=candidate).exists():
+            candidate = f"{base}-{suffix}"[:150]
+            suffix += 1
+        return candidate
 
     def create(self, validated_data):
         validated_data.pop("confirm_password")
@@ -83,6 +83,11 @@ class UserRegisterSerializer(serializers.ModelSerializer):
         with transaction.atomic():
             user = User(**validated_data)
             user.email = user.email.lower()
+            user.username = self._generate_username(
+                user.email,
+                (validated_data.get("first_name") or "").strip(),
+                (validated_data.get("last_name") or "").strip(),
+            )
             user.set_password(password)
             user.save()
             PerfilUsuario.objects.update_or_create(

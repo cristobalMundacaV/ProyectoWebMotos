@@ -50,9 +50,9 @@ export default function AdminPanel() {
 
   const { toasts, pushToast, dismissToast, clearToasts } = useAdminToasts();
   const pushToastSafe = useCallback(
-    (message, variant = "success") => {
+    (message, variant = "success", options = undefined) => {
       if (isLoggingOutRef.current) return;
-      pushToast(message, variant);
+      return pushToast(message, variant, options);
     },
     [pushToast]
   );
@@ -68,6 +68,7 @@ export default function AdminPanel() {
     setDashboard,
     fallbackImage,
     pushToast: pushToastSafe,
+    dismissToast,
     getErrorText,
     clearInvalidFieldStyle,
     validateFormWithToast,

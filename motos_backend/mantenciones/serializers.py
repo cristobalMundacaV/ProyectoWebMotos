@@ -6,7 +6,6 @@ from rest_framework import serializers
 import logging
 from datetime import datetime, time
 
-from clientes.models import PerfilUsuario
 from .availability import slot_disponible
 from .models import HorarioMantencion, Mantencion, MantencionEstadoHistorial, VehiculoCliente
 from .notifications import (
@@ -38,6 +37,9 @@ class VehiculoClienteNestedSerializer(serializers.ModelSerializer):
         )
 
     def get_cliente_nombre(self, obj: VehiculoCliente) -> str:
+        snapshot_name = f"{(obj.cliente_nombres or '').strip()} {(obj.cliente_apellidos or '').strip()}".strip()
+        if snapshot_name:
+            return snapshot_name
         full_name = obj.cliente.get_full_name().strip() if hasattr(obj.cliente, "get_full_name") else ""
         return full_name or getattr(obj.cliente, "username", "")
 
@@ -56,12 +58,19 @@ class VehiculoClienteSerializer(serializers.ModelSerializer):
             "modelo",
             "anio",
             "kilometraje_actual",
+            "cliente_nombres",
+            "cliente_apellidos",
+            "cliente_telefono",
+            "cliente_email",
             "created_at",
             "updated_at",
         )
         read_only_fields = ("created_at", "updated_at")
 
     def get_cliente_nombre(self, obj: VehiculoCliente) -> str:
+        snapshot_name = f"{(obj.cliente_nombres or '').strip()} {(obj.cliente_apellidos or '').strip()}".strip()
+        if snapshot_name:
+            return snapshot_name
         full_name = obj.cliente.get_full_name().strip() if hasattr(obj.cliente, "get_full_name") else ""
         return full_name or getattr(obj.cliente, "username", "")
 
@@ -311,92 +320,25 @@ class AgendarMantencionSerializer(serializers.Serializer):
         if reservadas >= total_capacity:
             raise serializers.ValidationError({"hora_agendada": "La hora seleccionada ya no esta disponible. Elige otra opcion."})
 
-    def _generate_username(self, nombres: str, apellidos: str, telefono: str, email: str) -> str:
+    def _get_guest_cliente_user(self):
         User = get_user_model()
-        if email:
-            base = email.split("@", 1)[0].strip().lower()
-        else:
-            base_name = f"{nombres} {apellidos}".strip()
-            slug_name = "".join(ch for ch in base_name.lower() if ch.isalnum())[:20]
-            only_digits = "".join(ch for ch in telefono if ch.isdigit())[-6:]
-            base = f"{slug_name}{only_digits}" if slug_name else f"cliente{only_digits}"
-        base = base or "cliente"
-        candidate = base
-        suffix = 1
-        while User.objects.filter(username__iexact=candidate).exists():
-            suffix += 1
-            candidate = f"{base}{suffix}"
-        return candidate[:150]
+        username = "__cliente_invitado__"
+        user = User.objects.filter(username=username).first()
+        if user:
+            return user
 
-    def _sync_cliente_data(self, user, *, nombres: str, apellidos: str, telefono: str, email: str):
-        updated_fields = []
-
-        if user.first_name != nombres:
-            user.first_name = nombres
-            updated_fields.append("first_name")
-
-        if user.last_name != apellidos:
-            user.last_name = apellidos
-            updated_fields.append("last_name")
-
-        if email and user.email != email:
-            user.email = email
-            updated_fields.append("email")
-
-        if updated_fields:
-            user.save(update_fields=updated_fields)
-
-        PerfilUsuario.objects.update_or_create(
-            user=user,
-            defaults={"telefono": telefono, "rol": PerfilUsuario.ROL_CLIENTE},
+        user = User.objects.create(
+            username=username,
+            email="",
+            first_name="Cliente",
+            last_name="Invitado",
+            is_active=False,
+            is_staff=False,
+            is_superuser=False,
         )
-
+        user.set_unusable_password()
+        user.save(update_fields=["password"])
         return user
-
-    def _resolve_or_create_cliente(self):
-        request = self.context.get("request")
-        telefono = self.validated_data["telefono"].strip()
-        nombres = self.validated_data["nombres"].strip()
-        apellidos = self.validated_data["apellidos"].strip()
-        email = (self.validated_data.get("email") or "").strip().lower()
-
-        if request and getattr(request, "user", None) and request.user.is_authenticated:
-            return self._sync_cliente_data(
-                request.user,
-                nombres=nombres,
-                apellidos=apellidos,
-                telefono=telefono,
-                email=email,
-            )
-
-        User = get_user_model()
-
-        user = None
-        if email:
-            user = User.objects.filter(
-                email__iexact=email,
-                perfil_usuario__rol=PerfilUsuario.ROL_CLIENTE,
-            ).first()
-
-        if not user:
-            username = self._generate_username(nombres, apellidos, telefono, email)
-            user = User.objects.create(
-                username=username,
-                email=email,
-                first_name=nombres,
-                last_name=apellidos,
-                is_active=True,
-            )
-            user.set_unusable_password()
-            user.save(update_fields=["password"])
-
-        return self._sync_cliente_data(
-            user,
-            nombres=nombres,
-            apellidos=apellidos,
-            telefono=telefono,
-            email=email,
-        )
 
     def create(self, validated_data):
         with transaction.atomic():
@@ -404,8 +346,12 @@ class AgendarMantencionSerializer(serializers.Serializer):
                 fecha=validated_data["fecha_agendada"],
                 hora=validated_data["hora_agendada"],
             )
-            cliente = self._resolve_or_create_cliente()
+            cliente = self._get_guest_cliente_user()
             matricula = validated_data["matricula"].strip().upper()
+            nombres = validated_data["nombres"].strip()
+            apellidos = validated_data["apellidos"].strip()
+            telefono = validated_data["telefono"].strip()
+            email = (validated_data.get("email") or "").strip().lower()
 
             vehiculo, created = VehiculoCliente.objects.get_or_create(
                 matricula=matricula,
@@ -415,16 +361,22 @@ class AgendarMantencionSerializer(serializers.Serializer):
                     "modelo": validated_data["modelo"].strip(),
                     "anio": validated_data.get("anio"),
                     "kilometraje_actual": validated_data["kilometraje_actual"],
+                    "cliente_nombres": nombres,
+                    "cliente_apellidos": apellidos,
+                    "cliente_telefono": telefono,
+                    "cliente_email": email,
                 },
             )
-
-            if not created and vehiculo.cliente_id != cliente.id:
-                raise serializers.ValidationError({"matricula": "Esta matricula ya esta asociada a otro cliente."})
 
             vehiculo.marca = validated_data["marca"].strip()
             vehiculo.modelo = validated_data["modelo"].strip()
             vehiculo.anio = validated_data.get("anio")
             vehiculo.kilometraje_actual = validated_data["kilometraje_actual"]
+            vehiculo.cliente = cliente
+            vehiculo.cliente_nombres = nombres
+            vehiculo.cliente_apellidos = apellidos
+            vehiculo.cliente_telefono = telefono
+            vehiculo.cliente_email = email
             vehiculo.save()
 
             mantencion = Mantencion.objects.create(
@@ -443,7 +395,7 @@ class AgendarMantencionSerializer(serializers.Serializer):
                 mantencion=mantencion,
                 estado_anterior="",
                 estado_nuevo=Mantencion.ESTADO_SOLICITUD,
-                changed_by=cliente if getattr(cliente, "is_authenticated", False) else None,
+                changed_by=None,
                 fuente=MantencionEstadoHistorial.FUENTE_PORTAL_CLIENTE,
                 observacion="Creacion de solicitud de mantencion",
             )

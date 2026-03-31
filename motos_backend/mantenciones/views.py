@@ -450,10 +450,11 @@ class MantencionConsultaRutAPIView(APIView):
             {
                 "id": mantencion.id,
                 "rut_cliente": mantencion.rut_cliente,
-                "nombres": mantencion.moto_cliente.cliente.first_name,
-                "apellidos": mantencion.moto_cliente.cliente.last_name,
-                "telefono": getattr(getattr(mantencion.moto_cliente.cliente, "perfil_usuario", None), "telefono", ""),
-                "email": mantencion.moto_cliente.cliente.email,
+                "nombres": (mantencion.moto_cliente.cliente_nombres or "").strip() or mantencion.moto_cliente.cliente.first_name,
+                "apellidos": (mantencion.moto_cliente.cliente_apellidos or "").strip() or mantencion.moto_cliente.cliente.last_name,
+                "telefono": (mantencion.moto_cliente.cliente_telefono or "").strip()
+                or getattr(getattr(mantencion.moto_cliente.cliente, "perfil_usuario", None), "telefono", ""),
+                "email": (mantencion.moto_cliente.cliente_email or "").strip() or mantencion.moto_cliente.cliente.email,
                 "estado": mantencion.estado,
                 "estado_label": mantencion.get_estado_display(),
                 "fecha_ingreso": mantencion.fecha_ingreso,

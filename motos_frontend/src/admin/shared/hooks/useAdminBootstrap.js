@@ -7,18 +7,14 @@ export default function useAdminBootstrap({
   bootstrapContacto,
   pushToast,
   fetchUsersList,
-  fetchClientesList,
   fetchMantencionesList,
   fetchHorariosMantencionList,
   setAdminUsersLoadError,
-  setAdminClientesLoadError,
   setMantencionesLoadError,
   setHorariosLoadError,
   setDashboard,
   setAdminUsers,
   setAdminUsersLoading,
-  setAdminClientes,
-  setAdminClientesLoading,
   setMantenciones,
   setMantencionesLoading,
   setHorariosMantencion,
@@ -76,11 +72,6 @@ export default function useAdminBootstrap({
           setAdminUsersLoadError(error?.message || "No se pudo cargar la lista de usuarios.");
         });
 
-        await fetchClientesList().catch((error) => {
-          if (!isMounted) return;
-          setAdminClientesLoadError(error?.message || "No se pudo cargar la lista de clientes.");
-        });
-
         await fetchMantencionesList().catch((error) => {
           if (!isMounted) return;
           setMantencionesLoadError(error?.message || "No se pudo cargar la lista de mantenciones.");
@@ -94,7 +85,6 @@ export default function useAdminBootstrap({
         if (isMounted) {
           setLoading(false);
           setAdminUsersLoading(false);
-          setAdminClientesLoading(false);
           setMantencionesLoading(false);
           setHorariosMantencionLoading(false);
         }
@@ -114,13 +104,9 @@ export default function useAdminBootstrap({
     fetchHorariosMantencionList,
     fetchMantencionesList,
     fetchUsersList,
-    fetchClientesList,
     setAdminUsersLoadError,
-    setAdminClientesLoadError,
     setAdminUsers,
     setAdminUsersLoading,
-    setAdminClientes,
-    setAdminClientesLoading,
     setHorariosLoadError,
     setDashboard,
     setHorariosMantencion,

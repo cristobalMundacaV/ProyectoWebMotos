@@ -22,7 +22,7 @@ function toBackendWeekday(localJsDate) {
   return (localJsDate.getDay() + 6) % 7;
 }
 
-export default function useHorariosAdmin({ activeSection, pushToast, getErrorText }) {
+export default function useHorariosAdmin({ activeSection, pushToast, dismissToast, getErrorText }) {
   const [horariosMantencion, setHorariosMantencion] = useState([]);
   const [horariosMantencionLoading, setHorariosMantencionLoading] = useState(false);
   const [horariosLoadError, setHorariosLoadError] = useState("");
@@ -82,6 +82,29 @@ export default function useHorariosAdmin({ activeSection, pushToast, getErrorTex
         next.cupos_por_bloque = "1";
       }
 
+      if (name === "dia_inicio" || name === "dia_fin") {
+        const diaInicio = Number.parseInt(next.dia_inicio, 10);
+        const diaFin = Number.parseInt(next.dia_fin, 10);
+
+        if (Number.isFinite(diaInicio)) {
+          next.dia_inicio = String(Math.min(6, Math.max(0, diaInicio)));
+        }
+        if (Number.isFinite(diaFin)) {
+          next.dia_fin = String(Math.min(6, Math.max(0, diaFin)));
+        }
+
+        const normalizedInicio = Number.parseInt(next.dia_inicio, 10);
+        const normalizedFin = Number.parseInt(next.dia_fin, 10);
+        if (Number.isFinite(normalizedInicio) && Number.isFinite(normalizedFin)) {
+          if (name === "dia_inicio" && normalizedInicio > normalizedFin) {
+            next.dia_fin = String(normalizedInicio);
+          }
+          if (name === "dia_fin" && normalizedFin < normalizedInicio) {
+            next.dia_inicio = String(normalizedFin);
+          }
+        }
+      }
+
       return next;
     });
   }, []);
@@ -91,12 +114,16 @@ export default function useHorariosAdmin({ activeSection, pushToast, getErrorTex
       event.preventDefault();
       if (horarioMantencionSaving) return;
       setHorarioMantencionSaving(true);
+      const loadingToastId = pushToast("Guardando cambios", "loading", {
+        autoDismiss: false,
+        dedupe: false,
+      });
 
       try {
         const diaInicio = Number.parseInt(horarioMantencionForm.dia_inicio, 10);
         const diaFin = Number.parseInt(horarioMantencionForm.dia_fin, 10);
 
-        if (!Number.isFinite(diaInicio) || !Number.isFinite(diaFin) || diaInicio < 0 || diaFin > 6) {
+        if (!Number.isFinite(diaInicio) || !Number.isFinite(diaFin) || diaInicio < 0 || diaInicio > 6 || diaFin < 0 || diaFin > 6) {
           throw new Error("Selecciona un rango de dias valido.");
         }
         if (diaFin < diaInicio) {
@@ -174,10 +201,13 @@ export default function useHorariosAdmin({ activeSection, pushToast, getErrorTex
       } catch (error) {
         pushToast(getErrorText(error, "No se pudo crear el horario operativo."), "error");
       } finally {
+        if (loadingToastId && typeof dismissToast === "function") {
+          dismissToast(loadingToastId);
+        }
         setHorarioMantencionSaving(false);
       }
     },
-    [fetchHorariosMantencionList, getErrorText, horarioMantencionForm, horarioMantencionSaving, horariosMantencion, pushToast]
+    [dismissToast, fetchHorariosMantencionList, getErrorText, horarioMantencionForm, horarioMantencionSaving, horariosMantencion, pushToast]
   );
 
   const handleDeleteHorarioMantencion = useCallback(

@@ -144,23 +144,22 @@ const SIDEBAR_STRUCTURE = {
           ],
         },
         {
-          label: "Productos",
+          label: "Indumentaria",
           icon: "productos",
           roles: ["admin", "mecanico"],
           items: [
-            { label: "Indumentaria Rider", kind: "heading" },
             { label: "Crear indumentaria rider", value: "accesorios_rider", roles: ["admin", "mecanico"] },
             { label: "Ver catalogo", to: "/indumentaria", roles: ["admin", "mecanico"] },
-            { label: "Accesorios de moto", kind: "heading" },
-            { label: "Crear accesorios de moto", value: "accesorios_motos", roles: ["admin", "mecanico"] },
-            { label: "Ver catalogo", to: "/accesorios", roles: ["admin", "mecanico"] },
           ],
         },
         {
-          label: "Fichas tecnicas",
-          icon: "fichas_tecnicas",
+          label: "Accesorios",
+          icon: "productos",
           roles: ["admin", "mecanico"],
-          items: [{ label: "Resumen general", value: "fichas_resumen", roles: ["admin", "mecanico"] }],
+          items: [
+            { label: "Crear accesorios de moto", value: "accesorios_motos", roles: ["admin", "mecanico"] },
+            { label: "Ver catalogo", to: "/accesorios", roles: ["admin", "mecanico"] },
+          ],
         },
       ],
     },
@@ -168,6 +167,15 @@ const SIDEBAR_STRUCTURE = {
       id: "operacion",
       title: "Operacion",
       groups: [
+        {
+          label: "Horarios",
+          icon: "horarios",
+          roles: ["admin", "mecanico"],
+          items: [
+            { label: "Horario de la Semana", value: "horarios_operativos", roles: ["admin", "mecanico"] },
+            { label: "Calendario de disponibilidad", value: "horarios_calendario", roles: ["admin", "mecanico"] },
+          ],
+        },
         {
           label: "Mantenimiento",
           icon: "mantenciones",
@@ -179,13 +187,10 @@ const SIDEBAR_STRUCTURE = {
           ],
         },
         {
-          label: "Horarios",
-          icon: "horarios",
+          label: "Fichas Tecnicas",
+          icon: "fichas_tecnicas",
           roles: ["admin", "mecanico"],
-          items: [
-            { label: "Horario de la Semana", value: "horarios_operativos", roles: ["admin", "mecanico"] },
-            { label: "Calendario de disponibilidad", value: "horarios_calendario", roles: ["admin", "mecanico"] },
-          ],
+          items: [{ label: "Resumen general", value: "fichas_resumen", roles: ["admin", "mecanico"] }],
         },
       ],
     },
@@ -200,12 +205,6 @@ const SIDEBAR_STRUCTURE = {
           items: [
             { label: "Crear Usuario", value: "crear_usuario", roles: ["admin"] },
           ],
-        },
-        {
-          label: "Clientes",
-          icon: "usuarios",
-          roles: ["admin"],
-          items: [{ label: "Lista de clientes", value: "clientes_admin", roles: ["admin"] }],
         },
         {
           label: "Mantenedores",

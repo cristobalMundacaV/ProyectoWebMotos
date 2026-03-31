@@ -1239,7 +1239,6 @@ export default function FichasTecnicasPage({ activeSection, motos = [] }) {
               className="admin-ficha-modal-form"
               onSubmit={handleCreateSection}
             >
-              <p>Ingresa el nombre de la nueva seccion para crear una pestana adicional.</p>
               <label>
                 Nombre de la seccion
                 <input

@@ -131,6 +131,11 @@
   color: #ff7979;
 }
 
+.login-success {
+  font-size: 0.9rem;
+  color: #7ce3a5;
+}
+
 .login-meta {
   display: flex;
   justify-content: space-between;

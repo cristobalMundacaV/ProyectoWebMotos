@@ -15,6 +15,10 @@ class VehiculoCliente(models.Model):
     modelo = models.CharField(max_length=120, verbose_name="modelo")
     anio = models.IntegerField(null=True, blank=True, verbose_name="anio")
     kilometraje_actual = models.IntegerField(default=0, verbose_name="kilometraje actual")
+    cliente_nombres = models.CharField(max_length=120, blank=True, default="", verbose_name="nombres cliente")
+    cliente_apellidos = models.CharField(max_length=120, blank=True, default="", verbose_name="apellidos cliente")
+    cliente_telefono = models.CharField(max_length=30, blank=True, default="", verbose_name="telefono cliente")
+    cliente_email = models.EmailField(blank=True, default="", verbose_name="email cliente")
     created_at = models.DateTimeField(auto_now_add=True, verbose_name="creado")
     updated_at = models.DateTimeField(auto_now=True, verbose_name="actualizado")
 

@@ -30,6 +30,13 @@ def _format_tipo(tipo: str) -> str:
 
 
 def _safe_full_name(mantencion: Mantencion) -> str:
+    moto_cliente = getattr(mantencion, "moto_cliente", None)
+    snapshot_name = ""
+    if moto_cliente:
+        snapshot_name = f"{(moto_cliente.cliente_nombres or '').strip()} {(moto_cliente.cliente_apellidos or '').strip()}".strip()
+    if snapshot_name:
+        return snapshot_name
+
     user = getattr(getattr(mantencion, "moto_cliente", None), "cliente", None)
     if not user:
         return "cliente"
@@ -38,6 +45,9 @@ def _safe_full_name(mantencion: Mantencion) -> str:
 
 
 def get_recipient_email(mantencion: Mantencion) -> str:
+    snapshot_email = (getattr(getattr(mantencion, "moto_cliente", None), "cliente_email", "") or "").strip().lower()
+    if snapshot_email:
+        return snapshot_email
     user = getattr(getattr(mantencion, "moto_cliente", None), "cliente", None)
     email = (getattr(user, "email", "") or "").strip().lower()
     return email

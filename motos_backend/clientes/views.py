@@ -1,7 +1,11 @@
 from django.contrib.auth import authenticate
 from django.contrib.auth.models import User
+from django.contrib.auth.tokens import default_token_generator
+from django.conf import settings
 from django.db import IntegrityError, transaction
 from django.db.models import Q
+from django.utils.encoding import force_bytes, force_str
+from django.utils.http import urlsafe_base64_decode, urlsafe_base64_encode
 from rest_framework import status
 from rest_framework.decorators import api_view, authentication_classes, permission_classes
 from rest_framework.permissions import AllowAny, IsAuthenticated
@@ -10,6 +14,7 @@ from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework_simplejwt.tokens import RefreshToken, TokenError
 
 from .models import PerfilUsuario
+from .password_reset_email import send_password_reset_email
 from .permissions import ADMIN_ALLOWED_ROLES, IsBackofficeAdmin, get_user_role
 from .serializers import AdminUserCreateSerializer, UserRegisterSerializer
 
@@ -111,14 +116,22 @@ def current_user(request):
 	telefono = (data.get("telefono") or "").strip()
 	current_email = (request.user.email or "").strip()
 	current_telefono = (getattr(getattr(request.user, "perfil_usuario", None), "telefono", "") or "").strip()
+	current_role = get_user_role(request.user)
+	is_cliente = current_role == PerfilUsuario.ROL_CLIENTE
 
-	if not first_name or not last_name or not username:
+	if not first_name or not last_name:
 		return Response(
-			{"detail": "Nombres, apellidos y nombre de usuario son obligatorios."},
+			{"detail": "Nombres y apellidos son obligatorios."},
 			status=status.HTTP_400_BAD_REQUEST,
 		)
 
-	if User.objects.filter(username__iexact=username).exclude(id=request.user.id).exists():
+	if not is_cliente and not username:
+		return Response(
+			{"detail": "El nombre de usuario es obligatorio."},
+			status=status.HTTP_400_BAD_REQUEST,
+		)
+
+	if username and User.objects.filter(username__iexact=username).exclude(id=request.user.id).exists():
 		return Response({"detail": "El nombre de usuario ya esta en uso."}, status=status.HTTP_400_BAD_REQUEST)
 
 	if email and email.lower() != current_email.lower() and User.objects.filter(email__iexact=email).exclude(id=request.user.id).exists():
@@ -131,7 +144,8 @@ def current_user(request):
 		with transaction.atomic():
 			request.user.first_name = first_name
 			request.user.last_name = last_name
-			request.user.username = username
+			if username:
+				request.user.username = username
 			request.user.email = email
 			request.user.save()
 
@@ -162,6 +176,7 @@ def admin_list_clientes(request):
 	results = []
 	for user in clientes:
 		payload = _serialize_user(user)
+		payload.pop("username", None)
 		payload["date_joined"] = user.date_joined.isoformat() if user.date_joined else None
 		results.append(payload)
 
@@ -297,3 +312,75 @@ def admin_manage_user(request, user_id: int):
 
 	target_user.refresh_from_db()
 	return Response({"detail": "Usuario actualizado correctamente.", "user": _serialize_user(target_user)})
+
+
+@api_view(["POST"])
+@permission_classes([AllowAny])
+def password_reset_request(request):
+	email = (request.data.get("email") or "").strip().lower()
+	if not email:
+		return Response(
+			{"detail": "Debes ingresar un correo valido."},
+			status=status.HTTP_400_BAD_REQUEST,
+		)
+
+	user = User.objects.filter(email__iexact=email).first()
+	if user and user.is_active:
+		uid = urlsafe_base64_encode(force_bytes(user.pk))
+		token = default_token_generator.make_token(user)
+		reset_url = f"{settings.FRONTEND_URL}/recuperar-contrasena/confirmar?uid={uid}&token={token}"
+		full_name = user.get_full_name().strip() or user.username or "cliente"
+		try:
+			send_password_reset_email(
+				recipient_email=email,
+				full_name=full_name,
+				reset_url=reset_url,
+			)
+		except Exception:
+			return Response(
+				{"detail": "No se pudo enviar el correo de recuperacion en este momento."},
+				status=status.HTTP_503_SERVICE_UNAVAILABLE,
+			)
+
+	return Response(
+		{"detail": "Si el correo existe, enviaremos un enlace de recuperacion."},
+		status=status.HTTP_200_OK,
+	)
+
+
+@api_view(["POST"])
+@permission_classes([AllowAny])
+def password_reset_confirm(request):
+	uid = (request.data.get("uid") or "").strip()
+	token = (request.data.get("token") or "").strip()
+	new_password = request.data.get("new_password") or ""
+	confirm_password = request.data.get("confirm_password") or ""
+
+	if not uid or not token:
+		return Response({"detail": "Enlace de recuperacion invalido."}, status=status.HTTP_400_BAD_REQUEST)
+
+	if len(new_password) < 8:
+		return Response(
+			{"detail": "La contrasena debe tener al menos 8 caracteres."},
+			status=status.HTTP_400_BAD_REQUEST,
+		)
+
+	if new_password != confirm_password:
+		return Response(
+			{"detail": "Las contrasenas no coinciden."},
+			status=status.HTTP_400_BAD_REQUEST,
+		)
+
+	try:
+		user_id = force_str(urlsafe_base64_decode(uid))
+		user = User.objects.get(pk=user_id)
+	except (TypeError, ValueError, OverflowError, User.DoesNotExist):
+		return Response({"detail": "Enlace de recuperacion invalido."}, status=status.HTTP_400_BAD_REQUEST)
+
+	if not default_token_generator.check_token(user, token):
+		return Response({"detail": "El enlace de recuperacion expiro o no es valido."}, status=status.HTTP_400_BAD_REQUEST)
+
+	user.set_password(new_password)
+	user.save(update_fields=["password"])
+
+	return Response({"detail": "Contrasena actualizada correctamente."}, status=status.HTTP_200_OK)

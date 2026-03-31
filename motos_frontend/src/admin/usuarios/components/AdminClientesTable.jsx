@@ -20,7 +20,6 @@ export default function AdminClientesTable({
         <table className="admin-clientes-table">
           <thead>
             <tr>
-              <th>Username</th>
               <th>Nombres</th>
               <th>Apellidos</th>
               <th>Correo</th>
@@ -32,8 +31,7 @@ export default function AdminClientesTable({
             {paginatedAdminClientes.items.map((cliente, index) => {
               const joined = cliente?.date_joined ? new Date(cliente.date_joined).toLocaleDateString("es-CL") : "-";
               return (
-                <tr key={cliente?.id || cliente?.username || `cliente-row-${index}`}>
-                  <td>{cliente?.username || "-"}</td>
+                <tr key={cliente?.id || `cliente-row-${index}`}>
                   <td>{cliente?.first_name || "-"}</td>
                   <td>{cliente?.last_name || "-"}</td>
                   <td>{cliente?.email || "-"}</td>

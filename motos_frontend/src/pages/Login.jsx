@@ -1,11 +1,10 @@
-﻿import { useState } from "react";
+import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import "../styles/login.css";
-import { hasAdminAccess, loginUser, registerUser, saveAuthSession } from "../services/authService";
+import { hasAdminAccess, loginUser, saveAuthSession } from "../services/authService";
 
 export default function Login() {
   const [showPassword, setShowPassword] = useState(false);
-  const [mode, setMode] = useState("login");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const navigate = useNavigate();
@@ -13,16 +12,6 @@ export default function Login() {
   const [loginForm, setLoginForm] = useState({
     email: "",
     password: "",
-  });
-
-  const [registerForm, setRegisterForm] = useState({
-    username: "",
-    email: "",
-    telefono: "",
-    password: "",
-    confirm_password: "",
-    first_name: "",
-    last_name: "",
   });
 
   const setValidationMessage = (event) => {
@@ -40,7 +29,7 @@ export default function Login() {
     }
 
     if (target.validity.tooShort) {
-      target.setCustomValidity("La contraseña debe tener al menos 8 caracteres.");
+      target.setCustomValidity("La contrasena debe tener al menos 8 caracteres.");
     }
   };
 
@@ -65,18 +54,10 @@ export default function Login() {
     setLoading(true);
 
     try {
-      if (mode === "login") {
-        const data = await loginUser({
-          email: loginForm.email,
-          password: loginForm.password,
-        });
-        saveAuthSession(data.access || data.token, data.user, data.refresh || null);
-        const isAdmin = hasAdminAccess(data.user);
-        navigate(isAdmin ? "/admin-panel" : "/");
-        return;
-      }
-
-      const data = await registerUser(registerForm);
+      const data = await loginUser({
+        email: loginForm.email,
+        password: loginForm.password,
+      });
       saveAuthSession(data.access || data.token, data.user, data.refresh || null);
       const isAdmin = hasAdminAccess(data.user);
       navigate(isAdmin ? "/admin-panel" : "/");
@@ -94,90 +75,32 @@ export default function Login() {
         <article className="login-card">
           <img src="/images/logo.svg" alt="Delanoe Motos" className="login-logo" />
           <h1>Bienvenido</h1>
-          <p>{mode === "login" ? "Inicia sesión para continuar" : "Crea tu cuenta para continuar"}</p>
+          <p>Inicia sesion para continuar</p>
 
           <form className="login-form" onSubmit={handleSubmit}>
-            {mode === "register" && (
-              <>
-                <label htmlFor="first_name">Nombre</label>
-                <input
-                  id="first_name"
-                  name="first_name"
-                  type="text"
-                  placeholder="Tu nombre"
-                  value={registerForm.first_name}
-                  onChange={(event) =>
-                    setRegisterForm((prev) => ({ ...prev, first_name: event.target.value }))
-                  }
-                />
-
-                <label htmlFor="last_name">Apellido</label>
-                <input
-                  id="last_name"
-                  name="last_name"
-                  type="text"
-                  placeholder="Tu apellido"
-                  value={registerForm.last_name}
-                  onChange={(event) =>
-                    setRegisterForm((prev) => ({ ...prev, last_name: event.target.value }))
-                  }
-                />
-
-                <label htmlFor="username">Usuario</label>
-                <input
-                  id="username"
-                  name="username"
-                  type="text"
-                  placeholder="usuario"
-                  value={registerForm.username}
-                  onChange={(event) =>
-                    setRegisterForm((prev) => ({ ...prev, username: event.target.value }))
-                  }
-                  required
-                  onInvalid={setValidationMessage}
-                  onInput={clearValidationMessage}
-                />
-              </>
-            )}
-
-            <label htmlFor="email">
-              {mode === "login" ? "Correo o nombre de usuario" : "Correo electrónico"}
-            </label>
+            <label htmlFor="email">Correo o nombre de usuario</label>
             <input
               id="email"
               name="email"
-              type={mode === "login" ? "text" : "email"}
-              placeholder={mode === "login" ? "tu@email.com o usuario" : "tu@email.com"}
-              value={mode === "login" ? loginForm.email : registerForm.email}
-              onChange={(event) => {
-                if (mode === "login") {
-                  setLoginForm((prev) => ({ ...prev, email: event.target.value }));
-                } else {
-                  setRegisterForm((prev) => ({ ...prev, email: event.target.value }));
-                }
-              }}
-              autoComplete={mode === "login" ? "username" : "email"}
+              type="text"
+              placeholder="tu@email.com o usuario"
+              value={loginForm.email}
+              onChange={(event) => setLoginForm((prev) => ({ ...prev, email: event.target.value }))}
+              autoComplete="username"
               required
               onInvalid={setValidationMessage}
               onInput={clearValidationMessage}
             />
 
-            <label htmlFor="password">Contraseña</label>
+            <label htmlFor="password">Contrasena</label>
             <div className="password-field">
               <input
                 id="password"
                 name="password"
                 type={showPassword ? "text" : "password"}
                 placeholder="********"
-                value={mode === "login" ? loginForm.password : registerForm.password}
-                onChange={(event) => {
-                  if (mode === "login") {
-                    setLoginForm((prev) => ({ ...prev, password: event.target.value }));
-                  } else {
-                    setRegisterForm((prev) => ({ ...prev, password: event.target.value }));
-                  }
-                }}
-                minLength={mode === "login" ? undefined : 8}
+                value={loginForm.password}
+                onChange={(event) => setLoginForm((prev) => ({ ...prev, password: event.target.value }))}
                 required
                 onInvalid={setValidationMessage}
                 onInput={clearValidationMessage}
@@ -186,79 +109,24 @@ export default function Login() {
                 type="button"
                 className="toggle-password"
                 onClick={() => setShowPassword((prev) => !prev)}
-                aria-label={showPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
+                aria-label={showPassword ? "Ocultar contrasena" : "Mostrar contrasena"}
               >
                 {showPassword ? "Ocultar" : "Ver"}
               </button>
             </div>
 
-            {mode === "register" && (
-              <>
-                <label htmlFor="telefono">Telefono</label>
-                <input
-                  id="telefono"
-                  name="telefono"
-                  type="text"
-                  placeholder="+569..."
-                  value={registerForm.telefono}
-                  onChange={(event) =>
-                    setRegisterForm((prev) => ({ ...prev, telefono: event.target.value }))
-                  }
-                  required
-                  onInvalid={setValidationMessage}
-                  onInput={clearValidationMessage}
-                />
-
-                <label htmlFor="confirm_password">Confirmar contraseña</label>
-                <input
-                  id="confirm_password"
-                  name="confirm_password"
-                  type={showPassword ? "text" : "password"}
-                  placeholder="********"
-                  value={registerForm.confirm_password}
-                  onChange={(event) =>
-                    setRegisterForm((prev) => ({ ...prev, confirm_password: event.target.value }))
-                  }
-                  minLength={8}
-                  required
-                  onInvalid={setValidationMessage}
-                  onInput={clearValidationMessage}
-                />
-              </>
-            )}
-
             {error && <p className="login-error">{error}</p>}
 
             <button type="submit" className="login-submit" disabled={loading}>
-              {loading ? "Procesando..." : mode === "login" ? "Continuar" : "Crear cuenta"}
+              {loading ? "Procesando..." : "Continuar"}
             </button>
 
-            {mode === "login" && (
-              <>
-                <div className="login-meta">
-                  <label>
-                    <input type="checkbox" name="remember" /> Recordarme
-                  </label>
-                  <Link to="/">¿Olvidaste tu contraseña?</Link>
-                </div>
-
-                <div className="login-register">
-                  ¿No tienes cuenta?{" "}
-                  <button type="button" className="register-link" onClick={() => setMode("register")}>
-                    Registrate
-                  </button>
-                </div>
-              </>
-            )}
-
-            {mode === "register" && (
-              <div className="login-register">
-                ¿No tienes cuenta?{" "}
-                <button type="button" className="register-link" onClick={() => setMode("login")}>
-                  Inicia sesión
-                </button>
-              </div>
-            )}
+            <div className="login-meta">
+              <label>
+                <input type="checkbox" name="remember" /> Recordarme
+              </label>
+              <Link to="/recuperar-contrasena">Olvidaste tu contrasena?</Link>
+            </div>
           </form>
         </article>
       </section>

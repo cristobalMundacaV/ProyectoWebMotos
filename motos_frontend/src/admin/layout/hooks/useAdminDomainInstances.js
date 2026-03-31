@@ -23,6 +23,7 @@ export default function useAdminDomainInstances({
   setDashboard,
   fallbackImage,
   pushToast,
+  dismissToast,
   getErrorText,
   clearInvalidFieldStyle,
   validateFormWithToast,
@@ -75,7 +76,7 @@ export default function useAdminDomainInstances({
     clearInvalidFieldStyle,
     validateFormWithToast,
   });
-  const { setAdminUsersPage, setAdminClientesPage } = users;
+  const { setAdminUsersPage } = users;
 
   const configuracion = useConfiguracionAdmin({
     pushToast,
@@ -93,6 +94,7 @@ export default function useAdminDomainInstances({
   const horarios = useHorariosAdmin({
     activeSection,
     pushToast,
+    dismissToast,
     getErrorText,
   });
 
@@ -131,18 +133,14 @@ export default function useAdminDomainInstances({
     bootstrapContacto: configuracion.bootstrapContacto,
     pushToast,
     fetchUsersList: users.fetchUsersList,
-    fetchClientesList: users.fetchClientesList,
     fetchMantencionesList: mantenciones.fetchMantencionesList,
     fetchHorariosMantencionList: horarios.fetchHorariosMantencionList,
     setAdminUsersLoadError: users.setAdminUsersLoadError,
-    setAdminClientesLoadError: users.setAdminClientesLoadError,
     setMantencionesLoadError: mantenciones.setMantencionesLoadError,
     setHorariosLoadError: horarios.setHorariosLoadError,
     setDashboard,
     setAdminUsers: users.setAdminUsers,
     setAdminUsersLoading: users.setAdminUsersLoading,
-    setAdminClientes: users.setAdminClientes,
-    setAdminClientesLoading: users.setAdminClientesLoading,
     setMantenciones: mantenciones.setMantenciones,
     setMantencionesLoading: mantenciones.setMantencionesLoading,
     setHorariosMantencion: horarios.setHorariosMantencion,
@@ -167,7 +165,6 @@ export default function useAdminDomainInstances({
   useAdminRealtime({
     activeSection,
     fetchUsersList: users.fetchUsersList,
-    fetchClientesList: users.fetchClientesList,
     fetchMantencionesList: mantenciones.fetchMantencionesList,
     fetchHorariosMantencionList: horarios.fetchHorariosMantencionList,
     setMantenciones: mantenciones.setMantenciones,
@@ -206,10 +203,7 @@ export default function useAdminDomainInstances({
     if (activeSection === "lista_usuarios" || activeSection === "crear_usuario") {
       setAdminUsersPage(1);
     }
-    if (activeSection === "clientes_admin") {
-      setAdminClientesPage(1);
-    }
-  }, [activeSection, setAdminClientesPage, setAdminUsersPage]);
+  }, [activeSection, setAdminUsersPage]);
 
   return {
     loading,

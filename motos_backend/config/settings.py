@@ -190,6 +190,7 @@ EMAIL_USE_TLS = os.getenv('EMAIL_USE_TLS', 'True') == 'True'
 EMAIL_USE_SSL = os.getenv('EMAIL_USE_SSL', 'False') == 'True'
 EMAIL_TIMEOUT = int(os.getenv('EMAIL_TIMEOUT', '20'))
 DEFAULT_FROM_EMAIL = os.getenv('DEFAULT_FROM_EMAIL', EMAIL_HOST_USER or 'no-reply@delanoemotos.cl')
+FRONTEND_URL = os.getenv('FRONTEND_URL', 'https://www.delanoemotos.cl').rstrip('/')
 
 COMPANY_NAME = os.getenv('COMPANY_NAME', 'Delanoe Motos')
 COMPANY_SUPPORT_EMAIL = os.getenv('COMPANY_SUPPORT_EMAIL', DEFAULT_FROM_EMAIL)

@@ -3,7 +3,6 @@ import { useEffect } from "react";
 export default function useAdminRealtime({
   activeSection,
   fetchUsersList,
-  fetchClientesList,
   fetchMantencionesList,
   fetchHorariosMantencionList,
   setMantenciones,
@@ -12,8 +11,7 @@ export default function useAdminRealtime({
   useEffect(() => {
     const isUsersSection =
       activeSection === "lista_usuarios" ||
-      activeSection === "crear_usuario" ||
-      activeSection === "clientes_admin";
+      activeSection === "crear_usuario";
     const isMantencionesSection =
       activeSection === "mantenciones_solicitudes" ||
       activeSection === "mantenciones_fichas" ||
@@ -30,7 +28,6 @@ export default function useAdminRealtime({
       try {
         if (isUsersSection) {
           await fetchUsersList({ background: true });
-          await fetchClientesList({ background: true });
           if (!mounted) return;
         }
 
@@ -68,7 +65,6 @@ export default function useAdminRealtime({
     fetchHorariosMantencionList,
     fetchMantencionesList,
     fetchUsersList,
-    fetchClientesList,
     setHorariosMantencion,
     setMantenciones,
   ]);
