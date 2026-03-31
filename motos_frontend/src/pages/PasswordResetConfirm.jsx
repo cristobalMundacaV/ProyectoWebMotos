@@ -38,7 +38,7 @@ export default function PasswordResetConfirm() {
       setSuccess(data?.detail || "Contraseña actualizada correctamente.");
       setForm({ new_password: "", confirm_password: "" });
     } catch (err) {
-      setError(err?.response?.data?.detail || "No fue posible actualizar la contrasena.");
+      setError(err?.response?.data?.detail || "No fue posible actualizar la contraseña.");
     } finally {
       setLoading(false);
     }
@@ -49,11 +49,11 @@ export default function PasswordResetConfirm() {
       <section className="login-shell">
         <article className="login-card">
           <img src="/images/logo.svg" alt="Delanoe Motos" className="login-logo" />
-          <h1>Nueva contrasena</h1>
-          <p>Define tu nueva contrasena para recuperar el acceso.</p>
+          <h1>Nueva contraseña</h1>
+          <p>Define tu nueva contraseña para recuperar el acceso.</p>
 
           <form className="login-form" onSubmit={handleSubmit}>
-            <label htmlFor="new_password">Nueva contrasena</label>
+            <label htmlFor="new_password">Nueva contraseña</label>
             <div className="password-field">
               <input
                 id="new_password"
@@ -69,13 +69,13 @@ export default function PasswordResetConfirm() {
                 type="button"
                 className="toggle-password"
                 onClick={() => setShowPassword((prev) => !prev)}
-                aria-label={showPassword ? "Ocultar contrasena" : "Mostrar contrasena"}
+                aria-label={showPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
               >
                 {showPassword ? "Ocultar" : "Ver"}
               </button>
             </div>
 
-            <label htmlFor="confirm_password">Repetir nueva contrasena</label>
+            <label htmlFor="confirm_password">Repetir nueva contraseña</label>
             <input
               id="confirm_password"
               name="confirm_password"
@@ -91,7 +91,7 @@ export default function PasswordResetConfirm() {
             {success && <p className="login-success">{success}</p>}
 
             <button type="submit" className="login-submit" disabled={loading || invalidLink}>
-              {loading ? "Guardando..." : "Actualizar contrasena"}
+              {loading ? "Guardando..." : "Actualizar contraseña"}
             </button>
 
             <div className="login-register">

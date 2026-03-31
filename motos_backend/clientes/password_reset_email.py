@@ -5,10 +5,10 @@ from django.core.mail import EmailMultiAlternatives
 
 
 def send_password_reset_email(*, recipient_email: str, full_name: str, reset_url: str) -> None:
-    subject = f"Recuperacion de contrasena | {settings.COMPANY_NAME}"
-    title = "Recuperacion de contrasena"
+    subject = f"Recuperacion de contraseña | {settings.COMPANY_NAME}"
+    title = "Recuperacion de contraseña"
     intro = (
-        "Recibimos una solicitud para restablecer la contrasena de tu cuenta. "
+        "Recibimos una solicitud para restablecer la contraseña de tu cuenta. "
         "Si fuiste tu, usa el siguiente enlace para continuar:"
     )
     outro = (
@@ -48,7 +48,7 @@ def send_password_reset_email(*, recipient_email: str, full_name: str, reset_url
                 </p>
                 <p style="margin:0 0 18px;">
                   <a href="{reset_url}" style="display:inline-block;background:#dc2626;color:#ffffff;text-decoration:none;padding:12px 18px;border-radius:10px;font-weight:700;">
-                    Cambiar contrasena
+                    Cambiar contraseña
                   </a>
                 </p>
                 <p style="margin:0 0 12px;font-size:13px;color:#64748b;word-break:break-all;">

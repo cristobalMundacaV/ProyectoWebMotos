@@ -29,7 +29,7 @@ export default function Login() {
     }
 
     if (target.validity.tooShort) {
-      target.setCustomValidity("La contrasena debe tener al menos 8 caracteres.");
+      target.setCustomValidity("La contraseña debe tener al menos 8 caracteres.");
     }
   };
 
@@ -109,7 +109,7 @@ export default function Login() {
                 type="button"
                 className="toggle-password"
                 onClick={() => setShowPassword((prev) => !prev)}
-                aria-label={showPassword ? "Ocultar contrasena" : "Mostrar contrasena"}
+                aria-label={showPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
               >
                 {showPassword ? "Ocultar" : "Ver"}
               </button>
@@ -125,7 +125,7 @@ export default function Login() {
               <label>
                 <input type="checkbox" name="remember" /> Recordarme
               </label>
-              <Link to="/recuperar-contrasena">Olvidaste tu contrasena?</Link>
+              <Link to="/recuperar-contrasena">Olvidaste tu contraseña?</Link>
             </div>
           </form>
         </article>

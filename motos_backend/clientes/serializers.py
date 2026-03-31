@@ -17,18 +17,18 @@ class UserRegisterSerializer(serializers.ModelSerializer):
         write_only=True,
         min_length=8,
         error_messages={
-            "required": "La contrasena es obligatoria.",
-            "blank": "La contrasena es obligatoria.",
-            "min_length": "La contrasena debe tener al menos 8 caracteres.",
+            "required": "La contraseña es obligatoria.",
+            "blank": "La contraseña es obligatoria.",
+            "min_length": "La contraseña debe tener al menos 8 caracteres.",
         },
     )
     confirm_password = serializers.CharField(
         write_only=True,
         min_length=8,
         error_messages={
-            "required": "Debes confirmar la contrasena.",
-            "blank": "Debes confirmar la contrasena.",
-            "min_length": "La contrasena debe tener al menos 8 caracteres.",
+            "required": "Debes confirmar la contraseña.",
+            "blank": "Debes confirmar la contraseña.",
+            "min_length": "La contraseña debe tener al menos 8 caracteres.",
         },
     )
     telefono = serializers.CharField(
@@ -59,7 +59,7 @@ class UserRegisterSerializer(serializers.ModelSerializer):
 
     def validate(self, attrs):
         if attrs["password"] != attrs["confirm_password"]:
-            raise serializers.ValidationError({"confirm_password": "Las contrasenas no coinciden."})
+            raise serializers.ValidationError({"confirm_password": "Las contraseñas no coinciden."})
         return attrs
 
     def _generate_username(self, email: str, first_name: str, last_name: str) -> str:
@@ -149,7 +149,7 @@ class AdminUserCreateSerializer(serializers.Serializer):
 
     def validate(self, attrs):
         if attrs["password"] != attrs["confirm_password"]:
-            raise serializers.ValidationError({"confirm_password": "Las contrasenas no coinciden."})
+            raise serializers.ValidationError({"confirm_password": "Las contraseñas no coinciden."})
         return attrs
 
     def create(self, validated_data):

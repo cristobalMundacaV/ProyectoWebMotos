@@ -71,7 +71,7 @@ def login_user(request):
 
 	if not username_or_email or not password:
 		return Response(
-			{"detail": "Debes enviar usuario/correo y contrasena."},
+			{"detail": "Debes enviar usuario/correo y contraseña."},
 			status=status.HTTP_400_BAD_REQUEST,
 		)
 
@@ -361,13 +361,13 @@ def password_reset_confirm(request):
 
 	if len(new_password) < 8:
 		return Response(
-			{"detail": "La contrasena debe tener al menos 8 caracteres."},
+			{"detail": "La contraseña debe tener al menos 8 caracteres."},
 			status=status.HTTP_400_BAD_REQUEST,
 		)
 
 	if new_password != confirm_password:
 		return Response(
-			{"detail": "Las contrasenas no coinciden."},
+			{"detail": "Las contraseñas no coinciden."},
 			status=status.HTTP_400_BAD_REQUEST,
 		)
 
