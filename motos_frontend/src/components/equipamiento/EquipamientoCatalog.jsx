@@ -13,6 +13,8 @@ import {
 } from "../../services/productosService";
 import { getStoredToken, getStoredUser, hasAdminAccess } from "../../services/authService";
 import "../../styles/equipamiento.css";
+import PublicToastStack from "./PublicToastStack";
+import usePublicToasts from "./usePublicToasts";
 
 function getConfig(variant) {
   if (variant === "indumentaria") {
@@ -77,6 +79,9 @@ export default function EquipamientoCatalog({ variant = "accesorios" }) {
   const [feedback, setFeedback] = useState({ type: "", message: "" });
   const editFileInputRef = useRef(null);
   const fallbackImage = buildFallbackImageDataUrl({ width: 600, height: 600, text: "Sin Imagen" });
+
+  // Toast público para feedback
+  const { toasts, pushToast, dismissToast } = usePublicToasts();
 
   useEffect(() => {
     const token = getStoredToken();
