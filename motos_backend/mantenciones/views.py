@@ -270,6 +270,9 @@ class MantencionActivarDiaAPIView(APIView):
                 fecha=target_date,
                 defaults={"bloqueado": False, "motivo": "Dia habilitado desde calendario"},
             )
+            # Al reactivar un dia, reiniciamos cualquier bloqueo por hora previo
+            # para que el dia quede exactamente con la configuracion ingresada.
+            MantencionHoraBloqueada.objects.filter(fecha=target_date).delete()
             MantencionHorarioFecha.objects.update_or_create(
                 fecha=target_date,
                 defaults={

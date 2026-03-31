@@ -272,9 +272,9 @@ def admin_manage_user(request, user_id: int):
 	telefono = (data.get("telefono") or "").strip()
 	rol = (data.get("rol") or "").strip().lower()
 
-	if not first_name or not last_name or not username or not telefono or not rol:
+	if not first_name or not last_name or not username or not email or not telefono or not rol:
 		return Response(
-			{"detail": "Nombres, apellidos, username, telefono y rol son obligatorios."},
+			{"detail": "Nombres, apellidos, username, correo, telefono y rol son obligatorios."},
 			status=status.HTTP_400_BAD_REQUEST,
 		)
 
@@ -284,7 +284,7 @@ def admin_manage_user(request, user_id: int):
 	if User.objects.filter(username__iexact=username).exclude(id=target_user.id).exists():
 		return Response({"detail": "El username ya esta en uso."}, status=status.HTTP_400_BAD_REQUEST)
 
-	if email and User.objects.filter(email__iexact=email).exclude(id=target_user.id).exists():
+	if User.objects.filter(email__iexact=email).exclude(id=target_user.id).exists():
 		return Response({"detail": "El correo ya esta en uso."}, status=status.HTTP_400_BAD_REQUEST)
 
 	if telefono and PerfilUsuario.objects.filter(telefono=telefono).exclude(user_id=target_user.id).exists():

@@ -19,8 +19,6 @@ function parseLocalIsoDate(value) {
   return parsed;
 }
 
-const CALENDAR_MAX_DAYS_AHEAD = 31;
-
 function getMonthDateRange(calendarMonth) {
   const monthStart = new Date(calendarMonth.getFullYear(), calendarMonth.getMonth(), 1);
   const monthEnd = new Date(calendarMonth.getFullYear(), calendarMonth.getMonth() + 1, 0);
@@ -28,15 +26,6 @@ function getMonthDateRange(calendarMonth) {
     from: toIsoDate(monthStart),
     to: toIsoDate(monthEnd),
   };
-}
-
-function getMonthNavigationBounds() {
-  const today = new Date();
-  const minMonth = new Date(today.getFullYear(), today.getMonth(), 1);
-  const maxDate = new Date(today);
-  maxDate.setDate(maxDate.getDate() + (CALENDAR_MAX_DAYS_AHEAD - 1));
-  const maxMonth = new Date(maxDate.getFullYear(), maxDate.getMonth(), 1);
-  return { minMonth, maxMonth };
 }
 
 function buildInitialCalendarMonth() {
@@ -80,15 +69,8 @@ export default function useMantencionesCalendar({ activeSection, horarios }) {
     () => calendarMonth.toLocaleDateString("es-CL", { month: "long", year: "numeric" }),
     [calendarMonth]
   );
-  const monthBounds = useMemo(() => getMonthNavigationBounds(), []);
-  const canGoPrevMonth = useMemo(
-    () => calendarMonth.getTime() > monthBounds.minMonth.getTime(),
-    [calendarMonth, monthBounds.minMonth]
-  );
-  const canGoNextMonth = useMemo(
-    () => calendarMonth.getTime() < monthBounds.maxMonth.getTime(),
-    [calendarMonth, monthBounds.maxMonth]
-  );
+  const canGoPrevMonth = false;
+  const canGoNextMonth = true;
 
   const calendarCells = useMemo(() => {
     const year = calendarMonth.getFullYear();
@@ -110,6 +92,9 @@ export default function useMantencionesCalendar({ activeSection, horarios }) {
       const isHoliday = isChileanHolidayDate(date);
       const totalSlots = Array.isArray(info?.horas) ? info.horas.length : 0;
       const availableSlots = Array.isArray(info?.horas) ? info.horas.filter((slot) => slot.disponible).length : 0;
+      const occupiedSlots = Array.isArray(info?.horas)
+        ? info.horas.filter((slot) => !slot.disponible && !slot.desactivada).length
+        : 0;
 
       cells.push({
         key: iso,
@@ -120,7 +105,7 @@ export default function useMantencionesCalendar({ activeSection, horarios }) {
         hasAvailable: availableSlots > 0,
         totalSlots,
         availableSlots,
-        occupiedSlots: Math.max(totalSlots - availableSlots, 0),
+        occupiedSlots,
         isToday: iso === todayIso,
       });
     }
@@ -390,18 +375,12 @@ export default function useMantencionesCalendar({ activeSection, horarios }) {
   );
 
   const goToPrevMonth = useCallback(() => {
-    setCalendarMonth((prev) => {
-      if (!canGoPrevMonth) return prev;
-      return addMonths(prev, -1);
-    });
-  }, [canGoPrevMonth]);
+    // Navegacion al mes anterior deshabilitada por regla de negocio.
+  }, []);
 
   const goToNextMonth = useCallback(() => {
-    setCalendarMonth((prev) => {
-      if (!canGoNextMonth) return prev;
-      return addMonths(prev, 1);
-    });
-  }, [canGoNextMonth]);
+    setCalendarMonth((prev) => addMonths(prev, 1));
+  }, []);
 
   const closeDayBlockConfirm = useCallback(() => {
     setDayBlockConfirm(null);

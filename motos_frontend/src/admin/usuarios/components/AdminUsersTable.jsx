@@ -37,7 +37,7 @@ export default function AdminUsersTable({
               </div>
               <div className="admin-moto-table-cell">
                 <strong>{formatRoleLabel(user?.rol || user?.role)}</strong>
-                <span>{user?.email || user?.telefono || "Sin contacto"}</span>
+                <span>{user?.telefono || "Sin telefono"}</span>
               </div>
               <div className="admin-row-actions">
                 <button type="button" className="admin-row-action-btn edit" title="Editar" onClick={() => onEditUser(user)}>

@@ -1617,6 +1617,10 @@
   align-items: center;
 }
 
+.admin-user-delete-overlay {
+  align-items: center;
+}
+
 .admin-mantenedores-edit-overlay {
   align-items: center;
 }
@@ -3537,6 +3541,10 @@
 .admin-activate-modal-btn:hover {
   background: #15803d !important;
   border-color: #15803d !important;
+}
+
+.admin-activate-modal-back-btn {
+  border-radius: 999px !important;
 }
 
 .admin-analytics-dashboard {

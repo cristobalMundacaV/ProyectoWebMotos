@@ -40,8 +40,8 @@ export default function UsuariosPage({
           </label>
 
           <label>
-            Correo (opcional)
-            <input type="email" name="email" value={createUserForm.email} onChange={onCreateUserInputChange} maxLength={254} />
+            Correo *
+            <input type="email" name="email" value={createUserForm.email} onChange={onCreateUserInputChange} maxLength={254} required />
           </label>
 
           <label>

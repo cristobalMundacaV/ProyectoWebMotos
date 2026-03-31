@@ -101,7 +101,15 @@ class AdminUserCreateSerializer(serializers.Serializer):
     first_name = serializers.CharField(max_length=150)
     last_name = serializers.CharField(max_length=150)
     username = serializers.CharField(max_length=150)
-    email = serializers.EmailField(required=False, allow_blank=True)
+    email = serializers.EmailField(
+        required=True,
+        allow_blank=False,
+        error_messages={
+            "required": "El correo es obligatorio.",
+            "blank": "El correo es obligatorio.",
+            "invalid": "Ingresa un correo valido.",
+        },
+    )
     telefono = serializers.CharField(max_length=30)
     rol = serializers.ChoiceField(
         choices=[
@@ -126,7 +134,7 @@ class AdminUserCreateSerializer(serializers.Serializer):
     def validate_email(self, value):
         email = value.strip().lower()
         if not email:
-            return ""
+            raise serializers.ValidationError("El correo es obligatorio.")
         if User.objects.filter(email__iexact=email).exists():
             raise serializers.ValidationError("El correo ya esta registrado.")
         return email

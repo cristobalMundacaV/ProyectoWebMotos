@@ -453,14 +453,19 @@ export default function useMotoAdmin({
   async function handleModeloMotoSubmit(event) {
     event.preventDefault();
     if (!validateFormWithToast(event.currentTarget)) return;
+    if (!modeloMotoForm.marca || !modeloMotoForm.categoria) {
+      pushToast("Selecciona marca y categoria para crear el modelo.", "error");
+      return;
+    }
     setModeloMotoSaving(true);
     try {
       const normalizedNombre = normalizeUppercaseLabel(modeloMotoForm.nombre);
       const payload = {
-        ...modeloMotoForm,
-        categoria: modeloMotoForm.categoria || null,
+        marca: modeloMotoForm.marca,
+        categoria: modeloMotoForm.categoria,
         nombre: normalizedNombre,
-        slug: limitSlug(buildSlug(normalizedNombre), 50),
+        descripcion: modeloMotoForm.descripcion,
+        activo: Boolean(modeloMotoForm.activo),
       };
       const nuevoModelo = await createModeloMoto(payload);
       setModelosMotosAdmin((prev) => [nuevoModelo, ...prev]);

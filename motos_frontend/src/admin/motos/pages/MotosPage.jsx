@@ -129,7 +129,6 @@ export default function MotosPage({
         <article className="admin-panel-card">
           <div className="admin-card-header">
             <h2>Crear marca</h2>
-            <span>{activeMarcaConfig.subtitulo}</span>
           </div>
 
           <form className="admin-moto-form admin-inline-submit-form" onSubmit={onMarcaSubmit} noValidate>
@@ -195,7 +194,6 @@ export default function MotosPage({
         <article className="admin-panel-card">
           <div className="admin-card-header">
             <h2>Crear categoria de motos</h2>
-            <span>Gestion de categorias de motos</span>
           </div>
 
           <form className="admin-moto-form admin-inline-submit-form" onSubmit={onCategoriaMotoSubmit} noValidate>
@@ -279,7 +277,6 @@ export default function MotosPage({
         <article className="admin-panel-card">
           <div className="admin-card-header">
             <h2>Crear modelo de moto</h2>
-            <span>Gestion de modelos asociados a marcas</span>
           </div>
 
           <form className="admin-moto-form admin-inline-submit-form" onSubmit={onModeloMotoSubmit} noValidate>

@@ -38,8 +38,8 @@ export default function AdminUserModals({
               </label>
 
               <label>
-                Correo (opcional)
-                <input type="email" name="email" value={editModal.email} onChange={onEditInputChange} maxLength={254} />
+                Correo *
+                <input type="email" name="email" value={editModal.email} onChange={onEditInputChange} maxLength={254} required />
               </label>
 
               <label>
@@ -73,7 +73,7 @@ export default function AdminUserModals({
       )}
 
       {deleteModal && (
-        <div className="admin-entity-modal-overlay" onClick={onCloseDelete}>
+        <div className="admin-entity-modal-overlay admin-user-delete-overlay" onClick={onCloseDelete}>
           <section className="admin-entity-delete-modal" onClick={(event) => event.stopPropagation()}>
             <img src="/images/informacion.png" alt="Informacion" className="admin-entity-delete-image" />
             <p className="admin-entity-delete-text">Estas seguro que quieres eliminar a {deleteModal.name}?</p>

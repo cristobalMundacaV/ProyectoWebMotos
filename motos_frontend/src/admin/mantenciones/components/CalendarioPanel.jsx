@@ -62,7 +62,7 @@ export default function CalendarioPanel({ model }) {
                 <strong>{month.summary.daysAvailable}</strong>
               </article>
               <article>
-                <span>Dias completos</span>
+                <span>Dias sin horas</span>
                 <strong>{month.summary.daysFull}</strong>
               </article>
               <article>
@@ -330,7 +330,6 @@ export default function CalendarioPanel({ model }) {
             }}
           >
             <section className="admin-confirm-modal" onClick={(event) => event.stopPropagation()}>
-              <img src="/images/informacion.png" alt="Informacion" className="admin-confirm-modal-image" />
               <h3>Activar dia</h3>
               <p className="admin-confirm-modal-text">
                 Configura el horario del dia seleccionado para habilitar agenda.
@@ -383,7 +382,7 @@ export default function CalendarioPanel({ model }) {
               <div className="admin-confirm-modal-actions">
                 <button
                   type="button"
-                  className="btn-back"
+                  className="btn-back admin-activate-modal-back-btn"
                   disabled={dayActivateSaving}
                   onClick={modals.closeDayActivate}
                 >

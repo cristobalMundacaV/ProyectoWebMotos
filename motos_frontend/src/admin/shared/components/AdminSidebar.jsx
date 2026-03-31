@@ -213,8 +213,8 @@ const SIDEBAR_STRUCTURE = {
           items: [
             { label: "Motos", kind: "heading" },
             { label: "Marca", value: "marcas_motos", roles: ["admin"] },
-            { label: "Modelo", value: "modelos_motos", roles: ["admin"] },
             { label: "Categoria", value: "categoria_motos", roles: ["admin"] },
+            { label: "Modelo", value: "modelos_motos", roles: ["admin"] },
             { label: "Accesorios de moto", kind: "heading" },
             { label: "Marca", value: "marcas_acc_motos", roles: ["admin"] },
             { label: "Categoria", value: "categorias_acc_motos", roles: ["admin"] },
