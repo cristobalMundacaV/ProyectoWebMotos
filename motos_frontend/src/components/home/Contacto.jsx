@@ -107,11 +107,11 @@ export default function Contacto({ showMapCta = false, quoteMessage = "" }) {
           </p>
         </div>
         <div>
-          <h3>Telefono</h3>
+          <h3>Teléfono</h3>
           <p>{contacto.telefono || "No definido"}</p>
         </div>
         <div>
-          <h3>Ubicacion</h3>
+          <h3>Ubicación</h3>
           <p>{ubicacionFinal || "No definido"}</p>
         </div>
       </div>

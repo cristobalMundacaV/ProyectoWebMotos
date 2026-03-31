@@ -48,7 +48,7 @@ export default function ConfiguracionPage({
           </label>
 
           <label>
-            Telefono *
+            Teléfono *
             <input
               name="telefono"
               value={contactoForm.telefono}
@@ -60,7 +60,7 @@ export default function ConfiguracionPage({
           </label>
 
           <label className="admin-form-span-2">
-            Ubicacion *
+            Ubicación *
             <input
               name="ubicacion"
               value={contactoForm.ubicacion}

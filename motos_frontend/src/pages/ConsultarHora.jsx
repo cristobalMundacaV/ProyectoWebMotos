@@ -289,7 +289,7 @@ export default function ConsultarHora() {
                             <strong>Apellidos:</strong> {item.apellidos || "-"}
                           </p>
                           <p>
-                            <strong>Telefono:</strong> {item.telefono || "-"}
+                            <strong>Teléfono:</strong> {item.telefono || "-"}
                           </p>
                           <p>
                             <strong>Email:</strong> {item.email || "-"}

@@ -35,7 +35,7 @@ export default function PasswordResetConfirm() {
         new_password: form.new_password,
         confirm_password: form.confirm_password,
       });
-      setSuccess(data?.detail || "Contrasena actualizada correctamente.");
+      setSuccess(data?.detail || "Contraseña actualizada correctamente.");
       setForm({ new_password: "", confirm_password: "" });
     } catch (err) {
       setError(err?.response?.data?.detail || "No fue posible actualizar la contrasena.");

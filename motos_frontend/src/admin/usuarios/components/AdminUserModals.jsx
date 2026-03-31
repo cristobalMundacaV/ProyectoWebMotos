@@ -43,7 +43,7 @@ export default function AdminUserModals({
               </label>
 
               <label>
-                Telefono *
+                Teléfono *
                 <input name="telefono" value={editModal.telefono} onChange={onEditInputChange} maxLength={30} required />
               </label>
 

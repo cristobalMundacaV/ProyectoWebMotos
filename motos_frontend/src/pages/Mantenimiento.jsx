@@ -452,7 +452,7 @@ export default function Mantenimiento() {
               </label>
 
               <label>
-                Telefono
+                Teléfono
                 <input name="telefono" value={form.telefono} onChange={handleChange} required />
               </label>
 

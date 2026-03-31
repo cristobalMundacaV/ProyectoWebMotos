@@ -23,7 +23,7 @@ export default function AdminClientesTable({
               <th>Nombres</th>
               <th>Apellidos</th>
               <th>Correo</th>
-              <th>Telefono</th>
+              <th>Teléfono</th>
               <th>Fecha Registro</th>
             </tr>
           </thead>

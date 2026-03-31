@@ -145,7 +145,7 @@ export default function AdminTopbar({
                     <strong>{user?.email || "-"}</strong>
                   </p>
                   <p>
-                    <span>Telefono</span>
+                    <span>Teléfono</span>
                     <strong>{user?.telefono || "-"}</strong>
                   </p>
                   <div className="admin-user-dropdown-actions">
@@ -176,7 +176,7 @@ export default function AdminTopbar({
                     <input name="email" type="email" value={form.email} onChange={onChangeField} />
                   </label>
                   <label>
-                    Telefono
+                    Teléfono
                     <input name="telefono" value={form.telefono} onChange={onChangeField} required />
                   </label>
                   <div className="admin-user-dropdown-actions">

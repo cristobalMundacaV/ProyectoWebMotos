@@ -383,4 +383,4 @@ def password_reset_confirm(request):
 	user.set_password(new_password)
 	user.save(update_fields=["password"])
 
-	return Response({"detail": "Contrasena actualizada correctamente."}, status=status.HTTP_200_OK)
+	return Response({"detail": "Contraseña actualizada correctamente."}, status=status.HTTP_200_OK)

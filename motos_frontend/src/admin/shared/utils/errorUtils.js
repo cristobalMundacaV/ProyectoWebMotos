@@ -21,7 +21,7 @@ export function getErrorText(error, fallback = "No se pudo completar la solicitu
   const fieldLabels = {
     username: "Nombre de usuario",
     email: "Correo",
-    telefono: "Telefono",
+    telefono: "Teléfono",
     marca: "Marca",
     modelo: "Modelo",
     modelo_id: "Modelo",

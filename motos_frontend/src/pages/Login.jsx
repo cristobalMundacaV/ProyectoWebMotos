@@ -92,7 +92,7 @@ export default function Login() {
               onInput={clearValidationMessage}
             />
 
-            <label htmlFor="password">Contrasena</label>
+            <label htmlFor="password">Contraseña</label>
             <div className="password-field">
               <input
                 id="password"

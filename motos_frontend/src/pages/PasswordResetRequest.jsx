@@ -31,7 +31,7 @@ export default function PasswordResetRequest() {
       <section className="login-shell">
         <article className="login-card">
           <img src="/images/logo.svg" alt="Delanoe Motos" className="login-logo" />
-          <h1>Recuperar contrasena</h1>
+          <h1>Recuperar contraseña</h1>
           <p>Ingresa tu correo para recibir el enlace de recuperacion.</p>
 
           <form className="login-form" onSubmit={handleSubmit}>
