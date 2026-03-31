@@ -784,13 +784,28 @@
 
 .admin-recent-model-row {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto;
   align-items: center;
-  gap: 12px;
+  gap: 12px 16px;
 }
 
 .admin-recent-model-main {
   min-width: 0;
+}
+
+.admin-model-brand-cell {
+  min-width: 0;
+  display: grid;
+  gap: 3px;
+  justify-items: start;
+}
+
+.admin-model-name-center {
+  min-width: 0;
+  display: grid;
+  gap: 3px;
+  justify-items: center;
+  text-align: center;
 }
 
 .admin-recent-model-actions {
@@ -4128,7 +4143,7 @@
 
   .admin-recent-simple-row,
   .admin-recent-model-row {
-    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto;
     align-items: center;
     gap: 8px 10px;
   }

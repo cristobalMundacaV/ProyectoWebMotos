@@ -345,11 +345,14 @@ export default function MotosPage({
           <div className="admin-table">
             {paginatedModelosMoto.items.map((modelo) => (
               <div key={modelo.id} className="admin-table-row admin-table-row-two-cols admin-recent-model-row">
-                <div className="admin-entity-name-cell admin-model-name-cell admin-recent-model-main">
-                  <span className="admin-row-label">Nombre Modelo</span>
-                  <strong>{modelo.nombre}</strong>
-                  <span>{modelo.marca_nombre || "-"}</span>
+                <div className="admin-model-brand-cell admin-recent-model-main">
+                  <span className="admin-row-label">Marca</span>
+                  <strong>{modelo.marca_nombre || "-"}</strong>
                   <span>{formatCategoryLabel(modelo.categoria_nombre) || "-"}</span>
+                </div>
+                <div className="admin-model-name-center">
+                  <span className="admin-row-label">Nombre modelo</span>
+                  <strong>{modelo.nombre}</strong>
                 </div>
                 <div className="admin-row-actions admin-recent-model-actions">
                   <button type="button" className="admin-row-action-btn edit" title="Editar" onClick={() => onModeloMotoEdit?.(modelo)}>
