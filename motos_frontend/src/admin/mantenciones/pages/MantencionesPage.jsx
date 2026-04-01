@@ -319,11 +319,13 @@ export default function MantencionesPage({
 
   useEffect(() => {
     if (!selectedHistoricoCliente) return;
+    if (loading) return;
+    if (!historicoClientes.length) return;
     const stillExists = historicoClientes.some((item) => item.value === selectedHistoricoCliente);
     if (!stillExists) {
       setSelectedHistoricoCliente("");
     }
-  }, [historicoClientes, selectedHistoricoCliente, setSelectedHistoricoCliente]);
+  }, [historicoClientes, loading, selectedHistoricoCliente, setSelectedHistoricoCliente]);
 
   const fichasHistoricasByCliente = useMemo(() => {
     if (!selectedHistoricoClienteEffective) return [];
