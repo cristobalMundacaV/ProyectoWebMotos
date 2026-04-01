@@ -284,7 +284,7 @@ class MantencionEstadoHistorial(models.Model):
     estado_nuevo = models.CharField(max_length=24, choices=Mantencion.ESTADO_CHOICES, verbose_name="estado nuevo")
     changed_by = models.ForeignKey(
         settings.AUTH_USER_MODEL,
-        on_delete=models.SET_NULL,
+        on_delete=models.PROTECT,
         null=True,
         blank=True,
         related_name="mantenciones_estado_cambios",

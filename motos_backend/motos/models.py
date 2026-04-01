@@ -177,7 +177,7 @@ class ValorAtributoMoto(models.Model):
 
     moto = models.ForeignKey(
         Moto,
-        on_delete=models.CASCADE,
+        on_delete=models.PROTECT,
         related_name="valores_atributos",
     )
     tipo_atributo = models.ForeignKey(
@@ -210,7 +210,7 @@ class ValorAtributoMoto(models.Model):
 class SeccionFichaTecnica(models.Model):
     moto = models.ForeignKey(
         Moto,
-        on_delete=models.CASCADE,
+        on_delete=models.PROTECT,
         related_name="secciones_ficha",
     )
     nombre = models.CharField(max_length=120)
@@ -232,7 +232,7 @@ class SeccionFichaTecnica(models.Model):
 class ItemFichaTecnica(models.Model):
     seccion = models.ForeignKey(
         SeccionFichaTecnica,
-        on_delete=models.CASCADE,
+        on_delete=models.PROTECT,
         related_name="items",
     )
     nombre = models.CharField(max_length=120)
@@ -253,7 +253,7 @@ class ItemFichaTecnica(models.Model):
 
 
 class ImagenMoto(models.Model):
-    moto = models.ForeignKey(Moto, on_delete=models.CASCADE, related_name='imagenes')
+    moto = models.ForeignKey(Moto, on_delete=models.PROTECT, related_name='imagenes')
     imagen = models.ImageField(upload_to="motos/galeria/", blank=True, null=True)
     texto_alternativo = models.CharField(max_length=255, blank=True)
     orden = models.IntegerField(default=0)
@@ -271,7 +271,7 @@ class ImagenMoto(models.Model):
 
 
 class EspecificacionMoto(models.Model):
-    moto = models.ForeignKey(Moto, on_delete=models.CASCADE, related_name='especificaciones')
+    moto = models.ForeignKey(Moto, on_delete=models.PROTECT, related_name='especificaciones')
     clave = models.CharField(max_length=100)
     valor = models.CharField(max_length=255)
 

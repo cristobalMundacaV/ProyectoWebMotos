@@ -4,6 +4,7 @@ from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from django.db import IntegrityError, transaction
 from django.db.models import Q
+from django.db.models.deletion import ProtectedError, RestrictedError
 import re
 
 from catalogo.models import Marca, SubcategoriaProducto
@@ -292,17 +293,23 @@ def admin_producto_detalle(request, producto_id):
 		return Response({"detail": "Producto no encontrado."}, status=status.HTTP_404_NOT_FOUND)
 
 	if request.method == "DELETE":
-		with transaction.atomic():
-			before = serialize_instance_for_audit(producto)
-			producto.delete()
-			create_audit_log(
-				action="delete",
-				entity="productos.Producto",
-				entity_id=producto_id,
-				before=before,
-				after=None,
-				actor=request.user,
-				metadata=_request_meta(request),
+		try:
+			with transaction.atomic():
+				before = serialize_instance_for_audit(producto)
+				producto.delete()
+				create_audit_log(
+					action="delete",
+					entity="productos.Producto",
+					entity_id=producto_id,
+					before=before,
+					after=None,
+					actor=request.user,
+					metadata=_request_meta(request),
+				)
+		except (ProtectedError, RestrictedError):
+			return Response(
+				{"detail": "Cannot delete this item because it has related records."},
+				status=status.HTTP_409_CONFLICT,
 			)
 		return Response(status=status.HTTP_204_NO_CONTENT)
 

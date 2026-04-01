@@ -11,7 +11,7 @@ class Producto(models.Model):
     )
     marca = models.ForeignKey(
         'catalogo.Marca',
-        on_delete=models.SET_NULL,
+        on_delete=models.PROTECT,
         null=True,
         blank=True,
         related_name='productos'
@@ -71,7 +71,7 @@ class Producto(models.Model):
 class ImagenProducto(models.Model):
     producto = models.ForeignKey(
         Producto,
-        on_delete=models.CASCADE,
+        on_delete=models.PROTECT,
         related_name='imagenes'
     )
     imagen = models.ImageField(upload_to='productos/galeria/')
@@ -94,7 +94,7 @@ class ImagenProducto(models.Model):
 class EspecificacionProducto(models.Model):
     producto = models.ForeignKey(
         Producto,
-        on_delete=models.CASCADE,
+        on_delete=models.PROTECT,
         related_name='especificaciones'
     )
     clave = models.CharField(max_length=100)
@@ -114,12 +114,12 @@ class EspecificacionProducto(models.Model):
 class CompatibilidadProductoMoto(models.Model):
     producto = models.ForeignKey(
         Producto,
-        on_delete=models.CASCADE,
+        on_delete=models.PROTECT,
         related_name='compatibilidades'
     )
     moto = models.ForeignKey(
         'motos.Moto',
-        on_delete=models.CASCADE,
+        on_delete=models.PROTECT,
         related_name='productos_compatibles'
     )
 

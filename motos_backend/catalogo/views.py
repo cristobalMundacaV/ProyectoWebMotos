@@ -1,4 +1,4 @@
-from django.db.models.deletion import ProtectedError
+from django.db.models.deletion import ProtectedError, RestrictedError
 from rest_framework import status
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
@@ -311,6 +311,11 @@ def categorias_accesorios_moto_detalle(request, subcategoria_id):
         return Response({"detail": "Subcategoria no encontrada."}, status=status.HTTP_404_NOT_FOUND)
 
     if request.method == "DELETE":
+        if subcategoria.productos.exists():
+            return Response(
+                {"detail": "Cannot delete this item because it has related records."},
+                status=status.HTTP_409_CONFLICT,
+            )
         try:
             before = serialize_instance_for_audit(subcategoria)
             subcategoria.delete()
@@ -323,9 +328,9 @@ def categorias_accesorios_moto_detalle(request, subcategoria_id):
                 actor=request.user,
                 metadata=_request_meta(request),
             )
-        except ProtectedError:
+        except (ProtectedError, RestrictedError):
             return Response(
-                {"detail": "No se puede eliminar la subcategoria porque tiene productos asociados."},
+                {"detail": "Cannot delete this item because it has related records."},
                 status=status.HTTP_409_CONFLICT,
             )
         return Response(status=status.HTTP_204_NO_CONTENT)
@@ -352,6 +357,11 @@ def categorias_accesorios_rider_detalle(request, subcategoria_id):
         return Response({"detail": "Subcategoria no encontrada."}, status=status.HTTP_404_NOT_FOUND)
 
     if request.method == "DELETE":
+        if subcategoria.productos.exists():
+            return Response(
+                {"detail": "Cannot delete this item because it has related records."},
+                status=status.HTTP_409_CONFLICT,
+            )
         try:
             before = serialize_instance_for_audit(subcategoria)
             subcategoria.delete()
@@ -364,9 +374,9 @@ def categorias_accesorios_rider_detalle(request, subcategoria_id):
                 actor=request.user,
                 metadata=_request_meta(request),
             )
-        except ProtectedError:
+        except (ProtectedError, RestrictedError):
             return Response(
-                {"detail": "No se puede eliminar la subcategoria porque tiene productos asociados."},
+                {"detail": "Cannot delete this item because it has related records."},
                 status=status.HTTP_409_CONFLICT,
             )
         return Response(status=status.HTTP_204_NO_CONTENT)

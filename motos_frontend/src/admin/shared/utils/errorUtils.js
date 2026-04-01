@@ -7,6 +7,14 @@ export function translateBackendMessage(message) {
   if (normalized.includes("this field is required")) return "Este campo es obligatorio.";
   if (maxLengthMatch) return `Este campo no puede superar ${maxLengthMatch[1]} caracteres.`;
   if (normalized.includes("already exists")) return "Ya existe un registro con ese valor.";
+  if (
+    normalized.includes("cannot delete this item because it has related records") ||
+    normalized.includes("has related records") ||
+    normalized.includes("tiene productos asociados") ||
+    normalized.includes("tiene motos asociadas")
+  ) {
+    return "No se puede eliminar porque tiene productos asociados.";
+  }
   if (normalized.includes("slug")) return "El slug ya existe. Cambia el nombre para generar uno diferente.";
   if (normalized.includes("not found")) return "No se encontro el recurso solicitado.";
   if (normalized.includes("invalid")) return "El dato ingresado no es valido.";

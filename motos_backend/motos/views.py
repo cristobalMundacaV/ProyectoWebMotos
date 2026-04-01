@@ -1,5 +1,5 @@
 ﻿from django.db import IntegrityError
-from django.db.models.deletion import ProtectedError
+from django.db.models.deletion import ProtectedError, RestrictedError
 import logging
 from rest_framework import status
 from rest_framework.decorators import api_view, authentication_classes, permission_classes
@@ -85,17 +85,23 @@ def detalle_moto_admin(request, moto_id):
         return Response({"detail": "Moto no encontrada."}, status=status.HTTP_404_NOT_FOUND)
 
     if request.method == "DELETE":
-        before = serialize_instance_for_audit(moto)
-        moto.delete()
-        create_audit_log(
-            action="delete",
-            entity="motos.Moto",
-            entity_id=moto_id,
-            before=before,
-            after=None,
-            actor=request.user,
-            metadata=_request_meta(request),
-        )
+        try:
+            before = serialize_instance_for_audit(moto)
+            moto.delete()
+            create_audit_log(
+                action="delete",
+                entity="motos.Moto",
+                entity_id=moto_id,
+                before=before,
+                after=None,
+                actor=request.user,
+                metadata=_request_meta(request),
+            )
+        except (ProtectedError, RestrictedError):
+            return Response(
+                {"detail": "Cannot delete this item because it has related records."},
+                status=status.HTTP_409_CONFLICT,
+            )
         return Response(status=status.HTTP_204_NO_CONTENT)
 
     serializer = MotoSerializer(moto, data=request.data, partial=True)
@@ -206,6 +212,11 @@ def modelos_moto_detalle(request, modelo_id):
         return Response({"detail": "Modelo no encontrado."}, status=status.HTTP_404_NOT_FOUND)
 
     if request.method == "DELETE":
+        if modelo.motos.exists():
+            return Response(
+                {"detail": "Cannot delete this item because it has related records."},
+                status=status.HTTP_409_CONFLICT,
+            )
         try:
             before = serialize_instance_for_audit(modelo)
             modelo.delete()
@@ -218,9 +229,9 @@ def modelos_moto_detalle(request, modelo_id):
                 actor=request.user,
                 metadata=_request_meta(request),
             )
-        except ProtectedError:
+        except (ProtectedError, RestrictedError):
             return Response(
-                {"detail": "No se puede eliminar el modelo porque tiene motos asociadas."},
+                {"detail": "Cannot delete this item because it has related records."},
                 status=status.HTTP_409_CONFLICT,
             )
         return Response(status=status.HTTP_204_NO_CONTENT)
@@ -290,9 +301,9 @@ def categorias_moto_detalle(request, categoria_id):
                 actor=request.user,
                 metadata=_request_meta(request),
             )
-        except ProtectedError:
+        except (ProtectedError, RestrictedError):
             return Response(
-                {"detail": "No se puede eliminar la categoria porque tiene motos asociadas."},
+                {"detail": "Cannot delete this item because it has related records."},
                 status=status.HTTP_409_CONFLICT,
             )
         return Response(status=status.HTTP_204_NO_CONTENT)
@@ -366,9 +377,9 @@ def marcas_moto_detalle(request, marca_id):
                 actor=request.user,
                 metadata=_request_meta(request),
             )
-        except ProtectedError:
+        except (ProtectedError, RestrictedError):
             return Response(
-                {"detail": "No se puede eliminar la marca porque tiene motos o productos asociados."},
+                {"detail": "Cannot delete this item because it has related records."},
                 status=status.HTTP_409_CONFLICT,
             )
         return Response(status=status.HTTP_204_NO_CONTENT)
@@ -432,9 +443,9 @@ def tipo_atributo_detalle(request, tipo_id):
                 actor=request.user,
                 metadata=_request_meta(request),
             )
-        except ProtectedError:
+        except (ProtectedError, RestrictedError):
             return Response(
-                {"detail": "No se puede eliminar la seccion porque tiene items asociados."},
+                {"detail": "Cannot delete this item because it has related records."},
                 status=status.HTTP_409_CONFLICT,
             )
         return Response(status=status.HTTP_204_NO_CONTENT)
@@ -580,17 +591,23 @@ def valor_atributo_moto_detalle(request, valor_id):
         return Response({"detail": "Item no encontrado."}, status=status.HTTP_404_NOT_FOUND)
 
     if request.method == "DELETE":
-        before = serialize_instance_for_audit(valor)
-        valor.delete()
-        create_audit_log(
-            action="delete",
-            entity="motos.ValorAtributoMoto",
-            entity_id=valor_id,
-            before=before,
-            after=None,
-            actor=request.user,
-            metadata=_request_meta(request),
-        )
+        try:
+            before = serialize_instance_for_audit(valor)
+            valor.delete()
+            create_audit_log(
+                action="delete",
+                entity="motos.ValorAtributoMoto",
+                entity_id=valor_id,
+                before=before,
+                after=None,
+                actor=request.user,
+                metadata=_request_meta(request),
+            )
+        except (ProtectedError, RestrictedError):
+            return Response(
+                {"detail": "Cannot delete this item because it has related records."},
+                status=status.HTTP_409_CONFLICT,
+            )
         return Response(status=status.HTTP_204_NO_CONTENT)
 
     serializer = ValorAtributoMotoSerializer(valor, data=request.data, partial=True)

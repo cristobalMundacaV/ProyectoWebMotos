@@ -15,7 +15,7 @@ class PerfilUsuario(models.Model):
         (ROL_CLIENTE, "Cliente"),
     ]
 
-    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name="perfil_usuario")
+    user = models.OneToOneField(User, on_delete=models.PROTECT, related_name="perfil_usuario")
     telefono = models.CharField(max_length=30, blank=True)
     rol = models.CharField(max_length=20, choices=ROL_CHOICES, default=ROL_CLIENTE)
 
@@ -34,8 +34,8 @@ class PerfilUsuario(models.Model):
         return f"{self.user.username} ({self.rol})"
 
 class ContactoCliente(models.Model):
-    moto = models.ForeignKey('motos.Moto', on_delete=models.SET_NULL, null=True, blank=True)
-    producto = models.ForeignKey('productos.Producto', on_delete=models.SET_NULL, null=True, blank=True)
+    moto = models.ForeignKey('motos.Moto', on_delete=models.PROTECT, null=True, blank=True)
+    producto = models.ForeignKey('productos.Producto', on_delete=models.PROTECT, null=True, blank=True)
 
     nombres = models.CharField(max_length=120)
     apellidos = models.CharField(max_length=120)

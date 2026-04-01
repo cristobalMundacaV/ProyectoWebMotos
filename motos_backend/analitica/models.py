@@ -38,7 +38,7 @@ class CatalogoEvento(models.Model):
     entidad_nombre = models.CharField(max_length=220, blank=True, default="", verbose_name="nombre entidad")
     usuario = models.ForeignKey(
         settings.AUTH_USER_MODEL,
-        on_delete=models.SET_NULL,
+        on_delete=models.PROTECT,
         related_name="eventos_catalogo",
         null=True,
         blank=True,

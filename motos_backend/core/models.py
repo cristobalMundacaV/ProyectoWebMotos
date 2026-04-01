@@ -31,7 +31,7 @@ class AuditLog(models.Model):
     request_id = models.CharField(max_length=64, db_index=True)
     actor = models.ForeignKey(
         settings.AUTH_USER_MODEL,
-        on_delete=models.SET_NULL,
+        on_delete=models.PROTECT,
         null=True,
         blank=True,
         related_name="audit_logs",

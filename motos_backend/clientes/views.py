@@ -4,6 +4,7 @@ from django.contrib.auth.tokens import default_token_generator
 from django.conf import settings
 from django.db import IntegrityError, transaction
 from django.db.models import Q
+from django.db.models.deletion import ProtectedError, RestrictedError
 from django.utils.encoding import force_bytes, force_str
 from django.utils.http import urlsafe_base64_decode, urlsafe_base64_encode
 from rest_framework import status
@@ -259,8 +260,14 @@ def admin_manage_user(request, user_id: int):
 				{"detail": "No puedes eliminar tu propio usuario."},
 				status=status.HTTP_400_BAD_REQUEST,
 			)
-		with transaction.atomic():
-			target_user.delete()
+		try:
+			with transaction.atomic():
+				target_user.delete()
+		except (ProtectedError, RestrictedError):
+			return Response(
+				{"detail": "Cannot delete this item because it has related records."},
+				status=status.HTTP_409_CONFLICT,
+			)
 		return Response(status=status.HTTP_204_NO_CONTENT)
 
 	data = request.data
