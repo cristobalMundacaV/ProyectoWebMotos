@@ -53,10 +53,11 @@ def get_recipient_email(mantencion: Mantencion) -> str:
     return email
 
 
-def _build_rows(mantencion: Mantencion, extra_rows: Iterable[tuple[str, str]] | None = None) -> list[tuple[str, str]]:
+def _build_rows(mantencion: Mantencion, extra_rows: Iterable[tuple[str, str]] | None = None, override_fecha: date | None = None) -> list[tuple[str, str]]:
     moto = mantencion.moto_cliente
+    fecha_display = override_fecha or mantencion.fecha_ingreso
     rows: list[tuple[str, str]] = [
-        ("Fecha", _format_fecha(mantencion.fecha_ingreso)),
+        ("Fecha", _format_fecha(fecha_display)),
         ("Hora", _format_hora(mantencion.hora_ingreso)),
         ("Marca", moto.marca or "-"),
         ("Modelo", moto.modelo or "-"),
@@ -87,9 +88,9 @@ def _build_html_rows(rows: list[tuple[str, str]]) -> str:
     return "".join(html_rows)
 
 
-def _build_plain_body(title: str, intro: str, mantencion: Mantencion, outro: str, extra_rows: Iterable[tuple[str, str]] | None = None) -> str:
+def _build_plain_body(title: str, intro: str, mantencion: Mantencion, outro: str, extra_rows: Iterable[tuple[str, str]] | None = None, override_fecha: date | None = None) -> str:
     cliente_nombre = _safe_full_name(mantencion)
-    rows = _build_rows(mantencion, extra_rows=extra_rows)
+    rows = _build_rows(mantencion, extra_rows=extra_rows, override_fecha=override_fecha)
     return (
         f"Hola {cliente_nombre},\n\n"
         f"{intro}\n\n"
@@ -101,9 +102,9 @@ def _build_plain_body(title: str, intro: str, mantencion: Mantencion, outro: str
     )
 
 
-def _build_html_body(title: str, intro: str, mantencion: Mantencion, outro: str, extra_rows: Iterable[tuple[str, str]] | None = None) -> str:
+def _build_html_body(title: str, intro: str, mantencion: Mantencion, outro: str, extra_rows: Iterable[tuple[str, str]] | None = None, override_fecha: date | None = None) -> str:
     cliente_nombre = _safe_full_name(mantencion)
-    rows = _build_rows(mantencion, extra_rows=extra_rows)
+    rows = _build_rows(mantencion, extra_rows=extra_rows, override_fecha=override_fecha)
     html_rows = _build_html_rows(rows)
     return f"""
 <!doctype html>
@@ -159,6 +160,7 @@ def _send_notification_email(
     intro: str,
     outro: str,
     extra_rows: Iterable[tuple[str, str]] | None = None,
+    override_fecha: date | None = None,
 ) -> None:
     text_body = _build_plain_body(
         title=title,
@@ -166,6 +168,7 @@ def _send_notification_email(
         mantencion=mantencion,
         outro=outro,
         extra_rows=extra_rows,
+        override_fecha=override_fecha,
     )
     html_body = _build_html_body(
         title=title,
@@ -173,6 +176,7 @@ def _send_notification_email(
         mantencion=mantencion,
         outro=outro,
         extra_rows=extra_rows,
+        override_fecha=override_fecha,
     )
 
     message = EmailMultiAlternatives(
@@ -225,7 +229,8 @@ def send_mantencion_finalized_email(*, mantencion: Mantencion, recipient_email: 
         subject=f"Moto lista para retiro | {settings.COMPANY_NAME}",
         title="Mantenimiento finalizado",
         intro="Tu mantenimiento ha finalizado y tu moto esta lista para su retiro.",
-        outro="Puedes coordinar el retiro por nuestros canales oficiales.",
+        outro="Puedes realizar el retiro dentro de los horarios operativos.",
+        override_fecha=timezone.localdate(),
     )
 
 
