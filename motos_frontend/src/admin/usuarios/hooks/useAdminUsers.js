@@ -3,6 +3,7 @@ import { createAdminUser, deleteAdminUser, listAdminClientes, listAdminUsers, up
 import { paginateItems } from "../../shared/components/AdminPagination";
 import { initialCreateUserForm } from "../../shared/constants/adminInitialState";
 import { normalizeAdminUsersResponse } from "../../shared/utils/adminText";
+import { isValidChilePhone, normalizeChilePhoneInput } from "../../../services/phoneUtils";
 
 function extractConflictFields(error) {
   const data = error?.response?.data;
@@ -102,6 +103,10 @@ export default function useAdminUsers({
     (event) => {
       clearInvalidFieldStyle(event.target);
       const { name, value } = event.target;
+      if (name === "telefono") {
+        setCreateUserForm((prev) => ({ ...prev, telefono: normalizeChilePhoneInput(value) }));
+        return;
+      }
       setCreateUserForm((prev) => ({ ...prev, [name]: value }));
     },
     [clearInvalidFieldStyle]
@@ -118,6 +123,13 @@ export default function useAdminUsers({
         return;
       }
 
+      const normalizedTelefono = normalizeChilePhoneInput(createUserForm.telefono, { allowEmpty: true });
+      if (!isValidChilePhone(normalizedTelefono)) {
+        pushToast("El telefono debe comenzar con +56 y contener 9 digitos adicionales.", "error");
+        markInvalidFields(formElement, ["telefono"]);
+        return;
+      }
+
       setCreateUserSaving(true);
       try {
         await createAdminUser({
@@ -125,7 +137,7 @@ export default function useAdminUsers({
           last_name: createUserForm.last_name,
           username: createUserForm.username,
           email: createUserForm.email,
-          telefono: createUserForm.telefono,
+          telefono: normalizedTelefono,
           rol: createUserForm.rol,
           password: createUserForm.password,
           confirm_password: createUserForm.confirm_password,
@@ -152,7 +164,7 @@ export default function useAdminUsers({
       last_name: user?.last_name || "",
       username: user?.username || "",
       email: user?.email || "",
-      telefono: user?.telefono || "",
+      telefono: normalizeChilePhoneInput(user?.telefono || ""),
       rol: user?.rol || "",
     });
   }, []);
@@ -188,6 +200,10 @@ export default function useAdminUsers({
     (event) => {
       clearInvalidFieldStyle(event.target);
       const { name, value } = event.target;
+      if (name === "telefono") {
+        setAdminUserEditModal((prev) => (prev ? { ...prev, telefono: normalizeChilePhoneInput(value) } : prev));
+        return;
+      }
       setAdminUserEditModal((prev) => (prev ? { ...prev, [name]: value } : prev));
     },
     [clearInvalidFieldStyle]
@@ -199,6 +215,12 @@ export default function useAdminUsers({
       if (!adminUserEditModal) return;
       const formElement = event.currentTarget;
       if (!validateFormWithToast(formElement)) return;
+      const normalizedTelefono = normalizeChilePhoneInput(adminUserEditModal.telefono, { allowEmpty: true });
+      if (!isValidChilePhone(normalizedTelefono)) {
+        pushToast("El telefono debe comenzar con +56 y contener 9 digitos adicionales.", "error");
+        markInvalidFields(formElement, ["telefono"]);
+        return;
+      }
       setAdminUserModalSaving(true);
       setAdminUserModalError("");
       try {
@@ -207,7 +229,7 @@ export default function useAdminUsers({
           last_name: adminUserEditModal.last_name,
           username: adminUserEditModal.username,
           email: adminUserEditModal.email,
-          telefono: adminUserEditModal.telefono,
+          telefono: normalizedTelefono,
           rol: adminUserEditModal.rol,
         });
         const nextUser = updated?.user || updated;

@@ -3,6 +3,7 @@ from django.core.exceptions import ValidationError as DjangoValidationError
 from django.db import transaction
 from django.utils import timezone
 from rest_framework import serializers
+from core.phone_utils import normalize_chile_phone
 import logging
 from datetime import datetime, time
 
@@ -226,6 +227,12 @@ class AgendarMantencionSerializer(serializers.Serializer):
     tipo_mantencion = serializers.ChoiceField(choices=Mantencion.TIPO_MANTENCION_CHOICES)
     motivo = serializers.CharField()
 
+    def validate_telefono(self, value):
+        try:
+            return normalize_chile_phone(value, required=True)
+        except ValueError as exc:
+            raise serializers.ValidationError(str(exc))
+
     def _normalize_rut(self, raw_rut: str) -> str:
         cleaned = (raw_rut or "").replace(".", "").replace("-", "").replace(" ", "").upper()
         if len(cleaned) < 2:
@@ -350,7 +357,7 @@ class AgendarMantencionSerializer(serializers.Serializer):
             matricula = validated_data["matricula"].strip().upper()
             nombres = validated_data["nombres"].strip()
             apellidos = validated_data["apellidos"].strip()
-            telefono = validated_data["telefono"].strip()
+            telefono = validated_data["telefono"]
             email = (validated_data.get("email") or "").strip().lower()
 
             vehiculo, created = VehiculoCliente.objects.get_or_create(

@@ -46,7 +46,7 @@ export default function UsuariosPage({
 
           <label>
             Teléfono *
-            <input name="telefono" value={createUserForm.telefono} onChange={onCreateUserInputChange} maxLength={30} required />
+            <input name="telefono" value={createUserForm.telefono} onChange={onCreateUserInputChange} inputMode="numeric" maxLength={12} required />
           </label>
 
           <label>

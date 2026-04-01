@@ -1,10 +1,15 @@
 from datetime import timedelta
+import logging
 
 from django.db import transaction
 from django.db.models import Q
 from django.utils import timezone
 
 from .models import Mantencion, MantencionEstadoHistorial
+from .notifications import get_recipient_email, send_mantencion_reagendacion_email
+
+
+logger = logging.getLogger(__name__)
 
 
 def mark_expired_unaccepted_requests() -> int:
@@ -28,6 +33,11 @@ def mark_expired_unaccepted_requests() -> int:
             .filter(expired_filter)
             .only("id", "estado")
         )
+        expired_unaccepted_ids = [row.id for row in expired_unaccepted]
+        expired_unaccepted_for_email = list(
+            Mantencion.objects.select_related("moto_cliente", "moto_cliente__cliente")
+            .filter(id__in=expired_unaccepted_ids)
+        )
         expired_no_show = list(
             Mantencion.objects.select_for_update()
             .filter(estado=Mantencion.ESTADO_APROBADO)
@@ -40,8 +50,8 @@ def mark_expired_unaccepted_requests() -> int:
 
         now_utc = timezone.now()
         if expired_unaccepted:
-            Mantencion.objects.filter(id__in=[row.id for row in expired_unaccepted]).update(
-                estado=Mantencion.ESTADO_NO_ACEPTADO,
+            Mantencion.objects.filter(id__in=expired_unaccepted_ids).update(
+                estado=Mantencion.ESTADO_REAGENDACION,
                 updated_at=now_utc,
             )
         if expired_no_show:
@@ -50,15 +60,34 @@ def mark_expired_unaccepted_requests() -> int:
                 updated_at=now_utc,
             )
 
+        if expired_unaccepted_for_email:
+            def _send_expired_reagendacion_notifications():
+                for mantencion in expired_unaccepted_for_email:
+                    recipient_email = get_recipient_email(mantencion)
+                    if not recipient_email:
+                        continue
+                    try:
+                        send_mantencion_reagendacion_email(
+                            mantencion=mantencion,
+                            recipient_email=recipient_email,
+                        )
+                    except Exception:
+                        logger.exception(
+                            "Error enviando correo de reagendacion por solicitud vencida para mantencion_id=%s",
+                            mantencion.id,
+                        )
+
+            transaction.on_commit(_send_expired_reagendacion_notifications)
+
         MantencionEstadoHistorial.objects.bulk_create(
             [
                 MantencionEstadoHistorial(
                     mantencion_id=row.id,
                     estado_anterior=row.estado,
-                    estado_nuevo=Mantencion.ESTADO_NO_ACEPTADO,
+                    estado_nuevo=Mantencion.ESTADO_REAGENDACION,
                     changed_by=None,
                     fuente=MantencionEstadoHistorial.FUENTE_API,
-                    observacion="Solicitud no aceptada antes de la hora agendada",
+                    observacion="Solicitud vencida: requiere reagendar una nueva hora",
                 )
                 for row in expired_unaccepted
             ]

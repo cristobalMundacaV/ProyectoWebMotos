@@ -13,7 +13,7 @@ def _get_or_create_contacto_sitio():
         id=1,
         defaults={
             "instagram": "@motosnuevamarca",
-            "telefono": "+56 9 1234 5678",
+            "telefono": "+56912345678",
             "ubicacion": "Tu ciudad, Chile",
         },
     )

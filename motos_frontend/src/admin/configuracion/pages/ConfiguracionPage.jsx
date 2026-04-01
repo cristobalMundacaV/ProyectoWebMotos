@@ -53,7 +53,8 @@ export default function ConfiguracionPage({
               name="telefono"
               value={contactoForm.telefono}
               onChange={onContactoInputChange}
-              maxLength={60}
+              inputMode="numeric"
+              maxLength={12}
               required
               disabled={Boolean(contactoLoadError) || contactoLoading}
             />

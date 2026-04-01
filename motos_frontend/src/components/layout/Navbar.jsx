@@ -10,6 +10,7 @@ import {
   updateCurrentUser,
   updateStoredUser,
 } from "../../services/authService";
+import { isValidChilePhone, normalizeChilePhoneInput } from "../../services/phoneUtils";
 import "../../styles/layout.css";
 
 function roleLabel(value) {
@@ -74,7 +75,7 @@ export default function Navbar() {
       last_name: user?.last_name || "",
       username: user?.username || "",
       email: user?.email || "",
-      telefono: user?.telefono || "",
+      telefono: normalizeChilePhoneInput(user?.telefono || ""),
     });
   }, [user?.first_name, user?.last_name, user?.username, user?.email, user?.telefono]);
 
@@ -166,6 +167,10 @@ export default function Navbar() {
 
   function handleProfileInputChange(event) {
     const { name, value } = event.target;
+    if (name === "telefono") {
+      setProfileForm((prev) => ({ ...prev, telefono: normalizeChilePhoneInput(value) }));
+      return;
+    }
     setProfileForm((prev) => ({ ...prev, [name]: value }));
   }
 
@@ -176,12 +181,18 @@ export default function Navbar() {
     setProfileError("");
 
     try {
+      const normalizedTelefono = normalizeChilePhoneInput(profileForm.telefono, { allowEmpty: true });
+      if (!isValidChilePhone(normalizedTelefono)) {
+        setProfileError("El telefono debe comenzar con +56 y contener 9 digitos adicionales.");
+        return;
+      }
+
       const response = await updateCurrentUser({
         first_name: profileForm.first_name,
         last_name: profileForm.last_name,
         username: profileForm.username,
         email: profileForm.email,
-        telefono: profileForm.telefono,
+        telefono: normalizedTelefono,
       });
       const updatedUser = response?.user || response;
       setUser(updatedUser);
@@ -341,7 +352,7 @@ export default function Navbar() {
                     </label>
                     <label>
                       Teléfono
-                      <input name="telefono" value={profileForm.telefono} onChange={handleProfileInputChange} />
+                      <input name="telefono" value={profileForm.telefono} onChange={handleProfileInputChange} inputMode="numeric" maxLength={12} required />
                     </label>
                     {profileError ? <p className="nav-profile-error">{profileError}</p> : null}
                     <div className="admin-user-dropdown-actions">

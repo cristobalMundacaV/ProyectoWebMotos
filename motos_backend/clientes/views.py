@@ -13,6 +13,7 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework_simplejwt.tokens import RefreshToken, TokenError
+from core.phone_utils import normalize_chile_phone
 
 from .models import PerfilUsuario
 from .password_reset_email import send_password_reset_email
@@ -131,6 +132,11 @@ def current_user(request):
 			{"detail": "El nombre de usuario es obligatorio."},
 			status=status.HTTP_400_BAD_REQUEST,
 		)
+
+	try:
+		telefono = normalize_chile_phone(telefono, required=True)
+	except ValueError as exc:
+		return Response({"detail": str(exc)}, status=status.HTTP_400_BAD_REQUEST)
 
 	if username and User.objects.filter(username__iexact=username).exclude(id=request.user.id).exists():
 		return Response({"detail": "El nombre de usuario ya esta en uso."}, status=status.HTTP_400_BAD_REQUEST)
@@ -284,6 +290,11 @@ def admin_manage_user(request, user_id: int):
 			{"detail": "Nombres, apellidos, username, correo, telefono y rol son obligatorios."},
 			status=status.HTTP_400_BAD_REQUEST,
 		)
+
+	try:
+		telefono = normalize_chile_phone(telefono, required=True)
+	except ValueError as exc:
+		return Response({"detail": str(exc)}, status=status.HTTP_400_BAD_REQUEST)
 
 	if rol not in ADMIN_ALLOWED_ROLES:
 		return Response({"detail": "Rol invalido."}, status=status.HTTP_400_BAD_REQUEST)

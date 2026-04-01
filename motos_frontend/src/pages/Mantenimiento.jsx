@@ -7,6 +7,7 @@ import {
   agendarMantencion,
   getDisponibilidadMantenciones,
 } from "../services/mantencionesService";
+import { isValidChilePhone, normalizeChilePhoneInput } from "../services/phoneUtils";
 import "../styles/mantenimiento.css";
 
 const TIPO_MANTENCION_OPTIONS = [
@@ -33,7 +34,7 @@ function getInitialForm() {
     rut: "",
     nombres: user?.first_name || user?.username || "",
     apellidos: user?.last_name || "",
-    telefono: user?.telefono || "",
+    telefono: normalizeChilePhoneInput(user?.telefono || ""),
     email: user?.email || "",
     matricula: "",
     marca: "",
@@ -264,6 +265,10 @@ export default function Mantenimiento() {
       setForm((prev) => ({ ...prev, [name]: String(value || "").toUpperCase() }));
       return;
     }
+    if (name === "telefono") {
+      setForm((prev) => ({ ...prev, [name]: normalizeChilePhoneInput(value) }));
+      return;
+    }
     setForm((prev) => ({ ...prev, [name]: value }));
   }
 
@@ -332,6 +337,12 @@ export default function Mantenimiento() {
       return;
     }
 
+    const normalizedTelefono = normalizeChilePhoneInput(form.telefono, { allowEmpty: true });
+    if (!isValidChilePhone(normalizedTelefono)) {
+      setToast({ type: "error", message: "El telefono debe comenzar con +56 y contener 9 digitos adicionales." });
+      return;
+    }
+
     setLoading(true);
     setToast({ type: "", message: "" });
 
@@ -359,7 +370,7 @@ export default function Mantenimiento() {
         modelo: form.modelo.trim(),
         nombres: form.nombres.trim(),
         apellidos: form.apellidos.trim(),
-        telefono: form.telefono.trim(),
+        telefono: normalizedTelefono,
         email: normalizedEmail,
         motivo: form.motivo.trim(),
         anio: Number(form.anio),
@@ -453,7 +464,7 @@ export default function Mantenimiento() {
 
               <label>
                 Teléfono
-                <input name="telefono" value={form.telefono} onChange={handleChange} required />
+                <input name="telefono" value={form.telefono} onChange={handleChange} inputMode="numeric" maxLength={12} required />
               </label>
 
               <label>

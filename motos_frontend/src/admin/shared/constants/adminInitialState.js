@@ -89,7 +89,7 @@ export const initialCategoriaAccRiderForm = {
 
 export const initialContactoForm = {
   instagram: "",
-  telefono: "",
+  telefono: "+56",
   ubicacion: "",
 };
 
@@ -98,7 +98,7 @@ export const initialCreateUserForm = {
   last_name: "",
   username: "",
   email: "",
-  telefono: "",
+  telefono: "+56",
   rol: "",
   password: "",
   confirm_password: "",

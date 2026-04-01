@@ -1,6 +1,7 @@
 from django.contrib.auth.models import User
 from django.db import transaction
 from rest_framework import serializers
+from core.phone_utils import normalize_chile_phone
 
 from .models import PerfilUsuario
 
@@ -50,9 +51,10 @@ class UserRegisterSerializer(serializers.ModelSerializer):
         return email
 
     def validate_telefono(self, value):
-        telefono = value.strip()
-        if not telefono:
-            raise serializers.ValidationError("El telefono es obligatorio.")
+        try:
+            telefono = normalize_chile_phone(value, required=True)
+        except ValueError as exc:
+            raise serializers.ValidationError(str(exc))
         if PerfilUsuario.objects.filter(telefono=telefono).exists():
             raise serializers.ValidationError("El telefono ya esta registrado.")
         return telefono
@@ -78,7 +80,7 @@ class UserRegisterSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         validated_data.pop("confirm_password")
-        telefono = validated_data.pop("telefono", "").strip()
+        telefono = validated_data.pop("telefono", "")
         password = validated_data.pop("password")
         with transaction.atomic():
             user = User(**validated_data)
@@ -140,9 +142,10 @@ class AdminUserCreateSerializer(serializers.Serializer):
         return email
 
     def validate_telefono(self, value):
-        telefono = value.strip()
-        if not telefono:
-            raise serializers.ValidationError("El telefono es obligatorio.")
+        try:
+            telefono = normalize_chile_phone(value, required=True)
+        except ValueError as exc:
+            raise serializers.ValidationError(str(exc))
         if PerfilUsuario.objects.filter(telefono=telefono).exists():
             raise serializers.ValidationError("El telefono ya esta registrado.")
         return telefono
@@ -179,7 +182,7 @@ class AdminUserCreateSerializer(serializers.Serializer):
             PerfilUsuario.objects.update_or_create(
                 user=user,
                 defaults={
-                    "telefono": telefono.strip(),
+                    "telefono": telefono,
                     "rol": rol,
                 },
             )

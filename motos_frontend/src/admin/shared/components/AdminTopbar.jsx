@@ -1,5 +1,6 @@
 ﻿import { useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "react-router-dom";
+import { normalizeChilePhoneInput } from "../../../services/phoneUtils";
 
 function roleLabel(value) {
   const map = {
@@ -45,7 +46,7 @@ export default function AdminTopbar({
       last_name: user?.last_name || "",
       username: user?.username || "",
       email: user?.email || "",
-      telefono: user?.telefono || "",
+      telefono: normalizeChilePhoneInput(user?.telefono || ""),
     });
   }, [user?.first_name, user?.last_name, user?.username, user?.email, user?.telefono]);
 
@@ -76,19 +77,24 @@ export default function AdminTopbar({
 
   function onChangeField(event) {
     const { name, value } = event.target;
+    if (name === "telefono") {
+      setForm((prev) => ({ ...prev, telefono: normalizeChilePhoneInput(value) }));
+      return;
+    }
     setForm((prev) => ({ ...prev, [name]: value }));
   }
 
   async function handleSaveProfile(event) {
     event.preventDefault();
     if (!onSaveProfile || saving) return;
+    const normalizedTelefono = normalizeChilePhoneInput(form.telefono, { allowEmpty: true });
     setSaving(true);
     const ok = await onSaveProfile({
       first_name: form.first_name,
       last_name: form.last_name,
       username: form.username,
       email: form.email,
-      telefono: form.telefono,
+      telefono: normalizedTelefono,
     });
     setSaving(false);
     if (ok) {
@@ -177,7 +183,7 @@ export default function AdminTopbar({
                   </label>
                   <label>
                     Teléfono
-                    <input name="telefono" value={form.telefono} onChange={onChangeField} required />
+                    <input name="telefono" value={form.telefono} onChange={onChangeField} inputMode="numeric" maxLength={12} required />
                   </label>
                   <div className="admin-user-dropdown-actions">
                     <button type="button" className="admin-user-btn" onClick={() => setIsEditing(false)} disabled={saving}>

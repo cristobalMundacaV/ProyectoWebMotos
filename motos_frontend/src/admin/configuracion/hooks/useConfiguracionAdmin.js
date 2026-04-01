@@ -2,6 +2,7 @@ import { useCallback, useState } from "react";
 import { updateContactoAdmin } from "../services/configuracionAdminService";
 import { getContactoAdmin } from "../../../services/productosService";
 import { initialContactoForm } from "../../shared/constants/adminInitialState";
+import { isValidChilePhone, normalizeChilePhoneInput } from "../../../services/phoneUtils";
 
 export default function useConfiguracionAdmin({ pushToast, getErrorText, clearInvalidFieldStyle, validateFormWithToast }) {
   const [contactoForm, setContactoForm] = useState(initialContactoForm);
@@ -18,7 +19,7 @@ export default function useConfiguracionAdmin({ pushToast, getErrorText, clearIn
     setContactoLoadError("");
     setContactoForm({
       instagram: contacto.instagram || "",
-      telefono: contacto.telefono || "",
+      telefono: normalizeChilePhoneInput(contacto.telefono || ""),
       ubicacion: contacto.ubicacion || "",
     });
   }, []);
@@ -27,6 +28,10 @@ export default function useConfiguracionAdmin({ pushToast, getErrorText, clearIn
     (event) => {
       clearInvalidFieldStyle(event.target);
       const { name, value } = event.target;
+      if (name === "telefono") {
+        setContactoForm((prev) => ({ ...prev, telefono: normalizeChilePhoneInput(value) }));
+        return;
+      }
       setContactoForm((prev) => ({ ...prev, [name]: value }));
     },
     [clearInvalidFieldStyle]
@@ -36,10 +41,15 @@ export default function useConfiguracionAdmin({ pushToast, getErrorText, clearIn
     async (event) => {
       event.preventDefault();
       if (!validateFormWithToast(event.currentTarget)) return;
+      const normalizedTelefono = normalizeChilePhoneInput(contactoForm.telefono, { allowEmpty: true });
+      if (!isValidChilePhone(normalizedTelefono)) {
+        pushToast("El telefono debe comenzar con +56 y contener 9 digitos adicionales.", "error");
+        return;
+      }
       setContactoSaving(true);
 
       try {
-        const data = await updateContactoAdmin(contactoForm);
+        const data = await updateContactoAdmin({ ...contactoForm, telefono: normalizedTelefono });
         bootstrapContacto(data);
         pushToast("Datos de contacto actualizados correctamente.", "success");
       } catch (error) {

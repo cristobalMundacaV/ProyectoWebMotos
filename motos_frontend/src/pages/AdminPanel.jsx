@@ -26,6 +26,7 @@ import {
   normalizeCategoryLabel,
   normalizeCompareLabel,
 } from "../admin/shared/utils/adminText";
+import { isValidChilePhone, normalizeChilePhoneInput } from "../services/phoneUtils";
 import useAdminDomains from "../admin/layout/hooks/useAdminDomains";
 import AdminSectionRouter from "../admin/layout/AdminSectionRouter";
 import AdminModalHost from "../admin/layout/AdminModalHost";
@@ -178,13 +179,19 @@ export default function AdminPanel() {
         return false;
       }
 
+      const normalizedTelefono = normalizeChilePhoneInput(payload.telefono, { allowEmpty: true });
+      if (!isValidChilePhone(normalizedTelefono)) {
+        pushToastSafe("El telefono debe comenzar con +56 y contener 9 digitos adicionales.", "error");
+        return false;
+      }
+
       try {
         const response = await updateAdminUser(currentUser.id, {
           first_name: payload.first_name,
           last_name: payload.last_name,
           username: payload.username,
           email: payload.email,
-          telefono: payload.telefono,
+          telefono: normalizedTelefono,
           rol: currentRole,
         });
         const updatedUser = response?.user || response;
