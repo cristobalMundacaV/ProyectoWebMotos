@@ -167,8 +167,6 @@ export default function useAdminDomainInstances({
     fetchUsersList: users.fetchUsersList,
     fetchMantencionesList: mantenciones.fetchMantencionesList,
     fetchHorariosMantencionList: horarios.fetchHorariosMantencionList,
-    setMantenciones: mantenciones.setMantenciones,
-    setHorariosMantencion: horarios.setHorariosMantencion,
   });
 
   useAdminModalEscape({

@@ -5,8 +5,6 @@ export default function useAdminRealtime({
   fetchUsersList,
   fetchMantencionesList,
   fetchHorariosMantencionList,
-  setMantenciones,
-  setHorariosMantencion,
 }) {
   useEffect(() => {
     const isUsersSection =
@@ -15,7 +13,6 @@ export default function useAdminRealtime({
     const isMantencionesSection =
       activeSection === "mantenciones_solicitudes" ||
       activeSection === "mantenciones_fichas" ||
-      activeSection === "mantenciones_historicas" ||
       activeSection === "taller_en_taller";
     const isHorariosSection = activeSection === "horarios_operativos" || activeSection === "mantenciones_horarios";
 
@@ -32,15 +29,13 @@ export default function useAdminRealtime({
         }
 
         if (isMantencionesSection) {
-          const mantencionesRows = await fetchMantencionesList();
+          await fetchMantencionesList();
           if (!mounted) return;
-          setMantenciones(mantencionesRows);
         }
 
         if (isHorariosSection) {
-          const horariosRows = await fetchHorariosMantencionList();
+          await fetchHorariosMantencionList();
           if (!mounted) return;
-          setHorariosMantencion(horariosRows);
         }
       } catch {
         // Actualizacion silenciosa para no saturar con toasts en tiempo real.
@@ -65,7 +60,5 @@ export default function useAdminRealtime({
     fetchHorariosMantencionList,
     fetchMantencionesList,
     fetchUsersList,
-    setHorariosMantencion,
-    setMantenciones,
   ]);
 }
