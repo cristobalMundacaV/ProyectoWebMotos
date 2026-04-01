@@ -186,12 +186,6 @@ const SIDEBAR_STRUCTURE = {
             { label: "Fichas Historicas", value: "mantenciones_historicas", roles: ["admin", "mecanico"] },
           ],
         },
-        {
-          label: "Fichas Tecnicas",
-          icon: "fichas_tecnicas",
-          roles: ["admin", "mecanico"],
-          items: [{ label: "Resumen general", value: "fichas_resumen", roles: ["admin", "mecanico"] }],
-        },
       ],
     },
     {
@@ -205,6 +199,12 @@ const SIDEBAR_STRUCTURE = {
           items: [
             { label: "Crear Usuario", value: "crear_usuario", roles: ["admin"] },
           ],
+        },
+        {
+          label: "Fichas Tecnicas",
+          icon: "fichas_tecnicas",
+          roles: ["admin", "mecanico"],
+          items: [{ label: "Resumen general", value: "fichas_resumen", roles: ["admin", "mecanico"] }],
         },
         {
           label: "Mantenedores",

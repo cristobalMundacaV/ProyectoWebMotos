@@ -8,6 +8,7 @@ import {
   getDisponibilidadMantenciones,
 } from "../services/mantencionesService";
 import { isValidChilePhone, normalizeChilePhoneInput } from "../services/phoneUtils";
+import { isValidPatenteMotoChile, normalizePatenteMotoChile } from "../services/patenteChileUtils";
 import "../styles/mantenimiento.css";
 
 const TIPO_MANTENCION_OPTIONS = [
@@ -279,7 +280,11 @@ export default function Mantenimiento() {
       setForm((prev) => ({ ...prev, [name]: formatRutInput(value) }));
       return;
     }
-    if (name === "matricula" || name === "marca") {
+    if (name === "matricula") {
+      setForm((prev) => ({ ...prev, [name]: normalizePatenteMotoChile(value) }));
+      return;
+    }
+    if (name === "marca") {
       setForm((prev) => ({ ...prev, [name]: String(value || "").toUpperCase() }));
       return;
     }
@@ -349,9 +354,9 @@ export default function Mantenimiento() {
       return;
     }
 
-    const normalizedMatricula = form.matricula.trim().toUpperCase();
-    if (!/^[A-Z]{3}\d{2}$/.test(normalizedMatricula)) {
-      setToast({ type: "error", message: "La matricula debe tener formato AAA99 (ejemplo: TKG30)." });
+    const normalizedMatricula = normalizePatenteMotoChile(form.matricula);
+    if (!isValidPatenteMotoChile(normalizedMatricula)) {
+      setToast({ type: "error", message: "La matricula debe corresponder a una patente chilena de moto (formato AAA99, ejemplo: TKG30)." });
       return;
     }
 

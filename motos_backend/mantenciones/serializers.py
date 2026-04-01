@@ -4,6 +4,7 @@ from django.db import transaction
 from django.utils import timezone
 from rest_framework import serializers
 from core.phone_utils import normalize_chile_phone
+from core.plate_utils import is_valid_chile_motorcycle_plate, normalize_chile_motorcycle_plate
 import logging
 from datetime import datetime, time
 
@@ -229,11 +230,7 @@ class AgendarMantencionSerializer(serializers.Serializer):
     telefono = serializers.CharField(max_length=30)
     email = serializers.EmailField(required=True)
 
-    matricula = serializers.RegexField(
-        regex=r"^[A-Za-z]{3}\d{2}$",
-        max_length=5,
-        error_messages={"invalid": "La matricula debe tener formato AAA99 (ejemplo: TKG30)."},
-    )
+    matricula = serializers.CharField(max_length=20)
     marca = serializers.CharField(max_length=80)
     modelo = serializers.CharField(max_length=120)
     anio = serializers.IntegerField(required=True)
@@ -249,6 +246,14 @@ class AgendarMantencionSerializer(serializers.Serializer):
             return normalize_chile_phone(value, required=True)
         except ValueError as exc:
             raise serializers.ValidationError(str(exc))
+
+    def validate_matricula(self, value):
+        normalized = normalize_chile_motorcycle_plate(value)
+        if not is_valid_chile_motorcycle_plate(normalized):
+            raise serializers.ValidationError(
+                "La matricula debe corresponder a una patente chilena de moto (formato AAA99, ejemplo: TKG30)."
+            )
+        return normalized
 
     def _normalize_person_name(self, raw_value: str) -> str:
         cleaned = " ".join((raw_value or "").strip().split())
