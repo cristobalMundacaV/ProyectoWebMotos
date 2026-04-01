@@ -103,6 +103,7 @@ export default function MantencionesPage({
     setSelectedSolicitudId,
     setSelectedFichaId,
     setSelectedHistoricaId,
+    setSelectedHistoricoCliente,
     setShowHorarioForm,
     setMobilePickerOpen,
     handleSolicitudesTabChange,
