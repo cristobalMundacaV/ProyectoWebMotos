@@ -16,6 +16,7 @@ from .notifications import (
     send_mantencion_confirmation_email,
     send_mantencion_finalized_email,
     send_mantencion_ingreso_taller_email,
+    send_mantencion_delivered_email,
 )
 
 
@@ -196,6 +197,8 @@ class MantencionSerializer(serializers.ModelSerializer):
                                 send_mantencion_canceled_email(mantencion=locked, recipient_email=recipient_email)
                             elif locked.estado == Mantencion.ESTADO_FINALIZADO:
                                 send_mantencion_finalized_email(mantencion=locked, recipient_email=recipient_email)
+                            elif locked.estado == Mantencion.ESTADO_ENTREGADA:
+                                send_mantencion_delivered_email(mantencion=locked, recipient_email=recipient_email)
                         except Exception:
                             logger.exception(
                                 "Error enviando correo de cambio de estado para mantencion_id=%s estado=%s",

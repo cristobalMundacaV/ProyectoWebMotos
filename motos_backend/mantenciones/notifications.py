@@ -274,3 +274,15 @@ def send_mantencion_reminder_email(*, mantencion: Mantencion, recipient_email: s
         intro=intro,
         outro="Si no puedes asistir, recuerda gestionar tu hora con anticipacion.",
     )
+
+
+def send_mantencion_delivered_email(*, mantencion: Mantencion, recipient_email: str) -> None:
+    _send_notification_email(
+        mantencion=mantencion,
+        recipient_email=recipient_email,
+        subject=f"Mantenimiento entregado | {settings.COMPANY_NAME}",
+        title="Mantenimiento entregado",
+        intro="Tu moto ha sido entregada exitosamente.",
+        outro="Gracias por confiar en nuestros servicios. Te esperamos pronto.",
+        override_fecha=timezone.localdate(),
+    )
