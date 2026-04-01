@@ -1,5 +1,13 @@
 const ACCESS_TOKEN_KEY = "authToken";
 
+function isRealtimeEnabled() {
+  const explicit = String(import.meta.env.VITE_ENABLE_REALTIME || "").trim().toLowerCase();
+  if (explicit === "true") return true;
+  if (explicit === "false") return false;
+  if (typeof window === "undefined") return false;
+  return ["localhost", "127.0.0.1"].includes(window.location.hostname);
+}
+
 function buildSocketUrl() {
   const configured = String(import.meta.env.VITE_WS_URL || "").trim();
   if (configured) return configured;
@@ -43,6 +51,7 @@ class RealtimeSocketClient {
   }
 
   ensureConnected() {
+    if (!isRealtimeEnabled()) return;
     if (this.ws && (this.ws.readyState === WebSocket.OPEN || this.ws.readyState === WebSocket.CONNECTING)) {
       return;
     }
