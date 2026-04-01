@@ -411,11 +411,6 @@ export default function ProductosPage({
                 </label>
 
                 <label className="admin-form-check admin-form-check-compact">
-                  <input type="checkbox" name="es_destacado" checked={accesorioMotoForm.es_destacado} onChange={onAccesorioMotoInputChange} />
-                  Marcar como destacado
-                </label>
-
-                <label className="admin-form-check admin-form-check-compact">
                   <input type="checkbox" name="activo" checked={accesorioMotoForm.activo} onChange={onAccesorioMotoInputChange} />
                   Publicar como activo
                 </label>
@@ -425,20 +420,6 @@ export default function ProductosPage({
                   Guardar
                 </button>
               </div>
-
-              {accesorioMotoForm.es_destacado && (
-                <label className="admin-form-span-2">
-                  Orden carrusel *
-                  <input
-                    type="number"
-                    name="orden_carrusel"
-                    value={accesorioMotoForm.orden_carrusel}
-                    onChange={onAccesorioMotoInputChange}
-                    min="1"
-                    required={Boolean(accesorioMotoForm.es_destacado)}
-                  />
-                </label>
-              )}
 
             {accesorioMotoForm.requiere_compatibilidad && (
               <div className="admin-form-span-2 admin-checkbox-list">
@@ -627,6 +608,20 @@ export default function ProductosPage({
               )}
             </label>
 
+            {accesorioRiderForm.es_destacado && (
+              <label className="admin-form-span-2 admin-carrusel-order-field">
+                Orden carrusel *
+                <input
+                  type="number"
+                  name="orden_carrusel"
+                  value={accesorioRiderForm.orden_carrusel}
+                  onChange={onAccesorioRiderInputChange}
+                  min="1"
+                  required={Boolean(accesorioRiderForm.es_destacado)}
+                />
+              </label>
+            )}
+
             <div className="admin-form-footer">
               <div className="admin-form-footer-checks">
                 <label className="admin-form-check admin-form-check-compact">
@@ -644,20 +639,6 @@ export default function ProductosPage({
                 {"Guardar accesorio rider"}
               </button>
             </div>
-
-            {accesorioRiderForm.es_destacado && (
-              <label className="admin-form-span-2 admin-carrusel-order-field">
-                Orden carrusel *
-                <input
-                  type="number"
-                  name="orden_carrusel"
-                  value={accesorioRiderForm.orden_carrusel}
-                  onChange={onAccesorioRiderInputChange}
-                  min="1"
-                  required={Boolean(accesorioRiderForm.es_destacado)}
-                />
-              </label>
-            )}
           </form>
           </article>
 

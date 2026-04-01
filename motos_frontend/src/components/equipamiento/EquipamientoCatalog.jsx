@@ -53,6 +53,7 @@ function normalizeText(value) {
 export default function EquipamientoCatalog({ variant = "accesorios" }) {
   const ITEMS_PER_PAGE = 16;
   const { title, breadcrumb, tipoApi, showModeloCompatible } = getConfig(variant);
+  const isAccesoriosMoto = tipoApi === "accesorios";
 
   const [productos, setProductos] = useState([]);
   const [categorias, setCategorias] = useState([]);
@@ -324,8 +325,8 @@ export default function EquipamientoCatalog({ variant = "accesorios" }) {
       nombre: producto.nombre || "",
       descripcion: producto.descripcion || "",
       precio: String(parsePrecioEntero(producto.precio)),
-      orden_carrusel: String(Math.max(1, Number.parseInt(producto.orden_carrusel, 10) || 1)),
-      es_destacado: Boolean(producto.es_destacado),
+      orden_carrusel: isAccesoriosMoto ? "1" : String(Math.max(1, Number.parseInt(producto.orden_carrusel, 10) || 1)),
+      es_destacado: isAccesoriosMoto ? false : Boolean(producto.es_destacado),
       activo: producto.activo !== false,
       imagenes_galeria: [],
       imagenes_actuales: Array.isArray(producto.imagenes)
@@ -491,10 +492,10 @@ export default function EquipamientoCatalog({ variant = "accesorios" }) {
     payload.append("nombre", editForm.nombre.trim());
     payload.append("descripcion", editForm.descripcion || "");
     payload.append("precio", String(precioEntero));
-    payload.append("es_destacado", String(Boolean(editForm.es_destacado)));
+    payload.append("es_destacado", String(isAccesoriosMoto ? false : Boolean(editForm.es_destacado)));
     payload.append(
       "orden_carrusel",
-      editForm.es_destacado
+      !isAccesoriosMoto && editForm.es_destacado
         ? String(Math.max(1, Number.parseInt(editForm.orden_carrusel, 10) || 1))
         : "1"
     );
@@ -950,10 +951,12 @@ export default function EquipamientoCatalog({ variant = "accesorios" }) {
 
               <div className="equip-edit-footer equip-edit-span-2">
                 <div className="equip-edit-footer-checks">
-                  <label className="equip-edit-check">
-                    <input type="checkbox" name="es_destacado" checked={editForm.es_destacado} onChange={handleEditInputChange} />
-                    Destacado
-                  </label>
+                  {!isAccesoriosMoto && (
+                    <label className="equip-edit-check">
+                      <input type="checkbox" name="es_destacado" checked={editForm.es_destacado} onChange={handleEditInputChange} />
+                      Destacado
+                    </label>
+                  )}
 
                   <label className="equip-edit-check">
                     <input type="checkbox" name="activo" checked={editForm.activo} onChange={handleEditInputChange} />
@@ -971,7 +974,7 @@ export default function EquipamientoCatalog({ variant = "accesorios" }) {
                 </div>
               </div>
 
-              {editForm.es_destacado && (
+              {!isAccesoriosMoto && editForm.es_destacado && (
                 <label className="equip-edit-order-field equip-edit-span-2">
                   Orden carrusel *
                   <input

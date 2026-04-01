@@ -171,15 +171,17 @@ export default function ProductoEditModal({
                 </label>
               )}
 
-              <label className="admin-form-check admin-form-check-compact">
-                <input
-                  type="checkbox"
-                  name="es_destacado"
-                  checked={productoEditModal.form.es_destacado}
-                  onChange={onInputChange}
-                />
-                Destacado
-              </label>
+              {!isAccesorioMoto && (
+                <label className="admin-form-check admin-form-check-compact">
+                  <input
+                    type="checkbox"
+                    name="es_destacado"
+                    checked={productoEditModal.form.es_destacado}
+                    onChange={onInputChange}
+                  />
+                  Destacado
+                </label>
+              )}
 
               <label className="admin-form-check admin-form-check-compact">
                 <input type="checkbox" name="activo" checked={productoEditModal.form.activo} onChange={onInputChange} />
@@ -196,9 +198,9 @@ export default function ProductoEditModal({
               </button>
             </div>
 
-            {(productoEditModal.form.es_destacado || (isAccesorioMoto && productoEditModal.form.requiere_compatibilidad)) && (
+            {((!isAccesorioMoto && productoEditModal.form.es_destacado) || (isAccesorioMoto && productoEditModal.form.requiere_compatibilidad)) && (
               <div className="admin-product-edit-extra-fields">
-                {productoEditModal.form.es_destacado && (
+                {!isAccesorioMoto && productoEditModal.form.es_destacado && (
                   <label className="admin-product-edit-order-field">
                     Orden carrusel *
                     <input
