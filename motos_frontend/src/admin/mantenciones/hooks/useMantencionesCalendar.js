@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { getDisponibilidadMantenciones } from "../../../services/mantencionesService";
+import { subscribeRealtime } from "../../../services/realtimeSocket";
 import {
   activarDiaCalendarioMantencion,
   bloquearDiaCalendarioMantencion,
@@ -188,29 +189,31 @@ export default function useMantencionesCalendar({ activeSection, horarios }) {
   useEffect(() => {
     if (activeSection !== "horarios_calendario") return undefined;
     let mounted = true;
-    let intervalId = null;
 
-    const loadCalendar = async ({ silent = false } = {}) => {
-      if (!mounted) return;
-      await refreshCalendarAvailability({ silent });
-    };
+    refreshCalendarAvailability();
 
-    loadCalendar();
-    intervalId = window.setInterval(() => loadCalendar({ silent: true }), 12000);
+    const unsubscribe = subscribeRealtime((event) => {
+      if (!mounted || document.hidden) return;
+      if (!event?.type) return;
+      const eventType = String(event.type);
+      if (eventType === "availability_updated" || eventType === "schedule_updated") {
+        refreshCalendarAvailability({ silent: true });
+      }
+    });
 
     const onVisibilityChange = () => {
       if (!document.hidden) {
-        loadCalendar({ silent: true });
+        refreshCalendarAvailability({ silent: true });
       }
     };
 
     document.addEventListener("visibilitychange", onVisibilityChange);
     return () => {
       mounted = false;
-      if (intervalId) window.clearInterval(intervalId);
+      unsubscribe();
       document.removeEventListener("visibilitychange", onVisibilityChange);
     };
-  }, [activeSection, calendarMonth]);
+  }, [activeSection, refreshCalendarAvailability]);
 
 
   useEffect(() => {

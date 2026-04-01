@@ -1,9 +1,10 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import KpiCard from "../components/KpiCard";
 import GaugeKpiCard from "../components/GaugeKpiCard";
 import BarChartCard from "../components/BarChartCard";
 import LineChartCard from "../components/LineChartCard";
 import { fetchDashboardAnalytics } from "../services/dashboardService";
+import { subscribeRealtime } from "../../../services/realtimeSocket";
 
 const PERIOD_OPTIONS = [
   { value: "today", label: "Hoy" },
@@ -125,33 +126,39 @@ export default function ResumenPage() {
   const [error, setError] = useState("");
   const [summary, setSummary] = useState(null);
 
-  useEffect(() => {
-    let active = true;
-
-    async function load() {
-      setLoading(true);
+  const loadSummary = useCallback(
+    async ({ silent = false } = {}) => {
+      if (!silent) setLoading(true);
       setError("");
       try {
         const data = await fetchDashboardAnalytics({ period });
-        if (!active) return;
         if (data?.__legacy) {
           setError("");
         }
         setSummary(data);
       } catch {
-        if (!active) return;
         setError("No se pudieron cargar las metricas del dashboard.");
         setSummary(null);
       } finally {
-        if (active) setLoading(false);
+        if (!silent) setLoading(false);
       }
-    }
+    },
+    [period]
+  );
 
-    load();
-    return () => {
-      active = false;
-    };
-  }, [period]);
+  useEffect(() => {
+    loadSummary();
+  }, [loadSummary]);
+
+  useEffect(() => {
+    const unsubscribe = subscribeRealtime((event) => {
+      if (!event?.type) return;
+      if (String(event.type) === "dashboard_updated") {
+        loadSummary({ silent: true });
+      }
+    });
+    return () => unsubscribe();
+  }, [loadSummary]);
 
   const kpis = summary?.kpis || {};
   const range = summary?.range || {};

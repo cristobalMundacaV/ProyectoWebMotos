@@ -14,6 +14,7 @@ from rest_framework.response import Response
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework_simplejwt.tokens import RefreshToken, TokenError
 from core.phone_utils import normalize_chile_phone
+from core.realtime import broadcast_realtime_event
 
 from .models import PerfilUsuario
 from .password_reset_email import send_password_reset_email
@@ -242,6 +243,8 @@ def admin_create_user(request):
 			defaults={"rol": PerfilUsuario.ROL_ENCARGADO, "telefono": ""},
 		)
 
+	transaction.on_commit(lambda: broadcast_realtime_event("user_created", {"id": user.id}))
+
 	return Response(
 		{
 			"detail": "Usuario creado correctamente.",
@@ -275,6 +278,7 @@ def admin_manage_user(request, user_id: int):
 				{"detail": "No se puede eliminar el usuario porque tiene registros asociados."},
 				status=status.HTTP_409_CONFLICT,
 			)
+		transaction.on_commit(lambda: broadcast_realtime_event("user_deleted", {"id": user_id}))
 		return Response(status=status.HTTP_204_NO_CONTENT)
 
 	data = request.data
@@ -330,6 +334,7 @@ def admin_manage_user(request, user_id: int):
 		)
 
 	target_user.refresh_from_db()
+	transaction.on_commit(lambda: broadcast_realtime_event("user_updated", {"id": target_user.id}))
 	return Response({"detail": "Usuario actualizado correctamente.", "user": _serialize_user(target_user)})
 
 

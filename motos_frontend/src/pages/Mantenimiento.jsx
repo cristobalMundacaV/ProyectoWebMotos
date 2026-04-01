@@ -7,6 +7,7 @@ import {
   agendarMantencion,
   getDisponibilidadMantenciones,
 } from "../services/mantencionesService";
+import { subscribeRealtime } from "../services/realtimeSocket";
 import { isValidChilePhone, normalizeChilePhoneInput } from "../services/phoneUtils";
 import { isValidPatenteMotoChile, normalizePatenteMotoChile } from "../services/patenteChileUtils";
 import "../styles/mantenimiento.css";
@@ -231,7 +232,7 @@ export default function Mantenimiento() {
   }, []);
 
   useEffect(() => {
-    const intervalId = window.setInterval(async () => {
+    const refreshFromSocket = async () => {
       try {
         const data = await getDisponibilidadMantenciones(DISPONIBILIDAD_DAYS_AHEAD);
         const slots = Array.isArray(data?.slots) ? data.slots : [];
@@ -247,9 +248,22 @@ export default function Mantenimiento() {
       } catch {
         // No bloqueamos la UI por errores temporales en el refresco.
       }
-    }, 20000);
+    };
 
-    return () => window.clearInterval(intervalId);
+    const unsubscribe = subscribeRealtime((event) => {
+      if (!event?.type) return;
+      const eventType = String(event.type);
+      if (
+        eventType === "availability_updated" ||
+        eventType === "maintenance_created" ||
+        eventType === "maintenance_updated" ||
+        eventType === "maintenance_status_changed"
+      ) {
+        refreshFromSocket();
+      }
+    });
+
+    return () => unsubscribe();
   }, []);
 
   useEffect(() => {

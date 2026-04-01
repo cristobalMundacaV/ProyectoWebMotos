@@ -8,6 +8,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from .availability import get_disponibilidad
+from core.realtime import broadcast_realtime_event
 from .integrity import mark_expired_unaccepted_requests
 from .models import (
     HorarioMantencion,
@@ -36,6 +37,10 @@ from .serializers import (
 logger = logging.getLogger(__name__)
 
 
+def _broadcast_after_commit(event_type, payload=None):
+    transaction.on_commit(lambda: broadcast_realtime_event(event_type, payload or {}))
+
+
 class VehiculoClienteViewSet(viewsets.ModelViewSet):
     queryset = VehiculoCliente.objects.select_related("cliente").all()
     serializer_class = VehiculoClienteSerializer
@@ -46,6 +51,22 @@ class HorarioMantencionViewSet(viewsets.ModelViewSet):
     queryset = HorarioMantencion.objects.all().order_by("dia_semana", "hora_inicio")
     serializer_class = HorarioMantencionSerializer
     permission_classes = [IsOperationalStaff]
+
+    def perform_create(self, serializer):
+        instance = serializer.save()
+        _broadcast_after_commit("schedule_updated", {"id": instance.id, "action": "created"})
+        _broadcast_after_commit("availability_updated", {"scope": "calendar"})
+
+    def perform_update(self, serializer):
+        instance = serializer.save()
+        _broadcast_after_commit("schedule_updated", {"id": instance.id, "action": "updated"})
+        _broadcast_after_commit("availability_updated", {"scope": "calendar"})
+
+    def perform_destroy(self, instance):
+        schedule_id = instance.id
+        super().perform_destroy(instance)
+        _broadcast_after_commit("schedule_updated", {"id": schedule_id, "action": "deleted"})
+        _broadcast_after_commit("availability_updated", {"scope": "calendar"})
 
 
 class MantencionViewSet(viewsets.ModelViewSet):
@@ -60,6 +81,26 @@ class MantencionViewSet(viewsets.ModelViewSet):
             .order_by("-fecha_ingreso", "-created_at")
         )
 
+    def perform_create(self, serializer):
+        instance = serializer.save()
+        _broadcast_after_commit("maintenance_created", {"id": instance.id})
+        _broadcast_after_commit("dashboard_updated", {"domain": "mantenciones"})
+        _broadcast_after_commit("availability_updated", {"scope": "calendar"})
+
+    def perform_update(self, serializer):
+        instance = serializer.save()
+        _broadcast_after_commit("maintenance_updated", {"id": instance.id, "estado": instance.estado})
+        _broadcast_after_commit("maintenance_status_changed", {"id": instance.id, "estado": instance.estado})
+        _broadcast_after_commit("dashboard_updated", {"domain": "mantenciones"})
+        _broadcast_after_commit("availability_updated", {"scope": "calendar"})
+
+    def perform_destroy(self, instance):
+        mantencion_id = instance.id
+        super().perform_destroy(instance)
+        _broadcast_after_commit("maintenance_updated", {"id": mantencion_id, "action": "deleted"})
+        _broadcast_after_commit("dashboard_updated", {"domain": "mantenciones"})
+        _broadcast_after_commit("availability_updated", {"scope": "calendar"})
+
 
 class AgendarMantencionAPIView(APIView):
     authentication_classes = []
@@ -69,6 +110,9 @@ class AgendarMantencionAPIView(APIView):
         serializer = AgendarMantencionSerializer(data=request.data, context={"request": request})
         serializer.is_valid(raise_exception=True)
         mantencion = serializer.save()
+        _broadcast_after_commit("maintenance_created", {"id": mantencion.id})
+        _broadcast_after_commit("dashboard_updated", {"domain": "mantenciones"})
+        _broadcast_after_commit("availability_updated", {"scope": "calendar"})
         response_serializer = MantencionSerializer(mantencion, context={"request": request})
         return Response(response_serializer.data, status=status.HTTP_201_CREATED)
 
@@ -218,6 +262,10 @@ class MantencionBloquearDiaAPIView(APIView):
 
                 transaction.on_commit(_send_reagendacion_notifications)
 
+            _broadcast_after_commit("availability_updated", {"scope": "calendar", "fecha": target_date.isoformat()})
+            _broadcast_after_commit("maintenance_status_changed", {"scope": "day_block", "fecha": target_date.isoformat()})
+            _broadcast_after_commit("dashboard_updated", {"domain": "mantenciones"})
+
         return Response(
             {
                 "fecha": target_date.isoformat(),
@@ -283,6 +331,9 @@ class MantencionActivarDiaAPIView(APIView):
                     "activo": True,
                 },
             )
+
+        _broadcast_after_commit("availability_updated", {"scope": "calendar", "fecha": target_date.isoformat()})
+        _broadcast_after_commit("schedule_updated", {"scope": "calendar", "fecha": target_date.isoformat()})
 
         return Response(
             {
@@ -393,6 +444,13 @@ class MantencionToggleHoraAPIView(APIView):
 
                     transaction.on_commit(_send_reagendacion_notifications)
 
+                _broadcast_after_commit("availability_updated", {"scope": "calendar", "fecha": target_date.isoformat()})
+                _broadcast_after_commit(
+                    "maintenance_status_changed",
+                    {"scope": "hour_block", "fecha": target_date.isoformat(), "hora": target_hora.strftime("%H:%M")},
+                )
+                _broadcast_after_commit("dashboard_updated", {"domain": "mantenciones"})
+
                 return Response(
                     {
                         "fecha": target_date.isoformat(),
@@ -408,6 +466,7 @@ class MantencionToggleHoraAPIView(APIView):
                 hora=target_hora,
                 defaults={"bloqueado": False, "motivo": "Hora activada desde calendario"},
             )
+            _broadcast_after_commit("availability_updated", {"scope": "calendar", "fecha": target_date.isoformat()})
             return Response(
                 {
                     "fecha": target_date.isoformat(),
@@ -536,6 +595,11 @@ class MantencionCancelarAPIView(APIView):
                         )
 
                 transaction.on_commit(_send_cancel_email)
+
+            _broadcast_after_commit("maintenance_status_changed", {"id": mantencion.id, "estado": mantencion.estado})
+            _broadcast_after_commit("maintenance_updated", {"id": mantencion.id, "estado": mantencion.estado})
+            _broadcast_after_commit("availability_updated", {"scope": "calendar"})
+            _broadcast_after_commit("dashboard_updated", {"domain": "mantenciones"})
 
         return Response(
             {
