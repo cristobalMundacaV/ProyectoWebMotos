@@ -120,6 +120,24 @@ function addMonths(date, delta) {
   return new Date(date.getFullYear(), date.getMonth() + delta, 1);
 }
 
+function normalizeCapitalizedWords(rawValue) {
+  const cleaned = String(rawValue || "")
+    .trim()
+    .replace(/\s+/g, " ");
+  if (!cleaned) return "";
+  return cleaned
+    .split(" ")
+    .map((word) => (word ? `${word.charAt(0).toUpperCase()}${word.slice(1).toLowerCase()}` : ""))
+    .join(" ");
+}
+
+function normalizeUpperWords(rawValue) {
+  return String(rawValue || "")
+    .trim()
+    .replace(/\s+/g, " ")
+    .toUpperCase();
+}
+
 export default function Mantenimiento() {
   const [form, setForm] = useState(getInitialForm);
   const [loading, setLoading] = useState(false);
@@ -337,6 +355,11 @@ export default function Mantenimiento() {
       return;
     }
 
+    const normalizedNombres = normalizeCapitalizedWords(form.nombres);
+    const normalizedApellidos = normalizeCapitalizedWords(form.apellidos);
+    const normalizedMarca = normalizeUpperWords(form.marca);
+    const normalizedModelo = normalizeUpperWords(form.modelo);
+
     const normalizedTelefono = normalizeChilePhoneInput(form.telefono, { allowEmpty: true });
     if (!isValidChilePhone(normalizedTelefono)) {
       setToast({ type: "error", message: "El telefono debe comenzar con +56 y contener 9 digitos adicionales." });
@@ -366,10 +389,10 @@ export default function Mantenimiento() {
         ...form,
         rut: normalizedRut,
         matricula: normalizedMatricula,
-        marca: form.marca.trim(),
-        modelo: form.modelo.trim(),
-        nombres: form.nombres.trim(),
-        apellidos: form.apellidos.trim(),
+        marca: normalizedMarca,
+        modelo: normalizedModelo,
+        nombres: normalizedNombres,
+        apellidos: normalizedApellidos,
         telefono: normalizedTelefono,
         email: normalizedEmail,
         motivo: form.motivo.trim(),

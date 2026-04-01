@@ -236,6 +236,15 @@ class AgendarMantencionSerializer(serializers.Serializer):
         except ValueError as exc:
             raise serializers.ValidationError(str(exc))
 
+    def _normalize_person_name(self, raw_value: str) -> str:
+        cleaned = " ".join((raw_value or "").strip().split())
+        if not cleaned:
+            return ""
+        return " ".join(word[:1].upper() + word[1:].lower() for word in cleaned.split(" "))
+
+    def _normalize_vehicle_text_upper(self, raw_value: str) -> str:
+        return " ".join((raw_value or "").strip().split()).upper()
+
     def _normalize_rut(self, raw_rut: str) -> str:
         cleaned = (raw_rut or "").replace(".", "").replace("-", "").replace(" ", "").upper()
         if len(cleaned) < 2:
@@ -264,8 +273,10 @@ class AgendarMantencionSerializer(serializers.Serializer):
 
     def validate(self, attrs):
         rut = (attrs.get("rut") or "").strip()
-        nombres = (attrs.get("nombres") or "").strip()
-        apellidos = (attrs.get("apellidos") or "").strip()
+        nombres = self._normalize_person_name(attrs.get("nombres") or "")
+        apellidos = self._normalize_person_name(attrs.get("apellidos") or "")
+        marca = self._normalize_vehicle_text_upper(attrs.get("marca") or "")
+        modelo = self._normalize_vehicle_text_upper(attrs.get("modelo") or "")
         email = (attrs.get("email") or "").strip().lower()
         if not rut:
             raise serializers.ValidationError({"rut": "El RUT es obligatorio."})
@@ -276,6 +287,10 @@ class AgendarMantencionSerializer(serializers.Serializer):
             raise serializers.ValidationError({"nombres": "Los nombres son obligatorios."})
         if not apellidos:
             raise serializers.ValidationError({"apellidos": "Los apellidos son obligatorios."})
+        if not marca:
+            raise serializers.ValidationError({"marca": "La marca es obligatoria."})
+        if not modelo:
+            raise serializers.ValidationError({"modelo": "El modelo es obligatorio."})
         if not email:
             raise serializers.ValidationError({"email": "El email es obligatorio para enviar la confirmacion."})
 
@@ -286,6 +301,8 @@ class AgendarMantencionSerializer(serializers.Serializer):
         attrs["rut"] = normalized_rut
         attrs["nombres"] = nombres
         attrs["apellidos"] = apellidos
+        attrs["marca"] = marca
+        attrs["modelo"] = modelo
         attrs["email"] = email
         return attrs
 
@@ -367,8 +384,8 @@ class AgendarMantencionSerializer(serializers.Serializer):
                 matricula=matricula,
                 defaults={
                     "cliente": cliente,
-                    "marca": validated_data["marca"].strip(),
-                    "modelo": validated_data["modelo"].strip(),
+                    "marca": validated_data["marca"],
+                    "modelo": validated_data["modelo"],
                     "anio": validated_data.get("anio"),
                     "kilometraje_actual": validated_data["kilometraje_actual"],
                     "cliente_nombres": nombres,
@@ -378,8 +395,8 @@ class AgendarMantencionSerializer(serializers.Serializer):
                 },
             )
 
-            vehiculo.marca = validated_data["marca"].strip()
-            vehiculo.modelo = validated_data["modelo"].strip()
+            vehiculo.marca = validated_data["marca"]
+            vehiculo.modelo = validated_data["modelo"]
             vehiculo.anio = validated_data.get("anio")
             vehiculo.kilometraje_actual = validated_data["kilometraje_actual"]
             vehiculo.cliente = cliente
