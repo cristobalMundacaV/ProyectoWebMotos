@@ -37,6 +37,10 @@ class VehiculoClienteNestedSerializer(serializers.ModelSerializer):
             "modelo",
             "anio",
             "kilometraje_actual",
+            "cliente_telefono",
+            "cliente_email",
+            "cliente_nombres",
+            "cliente_apellidos",
         )
 
     def get_cliente_nombre(self, obj: VehiculoCliente) -> str:

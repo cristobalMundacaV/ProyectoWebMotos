@@ -13,6 +13,7 @@ export default function HistoricasPanel({
   mobilePickerOpen,
   onToggleMobilePicker,
   onCloseMobilePicker,
+  onOpenClienteDatos,
   historicoEstadoFilter,
   onHistoricoEstadoFilterChange,
   historicoFechaFilter,
@@ -73,6 +74,14 @@ export default function HistoricasPanel({
                 <option value="año">Hace un año</option>
               </select>
             </label>
+            <button
+              type="button"
+              className="admin-mantencion-client-btn"
+              disabled={!selectedHistorica}
+              onClick={() => onOpenClienteDatos(selectedHistorica)}
+            >
+              Datos Cliente
+            </button>
           </div>
         </div>
 

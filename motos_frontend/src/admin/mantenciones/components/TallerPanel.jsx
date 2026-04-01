@@ -14,6 +14,7 @@ export default function TallerPanel({
   mobilePickerOpen,
   onToggleMobilePicker,
   onCloseMobilePicker,
+  onOpenClienteDatos,
   transitions,
   savingById,
 }) {
@@ -40,6 +41,14 @@ export default function TallerPanel({
                 );
               })}
             </div>
+            <button
+              type="button"
+              className="admin-mantencion-client-btn"
+              disabled={!selectedFicha}
+              onClick={() => onOpenClienteDatos(selectedFicha)}
+            >
+              Datos Cliente
+            </button>
           </div>
         </div>
 

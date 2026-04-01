@@ -14,6 +14,7 @@ export default function SolicitudesPanel({
   mobilePickerOpen,
   onToggleMobilePicker,
   onCloseMobilePicker,
+  onOpenClienteDatos,
   transitions,
   savingById,
 }) {
@@ -40,6 +41,14 @@ export default function SolicitudesPanel({
                 );
               })}
             </div>
+            <button
+              type="button"
+              className="admin-mantencion-client-btn"
+              disabled={!selectedSolicitud}
+              onClick={() => onOpenClienteDatos(selectedSolicitud)}
+            >
+              Datos Cliente
+            </button>
           </div>
         </div>
 

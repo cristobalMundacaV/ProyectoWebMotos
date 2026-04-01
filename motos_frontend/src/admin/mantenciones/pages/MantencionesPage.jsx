@@ -1,4 +1,4 @@
-import { useEffect, useMemo } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   ESTADOS_EN_TALLER,
   ESTADOS_SOLICITUD,
@@ -155,7 +155,17 @@ export default function MantencionesPage({
     onAcceptSolicitud,
     onUpdateMantencion,
   });
+  const [clienteDatosItem, setClienteDatosItem] = useState(null);
   const clearAllMantencionModals = transitions.clearAllModalState;
+
+  const openClienteDatosModal = useCallback((item) => {
+    if (!item) return;
+    setClienteDatosItem(item);
+  }, []);
+
+  const closeClienteDatosModal = useCallback(() => {
+    setClienteDatosItem(null);
+  }, []);
 
   const calendarioPanelModel = useCalendarioPanelModel({
     calendarLoading,
@@ -201,7 +211,19 @@ export default function MantencionesPage({
 
   useEffect(() => {
     clearAllMantencionModals();
+    setClienteDatosItem(null);
   }, [activeSection, clearAllMantencionModals]);
+
+  useEffect(() => {
+    if (!clienteDatosItem) return undefined;
+    function handleKeydown(event) {
+      if (event.key === "Escape") {
+        setClienteDatosItem(null);
+      }
+    }
+    window.addEventListener("keydown", handleKeydown);
+    return () => window.removeEventListener("keydown", handleKeydown);
+  }, [clienteDatosItem]);
 
   useEffect(() => {
     transitions.resetEditableRecords();
@@ -332,10 +354,16 @@ export default function MantencionesPage({
           mobilePickerOpen={mobilePickerOpen}
           onToggleMobilePicker={handleToggleMobilePicker}
           onCloseMobilePicker={handleCloseMobilePicker}
+          onOpenClienteDatos={openClienteDatosModal}
           transitions={transitions}
           savingById={savingById}
         />
-        <MantencionesModalHost activeSection={activeSection} transitions={transitions} />
+        <MantencionesModalHost
+          activeSection={activeSection}
+          transitions={transitions}
+          clienteDatosItem={clienteDatosItem}
+          onCloseClienteDatos={closeClienteDatosModal}
+        />
       </>
     );
   }
@@ -359,10 +387,16 @@ export default function MantencionesPage({
           mobilePickerOpen={mobilePickerOpen}
           onToggleMobilePicker={handleToggleMobilePicker}
           onCloseMobilePicker={handleCloseMobilePicker}
+          onOpenClienteDatos={openClienteDatosModal}
           transitions={transitions}
           savingById={savingById}
         />
-        <MantencionesModalHost activeSection={activeSection} transitions={transitions} />
+        <MantencionesModalHost
+          activeSection={activeSection}
+          transitions={transitions}
+          clienteDatosItem={clienteDatosItem}
+          onCloseClienteDatos={closeClienteDatosModal}
+        />
       </>
     );
   }
@@ -386,12 +420,19 @@ export default function MantencionesPage({
           mobilePickerOpen={mobilePickerOpen}
           onToggleMobilePicker={handleToggleMobilePicker}
           onCloseMobilePicker={handleCloseMobilePicker}
+          onOpenClienteDatos={openClienteDatosModal}
           historicoEstadoFilter={historicoEstadoFilter}
           onHistoricoEstadoFilterChange={handleHistoricoEstadoFilterChange}
           historicoFechaFilter={historicoFechaFilter}
           onHistoricoFechaFilterChange={handleHistoricoFechaFilterChange}
           transitions={transitions}
           savingById={savingById}
+        />
+        <MantencionesModalHost
+          activeSection={activeSection}
+          transitions={transitions}
+          clienteDatosItem={clienteDatosItem}
+          onCloseClienteDatos={closeClienteDatosModal}
         />
       </>
     );

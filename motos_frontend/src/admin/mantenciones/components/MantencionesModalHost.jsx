@@ -1,8 +1,9 @@
 import ConfirmCancelModal from "./ConfirmCancelModal";
+import ClienteDatosModal from "./ClienteDatosModal";
 import IngresoModal from "./IngresoModal";
 import EntregaModal from "./EntregaModal";
 
-export default function MantencionesModalHost({ activeSection, transitions }) {
+export default function MantencionesModalHost({ activeSection, transitions, clienteDatosItem, onCloseClienteDatos }) {
   const cancelTitle = activeSection === "mantenciones_solicitudes" ? "Confirmar anulacion" : "Confirmar cancelacion";
 
   return (
@@ -34,6 +35,12 @@ export default function MantencionesModalHost({ activeSection, transitions }) {
         onClose={transitions.closeEntregaConfirm}
         onFieldChange={transitions.setEntregaField}
         onConfirm={transitions.submitEntregaConfirm}
+      />
+
+      <ClienteDatosModal
+        isOpen={Boolean(clienteDatosItem)}
+        item={clienteDatosItem}
+        onClose={onCloseClienteDatos}
       />
     </>
   );
