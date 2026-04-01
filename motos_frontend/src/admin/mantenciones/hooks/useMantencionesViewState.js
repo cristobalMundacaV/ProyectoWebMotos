@@ -47,20 +47,14 @@ export default function useMantencionesViewState() {
 
   const handleHistoricoEstadoFilterChange = useCallback((value) => {
     setHistoricoEstadoFilter(value);
-    setSelectedHistoricaId(null);
-    setMobilePickerOpen((prev) => ({
-      ...prev,
-      historicas: false,
-    }));
+    // No resetear selectedHistoricaId para evitar re-renders disruptivos
+    // fichasHistoricasByCliente se filtrará automáticamente
   }, []);
 
   const handleHistoricoFechaFilterChange = useCallback((value) => {
     setHistoricoFechaFilter(value);
-    setSelectedHistoricaId(null);
-    setMobilePickerOpen((prev) => ({
-      ...prev,
-      historicas: false,
-    }));
+    // No resetear selectedHistoricaId para evitar re-renders disruptivos
+    // fichasHistoricasByCliente se filtrará automáticamente
   }, []);
 
   const handleToggleMobilePicker = useCallback((pickerKey) => {
