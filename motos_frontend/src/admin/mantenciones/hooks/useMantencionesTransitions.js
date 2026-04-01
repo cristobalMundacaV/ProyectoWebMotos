@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { extractErrorMessage, formatDate, formatIntegerCL, isValidRut, normalizeCapitalizedWords, sanitizeIntegerInput, sanitizeRutInput, toWholeNumber } from "../utils/mantencionesViewUtils";
 
-export default function useMantencionesTransitions({ savingById, onAcceptSolicitud, onUpdateMantencion }) {
+export default function useMantencionesTransitions({ savingById, onAcceptSolicitud, onUpdateMantencion, pushToast }) {
   const [editsById, setEditsById] = useState({});
   const [editableFinalizadaById, setEditableFinalizadaById] = useState({});
   const [cancelConfirm, setCancelConfirm] = useState(null);
@@ -135,7 +135,10 @@ export default function useMantencionesTransitions({ savingById, onAcceptSolicit
     const targetId = cancelConfirm.id;
     
     if (!cancelConfirm.isReagendacion && !cancelMotivo.trim()) {
-      setCancelError("Ingresa el motivo de cancelacion.");
+      setCancelError("");
+      if (typeof pushToast === "function") {
+        pushToast("Ingresa el motivo de cancelacion.", "error");
+      }
       return;
     }
 
@@ -153,9 +156,13 @@ export default function useMantencionesTransitions({ savingById, onAcceptSolicit
       setCancelMotivo("");
       setCancelError("");
     } catch (error) {
-      setCancelError(extractErrorMessage(error, "No se pudo confirmar. Intenta de nuevo."));
+      const message = extractErrorMessage(error, "No se pudo confirmar. Intenta de nuevo.");
+      setCancelError("");
+      if (typeof pushToast === "function") {
+        pushToast(message, "error");
+      }
     }
-  }, [cancelConfirm, cancelMotivo, onUpdateMantencion]);
+  }, [cancelConfirm, cancelMotivo, onUpdateMantencion, pushToast]);
 
   const approveSolicitud = useCallback((itemId) => onAcceptSolicitud(itemId, "approve"), [onAcceptSolicitud]);
 

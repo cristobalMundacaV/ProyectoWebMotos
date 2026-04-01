@@ -27,6 +27,7 @@ export default function MantencionesPage({
   savingById,
   onAcceptSolicitud,
   onUpdateMantencion,
+  onToast,
   horarios = [],
   horariosLoading = false,
   horariosLoadError = "",
@@ -154,6 +155,7 @@ export default function MantencionesPage({
     savingById,
     onAcceptSolicitud,
     onUpdateMantencion,
+    pushToast: onToast,
   });
   const [clienteDatosItem, setClienteDatosItem] = useState(null);
   const clearAllMantencionModals = transitions.clearAllModalState;

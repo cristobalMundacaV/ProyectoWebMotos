@@ -126,6 +126,7 @@ export default function useAdminSectionProps({ activeSection, loading, dashboard
         savingById: mantenciones.mantencionSavingById,
         onAcceptSolicitud: mantenciones.handleAcceptMantencionSolicitud,
         onUpdateMantencion: mantenciones.handleUpdateMantencion,
+        onToast: mantenciones.pushMantencionToast,
         horarios: horarios.horariosMantencion,
         horariosLoading: horarios.horariosMantencionLoading,
         horariosLoadError: horarios.horariosLoadError,

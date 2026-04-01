@@ -5,7 +5,6 @@ export default function CancelMantencionModal({
   fecha,
   hora,
   motivo,
-  error,
   isSaving,
   isReagendacion,
   onMotivoChange,
@@ -65,8 +64,6 @@ export default function CancelMantencionModal({
               </label>
             </div>
           )}
-
-          {error && <p className="admin-cancel-modal-error">{error}</p>}
         </div>
 
         <div className="admin-cancel-modal-footer">

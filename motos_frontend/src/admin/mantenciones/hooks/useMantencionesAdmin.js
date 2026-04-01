@@ -100,5 +100,6 @@ export default function useMantencionesAdmin({ activeSection, pushToast, getErro
     fetchMantencionesList,
     handleAcceptMantencionSolicitud,
     handleUpdateMantencion,
+    pushMantencionToast: pushToast,
   };
 }

@@ -20,7 +20,6 @@ export default function MantencionesModalHost({ activeSection, transitions, clie
         fecha={transitions.cancelConfirm?.fecha || "-"}
         hora={transitions.cancelConfirm?.hora || "-"}
         motivo={transitions.cancelMotivo}
-        error={transitions.cancelError}
         isReagendacion={Boolean(transitions.cancelConfirm?.isReagendacion)}
         onMotivoChange={transitions.setCancelMotivo}
         onSubmit={transitions.submitCancelConfirm}
