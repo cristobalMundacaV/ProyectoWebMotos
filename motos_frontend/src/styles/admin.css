@@ -3016,6 +3016,10 @@
 }
 
 .admin-mantencion-ficha-editing {
+  outline: none;
+}
+
+.admin-mantencion-ficha-detail:has(.admin-mantencion-ficha-editing) {
   outline: 2px solid #facc15;
   outline-offset: -2px;
 }

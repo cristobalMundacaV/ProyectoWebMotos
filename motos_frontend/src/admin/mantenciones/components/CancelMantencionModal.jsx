@@ -66,13 +66,6 @@ export default function CancelMantencionModal({
             </div>
           )}
 
-          {isReagendacion && (
-            <div className="admin-cancel-modal-alert">
-              <strong>Confirmacion</strong>
-              <p>¿Estas seguro que quieres que el cliente reagende su hora?</p>
-            </div>
-          )}
-
           {error && <p className="admin-cancel-modal-error">{error}</p>}
         </div>
 
