@@ -30,7 +30,8 @@ export default function FichaDetailPanel({ item, mode, transitions, savingById }
   const highlightEditing = controlledEditRecord && hasPendingChanges;
   const estadoActual = item.estado;
   const solicitudAceptada = item.estado === "aprobado";
-  const cancelActionLabel = solicitudAceptada ? "Anular mantenimiento" : "Anular hora";
+  const isSolicitudReagendacion = item.estado === "solicitud";
+  const cancelActionLabel = isSolicitudReagendacion ? "Reagendacion" : solicitudAceptada ? "Anular mantenimiento" : "Anular hora";
   const canCancelSolicitud = isSolicitud && (item.estado === "solicitud" || item.estado === "aprobado");
 
   return (
@@ -159,7 +160,7 @@ export default function FichaDetailPanel({ item, mode, transitions, savingById }
                 type="button"
                 className="admin-danger-action admin-mantencion-action-btn admin-mantencion-cancel-btn"
                 disabled={saving}
-                onClick={() => transitions.openCancelConfirm(item, cancelActionLabel)}
+                onClick={() => transitions.openCancelConfirm(item, cancelActionLabel, isSolicitudReagendacion)}
               >
                 {cancelActionLabel}
               </button>
@@ -267,7 +268,7 @@ export default function FichaDetailPanel({ item, mode, transitions, savingById }
                 type="button"
                 className="admin-danger-action admin-mantencion-action-btn admin-mantencion-cancel-btn"
                 disabled={saving}
-                onClick={() => transitions.openCancelConfirm(item, "Cancelar mantenimiento")}
+                onClick={() => transitions.openCancelConfirm(item, "Cancelar mantenimiento", false)}
               >
                 {"Cancelar mantenimiento"}
               </button>
@@ -304,7 +305,7 @@ export default function FichaDetailPanel({ item, mode, transitions, savingById }
                 type="button"
                 className="admin-danger-action admin-mantencion-action-btn admin-mantencion-cancel-btn"
                 disabled={saving}
-                onClick={() => transitions.openCancelConfirm(item, "Cancelar mantenimiento")}
+                onClick={() => transitions.openCancelConfirm(item, "Cancelar mantenimiento", false)}
               >
                 {"Cancelar mantenimiento"}
               </button>

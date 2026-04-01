@@ -1537,7 +1537,86 @@
   justify-content: space-between;
   align-items: center;
   gap: 44px;
-  margin-bottom: 26px;
+}
+
+.admin-cancel-modal-info {
+  display: grid;
+  gap: 10px;
+  margin-bottom: 16px;
+  padding: 14px;
+  border: 1px solid rgba(15, 118, 110, 0.12);
+  border-radius: 14px;
+  background: #f8fffd;
+}
+
+.admin-cancel-modal-info div {
+  display: grid;
+  gap: 4px;
+}
+
+.admin-cancel-modal-info strong {
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #475569;
+}
+
+.admin-cancel-modal-info span {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.admin-cancel-modal-form label {
+  display: grid;
+  gap: 8px;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.admin-cancel-modal-textarea {
+  min-height: 120px;
+  resize: vertical;
+  border: 1px solid rgba(15, 118, 110, 0.18);
+  border-radius: 12px;
+  padding: 12px 14px;
+  font: inherit;
+  color: #0f172a;
+  background: #ffffff;
+  outline: none;
+}
+
+.admin-cancel-modal-textarea:focus {
+  border-color: #0f766e;
+  box-shadow: 0 0 0 3px rgba(15, 118, 110, 0.12);
+}
+
+.admin-cancel-modal-error {
+  margin: 0;
+  color: #b42318;
+  font-weight: 600;
+}
+
+.admin-cancel-modal-alert {
+  display: grid;
+  gap: 6px;
+  padding: 14px;
+  border-radius: 14px;
+  background: #eff6ff;
+  border: 1px solid rgba(59, 130, 246, 0.18);
+  color: #1e3a8a;
+}
+
+.admin-cancel-modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 18px;
+}
+
+.admin-cancel-modal-footer .admin-modal-cancel-btn,
+.admin-cancel-modal-footer .admin-modal-action-btn {
+  min-width: 140px;
 }
 
 .admin-entity-modal:has(.admin-entity-modal-form-single) .admin-entity-modal-header {

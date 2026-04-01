@@ -1,20 +1,30 @@
-import ConfirmCancelModal from "./ConfirmCancelModal";
+import CancelMantencionModal from "./CancelMantencionModal";
 import ClienteDatosModal from "./ClienteDatosModal";
 import IngresoModal from "./IngresoModal";
 import EntregaModal from "./EntregaModal";
 
 export default function MantencionesModalHost({ activeSection, transitions, clienteDatosItem, onCloseClienteDatos }) {
-  const cancelTitle = activeSection === "mantenciones_solicitudes" ? "Confirmar anulacion" : "Confirmar cancelacion";
+  const cancelTitle = transitions.cancelConfirm?.isReagendacion
+    ? "Confirmar reagendacion"
+    : activeSection === "mantenciones_solicitudes"
+      ? "Confirmar anulacion"
+      : "Confirmar cancelacion";
 
   return (
     <>
-      <ConfirmCancelModal
+      <CancelMantencionModal
         isOpen={Boolean(transitions.cancelConfirm)}
         isSaving={transitions.isCancelConfirmSaving}
-        confirmation={transitions.cancelConfirm}
-        title={cancelTitle}
-        onClose={transitions.closeCancelConfirm}
-        onConfirm={transitions.submitCancelConfirm}
+        actionLabel={transitions.cancelConfirm?.actionLabel || cancelTitle}
+        moto={transitions.cancelConfirm?.moto || "-"}
+        fecha={transitions.cancelConfirm?.fecha || "-"}
+        hora={transitions.cancelConfirm?.hora || "-"}
+        motivo={transitions.cancelMotivo}
+        error={transitions.cancelError}
+        isReagendacion={Boolean(transitions.cancelConfirm?.isReagendacion)}
+        onMotivoChange={transitions.setCancelMotivo}
+        onSubmit={transitions.submitCancelConfirm}
+        onCancel={transitions.closeCancelConfirm}
       />
 
       <IngresoModal

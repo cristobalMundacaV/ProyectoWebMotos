@@ -212,6 +212,10 @@ def send_mantencion_approved_email(*, mantencion: Mantencion, recipient_email: s
 
 
 def send_mantencion_canceled_email(*, mantencion: Mantencion, recipient_email: str) -> None:
+    extra_rows = []
+    if mantencion.motivo_cancelacion:
+        extra_rows.append(("Motivo de cancelacion", mantencion.motivo_cancelacion))
+    
     _send_notification_email(
         mantencion=mantencion,
         recipient_email=recipient_email,
@@ -219,6 +223,7 @@ def send_mantencion_canceled_email(*, mantencion: Mantencion, recipient_email: s
         title="Solicitud anulada",
         intro="Tu solicitud de mantenimiento fue anulada.",
         outro="Si deseas una nueva hora, agenda nuevamente desde Agendar hora.",
+        extra_rows=extra_rows if extra_rows else None,
     )
 
 

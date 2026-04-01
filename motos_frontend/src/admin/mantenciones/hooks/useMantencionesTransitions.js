@@ -5,6 +5,8 @@ export default function useMantencionesTransitions({ savingById, onAcceptSolicit
   const [editsById, setEditsById] = useState({});
   const [editableFinalizadaById, setEditableFinalizadaById] = useState({});
   const [cancelConfirm, setCancelConfirm] = useState(null);
+  const [cancelMotivo, setCancelMotivo] = useState("");
+  const [cancelError, setCancelError] = useState("");
   const [ingresoConfirm, setIngresoConfirm] = useState(null);
   const [ingresoError, setIngresoError] = useState("");
   const [deliverConfirm, setDeliverConfirm] = useState(null);
@@ -108,31 +110,52 @@ export default function useMantencionesTransitions({ savingById, onAcceptSolicit
     setEditableFinalizadaById({});
   }, []);
 
-  const openCancelConfirm = useCallback((item, actionLabel = "Cancelar mantenimiento") => {
+  const openCancelConfirm = useCallback((item, actionLabel = "Cancelar mantenimiento", isReagendacion = false) => {
     const moto = item?.moto_cliente_detalle || {};
+    setCancelMotivo("");
+    setCancelError("");
     setCancelConfirm({
       id: item.id,
       actionLabel,
       moto: `${moto.marca || "-"} ${moto.modelo || "-"}`.trim(),
       fecha: formatDate(item.fecha_ingreso),
       hora: item.hora_ingreso ? String(item.hora_ingreso).slice(0, 5) : "-",
+      isReagendacion,
     });
   }, []);
 
   const closeCancelConfirm = useCallback(() => {
     setCancelConfirm(null);
+    setCancelMotivo("");
+    setCancelError("");
   }, []);
 
   const submitCancelConfirm = useCallback(async () => {
     if (!cancelConfirm) return;
     const targetId = cancelConfirm.id;
-    try {
-      await onUpdateMantencion(targetId, { estado: "cancelado" }, "cancel");
-      setCancelConfirm(null);
-    } catch {
-      // Keep modal open so operator can retry after backend errors.
+    
+    if (!cancelConfirm.isReagendacion && !cancelMotivo.trim()) {
+      setCancelError("Ingresa el motivo de cancelacion.");
+      return;
     }
-  }, [cancelConfirm, onUpdateMantencion]);
+
+    try {
+      const payload = {
+        estado: cancelConfirm.isReagendacion ? "reagendacion" : "cancelado",
+      };
+      
+      if (!cancelConfirm.isReagendacion) {
+        payload.motivo_cancelacion = cancelMotivo.trim();
+      }
+
+      await onUpdateMantencion(targetId, payload, cancelConfirm.isReagendacion ? "reagendacion" : "cancel");
+      setCancelConfirm(null);
+      setCancelMotivo("");
+      setCancelError("");
+    } catch (error) {
+      setCancelError(extractErrorMessage(error, "No se pudo confirmar. Intenta de nuevo."));
+    }
+  }, [cancelConfirm, cancelMotivo, onUpdateMantencion]);
 
   const approveSolicitud = useCallback((itemId) => onAcceptSolicitud(itemId, "approve"), [onAcceptSolicitud]);
 
@@ -268,6 +291,8 @@ export default function useMantencionesTransitions({ savingById, onAcceptSolicit
 
   const clearAllModalState = useCallback(() => {
     setCancelConfirm(null);
+    setCancelMotivo("");
+    setCancelError("");
     setIngresoConfirm(null);
     setIngresoError("");
     setDeliverConfirm(null);
@@ -279,6 +304,8 @@ export default function useMantencionesTransitions({ savingById, onAcceptSolicit
     function handleKeydown(event) {
       if (event.key === "Escape" && !isCancelConfirmSaving) {
         setCancelConfirm(null);
+        setCancelMotivo("");
+        setCancelError("");
       }
     }
     window.addEventListener("keydown", handleKeydown);
@@ -319,10 +346,13 @@ export default function useMantencionesTransitions({ savingById, onAcceptSolicit
       setEditableRecord,
       resetEditableRecords,
       cancelConfirm,
+      cancelMotivo,
+      cancelError,
       isCancelConfirmSaving,
       openCancelConfirm,
       closeCancelConfirm,
       submitCancelConfirm,
+      setCancelMotivo,
       ingresoConfirm,
       ingresoError,
       isIngresoConfirmSaving,
@@ -346,6 +376,8 @@ export default function useMantencionesTransitions({ savingById, onAcceptSolicit
       buildEditablePayload,
       canEditRecord,
       cancelConfirm,
+      cancelMotivo,
+      cancelError,
       closeCancelConfirm,
       closeEntregaConfirm,
       closeIngresoConfirm,
@@ -362,6 +394,7 @@ export default function useMantencionesTransitions({ savingById, onAcceptSolicit
       openEntregaConfirm,
       openIngresoConfirm,
       resetEditableRecords,
+      setCancelMotivo,
       setDraftField,
       setEditableRecord,
       setEntregaField,

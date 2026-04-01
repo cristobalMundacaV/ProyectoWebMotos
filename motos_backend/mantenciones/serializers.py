@@ -17,6 +17,7 @@ from .notifications import (
     send_mantencion_finalized_email,
     send_mantencion_ingreso_taller_email,
     send_mantencion_delivered_email,
+    send_mantencion_reagendacion_email,
 )
 
 
@@ -130,6 +131,7 @@ class MantencionSerializer(serializers.ModelSerializer):
             "estado",
             "fecha_entrega",
             "observaciones",
+            "motivo_cancelacion",
             "created_at",
             "updated_at",
         )
@@ -199,6 +201,8 @@ class MantencionSerializer(serializers.ModelSerializer):
                                 send_mantencion_ingreso_taller_email(mantencion=locked, recipient_email=recipient_email)
                             elif locked.estado == Mantencion.ESTADO_CANCELADO:
                                 send_mantencion_canceled_email(mantencion=locked, recipient_email=recipient_email)
+                            elif locked.estado == Mantencion.ESTADO_REAGENDACION:
+                                send_mantencion_reagendacion_email(mantencion=locked, recipient_email=recipient_email)
                             elif locked.estado == Mantencion.ESTADO_FINALIZADO:
                                 send_mantencion_finalized_email(mantencion=locked, recipient_email=recipient_email)
                             elif locked.estado == Mantencion.ESTADO_ENTREGADA:
