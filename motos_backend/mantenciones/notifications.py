@@ -229,6 +229,17 @@ def send_mantencion_finalized_email(*, mantencion: Mantencion, recipient_email: 
     )
 
 
+def send_mantencion_ingreso_taller_email(*, mantencion: Mantencion, recipient_email: str) -> None:
+    _send_notification_email(
+        mantencion=mantencion,
+        recipient_email=recipient_email,
+        subject=f"Moto ingresada al taller | {settings.COMPANY_NAME}",
+        title="Moto ingresada al taller",
+        intro="Tu moto ya fue recepcionada y el mantenimiento se encuentra en proceso.",
+        outro="Te avisaremos cuando este lista para retiro.",
+    )
+
+
 def send_mantencion_reagendacion_email(*, mantencion: Mantencion, recipient_email: str) -> None:
     _send_notification_email(
         mantencion=mantencion,

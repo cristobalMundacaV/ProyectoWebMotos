@@ -15,6 +15,7 @@ from .notifications import (
     send_mantencion_canceled_email,
     send_mantencion_confirmation_email,
     send_mantencion_finalized_email,
+    send_mantencion_ingreso_taller_email,
 )
 
 
@@ -189,6 +190,8 @@ class MantencionSerializer(serializers.ModelSerializer):
                         try:
                             if locked.estado == Mantencion.ESTADO_APROBADO:
                                 send_mantencion_approved_email(mantencion=locked, recipient_email=recipient_email)
+                            elif locked.estado == Mantencion.ESTADO_EN_PROCESO:
+                                send_mantencion_ingreso_taller_email(mantencion=locked, recipient_email=recipient_email)
                             elif locked.estado == Mantencion.ESTADO_CANCELADO:
                                 send_mantencion_canceled_email(mantencion=locked, recipient_email=recipient_email)
                             elif locked.estado == Mantencion.ESTADO_FINALIZADO:
