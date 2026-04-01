@@ -268,10 +268,11 @@ def admin_manage_user(request, user_id: int):
 			)
 		try:
 			with transaction.atomic():
+				PerfilUsuario.objects.filter(user=target_user).delete()
 				target_user.delete()
 		except (ProtectedError, RestrictedError):
 			return Response(
-				{"detail": "Cannot delete this item because it has related records."},
+				{"detail": "No se puede eliminar el usuario porque tiene registros asociados."},
 				status=status.HTTP_409_CONFLICT,
 			)
 		return Response(status=status.HTTP_204_NO_CONTENT)

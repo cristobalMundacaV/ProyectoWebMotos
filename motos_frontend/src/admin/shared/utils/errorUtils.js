@@ -13,7 +13,7 @@ export function translateBackendMessage(message) {
     normalized.includes("tiene productos asociados") ||
     normalized.includes("tiene motos asociadas")
   ) {
-    return "No se puede eliminar porque tiene productos asociados.";
+    return "No se puede eliminar porque tiene registros asociados.";
   }
   if (normalized.includes("slug")) return "El slug ya existe. Cambia el nombre para generar uno diferente.";
   if (normalized.includes("not found")) return "No se encontro el recurso solicitado.";
