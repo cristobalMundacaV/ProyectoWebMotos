@@ -301,6 +301,14 @@ export default function MantencionesPage({
     [selectedHistoricoCliente]
   );
 
+  useEffect(() => {
+    if (!selectedHistoricoCliente) return;
+    const stillExists = historicoClientes.some((item) => item.value === selectedHistoricoCliente);
+    if (!stillExists) {
+      setSelectedHistoricoCliente("");
+    }
+  }, [historicoClientes, selectedHistoricoCliente, setSelectedHistoricoCliente]);
+
   const fichasHistoricasByCliente = useMemo(() => {
     if (!selectedHistoricoClienteEffective) return [];
     return fichasHistoricas.filter((item) => {
@@ -336,6 +344,14 @@ export default function MantencionesPage({
     const byId = fichasHistoricasByCliente.find((item) => item.id === selectedHistoricaId);
     return byId || fichasHistoricasByCliente[0] || null;
   }, [fichasHistoricasByCliente, selectedHistoricaId]);
+
+  useEffect(() => {
+    if (!selectedHistoricaId) return;
+    const existsInFilteredList = fichasHistoricasByCliente.some((item) => item.id === selectedHistoricaId);
+    if (!existsInFilteredList) {
+      setSelectedHistoricaId(null);
+    }
+  }, [fichasHistoricasByCliente, selectedHistoricaId, setSelectedHistoricaId]);
 
   if (activeSection === "mantenciones_solicitudes") {
     return (

@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { fetchAdminBootstrapData } from "../../dashboard/services/dashboardService";
 
 export default function useAdminBootstrap({
@@ -21,7 +21,6 @@ export default function useAdminBootstrap({
   setHorariosMantencionLoading,
 }) {
   const [loading, setLoading] = useState(true);
-  const contactoErrorNotifiedRef = useRef(false);
 
   useEffect(() => {
     let isMounted = true;
@@ -58,14 +57,6 @@ export default function useAdminBootstrap({
         });
 
         bootstrapContacto(data.contactoAdmin || {}, { loadError: data.contactoAdminLoadError });
-        if (data.contactoAdminLoadError) {
-          if (!contactoErrorNotifiedRef.current) {
-            pushToast("No se pudieron cargar los datos actuales de contacto.", "error");
-            contactoErrorNotifiedRef.current = true;
-          }
-        } else {
-          contactoErrorNotifiedRef.current = false;
-        }
 
         await fetchUsersList().catch((error) => {
           if (!isMounted) return;
@@ -100,7 +91,6 @@ export default function useAdminBootstrap({
     bootstrapContacto,
     bootstrapMotoData,
     bootstrapProductosData,
-    pushToast,
     fetchHorariosMantencionList,
     fetchMantencionesList,
     fetchUsersList,

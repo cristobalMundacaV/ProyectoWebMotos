@@ -47,12 +47,10 @@ export default function useMantencionesViewState() {
 
   const handleHistoricoEstadoFilterChange = useCallback((value) => {
     setHistoricoEstadoFilter(value);
-    setSelectedHistoricaId(null);
   }, []);
 
   const handleHistoricoFechaFilterChange = useCallback((value) => {
     setHistoricoFechaFilter(value);
-    setSelectedHistoricaId(null);
   }, []);
 
   const handleToggleMobilePicker = useCallback((pickerKey) => {

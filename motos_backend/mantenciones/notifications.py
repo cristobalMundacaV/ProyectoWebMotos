@@ -221,8 +221,8 @@ def send_mantencion_canceled_email(*, mantencion: Mantencion, recipient_email: s
         recipient_email=recipient_email,
         subject=f"Solicitud anulada | {settings.COMPANY_NAME}",
         title="Solicitud anulada",
-        intro="Tu solicitud de mantenimiento fue anulada.",
-        outro="Si deseas una nueva hora, agenda nuevamente desde Agendar hora.",
+        intro="Tu solicitud de mantenimiento fue anulada por nuestro equipo.",
+        outro="Lamentamos las molestias ocasionadas. Si deseas una nueva hora, puedes reagendar desde Agendar hora.",
         extra_rows=extra_rows if extra_rows else None,
     )
 
