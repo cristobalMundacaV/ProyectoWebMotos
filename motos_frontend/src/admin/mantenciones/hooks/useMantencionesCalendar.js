@@ -210,7 +210,8 @@ export default function useMantencionesCalendar({ activeSection, horarios }) {
       if (intervalId) window.clearInterval(intervalId);
       document.removeEventListener("visibilitychange", onVisibilityChange);
     };
-  }, [activeSection, calendarMonth, refreshCalendarAvailability]);
+  }, [activeSection, calendarMonth]);
+
 
   useEffect(() => {
     if (!dayBlockConfirm) return undefined;
