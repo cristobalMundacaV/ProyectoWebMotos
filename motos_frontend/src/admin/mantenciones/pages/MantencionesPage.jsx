@@ -51,9 +51,6 @@ export default function MantencionesPage({
     if (moto.cliente !== null && moto.cliente !== undefined && moto.cliente !== "") {
       return `cliente:${String(moto.cliente)}`;
     }
-    if (moto.id !== null && moto.id !== undefined && moto.id !== "") {
-      return `vehiculo:${String(moto.id)}`;
-    }
     if (moto.cliente_email) {
       return `email:${normalizeTextKey(moto.cliente_email)}`;
     }
