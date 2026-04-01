@@ -233,6 +233,9 @@ export default function useMantencionesTransitions({ savingById, onAcceptSolicit
 
     const retiroNote = `Entrega a ${nombreRetira} (RUT: ${rutRetira}). Valor cobrado: ${formatIntegerCL(valor)}.`;
     const observaciones = [deliverConfirm.observacionesBase, retiroNote].filter(Boolean).join(" | ");
+    
+    const hoy = new Date();
+    const fechaEntrega = `${hoy.getFullYear()}-${String(hoy.getMonth() + 1).padStart(2, "0")}-${String(hoy.getDate()).padStart(2, "0")}`;
 
     try {
       await onUpdateMantencion(
@@ -241,6 +244,7 @@ export default function useMantencionesTransitions({ savingById, onAcceptSolicit
           estado: "entregada",
           costo_total: valor,
           observaciones,
+          fecha_entrega: fechaEntrega,
         },
         "deliver"
       );
