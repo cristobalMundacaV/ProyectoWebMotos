@@ -69,7 +69,7 @@ export default function useMantencionesCalendar({ activeSection, horarios }) {
     () => calendarMonth.toLocaleDateString("es-CL", { month: "long", year: "numeric" }),
     [calendarMonth]
   );
-  const canGoPrevMonth = false;
+  const canGoPrevMonth = true;
   const canGoNextMonth = true;
 
   const calendarCells = useMemo(() => {
@@ -376,7 +376,7 @@ export default function useMantencionesCalendar({ activeSection, horarios }) {
   );
 
   const goToPrevMonth = useCallback(() => {
-    // Navegacion al mes anterior deshabilitada por regla de negocio.
+    setCalendarMonth((prev) => addMonths(prev, -1));
   }, []);
 
   const goToNextMonth = useCallback(() => {
