@@ -50,13 +50,17 @@ export default function EntregaModal({
 
         <label className="admin-confirm-modal-field">
           Valor cobrado
-          <input
-            type="text"
-            inputMode="numeric"
-            value={formatIntegerCL(confirmation.valorCobrado)}
-            disabled={isSaving}
-            onChange={(event) => onFieldChange("valorCobrado", event.target.value)}
-          />
+          <div className="admin-currency-input-wrapper">
+            <span className="admin-currency-symbol">$</span>
+            <input
+              type="text"
+              inputMode="numeric"
+              value={formatIntegerCL(confirmation.valorCobrado)}
+              disabled={isSaving}
+              onChange={(event) => onFieldChange("valorCobrado", event.target.value)}
+              placeholder="0"
+            />
+          </div>
         </label>
 
         {error ? <p className="admin-confirm-modal-error">{error}</p> : null}
