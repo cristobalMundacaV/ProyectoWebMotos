@@ -13,6 +13,10 @@ export default function HistoricasPanel({
   mobilePickerOpen,
   onToggleMobilePicker,
   onCloseMobilePicker,
+  historicoEstadoFilter,
+  onHistoricoEstadoFilterChange,
+  historicoFechaFilter,
+  onHistoricoFechaFilterChange,
   transitions,
   savingById,
 }) {
@@ -39,6 +43,34 @@ export default function HistoricasPanel({
                     {cliente.label}
                   </option>
                 ))}
+              </select>
+            </label>
+            <label className="admin-mantencion-historico-filter">
+              Filtrar por estado
+              <select
+                value={historicoEstadoFilter}
+                onChange={(event) => onHistoricoEstadoFilterChange(event.target.value)}
+              >
+                <option value="">Todos los estados</option>
+                <option value="en_proceso">En proceso</option>
+                <option value="en_espera">En espera</option>
+                <option value="finalizado">Finalizado</option>
+                <option value="cancelado">Cancelado</option>
+                <option value="reagendacion">Reagendacion</option>
+                <option value="entregada">Entregada</option>
+              </select>
+            </label>
+            <label className="admin-mantencion-historico-filter">
+              Filtrar por fecha
+              <select
+                value={historicoFechaFilter}
+                onChange={(event) => onHistoricoFechaFilterChange(event.target.value)}
+              >
+                <option value="todos">Todos</option>
+                <option value="hoy">Hoy</option>
+                <option value="semana">Hace una semana</option>
+                <option value="mes">Hace un mes</option>
+                <option value="año">Hace un año</option>
               </select>
             </label>
           </div>

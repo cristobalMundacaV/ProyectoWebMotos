@@ -3022,6 +3022,36 @@
   font-size: 1.28rem;
 }
 
+.admin-mantencion-ficha-head-status {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 8px;
+}
+
+.admin-mantencion-monto-entregada {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 3px;
+  padding-top: 6px;
+  border-top: 1px solid #e5e7eb;
+}
+
+.admin-monto-label {
+  font-size: 0.75rem;
+  color: #666;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.admin-monto-value {
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: #059669;
+}
+
 .admin-mantencion-ficha-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));

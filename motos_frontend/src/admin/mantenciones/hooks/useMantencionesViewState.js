@@ -12,6 +12,8 @@ export default function useMantencionesViewState() {
   const [tallerEstadoFilter, setTallerEstadoFilter] = useState("en_proceso");
   const [selectedHistoricaId, setSelectedHistoricaId] = useState(null);
   const [selectedHistoricoCliente, setSelectedHistoricoCliente] = useState("");
+  const [historicoEstadoFilter, setHistoricoEstadoFilter] = useState("");
+  const [historicoFechaFilter, setHistoricoFechaFilter] = useState("todos");
   const [solicitudesTab, setSolicitudesTab] = useState("por_aprobar");
   const [mobilePickerOpen, setMobilePickerOpen] = useState(INITIAL_MOBILE_PICKER_STATE);
   const [showHorarioForm, setShowHorarioForm] = useState(false);
@@ -43,6 +45,24 @@ export default function useMantencionesViewState() {
     }));
   }, []);
 
+  const handleHistoricoEstadoFilterChange = useCallback((value) => {
+    setHistoricoEstadoFilter(value);
+    setSelectedHistoricaId(null);
+    setMobilePickerOpen((prev) => ({
+      ...prev,
+      historicas: false,
+    }));
+  }, []);
+
+  const handleHistoricoFechaFilterChange = useCallback((value) => {
+    setHistoricoFechaFilter(value);
+    setSelectedHistoricaId(null);
+    setMobilePickerOpen((prev) => ({
+      ...prev,
+      historicas: false,
+    }));
+  }, []);
+
   const handleToggleMobilePicker = useCallback((pickerKey) => {
     setMobilePickerOpen((prev) => ({
       ...prev,
@@ -63,6 +83,8 @@ export default function useMantencionesViewState() {
     tallerEstadoFilter,
     selectedHistoricaId,
     selectedHistoricoCliente,
+    historicoEstadoFilter,
+    historicoFechaFilter,
     solicitudesTab,
     mobilePickerOpen,
     showHorarioForm,
@@ -71,11 +93,15 @@ export default function useMantencionesViewState() {
     setTallerEstadoFilter,
     setSelectedHistoricaId,
     setSelectedHistoricoCliente,
+    setHistoricoEstadoFilter,
+    setHistoricoFechaFilter,
     setShowHorarioForm,
     setMobilePickerOpen,
     handleSolicitudesTabChange,
     handleTallerEstadoFilterChange,
     handleHistoricoClienteChange,
+    handleHistoricoEstadoFilterChange,
+    handleHistoricoFechaFilterChange,
     handleToggleMobilePicker,
     handleCloseMobilePicker,
   };

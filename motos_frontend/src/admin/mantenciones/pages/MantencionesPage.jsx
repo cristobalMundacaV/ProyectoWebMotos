@@ -45,6 +45,24 @@ export default function MantencionesPage({
       .replace(/[\u0300-\u036f]/g, "")
       .replace(/\s+/g, " ");
 
+  const getDateRange = (filterType) => {
+    const now = new Date();
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    
+    switch (filterType) {
+      case "hoy":
+        return { start: today, end: new Date(today.getTime() + 24 * 60 * 60 * 1000 - 1) };
+      case "semana":
+        return { start: new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000), end: new Date(today.getTime() + 24 * 60 * 60 * 1000 - 1) };
+      case "mes":
+        return { start: new Date(today.getTime() - 30 * 24 * 60 * 60 * 1000), end: new Date(today.getTime() + 24 * 60 * 60 * 1000 - 1) };
+      case "año":
+        return { start: new Date(today.getTime() - 365 * 24 * 60 * 60 * 1000), end: new Date(today.getTime() + 24 * 60 * 60 * 1000 - 1) };
+      default:
+        return null;
+    }
+  };
+
   const fichasHistoricas = useMemo(
     () =>
       mantenciones
@@ -76,6 +94,8 @@ export default function MantencionesPage({
     tallerEstadoFilter,
     selectedHistoricaId,
     selectedHistoricoCliente,
+    historicoEstadoFilter,
+    historicoFechaFilter,
     solicitudesTab,
     mobilePickerOpen,
     showHorarioForm,
@@ -87,6 +107,8 @@ export default function MantencionesPage({
     handleSolicitudesTabChange,
     handleTallerEstadoFilterChange,
     handleHistoricoClienteChange,
+    handleHistoricoEstadoFilterChange,
+    handleHistoricoFechaFilterChange,
     handleToggleMobilePicker,
     handleCloseMobilePicker,
   } = useMantencionesViewState();
@@ -259,9 +281,22 @@ export default function MantencionesPage({
     if (!selectedHistoricoClienteEffective) return [];
     return fichasHistoricas.filter((item) => {
       const clienteLabel = (item?.moto_cliente_detalle?.cliente_nombre || "").trim() || "Cliente sin nombre";
-      return buildClienteKey(clienteLabel) === selectedHistoricoClienteEffective;
+      if (buildClienteKey(clienteLabel) !== selectedHistoricoClienteEffective) return false;
+
+      if (historicoEstadoFilter && item.estado !== historicoEstadoFilter) return false;
+
+      if (historicoFechaFilter !== "todos") {
+        const dateRange = getDateRange(historicoFechaFilter);
+        if (dateRange) {
+          const itemDate = new Date(item.fecha_ingreso);
+          itemDate.setHours(0, 0, 0, 0);
+          if (itemDate < dateRange.start || itemDate > dateRange.end) return false;
+        }
+      }
+
+      return true;
     });
-  }, [fichasHistoricas, selectedHistoricoClienteEffective]);
+  }, [fichasHistoricas, selectedHistoricoClienteEffective, historicoEstadoFilter, historicoFechaFilter]);
 
   const selectedSolicitud = useMemo(() => {
     const byId = solicitudes.find((item) => item.id === selectedSolicitudId);
@@ -351,6 +386,10 @@ export default function MantencionesPage({
           mobilePickerOpen={mobilePickerOpen}
           onToggleMobilePicker={handleToggleMobilePicker}
           onCloseMobilePicker={handleCloseMobilePicker}
+          historicoEstadoFilter={historicoEstadoFilter}
+          onHistoricoEstadoFilterChange={handleHistoricoEstadoFilterChange}
+          historicoFechaFilter={historicoFechaFilter}
+          onHistoricoFechaFilterChange={handleHistoricoFechaFilterChange}
           transitions={transitions}
           savingById={savingById}
         />

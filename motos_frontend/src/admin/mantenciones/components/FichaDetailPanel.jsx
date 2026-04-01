@@ -37,7 +37,15 @@ export default function FichaDetailPanel({ item, mode, transitions, savingById }
     <div className={highlightEditing ? "admin-mantencion-ficha-editing" : ""}>
       <div className="admin-mantencion-ficha-head">
         <h3>{`${moto.marca || "-"} ${moto.modelo || "-"}`}</h3>
-        <span className={`admin-status-pill ${getStatusPillClass(item.estado)}`}>{statusLabel(item.estado)}</span>
+        <div className="admin-mantencion-ficha-head-status">
+          <span className={`admin-status-pill ${getStatusPillClass(item.estado)}`}>{statusLabel(item.estado)}</span>
+          {item.estado === "entregada" && item.costo_total ? (
+            <div className="admin-mantencion-monto-entregada">
+              <span className="admin-monto-label">Valor cobrado</span>
+              <span className="admin-monto-value">${formatIntegerCL(item.costo_total)}</span>
+            </div>
+          ) : null}
+        </div>
       </div>
 
       {isSolicitud ? (
