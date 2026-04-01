@@ -6,7 +6,11 @@ from django.db.models import Q
 from django.utils import timezone
 
 from .models import Mantencion, MantencionEstadoHistorial
-from .notifications import get_recipient_email, send_mantencion_reagendacion_email
+from .notifications import (
+    get_recipient_email,
+    send_mantencion_no_asistencia_email,
+    send_mantencion_reagendacion_email,
+)
 
 
 logger = logging.getLogger(__name__)
@@ -45,6 +49,11 @@ def mark_expired_unaccepted_requests() -> int:
             .filter(no_show_filter)
             .only("id", "estado")
         )
+        expired_no_show_ids = [row.id for row in expired_no_show]
+        expired_no_show_for_email = list(
+            Mantencion.objects.select_related("moto_cliente", "moto_cliente__cliente")
+            .filter(id__in=expired_no_show_ids)
+        )
         if not expired_unaccepted and not expired_no_show:
             return 0
 
@@ -55,7 +64,7 @@ def mark_expired_unaccepted_requests() -> int:
                 updated_at=now_utc,
             )
         if expired_no_show:
-            Mantencion.objects.filter(id__in=[row.id for row in expired_no_show]).update(
+            Mantencion.objects.filter(id__in=expired_no_show_ids).update(
                 estado=Mantencion.ESTADO_INASISTENCIA,
                 updated_at=now_utc,
             )
@@ -78,6 +87,25 @@ def mark_expired_unaccepted_requests() -> int:
                         )
 
             transaction.on_commit(_send_expired_reagendacion_notifications)
+
+        if expired_no_show_for_email:
+            def _send_no_show_notifications():
+                for mantencion in expired_no_show_for_email:
+                    recipient_email = get_recipient_email(mantencion)
+                    if not recipient_email:
+                        continue
+                    try:
+                        send_mantencion_no_asistencia_email(
+                            mantencion=mantencion,
+                            recipient_email=recipient_email,
+                        )
+                    except Exception:
+                        logger.exception(
+                            "Error enviando correo de inasistencia para mantencion_id=%s",
+                            mantencion.id,
+                        )
+
+            transaction.on_commit(_send_no_show_notifications)
 
         MantencionEstadoHistorial.objects.bulk_create(
             [

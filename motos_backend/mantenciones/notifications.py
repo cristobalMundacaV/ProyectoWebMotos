@@ -265,6 +265,17 @@ def send_mantencion_reagendacion_email(*, mantencion: Mantencion, recipient_emai
     )
 
 
+def send_mantencion_no_asistencia_email(*, mantencion: Mantencion, recipient_email: str) -> None:
+    _send_notification_email(
+        mantencion=mantencion,
+        recipient_email=recipient_email,
+        subject=f"Registro de inasistencia | {settings.COMPANY_NAME}",
+        title="No registramos tu asistencia",
+        intro="No registramos tu asistencia a la hora de mantencion programada.",
+        outro="Si deseas una nueva hora, puedes reagendar cuando te acomode desde Agendar hora.",
+    )
+
+
 def send_mantencion_reminder_email(*, mantencion: Mantencion, recipient_email: str) -> None:
     tomorrow = timezone.localdate() + timedelta(days=1)
     intro = "Este es un recordatorio de tu mantenimiento programado para manana."
