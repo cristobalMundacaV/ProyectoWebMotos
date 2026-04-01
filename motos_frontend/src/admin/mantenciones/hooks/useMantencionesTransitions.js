@@ -203,8 +203,6 @@ export default function useMantencionesTransitions({ savingById, onAcceptSolicit
       normalized = sanitizeRutInput(value);
     } else if (field === "valorCobrado") {
       normalized = sanitizeIntegerInput(value);
-    } else if (field === "nombreRetira") {
-      normalized = normalizeCapitalizedWords(value);
     }
     setDeliverConfirm((prev) => (prev ? { ...prev, [field]: normalized } : prev));
   }, []);
@@ -213,7 +211,7 @@ export default function useMantencionesTransitions({ savingById, onAcceptSolicit
     if (!deliverConfirm) return;
     const targetId = deliverConfirm.id;
     const rutRetira = String(deliverConfirm.rutRetira || "").trim();
-    const nombreRetira = String(deliverConfirm.nombreRetira || "").trim();
+    const nombreRetira = normalizeCapitalizedWords(String(deliverConfirm.nombreRetira || "").trim());
     const valor = Number.parseInt(String(deliverConfirm.valorCobrado || "").trim(), 10);
 
     if (!rutRetira) {
