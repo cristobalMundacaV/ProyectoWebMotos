@@ -14,26 +14,26 @@ export default function CancelMantencionModal({
 }) {
   if (!isOpen) return null;
 
-  const modalTitle = isReagendacion ? "Reagendacion" : actionLabel;
+  const modalTitle = isReagendacion ? "Reagendacion" : "Confirmar cancelacion";
   const confirmLabel = isReagendacion ? "Reagendar" : actionLabel;
 
   return (
-    <div className="admin-modal-overlay" onClick={onCancel}>
-      <div className="admin-modal-content" onClick={(e) => e.stopPropagation()}>
-        <div className="admin-modal-header">
-          <h2 className="admin-modal-title">{modalTitle}</h2>
-          <button
-            type="button"
-            className="admin-modal-close"
-            disabled={isSaving}
-            onClick={onCancel}
-            aria-label="Cerrar"
-          >
-            ✕
-          </button>
-        </div>
+    <div
+      className="admin-confirm-modal-overlay"
+      onClick={() => {
+        if (!isSaving) onCancel();
+      }}
+    >
+      <section className="admin-confirm-modal" onClick={(event) => event.stopPropagation()}>
+        <img src="/images/informacion.png" alt="Informacion" className="admin-confirm-modal-image" />
+        <h3>{modalTitle}</h3>
+        <p className="admin-confirm-modal-text">
+          {isReagendacion
+            ? "¿Estas seguro que quieres que el cliente reagende su hora?"
+            : `Vas a cancelar el mantenimiento de ${moto} del ${fecha} a las ${hora}.`}
+        </p>
 
-        <div className="admin-modal-body">
+        <div>
           <div className="admin-cancel-modal-info">
             <div>
               <strong>Moto:</strong>
@@ -79,7 +79,7 @@ export default function CancelMantencionModal({
         <div className="admin-cancel-modal-footer">
           <button
             type="button"
-            className="admin-modal-cancel-btn"
+            className="btn-back"
             disabled={isSaving}
             onClick={onCancel}
           >
@@ -87,14 +87,14 @@ export default function CancelMantencionModal({
           </button>
           <button
             type="button"
-            className="admin-modal-action-btn admin-primary-action"
+            className={isReagendacion ? "btn-confirm" : "btn-delete"}
             disabled={isSaving}
             onClick={onSubmit}
           >
             {isSaving ? "Procesando..." : confirmLabel}
           </button>
         </div>
-      </div>
+      </section>
     </div>
   );
 }
