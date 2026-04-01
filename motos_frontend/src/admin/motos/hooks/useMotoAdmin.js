@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import {
   createCategoriaMoto,
   createMarca,
@@ -544,12 +544,12 @@ export default function useMotoAdmin({
     return match ? String(match.id) : "";
   }
 
-  function bootstrapMotoData({ metaMotos, marcasMotosList, modelosMotoList, categoriasMotoList }) {
+  const bootstrapMotoData = useCallback(({ metaMotos, marcasMotosList, modelosMotoList, categoriasMotoList }) => {
     setMotoMeta(metaMotos || { marcas: [], categorias: [], modelos: [] });
     setMarcasMotosAdmin(marcasMotosList || []);
     setModelosMotosAdmin(modelosMotoList || []);
     setCategoriasMoto(categoriasMotoList || []);
-  }
+  }, []);
 
   return {
     motoMeta,

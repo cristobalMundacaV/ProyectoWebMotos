@@ -319,10 +319,13 @@ export default function AdminSidebar({
     () => getGroupLabelBySection(activeSection, visibleNavigation),
     [activeSection, visibleNavigation]
   );
-  const [expandedGroup, setExpandedGroup] = useState(activeGroupLabel || groups[0]?.label || "");
+  const [expandedGroup, setExpandedGroup] = useState(activeGroupLabel || "");
 
   useEffect(() => {
-    if (!activeGroupLabel) return;
+    if (!activeGroupLabel) {
+      setExpandedGroup("");
+      return;
+    }
     setExpandedGroup(activeGroupLabel);
   }, [activeGroupLabel]);
 

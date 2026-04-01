@@ -95,14 +95,11 @@ export default function useAdminBootstrap({
     fetchMantencionesList,
     fetchUsersList,
     setAdminUsersLoadError,
-    setAdminUsers,
     setAdminUsersLoading,
     setHorariosLoadError,
     setDashboard,
-    setHorariosMantencion,
     setHorariosMantencionLoading,
     setMantencionesLoadError,
-    setMantenciones,
     setMantencionesLoading,
   ]);
 

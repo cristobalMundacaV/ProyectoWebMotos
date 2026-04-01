@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import {
   createAccesorioMoto,
   createAccesorioRider,
@@ -74,7 +74,7 @@ export default function useProductosAdmin({
   const [productoDeleteModal, setProductoDeleteModal] = useState(null);
   const [productoDeleteSaving, setProductoDeleteSaving] = useState(false);
 
-  function bootstrapProductosData({
+  const bootstrapProductosData = useCallback(({
     marcasAccMotosList = [],
     marcasAccRiderList = [],
     categoriasAccMotosData,
@@ -92,7 +92,7 @@ export default function useProductosAdmin({
     setAccesoriosMotosMeta(accesoriosMotosMetaData);
     setAccesoriosRiderAdmin(accesoriosRiderList);
     setAccesoriosRiderMeta(accesoriosRiderMetaData);
-  }
+  }, []);
 
   function handleCategoriaAccMotosInputChange(event) {
     clearInvalidFieldStyle(event.target);
