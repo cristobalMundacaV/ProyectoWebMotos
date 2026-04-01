@@ -24,10 +24,10 @@ export default function FichaDetailPanel({ item, mode, transitions, savingById }
   const isFinalizadaRecord = mode === "fichas" && item.estado === "finalizado";
   const isEnProcesoRecord = mode === "fichas" && item.estado === "en_proceso";
   const isEnEsperaRecord = mode === "fichas" && item.estado === "en_espera";
-  const canEditFinalizada = transitions.canEditRecord(item.id);
   const controlledEditRecord = isFinalizadaRecord || isEnProcesoRecord || isEnEsperaRecord;
-  const readOnly = !isEditable || (controlledEditRecord && !canEditFinalizada);
-  const highlightEditing = controlledEditRecord && canEditFinalizada;
+  const hasPendingChanges = controlledEditRecord && transitions.hasPendingChanges(item);
+  const readOnly = !isEditable;
+  const highlightEditing = controlledEditRecord && hasPendingChanges;
   const estadoActual = item.estado;
   const solicitudAceptada = item.estado === "aprobado";
   const cancelActionLabel = solicitudAceptada ? "Anular mantenimiento" : "Anular hora";
@@ -224,21 +224,16 @@ export default function FichaDetailPanel({ item, mode, transitions, savingById }
         <div className="admin-mantencion-ficha-actions admin-mantencion-ficha-actions-bottom">
           {isFinalizadaRecord ? (
             <>
-              <button
-                type="button"
-                className="admin-ficha-outline-action admin-mantencion-action-btn"
-                disabled={saving}
-                onClick={() => {
-                  if (canEditFinalizada) {
-                    transitions.updateItemEstado({ item, estado: estadoActual, action: "save" });
-                    transitions.setEditableRecord(item.id, false);
-                    return;
-                  }
-                  transitions.setEditableRecord(item.id, true);
-                }}
-              >
-                {canEditFinalizada ? "Guardar cambios" : "Modificar datos"}
-              </button>
+              {hasPendingChanges && (
+                <button
+                  type="button"
+                  className="admin-ficha-outline-action admin-mantencion-action-btn"
+                  disabled={saving}
+                  onClick={() => transitions.updateItemEstado({ item, estado: estadoActual, action: "save" })}
+                >
+                  {"Guardar cambios"}
+                </button>
+              )}
               <button
                 type="button"
                 className="admin-primary-action admin-mantencion-action-btn admin-mantencion-accept-btn"
@@ -250,21 +245,16 @@ export default function FichaDetailPanel({ item, mode, transitions, savingById }
             </>
           ) : isEnProcesoRecord ? (
             <>
-              <button
-                type="button"
-                className="admin-ficha-outline-action admin-mantencion-action-btn"
-                disabled={saving}
-                onClick={() => {
-                  if (canEditFinalizada) {
-                    transitions.updateItemEstado({ item, estado: "en_proceso", action: "save" });
-                    transitions.setEditableRecord(item.id, false);
-                    return;
-                  }
-                  transitions.setEditableRecord(item.id, true);
-                }}
-              >
-                {canEditFinalizada ? "Guardar cambios" : "Modificar datos"}
-              </button>
+              {hasPendingChanges && (
+                <button
+                  type="button"
+                  className="admin-ficha-outline-action admin-mantencion-action-btn"
+                  disabled={saving}
+                  onClick={() => transitions.updateItemEstado({ item, estado: "en_proceso", action: "save" })}
+                >
+                  {"Guardar cambios"}
+                </button>
+              )}
               <button
                 type="button"
                 className="admin-danger-action admin-mantencion-action-btn admin-mantencion-cancel-btn"
@@ -292,21 +282,16 @@ export default function FichaDetailPanel({ item, mode, transitions, savingById }
             </>
           ) : isEnEsperaRecord ? (
             <>
-              <button
-                type="button"
-                className="admin-ficha-outline-action admin-mantencion-action-btn"
-                disabled={saving}
-                onClick={() => {
-                  if (canEditFinalizada) {
-                    transitions.updateItemEstado({ item, estado: "en_espera", action: "save" });
-                    transitions.setEditableRecord(item.id, false);
-                    return;
-                  }
-                  transitions.setEditableRecord(item.id, true);
-                }}
-              >
-                {canEditFinalizada ? "Guardar cambios" : "Modificar datos"}
-              </button>
+              {hasPendingChanges && (
+                <button
+                  type="button"
+                  className="admin-ficha-outline-action admin-mantencion-action-btn"
+                  disabled={saving}
+                  onClick={() => transitions.updateItemEstado({ item, estado: "en_espera", action: "save" })}
+                >
+                  {"Guardar cambios"}
+                </button>
+              )}
               <button
                 type="button"
                 className="admin-danger-action admin-mantencion-action-btn admin-mantencion-cancel-btn"

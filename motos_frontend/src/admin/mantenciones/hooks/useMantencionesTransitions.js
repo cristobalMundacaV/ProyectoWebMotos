@@ -59,6 +59,42 @@ export default function useMantencionesTransitions({ savingById, onAcceptSolicit
     return payload;
   }, [editsById, getDraft]);
 
+  const hasPendingChanges = useCallback(
+    (item) => {
+      const draft = getDraft(item);
+
+      const currentKilometraje =
+        draft.kilometraje_ingreso === "" || draft.kilometraje_ingreso === null
+          ? null
+          : Number.parseInt(String(draft.kilometraje_ingreso), 10);
+      const baseKilometraje =
+        item.kilometraje_ingreso === "" || item.kilometraje_ingreso === null
+          ? null
+          : Number.parseInt(String(item.kilometraje_ingreso), 10);
+
+      const currentDiagnostico = draft.diagnostico ?? "";
+      const currentTrabajo = draft.trabajo_realizado ?? "";
+      const currentObservaciones = draft.observaciones ?? "";
+
+      const baseDiagnostico = item.diagnostico ?? "";
+      const baseTrabajo = item.trabajo_realizado ?? "";
+      const baseObservaciones = item.observaciones ?? "";
+
+      if (currentKilometraje !== baseKilometraje) return true;
+      if (currentDiagnostico !== baseDiagnostico) return true;
+      if (currentTrabajo !== baseTrabajo) return true;
+      if (currentObservaciones !== baseObservaciones) return true;
+
+      const currentCosto = String(draft.costo_total ?? "").trim();
+      const baseCosto =
+        item.costo_total === null || item.costo_total === undefined ? "" : String(toWholeNumber(item.costo_total));
+      if (currentCosto !== baseCosto) return true;
+
+      return false;
+    },
+    [getDraft]
+  );
+
   const canEditRecord = useCallback((itemId) => Boolean(editableFinalizadaById[itemId]), [editableFinalizadaById]);
 
   const setEditableRecord = useCallback((itemId, value) => {
@@ -263,6 +299,7 @@ export default function useMantencionesTransitions({ savingById, onAcceptSolicit
   return useMemo(
     () => ({
       getDraft,
+      hasPendingChanges,
       setDraftField,
       buildEditablePayload,
       canEditRecord,
@@ -302,6 +339,7 @@ export default function useMantencionesTransitions({ savingById, onAcceptSolicit
       deliverConfirm,
       deliverError,
       getDraft,
+      hasPendingChanges,
       ingresoConfirm,
       ingresoError,
       isCancelConfirmSaving,
