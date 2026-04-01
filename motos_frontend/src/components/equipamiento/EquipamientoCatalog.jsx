@@ -182,10 +182,10 @@ export default function EquipamientoCatalog({ variant = "accesorios" }) {
   }, [editNewImagePreviews]);
 
   useEffect(() => {
-    if (!feedback.message) return undefined;
-    const timeoutId = window.setTimeout(() => setFeedback({ type: "", message: "" }), 3500);
-    return () => window.clearTimeout(timeoutId);
-  }, [feedback.message]);
+    if (!feedback.message) return;
+    pushToast(feedback.message, feedback.type === "error" ? "error" : "success");
+    setFeedback({ type: "", message: "" });
+  }, [feedback, pushToast]);
 
   useEffect(() => {
     if (!editingProducto && !deleteCandidate) return undefined;
@@ -288,7 +288,7 @@ export default function EquipamientoCatalog({ variant = "accesorios" }) {
 
     const entero = parsePrecioEntero(value);
     if (!entero) return "";
-    return String(entero).replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+    return `$ ${String(entero).replace(/\B(?=(\d{3})+(?!\d))/g, ".")}`;
   }
 
   function getErrorText(err, fallback) {
@@ -844,8 +844,8 @@ export default function EquipamientoCatalog({ variant = "accesorios" }) {
                   name="precio"
                   value={formatPrecioInput(editForm.precio)}
                   onChange={handleEditInputChange}
-                  inputMode="decimal"
-                  placeholder="Ej: 150.000"
+                  inputMode="numeric"
+                  placeholder="Ej: $ 150.000"
                   required
                 />
               </label>
@@ -974,6 +974,7 @@ export default function EquipamientoCatalog({ variant = "accesorios" }) {
         onClose={closeDeleteModal}
         onConfirm={confirmDeleteProducto}
       />
+      <PublicToastStack toasts={toasts} onDismiss={dismissToast} />
     </main>
   );
 }
