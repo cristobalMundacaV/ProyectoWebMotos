@@ -38,7 +38,8 @@ export default function useMantencionesViewState() {
 
   const handleHistoricoClienteChange = useCallback((value) => {
     setSelectedHistoricoCliente(value);
-    setSelectedHistoricaId(null);
+    // NO resetear selectedHistoricaId aquí, dejar que se maneje naturalmente
+    // en selectedHistorica para evitar parpadeos
     setMobilePickerOpen((prev) => ({
       ...prev,
       historicas: false,
