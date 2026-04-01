@@ -2,8 +2,9 @@ import { TALLER_ESTADO_FILTERS } from "../constants/mantencionesUiConstants";
 import FichaDetailPanel from "./FichaDetailPanel";
 import FichaListPanel from "./FichaListPanel";
 import FichaMobilePicker from "./FichaMobilePicker";
+import { memo } from "react";
 
-export default function TallerPanel({
+function TallerPanel({
   loading,
   fichasMantencion,
   tallerEstadoFilter,
@@ -82,3 +83,4 @@ export default function TallerPanel({
   );
 }
 
+export default memo(TallerPanel);

@@ -1,8 +1,9 @@
 import FichaDetailPanel from "./FichaDetailPanel";
 import FichaListPanel from "./FichaListPanel";
 import FichaMobilePicker from "./FichaMobilePicker";
+import { memo } from "react";
 
-export default function HistoricasPanel({
+function HistoricasPanel({
   loading,
   historicoClientes,
   selectedHistoricoClienteEffective,
@@ -116,3 +117,5 @@ export default function HistoricasPanel({
     </section>
   );
 }
+
+export default memo(HistoricasPanel);

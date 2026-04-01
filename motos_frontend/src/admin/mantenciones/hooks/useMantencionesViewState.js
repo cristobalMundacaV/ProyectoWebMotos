@@ -47,14 +47,12 @@ export default function useMantencionesViewState() {
 
   const handleHistoricoEstadoFilterChange = useCallback((value) => {
     setHistoricoEstadoFilter(value);
-    // No resetear selectedHistoricaId para evitar re-renders disruptivos
-    // fichasHistoricasByCliente se filtrará automáticamente
+    setSelectedHistoricaId(null);
   }, []);
 
   const handleHistoricoFechaFilterChange = useCallback((value) => {
     setHistoricoFechaFilter(value);
-    // No resetear selectedHistoricaId para evitar re-renders disruptivos
-    // fichasHistoricasByCliente se filtrará automáticamente
+    setSelectedHistoricaId(null);
   }, []);
 
   const handleToggleMobilePicker = useCallback((pickerKey) => {

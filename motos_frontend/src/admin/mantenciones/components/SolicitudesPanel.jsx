@@ -2,8 +2,9 @@ import { SOLICITUDES_TABS } from "../constants/mantencionesUiConstants";
 import FichaDetailPanel from "./FichaDetailPanel";
 import FichaListPanel from "./FichaListPanel";
 import FichaMobilePicker from "./FichaMobilePicker";
+import { memo } from "react";
 
-export default function SolicitudesPanel({
+function SolicitudesPanel({
   loading,
   solicitudes,
   solicitudesTab,
@@ -82,3 +83,4 @@ export default function SolicitudesPanel({
   );
 }
 
+export default memo(SolicitudesPanel);
