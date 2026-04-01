@@ -18,22 +18,15 @@ export function translateBackendMessage(message) {
 }
 
 export function getErrorText(error, fallback = "No se pudo completar la solicitud.") {
-  const fieldLabels = {
-    username: "Nombre de usuario",
-    email: "Correo",
-    telefono: "Teléfono",
-    marca: "Marca",
-    modelo: "Modelo",
-    modelo_id: "Modelo",
-    modelo_moto: "Modelo",
-    slug: "Slug",
-    precio: "Precio",
-    precio_lista: "Precio de lista",
-    precio_con_maletas: "Precio con maletas",
-    precio_lista_con_maletas: "Precio de lista con maletas",
-    imagen_con_maletas: "Imagen con maletas",
-    anio: "Anio",
-    orden_carrusel: "Orden carrusel",
+  const humanizedFieldMessages = {
+    marca: "Debes seleccionar una marca valida.",
+    modelo: "Debes seleccionar un modelo valido.",
+    modelo_id: "Debes seleccionar un modelo valido.",
+    modelo_moto: "Debes seleccionar un modelo valido.",
+    subcategoria: "Debes seleccionar una categoria valida.",
+    categoria: "Debes seleccionar una categoria valida.",
+    compatibilidad_motos: "Selecciona al menos una moto compatible.",
+    orden_carrusel: "Debes indicar un orden de carrusel valido.",
   };
 
   const data = error?.response?.data;
@@ -68,7 +61,7 @@ export function getErrorText(error, fallback = "No se pudo completar la solicitu
       if (/(this field is required|este campo es requerido|obligatorio)/i.test(rawFieldError)) {
         return "Debes ingresar el nombre del modelo.";
       }
-      return `Nombre del modelo: ${translateBackendMessage(rawFieldError)}`;
+      return translateBackendMessage(rawFieldError);
     }
     if (fieldName === "slug") {
       if (/(this field is required|este campo es requerido|obligatorio)/i.test(rawFieldError)) {
@@ -79,9 +72,21 @@ export function getErrorText(error, fallback = "No se pudo completar la solicitu
       }
       return translateBackendMessage(rawFieldError);
     }
+    if (/(this field is required|este campo es requerido|obligatorio)/i.test(rawFieldError)) {
+      const requiredByField = {
+        username: "Debes ingresar un nombre de usuario.",
+        email: "Debes ingresar un correo.",
+        telefono: "Debes ingresar un telefono.",
+        nombre: "Debes ingresar un nombre.",
+        precio: "Debes ingresar un precio valido.",
+      };
+      if (requiredByField[fieldName]) return requiredByField[fieldName];
+    }
+    if (humanizedFieldMessages[fieldName]) {
+      return humanizedFieldMessages[fieldName];
+    }
     const translated = translateBackendMessage(rawFieldError);
-    const label = fieldLabels[fieldName] || fieldName;
-    return `${label}: ${translated}`;
+    return translated;
   }
 
   const [firstError] = Object.values(data).find((value) => Array.isArray(value) && value.length) || [];
