@@ -2283,9 +2283,19 @@
 
 .admin-mantencion-solicitudes-head {
   display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+  flex-wrap: nowrap;
+}
+
+.admin-mantencion-head-left {
+  display: flex;
   align-items: center;
   gap: 14px;
   flex-wrap: wrap;
+  flex: 1 1 auto;
+  min-width: 0;
 }
 
 .admin-mantencion-tabs {
@@ -2340,7 +2350,6 @@
 }
 
 .admin-mantencion-client-btn {
-  margin-left: auto;
   min-height: 40px;
   border: 1px solid #0f766e;
   background: #f0fdfa;
@@ -2350,6 +2359,7 @@
   font-size: 0.9rem;
   font-weight: 700;
   cursor: pointer;
+  flex: 0 0 auto;
   transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease;
 }
 
@@ -4158,6 +4168,11 @@
 
   .admin-mantencion-solicitudes-head {
     width: 100%;
+    flex-wrap: wrap;
+  }
+
+  .admin-mantencion-head-left {
+    width: 100%;
   }
 
   .admin-mantencion-historico-filter {
@@ -4340,6 +4355,14 @@
   .admin-mantencion-tab {
     flex: 1 1 calc(50% - 4px);
     text-align: center;
+  }
+
+  .admin-mantencion-head-left {
+    width: 100%;
+  }
+
+  .admin-mantencion-client-btn {
+    margin-left: auto;
   }
 
   .admin-mantencion-historico-filter {

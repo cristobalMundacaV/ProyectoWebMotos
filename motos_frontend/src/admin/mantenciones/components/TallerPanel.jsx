@@ -23,23 +23,25 @@ export default function TallerPanel({
       <article className="admin-panel-card">
         <div className="admin-card-header">
           <div className="admin-mantencion-solicitudes-head">
-            <h2>Motos en taller</h2>
-            <div className="admin-mantencion-tabs" role="tablist" aria-label="Filtros por estado en taller">
-              {TALLER_ESTADO_FILTERS.map((filter) => {
-                const isActive = tallerEstadoFilter === filter.value;
-                return (
-                  <button
-                    key={filter.value}
-                    type="button"
-                    role="tab"
-                    aria-selected={isActive}
-                    className={isActive ? "admin-mantencion-tab active" : "admin-mantencion-tab"}
-                    onClick={() => onTallerEstadoFilterChange(filter.value)}
-                  >
-                    {filter.label}
-                  </button>
-                );
-              })}
+            <div className="admin-mantencion-head-left">
+              <h2>Motos en taller</h2>
+              <div className="admin-mantencion-tabs" role="tablist" aria-label="Filtros por estado en taller">
+                {TALLER_ESTADO_FILTERS.map((filter) => {
+                  const isActive = tallerEstadoFilter === filter.value;
+                  return (
+                    <button
+                      key={filter.value}
+                      type="button"
+                      role="tab"
+                      aria-selected={isActive}
+                      className={isActive ? "admin-mantencion-tab active" : "admin-mantencion-tab"}
+                      onClick={() => onTallerEstadoFilterChange(filter.value)}
+                    >
+                      {filter.label}
+                    </button>
+                  );
+                })}
+              </div>
             </div>
             <button
               type="button"

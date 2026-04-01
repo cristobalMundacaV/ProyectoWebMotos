@@ -23,23 +23,25 @@ export default function SolicitudesPanel({
       <article className="admin-panel-card">
         <div className="admin-card-header">
           <div className="admin-mantencion-solicitudes-head">
-            <h2>Solicitudes de mantencion</h2>
-            <div className="admin-mantencion-tabs" role="tablist" aria-label="Filtros de solicitudes">
-              {SOLICITUDES_TABS.map((tab) => {
-                const isActive = solicitudesTab === tab.value;
-                return (
-                  <button
-                    key={tab.value}
-                    type="button"
-                    role="tab"
-                    aria-selected={isActive}
-                    className={isActive ? "admin-mantencion-tab active" : "admin-mantencion-tab"}
-                    onClick={() => onTabChange(tab.value)}
-                  >
-                    {tab.label}
-                  </button>
-                );
-              })}
+            <div className="admin-mantencion-head-left">
+              <h2>Solicitudes de mantencion</h2>
+              <div className="admin-mantencion-tabs" role="tablist" aria-label="Filtros de solicitudes">
+                {SOLICITUDES_TABS.map((tab) => {
+                  const isActive = solicitudesTab === tab.value;
+                  return (
+                    <button
+                      key={tab.value}
+                      type="button"
+                      role="tab"
+                      aria-selected={isActive}
+                      className={isActive ? "admin-mantencion-tab active" : "admin-mantencion-tab"}
+                      onClick={() => onTabChange(tab.value)}
+                    >
+                      {tab.label}
+                    </button>
+                  );
+                })}
+              </div>
             </div>
             <button
               type="button"

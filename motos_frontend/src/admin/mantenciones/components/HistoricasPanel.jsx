@@ -30,50 +30,52 @@ export default function HistoricasPanel({
       <article className="admin-panel-card">
         <div className="admin-card-header">
           <div className="admin-mantencion-solicitudes-head">
-            <h2>Fichas historicas</h2>
-            <label className="admin-mantencion-historico-filter">
-              Cliente
-              <select
-                value={selectedHistoricoClienteEffective}
-                onChange={(event) => onHistoricoClienteChange(event.target.value)}
-                disabled={!historicoClientes.length}
-              >
-                <option value="">Seleccione un cliente</option>
-                {historicoClientes.map((cliente) => (
-                  <option key={cliente.value} value={cliente.value}>
-                    {cliente.label}
-                  </option>
-                ))}
-              </select>
-            </label>
-            <label className="admin-mantencion-historico-filter">
-              Filtrar por estado
-              <select
-                value={historicoEstadoFilter}
-                onChange={(event) => onHistoricoEstadoFilterChange(event.target.value)}
-              >
-                <option value="">Todos los estados</option>
-                <option value="en_proceso">En proceso</option>
-                <option value="en_espera">En espera</option>
-                <option value="finalizado">Finalizado</option>
-                <option value="cancelado">Cancelado</option>
-                <option value="reagendacion">Reagendacion</option>
-                <option value="entregada">Entregada</option>
-              </select>
-            </label>
-            <label className="admin-mantencion-historico-filter">
-              Filtrar por fecha
-              <select
-                value={historicoFechaFilter}
-                onChange={(event) => onHistoricoFechaFilterChange(event.target.value)}
-              >
-                <option value="todos">Todos</option>
-                <option value="hoy">Hoy</option>
-                <option value="semana">Hace una semana</option>
-                <option value="mes">Hace un mes</option>
-                <option value="año">Hace un año</option>
-              </select>
-            </label>
+            <div className="admin-mantencion-head-left">
+              <h2>Fichas historicas</h2>
+              <label className="admin-mantencion-historico-filter">
+                Cliente
+                <select
+                  value={selectedHistoricoClienteEffective}
+                  onChange={(event) => onHistoricoClienteChange(event.target.value)}
+                  disabled={!historicoClientes.length}
+                >
+                  <option value="">Seleccione un cliente</option>
+                  {historicoClientes.map((cliente) => (
+                    <option key={cliente.value} value={cliente.value}>
+                      {cliente.label}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <label className="admin-mantencion-historico-filter">
+                Filtrar por estado
+                <select
+                  value={historicoEstadoFilter}
+                  onChange={(event) => onHistoricoEstadoFilterChange(event.target.value)}
+                >
+                  <option value="">Todos los estados</option>
+                  <option value="en_proceso">En proceso</option>
+                  <option value="en_espera">En espera</option>
+                  <option value="finalizado">Finalizado</option>
+                  <option value="cancelado">Cancelado</option>
+                  <option value="reagendacion">Reagendacion</option>
+                  <option value="entregada">Entregada</option>
+                </select>
+              </label>
+              <label className="admin-mantencion-historico-filter">
+                Filtrar por fecha
+                <select
+                  value={historicoFechaFilter}
+                  onChange={(event) => onHistoricoFechaFilterChange(event.target.value)}
+                >
+                  <option value="todos">Todos</option>
+                  <option value="hoy">Hoy</option>
+                  <option value="semana">Hace una semana</option>
+                  <option value="mes">Hace un mes</option>
+                  <option value="año">Hace un año</option>
+                </select>
+              </label>
+            </div>
             <button
               type="button"
               className="admin-mantencion-client-btn"
