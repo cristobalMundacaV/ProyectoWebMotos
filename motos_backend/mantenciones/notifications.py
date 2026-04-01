@@ -230,6 +230,9 @@ def send_mantencion_finalized_email(*, mantencion: Mantencion, recipient_email: 
 
 
 def send_mantencion_ingreso_taller_email(*, mantencion: Mantencion, recipient_email: str) -> None:
+    kilometraje = mantencion.kilometraje_ingreso
+    kilometraje_label = f"{kilometraje} km" if kilometraje is not None else "-"
+
     _send_notification_email(
         mantencion=mantencion,
         recipient_email=recipient_email,
@@ -237,6 +240,7 @@ def send_mantencion_ingreso_taller_email(*, mantencion: Mantencion, recipient_em
         title="Moto ingresada al taller",
         intro="Tu moto ya fue recepcionada y el mantenimiento se encuentra en proceso.",
         outro="Te avisaremos cuando este lista para retiro.",
+        extra_rows=[("Kilometraje de ingreso", kilometraje_label)],
     )
 
 
