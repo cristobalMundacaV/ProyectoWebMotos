@@ -14,11 +14,14 @@ export default function CancelMantencionModal({
 }) {
   if (!isOpen) return null;
 
+  const modalTitle = isReagendacion ? "Reagendacion" : actionLabel;
+  const confirmLabel = isReagendacion ? "Reagendar" : actionLabel;
+
   return (
     <div className="admin-modal-overlay" onClick={onCancel}>
       <div className="admin-modal-content" onClick={(e) => e.stopPropagation()}>
         <div className="admin-modal-header">
-          <h2 className="admin-modal-title">{actionLabel}</h2>
+          <h2 className="admin-modal-title">{modalTitle}</h2>
           <button
             type="button"
             className="admin-modal-close"
@@ -31,7 +34,7 @@ export default function CancelMantencionModal({
         </div>
 
         <div className="admin-modal-body">
-          <div className="admin-modal-info">
+          <div className="admin-cancel-modal-info">
             <div>
               <strong>Moto:</strong>
               <span>{moto}</span>
@@ -47,14 +50,14 @@ export default function CancelMantencionModal({
           </div>
 
           {!isReagendacion && (
-            <div className="admin-modal-form-group">
+            <div className="admin-cancel-modal-form">
               <label htmlFor="motivo-cancelacion">
                 Motivo de cancelación
                 <textarea
                   id="motivo-cancelacion"
-                  className="admin-modal-textarea"
+                  className="admin-cancel-modal-textarea"
                   value={motivo}
-                    onChange={(e) => onMotivoChange(e.target.value)}
+                  onChange={(e) => onMotivoChange(e.target.value)}
                   placeholder="Describe el motivo de cancelación..."
                   disabled={isSaving}
                   rows={4}
@@ -64,23 +67,23 @@ export default function CancelMantencionModal({
           )}
 
           {isReagendacion && (
-            <div className="admin-modal-alert">
-              <strong>Reagendacion</strong>
-              <p>El cliente recibira un correo notificando que debe reagendar su cita.</p>
+            <div className="admin-cancel-modal-alert">
+              <strong>Confirmacion</strong>
+              <p>¿Estas seguro que quieres que el cliente reagende su hora?</p>
             </div>
           )}
 
-          {error && <p className="admin-modal-error">{error}</p>}
+          {error && <p className="admin-cancel-modal-error">{error}</p>}
         </div>
 
-        <div className="admin-modal-footer">
+        <div className="admin-cancel-modal-footer">
           <button
             type="button"
             className="admin-modal-cancel-btn"
             disabled={isSaving}
             onClick={onCancel}
           >
-            Cancelar
+            Volver
           </button>
           <button
             type="button"
@@ -88,7 +91,7 @@ export default function CancelMantencionModal({
             disabled={isSaving}
             onClick={onSubmit}
           >
-            {isSaving ? "Procesando..." : actionLabel}
+            {isSaving ? "Procesando..." : confirmLabel}
           </button>
         </div>
       </div>
