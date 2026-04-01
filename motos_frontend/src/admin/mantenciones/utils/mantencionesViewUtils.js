@@ -64,6 +64,49 @@ export function sanitizeRutInput(value) {
     .replace(/[^0-9K.-]/g, "");
 }
 
+export function normalizeRut(rawRut) {
+  const cleaned = String(rawRut || "")
+    .replace(/\./g, "")
+    .replace(/-/g, "")
+    .replace(/\s/g, "")
+    .toUpperCase();
+  if (cleaned.length < 2) return "";
+
+  const body = cleaned.slice(0, -1).replace(/\D/g, "");
+  const dv = cleaned.slice(-1);
+  if (!body || !/^\d+$/.test(body) || !/^[0-9K]$/.test(dv)) return "";
+  return `${body}-${dv}`;
+}
+
+export function isValidRut(rawRut) {
+  const normalized = normalizeRut(rawRut);
+  if (!normalized) return false;
+
+  const [body, dv] = normalized.split("-");
+  let sum = 0;
+  let multiplier = 2;
+
+  for (let i = body.length - 1; i >= 0; i -= 1) {
+    sum += Number(body[i]) * multiplier;
+    multiplier = multiplier === 7 ? 2 : multiplier + 1;
+  }
+
+  const remainder = 11 - (sum % 11);
+  const expectedDv = remainder === 11 ? "0" : remainder === 10 ? "K" : String(remainder);
+  return dv === expectedDv;
+}
+
+export function normalizeCapitalizedWords(rawValue) {
+  const cleaned = String(rawValue || "")
+    .trim()
+    .replace(/\s+/g, " ");
+  if (!cleaned) return "";
+  return cleaned
+    .split(" ")
+    .map((word) => (word ? `${word.charAt(0).toUpperCase()}${word.slice(1).toLowerCase()}` : ""))
+    .join(" ");
+}
+
 export function toPositiveInteger(value, fallback) {
   const parsed = Number.parseInt(String(value ?? "").trim(), 10);
   if (!Number.isFinite(parsed) || parsed <= 0) return fallback;

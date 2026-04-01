@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { extractErrorMessage, formatDate, formatIntegerCL, sanitizeIntegerInput, sanitizeRutInput, toWholeNumber } from "../utils/mantencionesViewUtils";
+import { extractErrorMessage, formatDate, formatIntegerCL, isValidRut, normalizeCapitalizedWords, sanitizeIntegerInput, sanitizeRutInput, toWholeNumber } from "../utils/mantencionesViewUtils";
 
 export default function useMantencionesTransitions({ savingById, onAcceptSolicitud, onUpdateMantencion }) {
   const [editsById, setEditsById] = useState({});
@@ -198,7 +198,14 @@ export default function useMantencionesTransitions({ savingById, onAcceptSolicit
 
   const setEntregaField = useCallback((field, value) => {
     setDeliverError("");
-    const normalized = field === "rutRetira" ? sanitizeRutInput(value) : field === "valorCobrado" ? sanitizeIntegerInput(value) : value;
+    let normalized = value;
+    if (field === "rutRetira") {
+      normalized = sanitizeRutInput(value);
+    } else if (field === "valorCobrado") {
+      normalized = sanitizeIntegerInput(value);
+    } else if (field === "nombreRetira") {
+      normalized = normalizeCapitalizedWords(value);
+    }
     setDeliverConfirm((prev) => (prev ? { ...prev, [field]: normalized } : prev));
   }, []);
 
@@ -211,6 +218,10 @@ export default function useMantencionesTransitions({ savingById, onAcceptSolicit
 
     if (!rutRetira) {
       setDeliverError("Ingresa el RUT de quien retira.");
+      return;
+    }
+    if (!isValidRut(rutRetira)) {
+      setDeliverError("El RUT ingresado no es valido.");
       return;
     }
     if (!nombreRetira) {

@@ -25,7 +25,7 @@ export default function EntregaModal({
           Registraras la entrega de <strong>{confirmation.moto}</strong>.
         </p>
         <p className="admin-confirm-modal-subtext">
-          Completa los datos de retiro para cambiar el estado a <strong>Entregado</strong>.
+          Completa los datos de retiro para registrar el Mantenimiento a <strong>Entregado</strong>.
         </p>
 
         <label className="admin-confirm-modal-field">
@@ -62,8 +62,6 @@ export default function EntregaModal({
             />
           </div>
         </label>
-
-        {error ? <p className="admin-confirm-modal-error">{error}</p> : null}
 
         <div className="admin-confirm-modal-actions">
           <button type="button" className="btn-back" disabled={isSaving} onClick={onClose}>
