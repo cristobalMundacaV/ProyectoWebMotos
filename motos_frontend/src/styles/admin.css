@@ -3286,6 +3286,10 @@
   padding: 10px 12px;
 }
 
+.admin-mantencion-ficha-block-full {
+  grid-column: 1 / -1;
+}
+
 .admin-mantencion-ficha-blocks h4 {
   margin: 0 0 8px;
   font-size: 0.95rem;

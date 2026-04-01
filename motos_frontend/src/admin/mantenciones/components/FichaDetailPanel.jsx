@@ -226,6 +226,13 @@ export default function FichaDetailPanel({ item, mode, transitions, savingById }
               </article>
             </>
           )}
+
+          {mode === "historicas" && item.estado === "cancelado" && (
+            <article className="admin-mantencion-ficha-block-full">
+              <h4>Motivo de cancelacion</h4>
+              <p>{(item.motivo_cancelacion || "").trim() || "Sin motivo registrado."}</p>
+            </article>
+          )}
         </div>
       )}
 
