@@ -1610,7 +1610,7 @@
 
 .admin-cancel-modal-footer {
   display: flex;
-  justify-content: flex-end;
+  justify-content: center;
   gap: 12px;
   margin-top: 18px;
 }
@@ -1639,7 +1639,7 @@
 }
 
 .admin-cancel-modal-footer .btn-confirm {
-  background: #16a34a;
+  background: #dc2626;
   color: #ffffff;
 }
 
