@@ -295,24 +295,8 @@ export default function MantencionesPage({
   }, [tallerEstadoFilter]);
 
   const selectedHistoricoClienteEffective = useMemo(
-    () => {
-      if (!selectedHistoricoCliente) return "";
-      
-      // Si el cliente está en la lista, mantenerlo
-      if (historicoClientes.some((item) => item.value === selectedHistoricoCliente)) {
-        return selectedHistoricoCliente;
-      }
-      
-      // Si la lista está vacía momentáneamente pero hay cliente seleccionado, mantenerlo
-      // para evitar parpadeos durante recalculos
-      if (historicoClientes.length === 0 && selectedHistoricoCliente) {
-        return selectedHistoricoCliente;
-      }
-      
-      // Solo resetear si hay clientes disponibles pero el seleccionado no está en la lista
-      return "";
-    },
-    [historicoClientes, selectedHistoricoCliente]
+    () => selectedHistoricoCliente,
+    [selectedHistoricoCliente]
   );
 
   const fichasHistoricasByCliente = useMemo(() => {
