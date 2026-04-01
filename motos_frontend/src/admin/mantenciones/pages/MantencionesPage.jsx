@@ -38,13 +38,28 @@ export default function MantencionesPage({
   onHorarioUpdate,
   onHorarioDelete,
 }) {
-  const buildClienteKey = (value) =>
+  const normalizeTextKey = (value) =>
     String(value || "")
       .trim()
       .toLowerCase()
       .normalize("NFD")
       .replace(/[\u0300-\u036f]/g, "")
       .replace(/\s+/g, " ");
+
+  const getHistoricoClienteKey = (item) => {
+    const moto = item?.moto_cliente_detalle || {};
+    if (moto.cliente !== null && moto.cliente !== undefined && moto.cliente !== "") {
+      return `cliente:${String(moto.cliente)}`;
+    }
+    if (moto.id !== null && moto.id !== undefined && moto.id !== "") {
+      return `vehiculo:${String(moto.id)}`;
+    }
+    if (moto.cliente_email) {
+      return `email:${normalizeTextKey(moto.cliente_email)}`;
+    }
+    const label = (moto.cliente_nombre || "").trim() || "Cliente sin nombre";
+    return `nombre:${normalizeTextKey(label)}`;
+  };
 
   const getDateRange = (filterType) => {
     const now = new Date();
@@ -82,7 +97,7 @@ export default function MantencionesPage({
     fichasHistoricas.forEach((item) => {
       const moto = item?.moto_cliente_detalle || {};
       const label = (moto.cliente_nombre || "").trim() || "Cliente sin nombre";
-      const value = buildClienteKey(label);
+      const value = getHistoricoClienteKey(item);
       if (!value) return;
       if (!uniques.has(value)) uniques.set(value, { value, label });
     });
@@ -313,8 +328,7 @@ export default function MantencionesPage({
   const fichasHistoricasByCliente = useMemo(() => {
     if (!selectedHistoricoClienteEffective) return [];
     return fichasHistoricas.filter((item) => {
-      const clienteLabel = (item?.moto_cliente_detalle?.cliente_nombre || "").trim() || "Cliente sin nombre";
-      if (buildClienteKey(clienteLabel) !== selectedHistoricoClienteEffective) return false;
+      if (getHistoricoClienteKey(item) !== selectedHistoricoClienteEffective) return false;
 
       if (historicoEstadoFilter && item.estado !== historicoEstadoFilter) return false;
 
