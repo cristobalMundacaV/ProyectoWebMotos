@@ -961,20 +961,6 @@ export default function EquipamientoCatalog({ variant = "accesorios" }) {
                   </label>
                 </div>
 
-                {editForm.es_destacado && (
-                  <label className="equip-edit-order-field">
-                    Orden carrusel *
-                    <input
-                      type="number"
-                      name="orden_carrusel"
-                      value={editForm.orden_carrusel}
-                      onChange={handleEditInputChange}
-                      min="1"
-                      required={Boolean(editForm.es_destacado)}
-                    />
-                  </label>
-                )}
-
                 <div className="equip-edit-actions">
                   <button type="button" className="btn-secondary" onClick={closeEditModal} disabled={savingEdit}>
                     Cancelar
@@ -984,6 +970,20 @@ export default function EquipamientoCatalog({ variant = "accesorios" }) {
                   </button>
                 </div>
               </div>
+
+              {editForm.es_destacado && (
+                <label className="equip-edit-order-field equip-edit-span-2">
+                  Orden carrusel *
+                  <input
+                    type="number"
+                    name="orden_carrusel"
+                    value={editForm.orden_carrusel}
+                    onChange={handleEditInputChange}
+                    min="1"
+                    required={Boolean(editForm.es_destacado)}
+                  />
+                </label>
+              )}
             </form>
           </section>
         </div>

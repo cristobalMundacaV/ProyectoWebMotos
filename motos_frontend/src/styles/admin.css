@@ -1197,6 +1197,10 @@
   justify-content: flex-end;
 }
 
+.admin-carrusel-order-field {
+  margin-top: 4px;
+}
+
 .admin-moto-checks-row {
   display: grid;
   grid-template-columns: repeat(3, minmax(180px, 1fr));
