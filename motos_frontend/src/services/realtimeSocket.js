@@ -27,6 +27,7 @@ class RealtimeSocketClient {
     this.reconnectAttempts = 0;
     this.reconnectTimer = null;
     this.manuallyClosed = false;
+    this.maxReconnectAttempts = 5;
   }
 
   subscribe(listener) {
@@ -87,7 +88,7 @@ class RealtimeSocketClient {
   }
 
   scheduleReconnect() {
-    if (this.reconnectTimer) return;
+    if (this.reconnectTimer || this.reconnectAttempts >= this.maxReconnectAttempts) return;
     const delay = Math.min(30000, 1000 * 2 ** Math.min(this.reconnectAttempts, 5));
     this.reconnectAttempts += 1;
     this.reconnectTimer = window.setTimeout(() => {

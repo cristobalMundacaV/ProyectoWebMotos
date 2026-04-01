@@ -9,7 +9,9 @@ https://docs.djangoproject.com/en/6.0/howto/deployment/asgi/
 
 import os
 
+from channels.auth import AuthMiddlewareStack
 from channels.routing import ProtocolTypeRouter, URLRouter
+from channels.security.websocket import AllowedHostsOriginValidator
 from django.core.asgi import get_asgi_application
 
 from config.routing import websocket_urlpatterns
@@ -21,6 +23,6 @@ django_asgi_app = get_asgi_application()
 application = ProtocolTypeRouter(
 	{
 		"http": django_asgi_app,
-		"websocket": URLRouter(websocket_urlpatterns),
+		"websocket": AllowedHostsOriginValidator(AuthMiddlewareStack(URLRouter(websocket_urlpatterns))),
 	}
 )
