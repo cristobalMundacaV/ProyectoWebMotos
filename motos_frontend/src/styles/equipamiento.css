@@ -714,6 +714,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
+  flex-wrap: wrap;
   gap: 16px;
 }
 
@@ -721,6 +722,14 @@
   display: flex;
   align-items: center;
   gap: 26px;
+}
+
+.equip-edit-order-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  flex: 1 1 100%;
+  max-width: 360px;
 }
 
 .equip-edit-actions .btn-secondary,

@@ -324,6 +324,7 @@ export default function EquipamientoCatalog({ variant = "accesorios" }) {
       nombre: producto.nombre || "",
       descripcion: producto.descripcion || "",
       precio: String(parsePrecioEntero(producto.precio)),
+      orden_carrusel: String(Math.max(1, Number.parseInt(producto.orden_carrusel, 10) || 1)),
       es_destacado: Boolean(producto.es_destacado),
       activo: producto.activo !== false,
       imagenes_galeria: [],
@@ -364,7 +365,14 @@ export default function EquipamientoCatalog({ variant = "accesorios" }) {
           : value;
       return {
         ...prev,
-        [name]: type === "file" ? nextValue : name === "precio" ? normalizePrecioInput(value) : nextValue,
+        [name]:
+          type === "file"
+            ? nextValue
+            : name === "precio"
+              ? normalizePrecioInput(value)
+              : name === "orden_carrusel"
+                ? String(Math.max(1, Number.parseInt(String(value).replace(/\D/g, ""), 10) || 1))
+                : nextValue,
       };
     });
 
@@ -484,6 +492,12 @@ export default function EquipamientoCatalog({ variant = "accesorios" }) {
     payload.append("descripcion", editForm.descripcion || "");
     payload.append("precio", String(precioEntero));
     payload.append("es_destacado", String(Boolean(editForm.es_destacado)));
+    payload.append(
+      "orden_carrusel",
+      editForm.es_destacado
+        ? String(Math.max(1, Number.parseInt(editForm.orden_carrusel, 10) || 1))
+        : "1"
+    );
     payload.append("activo", String(Boolean(editForm.activo)));
     const galleryFiles = Array.isArray(editForm.imagenes_galeria)
       ? editForm.imagenes_galeria.filter(Boolean)
@@ -946,6 +960,20 @@ export default function EquipamientoCatalog({ variant = "accesorios" }) {
                     Activo
                   </label>
                 </div>
+
+                {editForm.es_destacado && (
+                  <label className="equip-edit-order-field">
+                    Orden carrusel *
+                    <input
+                      type="number"
+                      name="orden_carrusel"
+                      value={editForm.orden_carrusel}
+                      onChange={handleEditInputChange}
+                      min="1"
+                      required={Boolean(editForm.es_destacado)}
+                    />
+                  </label>
+                )}
 
                 <div className="equip-edit-actions">
                   <button type="button" className="btn-secondary" onClick={closeEditModal} disabled={savingEdit}>
