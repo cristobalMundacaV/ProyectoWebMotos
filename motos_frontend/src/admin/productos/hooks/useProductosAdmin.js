@@ -83,7 +83,7 @@ export default function useProductosAdmin({
     accesoriosMotosMetaData,
     accesoriosRiderList,
     accesoriosRiderMetaData,
-  }) {
+  }) => {
     setMarcasAccMotosAdmin(marcasAccMotosList);
     setMarcasAccRiderAdmin(marcasAccRiderList);
     setCategoriasAccMotosMeta(categoriasAccMotosData);
