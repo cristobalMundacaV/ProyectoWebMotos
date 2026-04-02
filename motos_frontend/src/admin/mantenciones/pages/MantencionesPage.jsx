@@ -57,21 +57,23 @@ export default function MantencionesPage({
   const getHistoricoClienteKey = useCallback(
     (item) => {
       const moto = item?.moto_cliente_detalle || {};
+      const clienteIdRaw = moto?.cliente;
+      if (clienteIdRaw !== null && clienteIdRaw !== undefined && String(clienteIdRaw).trim() !== "") {
+        return `cliente:${String(clienteIdRaw).trim()}`;
+      }
       const rutCliente = String(item?.rut_cliente || "")
         .trim()
         .toUpperCase();
       if (rutCliente && rutCliente !== "PENDIENTE") {
         return `rut:${rutCliente}`;
       }
-      if (moto.cliente !== null && moto.cliente !== undefined && moto.cliente !== "") {
-        return `cliente:${String(moto.cliente)}`;
-      }
-      if (moto.cliente_email) {
-        return `email:${normalizeTextKey(moto.cliente_email)}`;
-      }
+      const normalizedEmail = moto.cliente_email ? normalizeTextKey(moto.cliente_email) : "";
       const phone = String(moto.cliente_telefono || "").replace(/\D+/g, "");
       if (phone) {
         return `telefono:${phone}`;
+      }
+      if (normalizedEmail) {
+        return `email:${normalizedEmail}`;
       }
       const label = (moto.cliente_nombre || "").trim() || "Cliente sin nombre";
       const normalizedLabel = normalizeTextKey(label);
@@ -115,15 +117,32 @@ export default function MantencionesPage({
   );
 
   const historicoClientes = useMemo(() => {
-    const uniques = new Map();
+    const labelsByValue = new Map();
     fichasHistoricas.forEach((item) => {
       const moto = item?.moto_cliente_detalle || {};
       const label = (moto.cliente_nombre || "").trim() || "Cliente sin nombre";
       const value = getHistoricoClienteKey(item);
       if (!value) return;
-      if (!uniques.has(value)) uniques.set(value, { value, label });
+      if (!labelsByValue.has(value)) labelsByValue.set(value, new Map());
+      const labelCounts = labelsByValue.get(value);
+      labelCounts.set(label, (labelCounts.get(label) || 0) + 1);
     });
-    return Array.from(uniques.values()).sort((a, b) => a.label.localeCompare(b.label, "es"));
+
+    const uniques = Array.from(labelsByValue.entries()).map(([value, labelCounts]) => {
+      const rankedLabels = Array.from(labelCounts.entries()).sort((a, b) => {
+        const [, aCount] = a;
+        const [, bCount] = b;
+        if (bCount !== aCount) return bCount - aCount;
+        return a[0].localeCompare(b[0], "es");
+      });
+      const bestLabel = rankedLabels[0]?.[0] || "Cliente sin nombre";
+      return {
+        value,
+        label: bestLabel,
+      };
+    });
+
+    return uniques.sort((a, b) => a.label.localeCompare(b.label, "es"));
   }, [fichasHistoricas, getHistoricoClienteKey]);
 
   const {
