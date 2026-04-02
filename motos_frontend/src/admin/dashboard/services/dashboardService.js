@@ -12,6 +12,59 @@ import {
 } from "../../productos/services/productosAdminService";
 import { getContactoAdmin } from "../../configuracion/services/configuracionAdminService";
 
+const CREATED_AT_KEYS = [
+  "created_at",
+  "createdAt",
+  "fecha_creacion",
+  "fechaCreacion",
+  "creado_en",
+  "creadoEn",
+  "created",
+];
+
+function resolveCreatedTimestamp(item) {
+  if (!item || typeof item !== "object") return null;
+  for (const key of CREATED_AT_KEYS) {
+    const rawValue = item[key];
+    if (!rawValue) continue;
+    const timestamp = new Date(rawValue).getTime();
+    if (Number.isFinite(timestamp)) return timestamp;
+  }
+  return null;
+}
+
+function resolveIdForSort(item) {
+  if (!item || typeof item !== "object") return Number.NEGATIVE_INFINITY;
+  const idNumber = Number(item.id);
+  if (Number.isFinite(idNumber)) return idNumber;
+  return Number.NEGATIVE_INFINITY;
+}
+
+function sortByNewest(items = []) {
+  return [...items].sort((a, b) => {
+    const dateA = resolveCreatedTimestamp(a);
+    const dateB = resolveCreatedTimestamp(b);
+    if (dateA !== null || dateB !== null) {
+      if (dateA === null) return 1;
+      if (dateB === null) return -1;
+      if (dateA !== dateB) return dateB - dateA;
+    }
+    return resolveIdForSort(b) - resolveIdForSort(a);
+  });
+}
+
+function sortMetaList(meta = {}) {
+  return {
+    ...meta,
+    categorias_padre: sortByNewest(meta.categorias_padre || []),
+    subcategorias: sortByNewest(meta.subcategorias || []),
+    marcas: sortByNewest(meta.marcas || []),
+    categorias: sortByNewest(meta.categorias || []),
+    modelos: sortByNewest(meta.modelos || []),
+    motos: sortByNewest(meta.motos || []),
+  };
+}
+
 export async function fetchAdminBootstrapData() {
   const contactoAdminRequest = getContactoAdmin()
     .then((data) => ({ data, error: null }))
@@ -57,24 +110,30 @@ export async function fetchAdminBootstrapData() {
     contactoAdminRequest,
   ]);
 
+  const sortedMetaMotos = sortMetaList(metaMotos || {});
+  const sortedCategoriasAccMotosData = sortMetaList(categoriasAccMotosData || {});
+  const sortedCategoriasAccRiderData = sortMetaList(categoriasAccRiderData || {});
+  const sortedAccesoriosMotosMetaData = sortMetaList(accesoriosMotosMetaData || {});
+  const sortedAccesoriosRiderMetaData = sortMetaList(accesoriosRiderMetaData || {});
+
   return {
-    motos,
-    productosIndumentaria,
-    productosAccesorios,
-    categoriasIndumentaria,
-    categoriasAccesorios,
-    metaMotos,
-    marcasMotosList,
-    marcasAccMotosList,
-    marcasAccRiderList,
-    modelosMotoList,
-    categoriasMotoList,
-    categoriasAccMotosData,
-    categoriasAccRiderData,
-    accesoriosMotosList,
-    accesoriosMotosMetaData,
-    accesoriosRiderList,
-    accesoriosRiderMetaData,
+    motos: sortByNewest(motos),
+    productosIndumentaria: sortByNewest(productosIndumentaria),
+    productosAccesorios: sortByNewest(productosAccesorios),
+    categoriasIndumentaria: sortByNewest(categoriasIndumentaria),
+    categoriasAccesorios: sortByNewest(categoriasAccesorios),
+    metaMotos: sortedMetaMotos,
+    marcasMotosList: sortByNewest(marcasMotosList),
+    marcasAccMotosList: sortByNewest(marcasAccMotosList),
+    marcasAccRiderList: sortByNewest(marcasAccRiderList),
+    modelosMotoList: sortByNewest(modelosMotoList),
+    categoriasMotoList: sortByNewest(categoriasMotoList),
+    categoriasAccMotosData: sortedCategoriasAccMotosData,
+    categoriasAccRiderData: sortedCategoriasAccRiderData,
+    accesoriosMotosList: sortByNewest(accesoriosMotosList),
+    accesoriosMotosMetaData: sortedAccesoriosMotosMetaData,
+    accesoriosRiderList: sortByNewest(accesoriosRiderList),
+    accesoriosRiderMetaData: sortedAccesoriosRiderMetaData,
     contactoAdmin: contactoAdminResult?.data || null,
     contactoAdminLoadError: Boolean(contactoAdminResult?.error),
   };
