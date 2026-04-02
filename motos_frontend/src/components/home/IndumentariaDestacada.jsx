@@ -1,13 +1,54 @@
-﻿import { useEffect, useMemo, useRef, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { Link } from "react-router-dom";
+import ProductoEditModal from "../../admin/productos/components/ProductoEditModal";
+import { buildAccesorioRiderPayload } from "../../admin/productos/controllers/productoPayloadBuilder";
+import {
+  getFileNameFromPath,
+  normalizePrecioFromApi,
+  normalizePrecioInput,
+} from "../../admin/productos/controllers/productoAdapters";
 import { buildFallbackImageDataUrl, buildMediaUrl } from "../../services/apiConfig";
-import { deleteProductoAdmin, getProductos } from "../../services/productosService";
+import {
+  deleteProductoAdmin,
+  getAccesoriosRiderMeta,
+  getProductos,
+  updateProductoAdmin,
+} from "../../services/productosService";
 import { getStoredToken, getStoredUser, hasAdminAccess } from "../../services/authService";
 import "../../styles/home.css";
+import "../../styles/admin.css";
+
+function normalizeCompareLabel(value) {
+  return String(value || "")
+    .trim()
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/\s+/g, " ");
+}
+
+function resolveOptionIdByNombre(options, explicitId, explicitNombre) {
+  if (explicitId !== undefined && explicitId !== null && explicitId !== "") {
+    return String(explicitId);
+  }
+  const target = normalizeCompareLabel(explicitNombre);
+  if (!target) return "";
+  const match = options.find((item) => normalizeCompareLabel(item.nombre) === target);
+  return match ? String(match.id) : "";
+}
+
+function buildSlug(value) {
+  return String(value || "")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/(^-|-$)+/g, "");
+}
 
 export default function IndumentariaDestacada() {
   const fallbackImage = buildFallbackImageDataUrl({ width: 600, height: 600, text: "Sin Imagen" });
-  const navigate = useNavigate();
   const [productos, setProductos] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -15,6 +56,10 @@ export default function IndumentariaDestacada() {
   const [deletingId, setDeletingId] = useState(null);
   const [feedback, setFeedback] = useState({ type: "", message: "" });
   const trackRef = useRef(null);
+  const [accesoriosRiderMeta, setAccesoriosRiderMeta] = useState({ subcategorias: [], marcas: [] });
+  const [accesorioRiderEditModal, setAccesorioRiderEditModal] = useState(null);
+  const [accesorioRiderEditSaving, setAccesorioRiderEditSaving] = useState(false);
+  const [accesorioRiderEditError, setAccesorioRiderEditError] = useState("");
 
   useEffect(() => {
     const token = getStoredToken();
@@ -29,6 +74,26 @@ export default function IndumentariaDestacada() {
   }, [feedback.message]);
 
   useEffect(() => {
+    if (!isAdmin) return;
+    let isMounted = true;
+    getAccesoriosRiderMeta()
+      .then((meta) => {
+        if (!isMounted) return;
+        setAccesoriosRiderMeta({
+          subcategorias: Array.isArray(meta?.subcategorias) ? meta.subcategorias : [],
+          marcas: Array.isArray(meta?.marcas) ? meta.marcas : [],
+        });
+      })
+      .catch(() => {
+        if (!isMounted) return;
+        setAccesoriosRiderMeta({ subcategorias: [], marcas: [] });
+      });
+    return () => {
+      isMounted = false;
+    };
+  }, [isAdmin]);
+
+  useEffect(() => {
     let isMounted = true;
 
     async function loadProductos() {
@@ -38,8 +103,7 @@ export default function IndumentariaDestacada() {
         const lista = await getProductos({ tipo: "indumentaria", order: "release" });
         if (!isMounted) return;
         setProductos(Array.isArray(lista) ? lista : []);
-      } catch (err) {
-        console.error("Error loading featured apparel:", err);
+      } catch {
         if (!isMounted) return;
         setError("No se pudieron cargar los productos destacados.");
         setProductos([]);
@@ -51,6 +115,15 @@ export default function IndumentariaDestacada() {
     loadProductos();
     return () => {
       isMounted = false;
+    };
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      setAccesorioRiderEditModal((prev) => {
+        if (prev?.previewIsObjectUrl && prev.imagePreviewUrl) URL.revokeObjectURL(prev.imagePreviewUrl);
+        return prev;
+      });
     };
   }, []);
 
@@ -109,10 +182,163 @@ export default function IndumentariaDestacada() {
     }
   }
 
-  function handleEditProducto(event) {
+  function handleEditProducto(event, producto) {
     event.preventDefault();
     event.stopPropagation();
-    navigate("/indumentaria");
+
+    const subcategoriaId = resolveOptionIdByNombre(
+      accesoriosRiderMeta.subcategorias,
+      producto.subcategoria,
+      producto.subcategoria_nombre || producto.subcategoria_display || producto.subcategoria_label
+    );
+    const marcaId = resolveOptionIdByNombre(
+      accesoriosRiderMeta.marcas,
+      producto.marca,
+      producto.marca_nombre || producto.marca_display || producto.marca_label
+    );
+
+    setAccesorioRiderEditError("");
+    setAccesorioRiderEditModal({
+      id: producto.id,
+      title: producto.nombre || "Editar accesorio rider",
+      kind: "accesorio_rider",
+      originalImageUrl: buildMediaUrl(producto.imagen_principal) || "",
+      originalImageName: getFileNameFromPath(producto.imagen_principal),
+      imagePreviewUrl: buildMediaUrl(producto.imagen_principal) || "",
+      imageFileName: getFileNameFromPath(producto.imagen_principal),
+      previewIsObjectUrl: false,
+      imageInputKey: Date.now(),
+      currentImageIds: Array.isArray(producto.imagenes) ? producto.imagenes.map((item) => item.id).filter(Boolean) : [],
+      form: {
+        subcategoria: subcategoriaId,
+        marca: marcaId,
+        nombre: producto.nombre || "",
+        slug: producto.slug || buildSlug(producto.nombre || ""),
+        descripcion: producto.descripcion || "",
+        precio: normalizePrecioFromApi(producto.precio),
+        orden_carrusel: String(producto.orden_carrusel ?? "1"),
+        es_destacado: Boolean(producto.es_destacado),
+        activo: producto.activo !== false,
+        imagen_principal: null,
+        imagenes_galeria: [],
+        imagenes_eliminar: [],
+        remove_imagen_principal: false,
+      },
+    });
+  }
+
+  function closeAccesorioRiderEditModal(forceClose = false) {
+    if (accesorioRiderEditSaving && !forceClose) return;
+    setAccesorioRiderEditModal((prev) => {
+      if (prev?.previewIsObjectUrl && prev.imagePreviewUrl) URL.revokeObjectURL(prev.imagePreviewUrl);
+      return null;
+    });
+    setAccesorioRiderEditError("");
+  }
+
+  function handleAccesorioRiderEditInputChange(event) {
+    const { name, type, value, checked, files } = event.target;
+    setAccesorioRiderEditModal((prev) => {
+      if (!prev) return prev;
+      let nextImagePreviewUrl = prev.imagePreviewUrl;
+      let nextPreviewIsObjectUrl = prev.previewIsObjectUrl;
+      let nextImageFileName = prev.imageFileName;
+      const galleryFiles = type === "file" && name === "imagenes_galeria" ? Array.from(files || []) : null;
+      const nextValue =
+        type === "checkbox"
+          ? checked
+          : type === "file"
+            ? name === "imagenes_galeria"
+              ? galleryFiles
+              : files?.[0] || null
+            : value;
+
+      if (type === "file") {
+        if (prev.previewIsObjectUrl && prev.imagePreviewUrl) URL.revokeObjectURL(prev.imagePreviewUrl);
+        const primaryImage = name === "imagenes_galeria" ? (Array.isArray(nextValue) ? nextValue[0] : null) : nextValue;
+        if (primaryImage) {
+          nextImagePreviewUrl = URL.createObjectURL(primaryImage);
+          nextPreviewIsObjectUrl = true;
+          nextImageFileName = primaryImage.name;
+        } else {
+          nextImagePreviewUrl = prev.originalImageUrl || "";
+          nextPreviewIsObjectUrl = false;
+          nextImageFileName = prev.originalImageName || "";
+        }
+      }
+
+      const nextForm = { ...prev.form, [name]: nextValue };
+      if (type === "file" && name === "imagenes_galeria" && Array.isArray(nextValue) && nextValue.length > 0) {
+        nextForm.imagenes_eliminar = [];
+        nextForm.remove_imagen_principal = false;
+      }
+      if (name === "nombre") {
+        nextForm.slug = buildSlug(nextForm.nombre);
+      }
+
+      return {
+        ...prev,
+        form: nextForm,
+        imagePreviewUrl: nextImagePreviewUrl,
+        previewIsObjectUrl: nextPreviewIsObjectUrl,
+        imageFileName: nextImageFileName,
+      };
+    });
+  }
+
+  function handleAccesorioRiderEditPrecioInputChange(event) {
+    const precioNormalizado = normalizePrecioInput(event.target.value);
+    setAccesorioRiderEditModal((prev) => {
+      if (!prev) return prev;
+      return {
+        ...prev,
+        form: {
+          ...prev.form,
+          precio: precioNormalizado,
+        },
+      };
+    });
+  }
+
+  function removeAccesorioRiderEditImage() {
+    setAccesorioRiderEditModal((prev) => {
+      if (!prev) return prev;
+      if (prev.previewIsObjectUrl && prev.imagePreviewUrl) URL.revokeObjectURL(prev.imagePreviewUrl);
+      return {
+        ...prev,
+        imagePreviewUrl: "",
+        imageFileName: "",
+        originalImageUrl: "",
+        originalImageName: "",
+        previewIsObjectUrl: false,
+        imageInputKey: Date.now(),
+        form: {
+          ...prev.form,
+          imagen_principal: null,
+          imagenes_galeria: [],
+          imagenes_eliminar: Array.isArray(prev.currentImageIds) ? prev.currentImageIds : [],
+          remove_imagen_principal: true,
+        },
+      };
+    });
+  }
+
+  async function submitAccesorioRiderEditModal(event) {
+    event.preventDefault();
+    if (!accesorioRiderEditModal) return;
+    setAccesorioRiderEditSaving(true);
+    setAccesorioRiderEditError("");
+    const payload = buildAccesorioRiderPayload(accesorioRiderEditModal.form);
+    try {
+      const updatedAccesorio = await updateProductoAdmin(accesorioRiderEditModal.id, payload);
+      setProductos((prev) => (Array.isArray(prev) ? prev.map((item) => (item.id === accesorioRiderEditModal.id ? updatedAccesorio : item)) : prev));
+      setFeedback({ type: "success", message: "Producto actualizado correctamente." });
+      closeAccesorioRiderEditModal(true);
+    } catch {
+      setAccesorioRiderEditError("No se pudo actualizar el producto.");
+    } finally {
+      setAccesorioRiderEditSaving(false);
+    }
   }
 
   return (
@@ -120,9 +346,7 @@ export default function IndumentariaDestacada() {
       <h2>Indumentaria Rider Destacada</h2>
       {feedback.message ? <p className="home-carousel-empty">{feedback.message}</p> : null}
 
-      {loading ? (
-        null
-      ) : error ? (
+      {loading ? null : error ? (
         <p className="home-carousel-empty">{error}</p>
       ) : (
         <div className="carousel-wrapper carousel-wrapper-rider">
@@ -142,11 +366,7 @@ export default function IndumentariaDestacada() {
               >
                 <div className="home-product-image">
                   <img
-                    src={
-                      producto.imagen_principal
-                        ? buildMediaUrl(producto.imagen_principal)
-                        : fallbackImage
-                    }
+                    src={producto.imagen_principal ? buildMediaUrl(producto.imagen_principal) : fallbackImage}
                     alt={producto.nombre}
                     loading="lazy"
                     onError={(event) => {
@@ -156,7 +376,7 @@ export default function IndumentariaDestacada() {
                   />
                   {isAdmin && (
                     <div className="home-product-admin-actions" onClick={(event) => event.stopPropagation()}>
-                      <button type="button" className="home-product-admin-btn edit" title="Editar" onClick={handleEditProducto}>
+                      <button type="button" className="home-product-admin-btn edit" title="Editar" onClick={(event) => handleEditProducto(event, producto)}>
                         <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
                       </button>
                       <button
@@ -172,9 +392,7 @@ export default function IndumentariaDestacada() {
                   )}
                 </div>
                 <div className="home-product-body">
-                  <p className="home-product-brand">
-                    {producto.marca_nombre || producto.marca || "SIN MARCA"}
-                  </p>
+                  <p className="home-product-brand">{producto.marca_nombre || producto.marca || "SIN MARCA"}</p>
                   <h3>{producto.nombre}</h3>
                   <div className="home-product-bottom-row">
                     <p>${Number(producto.precio || 0).toLocaleString("es-CL")}</p>
@@ -196,6 +414,20 @@ export default function IndumentariaDestacada() {
           </button>
         </div>
       )}
+
+      <ProductoEditModal
+        productoEditModal={accesorioRiderEditModal}
+        productoMeta={accesoriosRiderMeta}
+        productoEditSaving={accesorioRiderEditSaving}
+        productoEditError={accesorioRiderEditError}
+        fallbackImage={fallbackImage}
+        onClose={closeAccesorioRiderEditModal}
+        onSubmit={submitAccesorioRiderEditModal}
+        onInputChange={handleAccesorioRiderEditInputChange}
+        onPrecioInputChange={handleAccesorioRiderEditPrecioInputChange}
+        onToggleCompatibilidad={null}
+        onRemoveImage={removeAccesorioRiderEditImage}
+      />
     </section>
   );
 }

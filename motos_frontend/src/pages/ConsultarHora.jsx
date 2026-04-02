@@ -59,16 +59,25 @@ function canCancelMantencion(estado) {
   return estado === "solicitud" || estado === "aprobado";
 }
 
-function isCancelledMantencion(estado) {
-  return String(estado || "").toLowerCase() === "cancelado";
+const VISIBLE_MANTENCION_ESTADOS = new Set([
+  "solicitud",
+  "aprobado",
+  "en_proceso",
+  "en_curso",
+  "en_espera",
+  "finalizado",
+  "finalizada",
+]);
+
+function normalizeEstado(estado) {
+  return String(estado || "")
+    .trim()
+    .toLowerCase()
+    .replace(/\s+/g, "_");
 }
 
-function isDeliveredMantencion(estado) {
-  return String(estado || "").toLowerCase() === "entregada";
-}
-
-function isHiddenMantencion(estado) {
-  return isCancelledMantencion(estado) || isDeliveredMantencion(estado);
+function isVisibleMantencion(estado) {
+  return VISIBLE_MANTENCION_ESTADOS.has(normalizeEstado(estado));
 }
 
 function getErrorText(error, fallback) {
@@ -164,7 +173,7 @@ export default function ConsultarHora() {
     try {
       const data = await consultarMantencionesPorRut(normalizedRut);
       const resultsRaw = Array.isArray(data?.results) ? data.results : [];
-      const results = resultsRaw.filter((item) => !isHiddenMantencion(item?.estado));
+      const results = resultsRaw.filter((item) => isVisibleMantencion(item?.estado));
       setConsultaResultados(results);
       setConsultaCurrentPage(1);
       if (results.length === 0) {
@@ -206,9 +215,12 @@ export default function ConsultarHora() {
     setCancelandoById((prev) => ({ ...prev, [item.id]: true }));
 
     try {
-      const response = await cancelarMantencionPorRut(item.id, normalizedRut);
+      await cancelarMantencionPorRut(item.id, normalizedRut);
       setConsultaResultados((prev) => prev.filter((row) => row.id !== item.id));
-      setToast({ type: "success", message: response?.detail || "Tu hora fue cancelada correctamente." });
+      setToast({
+        type: "success",
+        message: "La eliminacion de la hora fue exitosa.",
+      });
       setCancelModalItem(null);
     } catch (error) {
       setToast({ type: "error", message: getErrorText(error, "No pudimos cancelar la hora. Intenta nuevamente.") });
@@ -432,5 +444,3 @@ export default function ConsultarHora() {
     </div>
   );
 }
-
-

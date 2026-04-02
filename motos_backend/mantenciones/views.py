@@ -537,6 +537,16 @@ class MantencionLimpiarHorarioFechaAPIView(APIView):
 
 class MantencionConsultaRutAPIView(APIView):
     permission_classes = [IsAuthenticated]
+    ESTADOS_VISIBLES_CONSULTA = (
+        Mantencion.ESTADO_SOLICITUD,
+        Mantencion.ESTADO_APROBADO,
+        Mantencion.ESTADO_EN_PROCESO,
+        Mantencion.ESTADO_EN_ESPERA,
+        Mantencion.ESTADO_FINALIZADO,
+        # Compatibilidad con datos legacy.
+        "en_curso",
+        "finalizada",
+    )
 
     def _is_staff_user(self, user) -> bool:
         if not user or not user.is_authenticated:
@@ -556,6 +566,7 @@ class MantencionConsultaRutAPIView(APIView):
         queryset = (
             Mantencion.objects.select_related("moto_cliente", "moto_cliente__cliente", "moto_cliente__cliente__perfil_usuario")
             .filter(rut_cliente=rut)
+            .filter(estado__in=self.ESTADOS_VISIBLES_CONSULTA)
         )
         if not self._is_staff_user(request.user):
             queryset = queryset.filter(moto_cliente__cliente=request.user)
