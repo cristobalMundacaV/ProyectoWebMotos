@@ -52,22 +52,23 @@ export default function useMantencionesViewState() {
       if (prev === value) return prev;
       return value;
     });
-    setSelectedHistoricaId(null);
   }, []);
 
   const handleHistoricoEstadoFilterChange = useCallback((value) => {
     const normalizedValue = HISTORICO_ESTADO_ALLOWED.has(value) ? value : "";
-    if (normalizedValue === historicoEstadoFilter) return;
-    setHistoricoEstadoFilter(normalizedValue);
-    setSelectedHistoricaId(null);
-  }, [historicoEstadoFilter]);
+    setHistoricoEstadoFilter((prev) => {
+      if (prev === normalizedValue) return prev;
+      return normalizedValue;
+    });
+  }, []);
 
   const handleHistoricoFechaFilterChange = useCallback((value) => {
     const normalizedValue = HISTORICO_FECHA_ALLOWED.has(value) ? value : "todos";
-    if (normalizedValue === historicoFechaFilter) return;
-    setHistoricoFechaFilter(normalizedValue);
-    setSelectedHistoricaId(null);
-  }, [historicoFechaFilter]);
+    setHistoricoFechaFilter((prev) => {
+      if (prev === normalizedValue) return prev;
+      return normalizedValue;
+    });
+  }, []);
 
   const handleToggleMobilePicker = useCallback((pickerKey) => {
     setMobilePickerOpen((prev) => ({

@@ -82,6 +82,16 @@ export async function activarDiaCalendarioMantencion(payload) {
   return response.data;
 }
 
+export async function limpiarHorarioFechaCalendarioMantencion(payload) {
+  const response = await requestWithFallback(
+    "post",
+    "/mantenciones/disponibilidad/limpiar-fecha/",
+    "/mantenciones/disponibilidad/limpiar-fecha/",
+    payload
+  );
+  return response.data;
+}
+
 export async function toggleHoraCalendarioMantencion(payload) {
   const response = await requestWithFallback(
     "post",

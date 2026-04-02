@@ -492,9 +492,9 @@ export default function MantencionesPage({
           onToggleMobilePicker={handleToggleMobilePicker}
           onCloseMobilePicker={handleCloseMobilePicker}
           onOpenClienteDatos={openClienteDatosModal}
-          historicoEstadoFilter={HISTORICO_ESTADO_OPTIONS.has(historicoEstadoFilter) ? historicoEstadoFilter : ""}
+          historicoEstadoFilter={historicoEstadoFilter}
           onHistoricoEstadoFilterChange={handleHistoricoEstadoFilterChange}
-          historicoFechaFilter={HISTORICO_FECHA_OPTIONS.has(historicoFechaFilter) ? historicoFechaFilter : "todos"}
+          historicoFechaFilter={historicoFechaFilter}
           onHistoricoFechaFilterChange={handleHistoricoFechaFilterChange}
           transitions={transitions}
           savingById={savingById}

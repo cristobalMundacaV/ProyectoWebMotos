@@ -4,9 +4,11 @@ import {
   createHorarioMantencionAdmin,
   deleteHorarioMantencionAdmin,
   getHorariosMantencionAdmin,
+  limpiarHorarioFechaCalendarioMantencion,
   updateHorarioMantencionAdmin,
 } from "../services/mantencionesAdminService";
 import { initialHorarioMantencionForm } from "../../shared/constants/adminInitialState";
+import { isChileanHolidayDate } from "../utils/mantencionesViewUtils";
 
 const HORARIOS_SECTIONS = new Set(["horarios_operativos", "mantenciones_horarios"]);
 const HORARIO_HORIZON_DAYS = 31;
@@ -173,6 +175,7 @@ export default function useHorariosAdmin({ activeSection, pushToast, dismissToas
 
         const hoy = new Date();
         const diasActivaciones = [];
+        const diasFeriados = [];
         for (let offset = 0; offset < HORARIO_HORIZON_DAYS; offset += 1) {
           const fecha = new Date(hoy);
           fecha.setHours(0, 0, 0, 0);
@@ -180,10 +183,15 @@ export default function useHorariosAdmin({ activeSection, pushToast, dismissToas
 
           const diaSemana = toBackendWeekday(fecha);
           if (diaSemana < diaInicio || diaSemana > diaFin) continue;
+          const fechaIso = formatLocalISODate(fecha);
+          if (isChileanHolidayDate(fecha)) {
+            diasFeriados.push(fechaIso);
+            continue;
+          }
 
           diasActivaciones.push(
             activarDiaCalendarioMantencion({
-              fecha: formatLocalISODate(fecha),
+              fecha: fechaIso,
               hora_inicio: payloadBase.hora_inicio,
               hora_fin: payloadBase.hora_fin,
               intervalo_minutos: payloadBase.intervalo_minutos,
@@ -194,6 +202,12 @@ export default function useHorariosAdmin({ activeSection, pushToast, dismissToas
 
         if (diasActivaciones.length > 0) {
           await Promise.all(diasActivaciones);
+        }
+
+        if (diasFeriados.length > 0) {
+          await Promise.all(
+            diasFeriados.map((fecha) => limpiarHorarioFechaCalendarioMantencion({ fecha }))
+          );
         }
 
         await fetchHorariosMantencionList();

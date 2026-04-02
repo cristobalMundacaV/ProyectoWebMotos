@@ -504,6 +504,37 @@ class MantencionToggleHoraAPIView(APIView):
             )
 
 
+class MantencionLimpiarHorarioFechaAPIView(APIView):
+    permission_classes = [IsOperationalStaff]
+
+    def post(self, request):
+        raw_fecha = str(request.data.get("fecha", "")).strip()
+        if not raw_fecha:
+            return Response({"detail": "La fecha es obligatoria."}, status=status.HTTP_400_BAD_REQUEST)
+        try:
+            target_date = date.fromisoformat(raw_fecha)
+        except ValueError:
+            return Response({"detail": "Formato de fecha invalido. Usa YYYY-MM-DD."}, status=status.HTTP_400_BAD_REQUEST)
+
+        with transaction.atomic():
+            deleted_by_date = MantencionHorarioFecha.objects.filter(fecha=target_date).delete()[0]
+            deleted_hour_blocks = MantencionHoraBloqueada.objects.filter(fecha=target_date).delete()[0]
+
+            _broadcast_after_commit("availability_updated", {"scope": "calendar", "fecha": target_date.isoformat()})
+            _broadcast_after_commit("schedule_updated", {"scope": "calendar", "fecha": target_date.isoformat(), "action": "cleaned_date"})
+
+        return Response(
+            {
+                "fecha": target_date.isoformat(),
+                "deleted": {
+                    "horario_fecha": deleted_by_date,
+                    "horas_bloqueadas": deleted_hour_blocks,
+                },
+            },
+            status=status.HTTP_200_OK,
+        )
+
+
 class MantencionConsultaRutAPIView(APIView):
     permission_classes = [IsAuthenticated]
 
