@@ -354,6 +354,28 @@ class DashboardSummaryBuilder:
             )
         )
         if not has_comparable_previous_window:
+            if self.period == "all" and first_data_date:
+                baseline_total = self._mant_qs(Window(start=first_data_date, end=first_data_date)).count()
+                contract["meta"]["current_total"] = current_total
+                contract["meta"]["previous_total"] = baseline_total
+                contract["meta"]["comparison_label"] = "primer dia de registros"
+                contract["meta"]["comparison_window"] = {"from": first_data_date.isoformat(), "to": first_data_date.isoformat()}
+                if baseline_total == 0 and current_total > 0:
+                    contract["quality_flags"].append("prev_period_zero")
+                    contract["display"] = "Nuevo crecimiento"
+                    contract["value"] = None
+                    return contract
+                if baseline_total == 0 and current_total == 0:
+                    contract["quality_flags"].append("no_activity")
+                    contract["display"] = "0%"
+                    contract["value"] = 0.0
+                    contract["empty_reason"] = "no_current_and_previous_activity"
+                    return contract
+                growth_from_day_one = round(((current_total - baseline_total) / baseline_total) * 100, 2)
+                contract["value"] = growth_from_day_one
+                contract["display"] = f"{growth_from_day_one}%"
+                return contract
+
             contract["quality_flags"].append("no_comparable_previous_period")
             contract["meta"]["comparison_window"] = None
             contract["meta"]["current_total"] = current_total

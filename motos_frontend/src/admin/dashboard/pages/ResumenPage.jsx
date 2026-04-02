@@ -98,10 +98,16 @@ function getPeriodSubtitle(period, range) {
   return `${formatShortDate(start)} a ${formatShortDate(end)}`;
 }
 
-function formatMantenciones(value) {
+function formatHorasAgendadas(value) {
   const total = Number(value || 0);
-  if (total === 1) return "1 hora";
-  return `${total} horas`;
+  if (total === 1) return "1 hora agendada";
+  return `${total} horas agendadas`;
+}
+
+function formatHorasSolicitadas(value) {
+  const total = Number(value || 0);
+  if (total === 1) return "1 hora solicitada";
+  return `${total} horas solicitadas`;
 }
 
 function formatServiceLabel(value) {
@@ -294,15 +300,15 @@ export default function ResumenPage() {
       <section className="admin-analytics-kpi-grid admin-analytics-kpi-grid-main">
         <KpiCard
           title="Mantenciones agendadas"
-          value={formatMantenciones(kpis.total_mantenciones)}
+          value={formatHorasAgendadas(kpis.total_mantenciones)}
           subtitle={periodSubtitle}
           loading={loading}
           truncateValue
         />
         <KpiCard
           title="Solicitudes de mantencion"
-          value={formatMantenciones(kpis.solicitudes_mantencion ?? 0)}
-          subtitle="Total global en estado solicitud"
+          value={formatHorasSolicitadas(kpis.solicitudes_mantencion ?? 0)}
+          subtitle="Mantenciones en estado de solicitud"
           loading={loading}
           truncateValue
         />
