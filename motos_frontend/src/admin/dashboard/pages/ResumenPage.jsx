@@ -12,11 +12,11 @@ const PERIOD_OPTIONS = [
   { value: "last_7_days", label: "Ultimos 7 dias" },
   { value: "last_30_days", label: "Ultimos 30 dias" },
   { value: "this_month", label: "Este mes" },
-  { value: "this_year", label: "Este ano" },
+  { value: "this_year", label: "Este año" },
   { value: "last_3_months", label: "Ultimos 3 meses" },
   { value: "last_6_months", label: "Ultimos 6 meses" },
   { value: "last_9_months", label: "Ultimos 9 meses" },
-  { value: "last_year", label: "Ultimo ano" },
+  { value: "last_year", label: "Ultimo año" },
   { value: "all", label: "Todos" },
 ];
 
@@ -98,16 +98,10 @@ function getPeriodSubtitle(period, range) {
   return `${formatShortDate(start)} a ${formatShortDate(end)}`;
 }
 
-function formatHorasAgendadas(value) {
+function formatMantenciones(value) {
   const total = Number(value || 0);
-  if (total === 1) return "1 hora agendada";
-  return `${total} horas agendadas`;
-}
-
-function formatHorasSolicitadas(value) {
-  const total = Number(value || 0);
-  if (total === 1) return "1 hora solicitada";
-  return `${total} horas solicitadas`;
+  if (total === 1) return "1 hora";
+  return `${total} horas`;
 }
 
 function formatServiceLabel(value) {
@@ -300,15 +294,15 @@ export default function ResumenPage() {
       <section className="admin-analytics-kpi-grid admin-analytics-kpi-grid-main">
         <KpiCard
           title="Mantenciones agendadas"
-          value={formatHorasAgendadas(kpis.total_mantenciones)}
+          value={formatMantenciones(kpis.total_mantenciones)}
           subtitle={periodSubtitle}
           loading={loading}
           truncateValue
         />
         <KpiCard
           title="Solicitudes de mantencion"
-          value={formatHorasSolicitadas(kpis.solicitudes_mantencion ?? 0)}
-          subtitle="Mantenciones en estado de solicitud"
+          value={formatMantenciones(kpis.solicitudes_mantencion ?? 0)}
+          subtitle="Total global en estado solicitud"
           loading={loading}
           truncateValue
         />
@@ -316,7 +310,7 @@ export default function ResumenPage() {
           title="Crecimiento vs periodo anterior"
           value={
             kpis.growth_label === "sin_base_previa"
-              ? "Sin base previa comparable"
+              ? "Sin base comparable"
               : kpis.growth_label === "nuevo_crecimiento"
                 ? "Nuevo crecimiento"
                 : `${kpis.growth_pct ?? 0}%`
@@ -408,14 +402,12 @@ export default function ResumenPage() {
           title="Clientes recurrentes"
           value={kpis.clientes_recurrentes ?? 0}
           subtitle={`${kpis.clientes_recurrentes ?? 0} de ${kpis.clientes_total_unicos ?? 0} clientes unicos`}
-          supportText="Con historial previo a este periodo"
           loading={loading}
         />
         <KpiCard
           title="Clientes nuevos"
           value={kpis.clientes_nuevos ?? 0}
           subtitle={`${kpis.clientes_nuevos ?? 0} de ${kpis.clientes_total_unicos ?? 0} clientes unicos`}
-          supportText="Primera reserva en el periodo"
           loading={loading}
         />
       </section>
