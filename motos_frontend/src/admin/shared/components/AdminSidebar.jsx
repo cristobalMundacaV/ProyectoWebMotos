@@ -172,8 +172,8 @@ const SIDEBAR_STRUCTURE = {
           icon: "horarios",
           roles: ["admin", "mecanico"],
           items: [
-            { label: "Horario de la Semana", value: "horarios_operativos", roles: ["admin", "mecanico"] },
             { label: "Calendario Operativo", value: "horarios_calendario", roles: ["admin", "mecanico"] },
+            { label: "Configurar Horario", value: "horarios_operativos", roles: ["admin", "mecanico"] },
           ],
         },
         {
