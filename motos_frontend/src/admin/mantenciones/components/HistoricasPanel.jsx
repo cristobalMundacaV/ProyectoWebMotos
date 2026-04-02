@@ -2,6 +2,10 @@ import FichaDetailPanel from "./FichaDetailPanel";
 import FichaListPanel from "./FichaListPanel";
 import FichaMobilePicker from "./FichaMobilePicker";
 import { memo } from "react";
+import {
+  HISTORICO_ESTADO_FILTER_OPTIONS,
+  HISTORICO_FECHA_FILTER_OPTIONS,
+} from "../constants/mantencionesUiConstants";
 
 function HistoricasPanel({
   loading,
@@ -54,13 +58,11 @@ function HistoricasPanel({
                   value={historicoEstadoFilter}
                   onChange={(event) => onHistoricoEstadoFilterChange(event.target.value)}
                 >
-                  <option value="">Todos los estados</option>
-                  <option value="en_proceso">En proceso</option>
-                  <option value="en_espera">En espera</option>
-                  <option value="finalizado">Finalizado</option>
-                  <option value="cancelado">Cancelado</option>
-                  <option value="reagendacion">Reagendacion</option>
-                  <option value="entregada">Entregada</option>
+                  {HISTORICO_ESTADO_FILTER_OPTIONS.map((option) => (
+                    <option key={option.value || "all"} value={option.value}>
+                      {option.label}
+                    </option>
+                  ))}
                 </select>
               </label>
               <label className="admin-mantencion-historico-filter">
@@ -69,11 +71,11 @@ function HistoricasPanel({
                   value={historicoFechaFilter}
                   onChange={(event) => onHistoricoFechaFilterChange(event.target.value)}
                 >
-                  <option value="todos">Todos</option>
-                  <option value="hoy">Hoy</option>
-                  <option value="semana">Hace una semana</option>
-                  <option value="mes">Hace un mes</option>
-                  <option value="año">Hace un año</option>
+                  {HISTORICO_FECHA_FILTER_OPTIONS.map((option) => (
+                    <option key={option.value} value={option.value}>
+                      {option.label}
+                    </option>
+                  ))}
                 </select>
               </label>
             </div>

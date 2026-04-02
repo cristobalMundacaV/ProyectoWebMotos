@@ -24,4 +24,22 @@ export const TALLER_ESTADO_FILTERS = [
   { value: "por_entregar", label: "Por Entregar" },
 ];
 
+export const HISTORICO_ESTADO_FILTER_OPTIONS = [
+  { value: "", label: "Todos los estados" },
+  { value: "en_proceso", label: "En proceso" },
+  { value: "en_espera", label: "En espera" },
+  { value: "finalizado", label: "Finalizado" },
+  { value: "cancelado", label: "Cancelado" },
+  { value: "reagendacion", label: "Reagendacion" },
+  { value: "entregada", label: "Entregada" },
+];
+
+export const HISTORICO_FECHA_FILTER_OPTIONS = [
+  { value: "todos", label: "Todos" },
+  { value: "hoy", label: "Hoy" },
+  { value: "semana", label: "Hace una semana" },
+  { value: "mes", label: "Hace un mes" },
+  { value: "anio", label: "Hace un anio" },
+];
+
 export const WEEK_DAYS = ["Lun", "Mar", "Mie", "Jue", "Vie", "Sab", "Dom"];

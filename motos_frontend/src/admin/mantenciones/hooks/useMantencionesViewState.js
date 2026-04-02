@@ -1,4 +1,8 @@
 import { useCallback, useState } from "react";
+import {
+  HISTORICO_ESTADO_FILTER_OPTIONS,
+  HISTORICO_FECHA_FILTER_OPTIONS,
+} from "../constants/mantencionesUiConstants";
 
 const INITIAL_MOBILE_PICKER_STATE = {
   solicitudes: false,
@@ -6,8 +10,8 @@ const INITIAL_MOBILE_PICKER_STATE = {
   historicas: false,
 };
 
-const HISTORICO_FECHA_ALLOWED = new Set(["todos", "hoy", "semana", "mes", "aÃ±o"]);
-const HISTORICO_ESTADO_ALLOWED = new Set(["", "en_proceso", "en_espera", "finalizado", "cancelado", "reagendacion", "entregada"]);
+const HISTORICO_FECHA_ALLOWED = new Set(HISTORICO_FECHA_FILTER_OPTIONS.map((option) => option.value));
+const HISTORICO_ESTADO_ALLOWED = new Set(HISTORICO_ESTADO_FILTER_OPTIONS.map((option) => option.value));
 
 export default function useMantencionesViewState() {
   const [selectedSolicitudId, setSelectedSolicitudId] = useState(null);

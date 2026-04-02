@@ -3,6 +3,8 @@ import {
   ESTADOS_EN_TALLER,
   ESTADOS_SOLICITUD,
   ESTADOS_TALLER,
+  HISTORICO_ESTADO_FILTER_OPTIONS,
+  HISTORICO_FECHA_FILTER_OPTIONS,
 } from "../constants/mantencionesUiConstants";
 import {
   getCreatedAtTimestamp,
@@ -19,8 +21,8 @@ import HistoricasPanel from "../components/HistoricasPanel";
 import HorariosPanel from "../components/HorariosPanel";
 import CalendarioPanel from "../components/CalendarioPanel";
 
-const HISTORICO_ESTADO_OPTIONS = new Set(["", "en_proceso", "en_espera", "finalizado", "cancelado", "reagendacion", "entregada"]);
-const HISTORICO_FECHA_OPTIONS = new Set(["todos", "hoy", "semana", "mes", "aÃ±o"]);
+const HISTORICO_ESTADO_OPTIONS = new Set(HISTORICO_ESTADO_FILTER_OPTIONS.map((option) => option.value));
+const HISTORICO_FECHA_OPTIONS = new Set(HISTORICO_FECHA_FILTER_OPTIONS.map((option) => option.value));
 
 export default function MantencionesPage({
   activeSection,
@@ -61,6 +63,9 @@ export default function MantencionesPage({
       if (rutCliente && rutCliente !== "PENDIENTE") {
         return `rut:${rutCliente}`;
       }
+      if (moto.cliente !== null && moto.cliente !== undefined && moto.cliente !== "") {
+        return `cliente:${String(moto.cliente)}`;
+      }
       if (moto.cliente_email) {
         return `email:${normalizeTextKey(moto.cliente_email)}`;
       }
@@ -72,9 +77,6 @@ export default function MantencionesPage({
       const normalizedLabel = normalizeTextKey(label);
       if (normalizedLabel) {
         return `nombre:${normalizedLabel}`;
-      }
-      if (moto.cliente !== null && moto.cliente !== undefined && moto.cliente !== "") {
-        return `cliente:${String(moto.cliente)}`;
       }
       return `mantencion:${String(item?.id || "")}`;
     },
@@ -92,7 +94,7 @@ export default function MantencionesPage({
         return { start: new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000), end: new Date(today.getTime() + 24 * 60 * 60 * 1000 - 1) };
       case "mes":
         return { start: new Date(today.getTime() - 30 * 24 * 60 * 60 * 1000), end: new Date(today.getTime() + 24 * 60 * 60 * 1000 - 1) };
-      case "año":
+      case "anio":
         return { start: new Date(today.getTime() - 365 * 24 * 60 * 60 * 1000), end: new Date(today.getTime() + 24 * 60 * 60 * 1000 - 1) };
       default:
         return null;
