@@ -4,6 +4,7 @@ import { subscribeRealtime } from "../../../services/realtimeSocket";
 import {
   activarDiaCalendarioMantencion,
   bloquearDiaCalendarioMantencion,
+  deleteHorarioMantencionAdmin,
   toggleHoraCalendarioMantencion,
 } from "../services/mantencionesAdminService";
 import {
@@ -55,6 +56,9 @@ export default function useMantencionesCalendar({ activeSection, horarios }) {
   const [slotToggleConfirm, setSlotToggleConfirm] = useState(null);
   const [slotToggleSaving, setSlotToggleSaving] = useState(false);
   const [slotToggleError, setSlotToggleError] = useState("");
+  const [clearHorasModalOpen, setClearHorasModalOpen] = useState(false);
+  const [clearHorasSaving, setClearHorasSaving] = useState(false);
+  const [clearHorasError, setClearHorasError] = useState("");
 
   const availabilityMap = useMemo(() => {
     const map = {};
@@ -253,9 +257,22 @@ export default function useMantencionesCalendar({ activeSection, horarios }) {
   }, [slotToggleConfirm, slotToggleSaving]);
 
   useEffect(() => {
+    if (!clearHorasModalOpen) return undefined;
+    function handleKeydown(event) {
+      if (event.key === "Escape" && !clearHorasSaving) {
+        setClearHorasModalOpen(false);
+        setClearHorasError("");
+      }
+    }
+    window.addEventListener("keydown", handleKeydown);
+    return () => window.removeEventListener("keydown", handleKeydown);
+  }, [clearHorasModalOpen, clearHorasSaving]);
+
+  useEffect(() => {
     setDayBlockError("");
     setDayActivateError("");
     setSlotToggleError("");
+    setClearHorasError("");
     setDayBlockConfirm(null);
     setSlotToggleConfirm(null);
   }, [selectedCalendarDate]);
@@ -401,6 +418,35 @@ export default function useMantencionesCalendar({ activeSection, horarios }) {
     setSlotToggleError("");
   }, []);
 
+  const openClearHorasModal = useCallback(() => {
+    setClearHorasError("");
+    setClearHorasModalOpen(true);
+  }, []);
+
+  const closeClearHorasModal = useCallback(() => {
+    setClearHorasModalOpen(false);
+    setClearHorasError("");
+  }, []);
+
+  const executeClearAllHoras = useCallback(async () => {
+    setClearHorasSaving(true);
+    setClearHorasError("");
+    try {
+      const horarioIds = [...horarios]
+        .map((item) => Number(item?.id))
+        .filter((id) => Number.isFinite(id) && id > 0);
+      if (horarioIds.length) {
+        await Promise.all(horarioIds.map((id) => deleteHorarioMantencionAdmin(id)));
+      }
+      setClearHorasModalOpen(false);
+      await refreshCalendarAvailability({ silent: true });
+    } catch (error) {
+      setClearHorasError(extractErrorMessage(error, "No se pudieron limpiar todas las horas de atencion."));
+    } finally {
+      setClearHorasSaving(false);
+    }
+  }, [horarios, refreshCalendarAvailability]);
+
   const handleDayActivateFieldChange = useCallback((field, value) => {
     setDayActivateForm((prev) => ({
       ...prev,
@@ -428,6 +474,9 @@ export default function useMantencionesCalendar({ activeSection, horarios }) {
     slotToggleConfirm,
     slotToggleSaving,
     slotToggleError,
+    clearHorasModalOpen,
+    clearHorasSaving,
+    clearHorasError,
     goToPrevMonth,
     goToNextMonth,
     canGoPrevMonth,
@@ -439,6 +488,9 @@ export default function useMantencionesCalendar({ activeSection, horarios }) {
     closeDayBlockConfirm,
     closeDayActivateModal,
     closeSlotToggleConfirm,
+    openClearHorasModal,
+    closeClearHorasModal,
+    executeClearAllHoras,
     handleDayActivateFieldChange,
   };
 }

@@ -9,6 +9,7 @@ export default function CalendarioPanel({ model }) {
     day,
     state,
     modals,
+    actions,
   } = model;
 
   const selectedCalendarDate = day.selectedDate;
@@ -24,14 +25,27 @@ export default function CalendarioPanel({ model }) {
   const dayActivateForm = state.dayActivateForm;
   const slotToggleSaving = state.slotToggleSaving;
   const slotToggleError = state.slotToggleError;
+  const clearHorasSaving = state.clearHorasSaving;
+  const clearHorasError = state.clearHorasError;
+  const clearHorasModalOpen = modals.clearHorasModalOpen;
 
   return (
     <section className="admin-content-grid admin-content-grid-mantenciones">
       <article className="admin-panel-card">
         <div className="admin-card-header">
-          <div>
-            <h2>Calendario de disponibilidad</h2>
-            <span>Vista mensual para revisar dias habilitados y el detalle de horas disponibles u ocupadas.</span>
+          <div className="admin-horarios-header-row">
+            <div>
+              <h2>Calendario de disponibilidad</h2>
+              <span>Vista mensual para revisar dias habilitados y el detalle de horas disponibles u ocupadas.</span>
+            </div>
+            <button
+              type="button"
+              className="admin-danger-action admin-mantencion-action-btn admin-horarios-clear-btn"
+              disabled={clearHorasSaving}
+              onClick={modals.openClearHoras}
+            >
+              {clearHorasSaving ? "Limpiando..." : "Limpiar horas"}
+            </button>
           </div>
         </div>
 
@@ -395,6 +409,44 @@ export default function CalendarioPanel({ model }) {
                   onClick={day.activate}
                 >
                   {dayActivateSaving ? "Activando..." : "Activar"}
+                </button>
+              </div>
+            </section>
+          </div>
+        )}
+        {clearHorasModalOpen && (
+          <div
+            className="admin-confirm-modal-overlay"
+            onClick={() => {
+              if (!clearHorasSaving) modals.closeClearHoras();
+            }}
+          >
+            <section className="admin-confirm-modal" onClick={(event) => event.stopPropagation()}>
+              <img src="/images/informacion.png" alt="Informacion" className="admin-confirm-modal-image" />
+              <h3>Limpiar horas de atencion</h3>
+              <p className="admin-confirm-modal-text">
+                Estas seguro que quieres limpiar todas las horas de atencion del sistema?
+              </p>
+              <p className="admin-confirm-modal-subtext">
+                Esta accion eliminara toda la configuracion horaria operativa y se vera reflejada en el calendario.
+              </p>
+              {clearHorasError ? <p className="admin-confirm-modal-error">{clearHorasError}</p> : null}
+              <div className="admin-confirm-modal-actions">
+                <button
+                  type="button"
+                  className="btn-back"
+                  disabled={clearHorasSaving}
+                  onClick={modals.closeClearHoras}
+                >
+                  Volver
+                </button>
+                <button
+                  type="button"
+                  className="btn-delete"
+                  disabled={clearHorasSaving}
+                  onClick={actions.clearAllHoras}
+                >
+                  {clearHorasSaving ? "Limpiando..." : "Limpiar"}
                 </button>
               </div>
             </section>
