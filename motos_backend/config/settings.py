@@ -43,7 +43,7 @@ def merge_unique(*groups: list[str]) -> list[str]:
     return merged
 
 
-DEFAULT_ALLOWED_HOSTS = ["3.229.25.68", "localhost", "127.0.0.1"]
+DEFAULT_ALLOWED_HOSTS = ["3.229.25.68", "34.205.43.88", "localhost", "127.0.0.1"]
 REQUIRED_ALLOWED_HOSTS = ["delanoemotos.cl", "www.delanoemotos.cl"]
 ALLOWED_HOSTS = merge_unique(
     DEFAULT_ALLOWED_HOSTS,
@@ -54,6 +54,8 @@ ALLOWED_HOSTS = merge_unique(
 DEFAULT_TRUSTED_ORIGINS = [
     "http://3.229.25.68",
     "https://3.229.25.68",
+    "http://34.205.43.88",
+    "https://34.205.43.88",
     "http://localhost",
     "https://localhost",
     "http://127.0.0.1",
