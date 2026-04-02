@@ -38,25 +38,31 @@ export default function MantencionesPage({
   onHorarioUpdate,
   onHorarioDelete,
 }) {
-  const normalizeTextKey = (value) =>
-    String(value || "")
-      .trim()
-      .toLowerCase()
-      .normalize("NFD")
-      .replace(/[\u0300-\u036f]/g, "")
-      .replace(/\s+/g, " ");
+  const normalizeTextKey = useCallback(
+    (value) =>
+      String(value || "")
+        .trim()
+        .toLowerCase()
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .replace(/\s+/g, " "),
+    []
+  );
 
-  const getHistoricoClienteKey = (item) => {
-    const moto = item?.moto_cliente_detalle || {};
-    if (moto.cliente !== null && moto.cliente !== undefined && moto.cliente !== "") {
-      return `cliente:${String(moto.cliente)}`;
-    }
-    if (moto.cliente_email) {
-      return `email:${normalizeTextKey(moto.cliente_email)}`;
-    }
-    const label = (moto.cliente_nombre || "").trim() || "Cliente sin nombre";
-    return `nombre:${normalizeTextKey(label)}`;
-  };
+  const getHistoricoClienteKey = useCallback(
+    (item) => {
+      const moto = item?.moto_cliente_detalle || {};
+      if (moto.cliente !== null && moto.cliente !== undefined && moto.cliente !== "") {
+        return `cliente:${String(moto.cliente)}`;
+      }
+      if (moto.cliente_email) {
+        return `email:${normalizeTextKey(moto.cliente_email)}`;
+      }
+      const label = (moto.cliente_nombre || "").trim() || "Cliente sin nombre";
+      return `nombre:${normalizeTextKey(label)}`;
+    },
+    [normalizeTextKey]
+  );
 
   const getDateRange = (filterType) => {
     const now = new Date();
@@ -99,7 +105,7 @@ export default function MantencionesPage({
       if (!uniques.has(value)) uniques.set(value, { value, label });
     });
     return Array.from(uniques.values()).sort((a, b) => a.label.localeCompare(b.label, "es"));
-  }, [fichasHistoricas]);
+  }, [fichasHistoricas, getHistoricoClienteKey]);
 
   const {
     selectedSolicitudId,
@@ -115,7 +121,6 @@ export default function MantencionesPage({
     setSelectedSolicitudId,
     setSelectedFichaId,
     setSelectedHistoricaId,
-    setSelectedHistoricoCliente,
     setShowHorarioForm,
     setMobilePickerOpen,
     handleSolicitudesTabChange,
@@ -126,6 +131,19 @@ export default function MantencionesPage({
     handleToggleMobilePicker,
     handleCloseMobilePicker,
   } = useMantencionesViewState();
+
+  const historicoClientesWithFallbackSelection = useMemo(() => {
+    if (!selectedHistoricoCliente) {
+      return historicoClientes;
+    }
+
+    const exists = historicoClientes.some((item) => item.value === selectedHistoricoCliente);
+    if (exists) {
+      return historicoClientes;
+    }
+
+    return [{ value: selectedHistoricoCliente, label: "Cliente seleccionado" }, ...historicoClientes];
+  }, [historicoClientes, selectedHistoricoCliente]);
 
   const {
     calendarLoading,
@@ -309,25 +327,10 @@ export default function MantencionesPage({
     return `No hay fichas en estado ${labelByFilter[tallerEstadoFilter] || "seleccionado"}.`;
   }, [tallerEstadoFilter]);
 
-  const selectedHistoricoClienteEffective = useMemo(
-    () => selectedHistoricoCliente,
-    [selectedHistoricoCliente]
-  );
-
-  useEffect(() => {
-    if (!selectedHistoricoCliente) return;
-    if (loading) return;
-    if (!historicoClientes.length) return;
-    const stillExists = historicoClientes.some((item) => item.value === selectedHistoricoCliente);
-    if (!stillExists) {
-      setSelectedHistoricoCliente("");
-    }
-  }, [historicoClientes, loading, selectedHistoricoCliente, setSelectedHistoricoCliente]);
-
   const fichasHistoricasByCliente = useMemo(() => {
-    if (!selectedHistoricoClienteEffective) return [];
+    if (!selectedHistoricoCliente) return [];
     return fichasHistoricas.filter((item) => {
-      if (getHistoricoClienteKey(item) !== selectedHistoricoClienteEffective) return false;
+      if (getHistoricoClienteKey(item) !== selectedHistoricoCliente) return false;
 
       if (historicoEstadoFilter && item.estado !== historicoEstadoFilter) return false;
 
@@ -342,7 +345,7 @@ export default function MantencionesPage({
 
       return true;
     });
-  }, [fichasHistoricas, selectedHistoricoClienteEffective, historicoEstadoFilter, historicoFechaFilter]);
+  }, [fichasHistoricas, selectedHistoricoCliente, historicoEstadoFilter, historicoFechaFilter, getHistoricoClienteKey]);
 
   const selectedSolicitud = useMemo(() => {
     const byId = solicitudes.find((item) => item.id === selectedSolicitudId);
@@ -355,13 +358,15 @@ export default function MantencionesPage({
   }, [fichasMantencion, selectedFichaId]);
 
   const selectedHistorica = useMemo(() => {
-    const byId = fichasHistoricasByCliente.find((item) => item.id === selectedHistoricaId);
+    const selectedHistoricaIdKey = selectedHistoricaId != null ? String(selectedHistoricaId) : "";
+    const byId = fichasHistoricasByCliente.find((item) => String(item.id) === selectedHistoricaIdKey);
     return byId || fichasHistoricasByCliente[0] || null;
   }, [fichasHistoricasByCliente, selectedHistoricaId]);
 
   useEffect(() => {
-    if (!selectedHistoricaId) return;
-    const existsInFilteredList = fichasHistoricasByCliente.some((item) => item.id === selectedHistoricaId);
+    if (selectedHistoricaId == null) return;
+    const selectedHistoricaIdKey = String(selectedHistoricaId);
+    const existsInFilteredList = fichasHistoricasByCliente.some((item) => String(item.id) === selectedHistoricaIdKey);
     if (!existsInFilteredList) {
       setSelectedHistoricaId(null);
     }
@@ -443,8 +448,8 @@ export default function MantencionesPage({
         ) : null}
         <HistoricasPanel
           loading={loading}
-          historicoClientes={historicoClientes}
-          selectedHistoricoClienteEffective={selectedHistoricoClienteEffective}
+          historicoClientes={historicoClientesWithFallbackSelection}
+          selectedHistoricoClienteEffective={selectedHistoricoCliente}
           onHistoricoClienteChange={handleHistoricoClienteChange}
           fichasHistoricasByCliente={fichasHistoricasByCliente}
           selectedHistorica={selectedHistorica}

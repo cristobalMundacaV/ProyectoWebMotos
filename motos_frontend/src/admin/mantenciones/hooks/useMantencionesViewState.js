@@ -41,20 +41,26 @@ export default function useMantencionesViewState() {
       ...prev,
       historicas: false,
     }));
-    if (value === selectedHistoricoCliente) return;
-    setSelectedHistoricoCliente(value);
+    setSelectedHistoricoCliente((prev) => {
+      if (prev === value) return prev;
+      return value;
+    });
     setSelectedHistoricaId(null);
-  }, [selectedHistoricoCliente]);
+  }, []);
 
   const handleHistoricoEstadoFilterChange = useCallback((value) => {
-    if (value === historicoEstadoFilter) return;
-    setHistoricoEstadoFilter(value);
-  }, [historicoEstadoFilter]);
+    setHistoricoEstadoFilter((prev) => {
+      if (prev === value) return prev;
+      return value;
+    });
+  }, []);
 
   const handleHistoricoFechaFilterChange = useCallback((value) => {
-    if (value === historicoFechaFilter) return;
-    setHistoricoFechaFilter(value);
-  }, [historicoFechaFilter]);
+    setHistoricoFechaFilter((prev) => {
+      if (prev === value) return prev;
+      return value;
+    });
+  }, []);
 
   const handleToggleMobilePicker = useCallback((pickerKey) => {
     setMobilePickerOpen((prev) => ({
