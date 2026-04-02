@@ -320,7 +320,7 @@
   padding: clamp(50px, 8vw, 70px) 20px;
   background:
     linear-gradient(rgba(0, 0, 0, 0.55), rgba(0, 0, 0, 0.55)),
-    url("/images/fondo.webp");
+    url("/images/fondo.jpg");
   background-size: cover;
   background-position: center;
   color: #fff;
