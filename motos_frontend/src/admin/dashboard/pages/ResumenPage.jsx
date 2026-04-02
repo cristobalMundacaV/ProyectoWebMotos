@@ -8,11 +8,8 @@ import { subscribeRealtime } from "../../../services/realtimeSocket";
 
 const PERIOD_OPTIONS = [
   { value: "today", label: "Hoy" },
-  { value: "this_week", label: "Esta semana" },
   { value: "last_7_days", label: "Ultimos 7 dias" },
   { value: "last_30_days", label: "Ultimos 30 dias" },
-  { value: "this_month", label: "Este mes" },
-  { value: "this_year", label: "Este año" },
   { value: "last_3_months", label: "Ultimos 3 meses" },
   { value: "last_6_months", label: "Ultimos 6 meses" },
   { value: "last_9_months", label: "Ultimos 9 meses" },
@@ -98,10 +95,16 @@ function getPeriodSubtitle(period, range) {
   return `${formatShortDate(start)} a ${formatShortDate(end)}`;
 }
 
-function formatMantenciones(value) {
+function formatHorasAgendadas(value) {
   const total = Number(value || 0);
-  if (total === 1) return "1 hora";
-  return `${total} horas`;
+  if (total === 1) return "1 hora agendada";
+  return `${total} horas agendadas`;
+}
+
+function formatHorasSolicitadas(value) {
+  const total = Number(value || 0);
+  if (total === 1) return "1 hora solicitada";
+  return `${total} horas solicitadas`;
 }
 
 function formatServiceLabel(value) {
@@ -294,15 +297,15 @@ export default function ResumenPage() {
       <section className="admin-analytics-kpi-grid admin-analytics-kpi-grid-main">
         <KpiCard
           title="Mantenciones agendadas"
-          value={formatMantenciones(kpis.total_mantenciones)}
+          value={formatHorasAgendadas(kpis.total_mantenciones)}
           subtitle={periodSubtitle}
           loading={loading}
           truncateValue
         />
         <KpiCard
           title="Solicitudes de mantencion"
-          value={formatMantenciones(kpis.solicitudes_mantencion ?? 0)}
-          subtitle="Total global en estado solicitud"
+          value={formatHorasSolicitadas(kpis.solicitudes_mantencion ?? 0)}
+          subtitle="Mantenciones en estado de solicitud"
           loading={loading}
           truncateValue
         />
