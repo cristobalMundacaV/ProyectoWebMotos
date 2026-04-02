@@ -32,51 +32,53 @@ export default function BarChartCard({
           {subtitle ? <p className="admin-analytics-card-subtitle">{subtitle}</p> : null}
         </div>
       </div>
-      {loading ? (
-        <div className="admin-analytics-skeleton-list">
-          <span />
-          <span />
-          <span />
-        </div>
-      ) : items.length === 0 ? (
-        <p className="admin-empty">Sin datos para mostrar.</p>
-      ) : (
-        <div className={horizontal ? "admin-analytics-bars horizontal" : "admin-analytics-bars"}>
-          {items.map((item, index) => {
-            const value = Number(item.value || 0);
-            const pct = Math.max(6, Math.round((value / max) * 100));
-            const color = index === 0 ? HIGHLIGHT_BAR : PRIMARY_BAR;
-            const sideMetric = item.percent !== null && item.percent !== undefined
-              ? `${Number(item.percent).toFixed(1)}%`
-              : null;
-            const trend = item.trend || "flat";
-            return (
-              <div key={`${item.label}-${index}`} className={`admin-analytics-bar-row ${item.critical ? "critical" : ""}`}>
-                <span className="admin-analytics-bar-label">
-                  {item.label}
-                  {item.meta ? <small>{item.meta}</small> : null}
-                </span>
-                <div className="admin-analytics-bar-track">
-                  <div
-                    className="admin-analytics-bar-fill"
-                    style={{ width: `${pct}%`, background: color }}
-                  />
+      <div className="admin-analytics-chart-card-content">
+        {loading ? (
+          <div className="admin-analytics-skeleton-list">
+            <span />
+            <span />
+            <span />
+          </div>
+        ) : items.length === 0 ? (
+          <p className="admin-empty">Sin datos para mostrar.</p>
+        ) : (
+          <div className={horizontal ? "admin-analytics-bars horizontal" : "admin-analytics-bars"}>
+            {items.map((item, index) => {
+              const value = Number(item.value || 0);
+              const pct = Math.max(6, Math.round((value / max) * 100));
+              const color = index === 0 ? HIGHLIGHT_BAR : PRIMARY_BAR;
+              const sideMetric = item.percent !== null && item.percent !== undefined
+                ? `${Number(item.percent).toFixed(1)}%`
+                : null;
+              const trend = item.trend || "flat";
+              return (
+                <div key={`${item.label}-${index}`} className={`admin-analytics-bar-row ${item.critical ? "critical" : ""}`}>
+                  <span className="admin-analytics-bar-label">
+                    {item.label}
+                    {item.meta ? <small>{item.meta}</small> : null}
+                  </span>
+                  <div className="admin-analytics-bar-track">
+                    <div
+                      className="admin-analytics-bar-fill"
+                      style={{ width: `${pct}%`, background: color }}
+                    />
+                  </div>
+                  <strong className="admin-analytics-bar-value">
+                    {value}
+                    {sideMetric ? <small>{sideMetric}</small> : null}
+                    {item.trend ? (
+                      <span className={`admin-analytics-mini-trend ${trend}`}>
+                        {trend === "up" ? "^" : trend === "down" ? "v" : ">"}
+                      </span>
+                    ) : null}
+                  </strong>
                 </div>
-                <strong className="admin-analytics-bar-value">
-                  {value}
-                  {sideMetric ? <small>{sideMetric}</small> : null}
-                  {item.trend ? (
-                    <span className={`admin-analytics-mini-trend ${trend}`}>
-                      {trend === "up" ? "^" : trend === "down" ? "v" : ">"}
-                    </span>
-                  ) : null}
-                </strong>
-              </div>
-            );
-          })}
-        </div>
-      )}
-      {!loading && footerText ? <p className="admin-analytics-card-subtitle">{footerText}</p> : null}
+              );
+            })}
+          </div>
+        )}
+      </div>
+      {!loading && footerText ? <p className="admin-analytics-card-subtitle admin-analytics-chart-footer">{footerText}</p> : null}
     </article>
   );
 }

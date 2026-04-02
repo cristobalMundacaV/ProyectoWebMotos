@@ -2,11 +2,14 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useMotos } from "../../hooks/useMotos";
 import MotoCard from "../motos/MotoCard";
 import MotoEditModal from "../../admin/motos/components/MotoEditModal";
+import usePublicToasts from "../equipamiento/usePublicToasts";
+import PublicToastStack from "../equipamiento/PublicToastStack";
 import { MOTO_YEAR_RANGE } from "../../admin/motos/constants/motoYearRange";
 import { buildFallbackImageDataUrl, buildMediaUrl } from "../../services/apiConfig";
 import { deleteMoto, getMotoAdminMeta, updateMoto } from "../../services/motosService";
 import { getStoredToken, getStoredUser, hasAdminAccess } from "../../services/authService";
 import "../../styles/home.css";
+import "../../styles/admin.css";
 
 export default function MotosDestacadas() {
   const fallbackImage = buildFallbackImageDataUrl({ width: 900, height: 600, text: "Sin Imagen" });
@@ -24,11 +27,11 @@ export default function MotosDestacadas() {
   const trackRef = useRef(null);
   const [isAdmin, setIsAdmin] = useState(false);
   const [deletingId, setDeletingId] = useState(null);
-  const [feedback, setFeedback] = useState({ type: "", message: "" });
   const [motoMeta, setMotoMeta] = useState({ marcas: [], categorias: [], modelos: [] });
   const [motoEditModal, setMotoEditModal] = useState(null);
   const [motoEditSaving, setMotoEditSaving] = useState(false);
   const [motoEditError, setMotoEditError] = useState("");
+  const { toasts, pushToast, dismissToast } = usePublicToasts();
 
   const currentYear = new Date().getFullYear();
   const minMotoYear = currentYear - MOTO_YEAR_RANGE;
@@ -70,12 +73,6 @@ export default function MotosDestacadas() {
       isMounted = false;
     };
   }, [isAdmin]);
-
-  useEffect(() => {
-    if (!feedback.message) return undefined;
-    const timeoutId = window.setTimeout(() => setFeedback({ type: "", message: "" }), 3500);
-    return () => window.clearTimeout(timeoutId);
-  }, [feedback.message]);
 
   useEffect(() => {
     return () => {
@@ -202,9 +199,9 @@ export default function MotosDestacadas() {
     try {
       await deleteMoto(moto.id);
       setMotos((prev) => (Array.isArray(prev) ? prev.filter((item) => item.id !== moto.id) : []));
-      setFeedback({ type: "success", message: "Moto eliminada correctamente." });
+      pushToast("Moto eliminada correctamente.", "success");
     } catch {
-      setFeedback({ type: "error", message: "No se pudo eliminar la moto." });
+      pushToast("No se pudo eliminar la moto.", "error");
     } finally {
       setDeletingId(null);
     }
@@ -376,10 +373,11 @@ export default function MotosDestacadas() {
     try {
       const updatedMoto = await updateMoto(motoEditModal.id, buildMotoPayload(motoEditModal.form));
       setMotos((prev) => (Array.isArray(prev) ? prev.map((item) => (item.id === motoEditModal.id ? updatedMoto : item)) : prev));
-      setFeedback({ type: "success", message: "Moto actualizada correctamente." });
+      pushToast("Moto actualizada correctamente.", "success");
       closeMotoEditModal(true);
     } catch {
       setMotoEditError("No se pudo actualizar la moto.");
+      pushToast("No se pudo actualizar la moto.", "error");
     } finally {
       setMotoEditSaving(false);
     }
@@ -388,7 +386,7 @@ export default function MotosDestacadas() {
   return (
     <section className="destacadas" id="catalogo">
       <h2>Modelos Destacados</h2>
-      {feedback.message ? <p className="home-carousel-empty">{feedback.message}</p> : null}
+      <PublicToastStack toasts={toasts} onDismiss={dismissToast} />
 
       {loading && null}
       {!loading && error && <p className="home-carousel-empty">{error}</p>}

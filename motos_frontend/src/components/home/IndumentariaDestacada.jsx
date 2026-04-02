@@ -1,6 +1,8 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import ProductoEditModal from "../../admin/productos/components/ProductoEditModal";
+import usePublicToasts from "../equipamiento/usePublicToasts";
+import PublicToastStack from "../equipamiento/PublicToastStack";
 import { buildAccesorioRiderPayload } from "../../admin/productos/controllers/productoPayloadBuilder";
 import {
   getFileNameFromPath,
@@ -54,24 +56,18 @@ export default function IndumentariaDestacada() {
   const [error, setError] = useState("");
   const [isAdmin, setIsAdmin] = useState(false);
   const [deletingId, setDeletingId] = useState(null);
-  const [feedback, setFeedback] = useState({ type: "", message: "" });
   const trackRef = useRef(null);
   const [accesoriosRiderMeta, setAccesoriosRiderMeta] = useState({ subcategorias: [], marcas: [] });
   const [accesorioRiderEditModal, setAccesorioRiderEditModal] = useState(null);
   const [accesorioRiderEditSaving, setAccesorioRiderEditSaving] = useState(false);
   const [accesorioRiderEditError, setAccesorioRiderEditError] = useState("");
+  const { toasts, pushToast, dismissToast } = usePublicToasts();
 
   useEffect(() => {
     const token = getStoredToken();
     const user = getStoredUser();
     setIsAdmin(Boolean(token && hasAdminAccess(user)));
   }, []);
-
-  useEffect(() => {
-    if (!feedback.message) return undefined;
-    const timeoutId = window.setTimeout(() => setFeedback({ type: "", message: "" }), 3500);
-    return () => window.clearTimeout(timeoutId);
-  }, [feedback.message]);
 
   useEffect(() => {
     if (!isAdmin) return;
@@ -174,9 +170,9 @@ export default function IndumentariaDestacada() {
     try {
       await deleteProductoAdmin(producto.id);
       setProductos((prev) => (Array.isArray(prev) ? prev.filter((item) => item.id !== producto.id) : []));
-      setFeedback({ type: "success", message: "Producto eliminado correctamente." });
+      pushToast("Producto eliminado correctamente.", "success");
     } catch {
-      setFeedback({ type: "error", message: "No se pudo eliminar el producto." });
+      pushToast("No se pudo eliminar el producto.", "error");
     } finally {
       setDeletingId(null);
     }
@@ -332,10 +328,11 @@ export default function IndumentariaDestacada() {
     try {
       const updatedAccesorio = await updateProductoAdmin(accesorioRiderEditModal.id, payload);
       setProductos((prev) => (Array.isArray(prev) ? prev.map((item) => (item.id === accesorioRiderEditModal.id ? updatedAccesorio : item)) : prev));
-      setFeedback({ type: "success", message: "Producto actualizado correctamente." });
+      pushToast("Producto actualizado correctamente.", "success");
       closeAccesorioRiderEditModal(true);
     } catch {
       setAccesorioRiderEditError("No se pudo actualizar el producto.");
+      pushToast("No se pudo actualizar el producto.", "error");
     } finally {
       setAccesorioRiderEditSaving(false);
     }
@@ -344,7 +341,7 @@ export default function IndumentariaDestacada() {
   return (
     <section className="destacadas destacadas-rider">
       <h2>Indumentaria Rider Destacada</h2>
-      {feedback.message ? <p className="home-carousel-empty">{feedback.message}</p> : null}
+      <PublicToastStack toasts={toasts} onDismiss={dismissToast} />
 
       {loading ? null : error ? (
         <p className="home-carousel-empty">{error}</p>
