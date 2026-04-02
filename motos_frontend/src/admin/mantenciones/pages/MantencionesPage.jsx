@@ -19,6 +19,9 @@ import HistoricasPanel from "../components/HistoricasPanel";
 import HorariosPanel from "../components/HorariosPanel";
 import CalendarioPanel from "../components/CalendarioPanel";
 
+const HISTORICO_ESTADO_OPTIONS = new Set(["", "en_proceso", "en_espera", "finalizado", "cancelado", "reagendacion", "entregada"]);
+const HISTORICO_FECHA_OPTIONS = new Set(["todos", "hoy", "semana", "mes", "aÃ±o"]);
+
 export default function MantencionesPage({
   activeSection,
   loading,
@@ -52,14 +55,28 @@ export default function MantencionesPage({
   const getHistoricoClienteKey = useCallback(
     (item) => {
       const moto = item?.moto_cliente_detalle || {};
-      if (moto.cliente !== null && moto.cliente !== undefined && moto.cliente !== "") {
-        return `cliente:${String(moto.cliente)}`;
+      const rutCliente = String(item?.rut_cliente || "")
+        .trim()
+        .toUpperCase();
+      if (rutCliente && rutCliente !== "PENDIENTE") {
+        return `rut:${rutCliente}`;
       }
       if (moto.cliente_email) {
         return `email:${normalizeTextKey(moto.cliente_email)}`;
       }
+      const phone = String(moto.cliente_telefono || "").replace(/\D+/g, "");
+      if (phone) {
+        return `telefono:${phone}`;
+      }
       const label = (moto.cliente_nombre || "").trim() || "Cliente sin nombre";
-      return `nombre:${normalizeTextKey(label)}`;
+      const normalizedLabel = normalizeTextKey(label);
+      if (normalizedLabel) {
+        return `nombre:${normalizedLabel}`;
+      }
+      if (moto.cliente !== null && moto.cliente !== undefined && moto.cliente !== "") {
+        return `cliente:${String(moto.cliente)}`;
+      }
+      return `mantencion:${String(item?.id || "")}`;
     },
     [normalizeTextKey]
   );
@@ -328,14 +345,17 @@ export default function MantencionesPage({
   }, [tallerEstadoFilter]);
 
   const fichasHistoricasByCliente = useMemo(() => {
+    const effectiveEstadoFilter = HISTORICO_ESTADO_OPTIONS.has(historicoEstadoFilter) ? historicoEstadoFilter : "";
+    const effectiveFechaFilter = HISTORICO_FECHA_OPTIONS.has(historicoFechaFilter) ? historicoFechaFilter : "todos";
+
     if (!selectedHistoricoCliente) return [];
     return fichasHistoricas.filter((item) => {
       if (getHistoricoClienteKey(item) !== selectedHistoricoCliente) return false;
 
-      if (historicoEstadoFilter && item.estado !== historicoEstadoFilter) return false;
+      if (effectiveEstadoFilter && item.estado !== effectiveEstadoFilter) return false;
 
-      if (historicoFechaFilter !== "todos") {
-        const dateRange = getDateRange(historicoFechaFilter);
+      if (effectiveFechaFilter !== "todos") {
+        const dateRange = getDateRange(effectiveFechaFilter);
         if (dateRange) {
           const itemDate = new Date(item.fecha_ingreso);
           itemDate.setHours(0, 0, 0, 0);
@@ -458,9 +478,9 @@ export default function MantencionesPage({
           onToggleMobilePicker={handleToggleMobilePicker}
           onCloseMobilePicker={handleCloseMobilePicker}
           onOpenClienteDatos={openClienteDatosModal}
-          historicoEstadoFilter={historicoEstadoFilter}
+          historicoEstadoFilter={HISTORICO_ESTADO_OPTIONS.has(historicoEstadoFilter) ? historicoEstadoFilter : ""}
           onHistoricoEstadoFilterChange={handleHistoricoEstadoFilterChange}
-          historicoFechaFilter={historicoFechaFilter}
+          historicoFechaFilter={HISTORICO_FECHA_OPTIONS.has(historicoFechaFilter) ? historicoFechaFilter : "todos"}
           onHistoricoFechaFilterChange={handleHistoricoFechaFilterChange}
           transitions={transitions}
           savingById={savingById}

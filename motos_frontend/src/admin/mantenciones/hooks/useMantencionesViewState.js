@@ -6,6 +6,9 @@ const INITIAL_MOBILE_PICKER_STATE = {
   historicas: false,
 };
 
+const HISTORICO_FECHA_ALLOWED = new Set(["todos", "hoy", "semana", "mes", "aÃ±o"]);
+const HISTORICO_ESTADO_ALLOWED = new Set(["", "en_proceso", "en_espera", "finalizado", "cancelado", "reagendacion", "entregada"]);
+
 export default function useMantencionesViewState() {
   const [selectedSolicitudId, setSelectedSolicitudId] = useState(null);
   const [selectedFichaId, setSelectedFichaId] = useState(null);
@@ -49,18 +52,18 @@ export default function useMantencionesViewState() {
   }, []);
 
   const handleHistoricoEstadoFilterChange = useCallback((value) => {
-    setHistoricoEstadoFilter((prev) => {
-      if (prev === value) return prev;
-      return value;
-    });
-  }, []);
+    const normalizedValue = HISTORICO_ESTADO_ALLOWED.has(value) ? value : "";
+    if (normalizedValue === historicoEstadoFilter) return;
+    setHistoricoEstadoFilter(normalizedValue);
+    setSelectedHistoricaId(null);
+  }, [historicoEstadoFilter]);
 
   const handleHistoricoFechaFilterChange = useCallback((value) => {
-    setHistoricoFechaFilter((prev) => {
-      if (prev === value) return prev;
-      return value;
-    });
-  }, []);
+    const normalizedValue = HISTORICO_FECHA_ALLOWED.has(value) ? value : "todos";
+    if (normalizedValue === historicoFechaFilter) return;
+    setHistoricoFechaFilter(normalizedValue);
+    setSelectedHistoricaId(null);
+  }, [historicoFechaFilter]);
 
   const handleToggleMobilePicker = useCallback((pickerKey) => {
     setMobilePickerOpen((prev) => ({
