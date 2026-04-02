@@ -4,7 +4,7 @@ import { subscribeRealtime } from "../../../services/realtimeSocket";
 import {
   activarDiaCalendarioMantencion,
   bloquearDiaCalendarioMantencion,
-  deleteHorarioMantencionAdmin,
+  clearHorariosMantencionAdmin,
   toggleHoraCalendarioMantencion,
 } from "../services/mantencionesAdminService";
 import {
@@ -432,12 +432,7 @@ export default function useMantencionesCalendar({ activeSection, horarios }) {
     setClearHorasSaving(true);
     setClearHorasError("");
     try {
-      const horarioIds = [...horarios]
-        .map((item) => Number(item?.id))
-        .filter((id) => Number.isFinite(id) && id > 0);
-      if (horarioIds.length) {
-        await Promise.all(horarioIds.map((id) => deleteHorarioMantencionAdmin(id)));
-      }
+      await clearHorariosMantencionAdmin();
       setClearHorasModalOpen(false);
       await refreshCalendarAvailability({ silent: true });
     } catch (error) {
@@ -445,7 +440,7 @@ export default function useMantencionesCalendar({ activeSection, horarios }) {
     } finally {
       setClearHorasSaving(false);
     }
-  }, [horarios, refreshCalendarAvailability]);
+  }, [refreshCalendarAvailability]);
 
   const handleDayActivateFieldChange = useCallback((field, value) => {
     setDayActivateForm((prev) => ({

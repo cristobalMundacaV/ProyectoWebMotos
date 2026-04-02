@@ -69,6 +69,32 @@ class HorarioMantencionViewSet(viewsets.ModelViewSet):
         _broadcast_after_commit("availability_updated", {"scope": "calendar"})
 
 
+class LimpiarHorariosMantencionAPIView(APIView):
+    permission_classes = [IsOperationalStaff]
+
+    def post(self, request):
+        with transaction.atomic():
+            weekly_deleted = HorarioMantencion.objects.all().delete()[0]
+            by_date_deleted = MantencionHorarioFecha.objects.all().delete()[0]
+            blocked_hours_deleted = MantencionHoraBloqueada.objects.all().delete()[0]
+            blocked_days_deleted = MantencionDiaBloqueado.objects.all().delete()[0]
+
+            _broadcast_after_commit("schedule_updated", {"action": "cleared"})
+            _broadcast_after_commit("availability_updated", {"scope": "calendar", "action": "cleared"})
+
+        return Response(
+            {
+                "deleted": {
+                    "horarios_semanales": weekly_deleted,
+                    "horarios_por_fecha": by_date_deleted,
+                    "horas_bloqueadas": blocked_hours_deleted,
+                    "dias_bloqueados": blocked_days_deleted,
+                }
+            },
+            status=status.HTTP_200_OK,
+        )
+
+
 class MantencionViewSet(viewsets.ModelViewSet):
     serializer_class = MantencionSerializer
     permission_classes = [IsOperationalStaff]

@@ -7,6 +7,7 @@ from .views import (
     MantencionCancelarAPIView,
     MantencionBloquearDiaAPIView,
     MantencionConsultaRutAPIView,
+    LimpiarHorariosMantencionAPIView,
     HorarioMantencionViewSet,
     MantencionDisponibilidadAPIView,
     MantencionToggleHoraAPIView,
@@ -22,6 +23,7 @@ router.register(r"", MantencionViewSet, basename="mantenciones")
 
 urlpatterns = [
     path("agendar/", AgendarMantencionAPIView.as_view(), name="agendar-mantencion"),
+    path("horarios/clear/", LimpiarHorariosMantencionAPIView.as_view(), name="mantencion-horarios-clear"),
     path("disponibilidad/", MantencionDisponibilidadAPIView.as_view(), name="mantencion-disponibilidad"),
     path("disponibilidad/bloquear-dia/", MantencionBloquearDiaAPIView.as_view(), name="mantencion-bloquear-dia"),
     path("disponibilidad/activar-dia/", MantencionActivarDiaAPIView.as_view(), name="mantencion-activar-dia"),
