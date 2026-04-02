@@ -286,6 +286,7 @@ export default function Navbar() {
           </div>
         </nav>
 
+        <div className="nav-actions">
         {user ? (
           <div className="admin-topbar-user-menu nav-user-menu" ref={userMenuRef}>
             <button
@@ -369,9 +370,17 @@ export default function Navbar() {
             )}
           </div>
         ) : (
-          <Link className="btn-nav btn-nav-subtle nav-desktop-admin" to="/login">
-            Login
-          </Link>
+          <>
+            <Link className="btn-nav btn-nav-subtle nav-desktop-admin" to="/login">
+              Login
+            </Link>
+            <Link className="admin-topbar-user-icon nav-login-icon" to="/login" aria-label="Ir a login" title="Login">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M20 21a8 8 0 0 0-16 0" />
+                <circle cx="12" cy="8" r="4" />
+              </svg>
+            </Link>
+          </>
         )}
 
         <button
@@ -385,6 +394,7 @@ export default function Navbar() {
           <span />
           <span />
         </button>
+        </div>
       </div>
 
       <button

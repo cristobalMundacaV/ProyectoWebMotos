@@ -105,6 +105,18 @@
   margin-left: auto;
 }
 
+.nav-actions {
+  margin-left: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.nav-login-icon {
+  display: none;
+}
+
 .nav-user-menu {
   margin-left: auto;
 }
@@ -432,6 +444,15 @@
     margin-left: 0;
   }
 
+  .nav-actions {
+    margin-left: auto;
+    gap: 8px;
+  }
+
+  .nav-login-icon {
+    display: inline-flex;
+  }
+
   .nav-user + .nav-menu-toggle {
     margin-left: 8px;
   }
@@ -448,7 +469,7 @@
     border-radius: 10px;
     cursor: pointer;
     flex-shrink: 0;
-    margin-left: 8px;
+    margin-left: 0;
     z-index: 1101;
   }
 
