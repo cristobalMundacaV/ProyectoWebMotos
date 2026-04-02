@@ -428,6 +428,10 @@
     gap: 0;
   }
 
+  .nav-user-menu {
+    margin-left: 0;
+  }
+
   .nav-user + .nav-menu-toggle {
     margin-left: 8px;
   }
@@ -444,7 +448,7 @@
     border-radius: 10px;
     cursor: pointer;
     flex-shrink: 0;
-    margin-left: auto;
+    margin-left: 8px;
     z-index: 1101;
   }
 
