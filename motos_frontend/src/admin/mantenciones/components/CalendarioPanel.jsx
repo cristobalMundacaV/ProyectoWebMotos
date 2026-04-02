@@ -35,7 +35,7 @@ export default function CalendarioPanel({ model }) {
         <div className="admin-card-header">
           <div className="admin-horarios-header-row">
             <div>
-              <h2>Calendario de disponibilidad</h2>
+              <h2>Calendario Operativo</h2>
               <span>Vista mensual para revisar dias habilitados y el detalle de horas disponibles u ocupadas.</span>
             </div>
             <button

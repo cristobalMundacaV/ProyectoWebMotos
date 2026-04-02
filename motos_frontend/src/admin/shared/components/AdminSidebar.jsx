@@ -173,7 +173,7 @@ const SIDEBAR_STRUCTURE = {
           roles: ["admin", "mecanico"],
           items: [
             { label: "Horario de la Semana", value: "horarios_operativos", roles: ["admin", "mecanico"] },
-            { label: "Calendario de disponibilidad", value: "horarios_calendario", roles: ["admin", "mecanico"] },
+            { label: "Calendario Operativo", value: "horarios_calendario", roles: ["admin", "mecanico"] },
           ],
         },
         {
@@ -204,7 +204,7 @@ const SIDEBAR_STRUCTURE = {
           label: "Fichas Tecnicas",
           icon: "fichas_tecnicas",
           roles: ["admin", "mecanico"],
-          items: [{ label: "Resumen general", value: "fichas_resumen", roles: ["admin", "mecanico"] }],
+          items: [{ label: "Fichas Motos", value: "fichas_resumen", roles: ["admin", "mecanico"] }],
         },
         {
           label: "Mantenedores",
