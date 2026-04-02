@@ -9,7 +9,10 @@ import { subscribeRealtime } from "../../../services/realtimeSocket";
 const PERIOD_OPTIONS = [
   { value: "today", label: "Hoy" },
   { value: "this_week", label: "Esta semana" },
+  { value: "last_7_days", label: "Ultimos 7 dias" },
+  { value: "last_30_days", label: "Ultimos 30 dias" },
   { value: "this_month", label: "Este mes" },
+  { value: "this_year", label: "Este ano" },
   { value: "last_3_months", label: "Ultimos 3 meses" },
   { value: "last_6_months", label: "Ultimos 6 meses" },
   { value: "last_9_months", label: "Ultimos 9 meses" },
@@ -87,15 +90,18 @@ function getPeriodSubtitle(period, range) {
   if (!start || !end) return "Periodo seleccionado";
   if (period === "today") return `Hoy, ${formatShortDate(start)}`;
   if (period === "this_week") return `Semana actual: ${formatShortDate(start)} a ${formatShortDate(end)}`;
+  if (period === "last_7_days") return `Ultimos 7 dias: ${formatShortDate(start)} a ${formatShortDate(end)}`;
+  if (period === "last_30_days") return `Ultimos 30 dias: ${formatShortDate(start)} a ${formatShortDate(end)}`;
   if (period === "this_month") return `En ${monthNameFromIso(start)}`;
+  if (period === "this_year") return `En ${String(start).slice(0, 4)}`;
   if (period === "all") return `Todo el historial desde ${formatShortDate(start)}`;
   return `${formatShortDate(start)} a ${formatShortDate(end)}`;
 }
 
 function formatMantenciones(value) {
   const total = Number(value || 0);
-  if (total === 1) return "1 mantencion";
-  return `${total} mantenciones`;
+  if (total === 1) return "1 hora";
+  return `${total} horas`;
 }
 
 function formatServiceLabel(value) {
@@ -116,6 +122,7 @@ function qualityFlagLabel(flag) {
     no_percentage_due_low_sample: "Variacion porcentual omitida por muestra baja",
     insufficient_sample_for_stable_rate: "Tasa con muestra insuficiente para estabilidad",
     no_capacity_configured: "No hay capacidad configurada en horarios",
+    no_comparable_previous_period: "No hay periodo anterior comparable para crecimiento",
   };
   return map[flag] || null;
 }
@@ -162,8 +169,10 @@ export default function ResumenPage() {
 
   const kpis = summary?.kpis || {};
   const range = summary?.range || {};
+  const previousRange = summary?.previous_range || {};
   const periodSubtitle = getPeriodSubtitle(period, range);
   const generatedAt = summary?.generated_at || null;
+  const hasPreviousRange = Boolean(previousRange?.start && previousRange?.end);
 
   const topMotos = useMemo(
     () => (summary?.top_modelos_moto || []).map((item) => ({ label: item.modelo, value: item.total })),
@@ -287,17 +296,37 @@ export default function ResumenPage() {
           title="Mantenciones agendadas"
           value={formatMantenciones(kpis.total_mantenciones)}
           subtitle={periodSubtitle}
-          supportText={`${kpis.total_mantenciones ?? 0} reservas en el periodo`}
+          loading={loading}
+          truncateValue
+        />
+        <KpiCard
+          title="Solicitudes de mantencion"
+          value={formatMantenciones(kpis.solicitudes_mantencion ?? 0)}
+          subtitle="Total global en estado solicitud"
           loading={loading}
           truncateValue
         />
         <KpiCard
           title="Crecimiento vs periodo anterior"
-          value={kpis.growth_label === "nuevo_periodo_activo" ? "Nuevo periodo activo" : `${kpis.growth_pct ?? 0}%`}
-          subtitle="Comparacion contra periodo global anterior"
-          trend={kpis.growth_label === "nuevo_periodo_activo" ? null : Number(kpis.growth_pct ?? 0)}
+          value={
+            kpis.growth_label === "sin_base_previa"
+              ? "Sin base previa comparable"
+              : kpis.growth_label === "nuevo_crecimiento"
+                ? "Nuevo crecimiento"
+                : `${kpis.growth_pct ?? 0}%`
+          }
+          subtitle={`Comparacion contra ${kpis.growth_comparison_label || "periodo anterior equivalente"}`}
+          trend={
+            kpis.growth_label === "sin_base_previa" || kpis.growth_label === "nuevo_crecimiento"
+              ? null
+              : Number(kpis.growth_pct ?? 0)
+          }
           valueBadge
-          supportText={`Rango previo: ${formatDateDMY(summary?.previous_range?.start)} a ${formatDateDMY(summary?.previous_range?.end)}`}
+          supportText={
+            hasPreviousRange
+              ? `Rango previo: ${formatDateDMY(previousRange.start)} a ${formatDateDMY(previousRange.end)}`
+              : "No existe periodo anterior comparable con base historica."
+          }
           loading={loading}
         />
         <GaugeKpiCard
@@ -307,27 +336,18 @@ export default function ResumenPage() {
           supportText={`${kpis.horas_reservadas ?? 0}/${kpis.horas_disponibles ?? 0} horas (${kpis.horas_restantes ?? 0} restantes)`}
           loading={loading}
         />
-        <KpiCard
-          title="Modelo mas visto del periodo"
-          value={kpis.modelo_mas_visto?.entidad_nombre || "Sin datos"}
-          subtitle={`${kpis.modelo_mas_visto?.total || 0} visitas`}
-          supportText={`${kpis.total_visitas_catalogo ?? 0} visitas totales del catalogo`}
-          loading={loading}
-          truncateValue
-        />
       </section>
 
       <section className="admin-analytics-grid two-cols admin-analytics-row">
         <BarChartCard
-          title="Top 5 modelos de moto mas vistos"
-          subtitle="Ranking de interes del periodo"
+          title="Top 5 modelos de motos mas vistos del periodo"
           items={topMotos}
           stretch
+          footerText={`De ${kpis.total_visitas_catalogo ?? 0} visitas totales en catalogo`}
           loading={loading}
         />
         <BarChartCard
           title="Categorias de motos mas vistas"
-          subtitle="Participacion sobre visitas de motos"
           items={categoriasMoto}
           horizontal
           loading={loading}
@@ -370,28 +390,24 @@ export default function ResumenPage() {
           title="Tasa de cancelaciones"
           value={`${kpis.cancelaciones_pct ?? 0}%`}
           subtitle="Sobre reservas del periodo"
-          supportText="Indicador de desercion"
           loading={loading}
         />
         <KpiCard
           title="Tasa de no asistencia"
           value={`${kpis.no_asistencia_pct ?? 0}%`}
           subtitle="Sobre reservas del periodo"
-          supportText="Impacto operativo en agenda"
           loading={loading}
         />
         <KpiCard
           title="Clientes recurrentes"
           value={kpis.clientes_recurrentes ?? 0}
           subtitle={`${kpis.clientes_recurrentes ?? 0} de ${kpis.clientes_total_unicos ?? 0} clientes unicos`}
-          supportText="Con historial previo a este periodo"
           loading={loading}
         />
         <KpiCard
           title="Clientes nuevos"
           value={kpis.clientes_nuevos ?? 0}
           subtitle={`${kpis.clientes_nuevos ?? 0} de ${kpis.clientes_total_unicos ?? 0} clientes unicos`}
-          supportText="Primera reserva en el periodo"
           loading={loading}
         />
       </section>

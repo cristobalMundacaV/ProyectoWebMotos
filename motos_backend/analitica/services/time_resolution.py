@@ -25,10 +25,16 @@ class Window:
 class GlobalPeriodContext:
     key: str
     window: Window
+    first_data_date: date | None = None
 
 
 def _first_day_of_month(value: date) -> date:
     return value.replace(day=1)
+
+
+def _last_day_of_month(value: date) -> date:
+    next_month = _add_months(_first_day_of_month(value), 1)
+    return next_month - timedelta(days=1)
 
 
 def _add_months(value: date, months: int) -> date:
@@ -54,27 +60,38 @@ def resolve_global_period_context(
     normalized = (period or "this_month").strip().lower()
 
     if normalized == "today":
-        return GlobalPeriodContext(key=normalized, window=Window(today, today))
+        return GlobalPeriodContext(key=normalized, window=Window(today, today), first_data_date=first_data_date)
     if normalized == "this_week":
         start = today - timedelta(days=today.weekday())
-        return GlobalPeriodContext(key=normalized, window=Window(start, today))
+        return GlobalPeriodContext(key=normalized, window=Window(start, today), first_data_date=first_data_date)
+    if normalized == "last_7_days":
+        start = today - timedelta(days=6)
+        return GlobalPeriodContext(key=normalized, window=Window(start, today), first_data_date=first_data_date)
+    if normalized == "last_30_days":
+        start = today - timedelta(days=29)
+        return GlobalPeriodContext(key=normalized, window=Window(start, today), first_data_date=first_data_date)
     if normalized == "last_3_months":
         start = _add_months(_first_day_of_month(today), -2)
-        return GlobalPeriodContext(key=normalized, window=Window(start, today))
+        return GlobalPeriodContext(key=normalized, window=Window(start, today), first_data_date=first_data_date)
     if normalized == "last_6_months":
         start = _add_months(_first_day_of_month(today), -5)
-        return GlobalPeriodContext(key=normalized, window=Window(start, today))
+        return GlobalPeriodContext(key=normalized, window=Window(start, today), first_data_date=first_data_date)
     if normalized == "last_9_months":
         start = _add_months(_first_day_of_month(today), -8)
-        return GlobalPeriodContext(key=normalized, window=Window(start, today))
+        return GlobalPeriodContext(key=normalized, window=Window(start, today), first_data_date=first_data_date)
     if normalized == "last_year":
         start = _add_months(_first_day_of_month(today), -11)
-        return GlobalPeriodContext(key=normalized, window=Window(start, today))
+        return GlobalPeriodContext(key=normalized, window=Window(start, today), first_data_date=first_data_date)
+    if normalized == "this_year":
+        start = date(today.year, 1, 1)
+        end = date(today.year, 12, 31)
+        return GlobalPeriodContext(key=normalized, window=Window(start, end), first_data_date=first_data_date)
     if normalized == "all":
         start = _resolve_all_period_start(today, first_data_date)
-        return GlobalPeriodContext(key=normalized, window=Window(start, today))
+        return GlobalPeriodContext(key=normalized, window=Window(start, today), first_data_date=first_data_date)
     start = _first_day_of_month(today)
-    return GlobalPeriodContext(key="this_month", window=Window(start, today))
+    end = _last_day_of_month(today)
+    return GlobalPeriodContext(key="this_month", window=Window(start, end), first_data_date=first_data_date)
 
 
 def resolve_time_window(
@@ -130,4 +147,3 @@ def resolve_comparison_window(definition: KPIDefinition, current_window: Window)
         prev_end = current_month_start - timedelta(days=1)
         return Window(start=prev_start, end=prev_end)
     return None
-

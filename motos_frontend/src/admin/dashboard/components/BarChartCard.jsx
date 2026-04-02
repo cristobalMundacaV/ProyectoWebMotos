@@ -13,6 +13,7 @@ export default function BarChartCard({
   horizontal = false,
   loading = false,
   stretch = false,
+  footerText = "",
 }) {
   const max = safeMax(items);
   const chartCardClassName = [
@@ -75,6 +76,7 @@ export default function BarChartCard({
           })}
         </div>
       )}
+      {!loading && footerText ? <p className="admin-analytics-card-subtitle">{footerText}</p> : null}
     </article>
   );
 }

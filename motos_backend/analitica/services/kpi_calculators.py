@@ -196,6 +196,23 @@ def _compute_capacity_by_hour(start: date, end: date) -> tuple[dict[str, int], i
     return capacity_by_hour, total_capacity
 
 
+def _growth_previous_label(period_key: str) -> str:
+    labels = {
+        "today": "ayer",
+        "this_week": "semana pasada",
+        "this_month": "mes pasado",
+        "this_year": "año pasado",
+        "last_year": "periodo anual anterior equivalente",
+        "last_9_months": "9 meses anteriores equivalentes",
+        "last_6_months": "6 meses anteriores equivalentes",
+        "last_3_months": "3 meses anteriores equivalentes",
+        "last_30_days": "30 dias anteriores",
+        "last_7_days": "7 dias anteriores",
+        "all": "bloque historico anterior equivalente",
+    }
+    return labels.get(period_key, "periodo anterior equivalente")
+
+
 def _base_contract(
     definition: KPIDefinition,
     window: Window,
@@ -327,17 +344,36 @@ class DashboardSummaryBuilder:
 
     def _calc_crecimiento(self, contract: dict[str, Any], window: Window, comparison_window: Window | None):
         current_total = self._mant_qs(window).count()
-        prev_total = self._mant_qs(comparison_window).count() if comparison_window else 0
+        previous_label = _growth_previous_label(self.period)
+        contract["meta"]["comparison_label"] = previous_label
+
+        first_data_date = self.period_context.first_data_date
+        has_comparable_previous_window = bool(
+            comparison_window and (
+                first_data_date is None or comparison_window.end >= first_data_date
+            )
+        )
+        if not has_comparable_previous_window:
+            contract["quality_flags"].append("no_comparable_previous_period")
+            contract["meta"]["comparison_window"] = None
+            contract["meta"]["current_total"] = current_total
+            contract["meta"]["previous_total"] = 0
+            contract["display"] = "Sin base previa comparable"
+            contract["value"] = None
+            contract["empty_reason"] = "no_comparable_previous_period"
+            return contract
+
+        prev_total = self._mant_qs(comparison_window).count()
         contract["meta"]["current_total"] = current_total
         contract["meta"]["previous_total"] = prev_total
         if prev_total == 0 and current_total > 0:
             contract["quality_flags"].append("prev_period_zero")
-            contract["display"] = "Nuevo periodo activo"
+            contract["display"] = "Nuevo crecimiento"
             contract["value"] = None
             return contract
         if prev_total == 0 and current_total == 0:
             contract["quality_flags"].append("no_activity")
-            contract["display"] = "Sin actividad"
+            contract["display"] = "0%"
             contract["value"] = 0.0
             contract["empty_reason"] = "no_current_and_previous_activity"
             return contract
@@ -700,22 +736,27 @@ class DashboardSummaryBuilder:
             int(clientes_recurrentes["meta"].get("total_unicos") or 0),
             int(clientes_nuevos["meta"].get("total_unicos") or 0),
         )
+        solicitudes_mantencion_global = Mantencion.objects.filter(estado=Mantencion.ESTADO_SOLICITUD).count()
 
         growth_value = crecimiento_contract["value"]
         growth_label = "normal"
-        if "prev_period_zero" in crecimiento_contract["quality_flags"]:
-            growth_label = "nuevo_periodo_activo"
+        if "no_comparable_previous_period" in crecimiento_contract["quality_flags"]:
+            growth_label = "sin_base_previa"
+        elif "prev_period_zero" in crecimiento_contract["quality_flags"]:
+            growth_label = "nuevo_crecimiento"
         elif "no_activity" in crecimiento_contract["quality_flags"]:
             growth_label = "sin_actividad"
 
         payload = {
             "period": self.period,
             "range": self.period_context.window.as_dict(),
-            "previous_range": crecimiento_contract["meta"].get("comparison_window") or {"from": None, "to": None},
+            "previous_range": crecimiento_contract["meta"].get("comparison_window"),
             "kpis": {
                 "total_mantenciones": total_mantenciones,
+                "solicitudes_mantencion": int(solicitudes_mantencion_global or 0),
                 "growth_pct": growth_value,
                 "growth_label": growth_label,
+                "growth_comparison_label": crecimiento_contract["meta"].get("comparison_label") or "periodo anterior equivalente",
                 "ocupacion_pct": ocupacion_contract["value"] or 0.0,
                 "horas_reservadas": int(ocupacion_contract["meta"].get("reserved_slots") or 0),
                 "horas_disponibles": int(ocupacion_contract["meta"].get("capacity_total") or 0),
@@ -747,8 +788,9 @@ class DashboardSummaryBuilder:
             "kpi_matrix": {key: asdict(definition) for key, definition in KPI_REGISTRY.items()},
         }
         payload["range"] = {"start": payload["range"]["from"], "end": payload["range"]["to"]}
+        comparison_window = payload.get("previous_range") or {}
         payload["previous_range"] = {
-            "start": payload["previous_range"].get("from"),
-            "end": payload["previous_range"].get("to"),
+            "start": comparison_window.get("from"),
+            "end": comparison_window.get("to"),
         }
         return payload

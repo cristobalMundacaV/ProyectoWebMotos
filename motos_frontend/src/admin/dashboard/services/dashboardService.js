@@ -121,11 +121,26 @@ function getPeriodRange(period) {
   if (period === "today") {
     return { start: toIsoDate(now), end: toIsoDate(now), groupBy: "day" };
   }
+  if (period === "last_7_days") {
+    const start = new Date(now);
+    start.setDate(start.getDate() - 6);
+    return { start: toIsoDate(start), end: toIsoDate(now), groupBy: "day" };
+  }
+  if (period === "last_30_days") {
+    const start = new Date(now);
+    start.setDate(start.getDate() - 29);
+    return { start: toIsoDate(start), end: toIsoDate(now), groupBy: "day" };
+  }
   if (period === "this_week") {
     const weekStart = new Date(now);
     const dayOfWeek = (weekStart.getDay() + 6) % 7;
     weekStart.setDate(weekStart.getDate() - dayOfWeek);
     return { start: toIsoDate(weekStart), end: toIsoDate(now), groupBy: "day" };
+  }
+  if (period === "this_year") {
+    const start = new Date(now.getFullYear(), 0, 1);
+    const end = new Date(now.getFullYear(), 11, 31);
+    return { start: toIsoDate(start), end: toIsoDate(end), groupBy: "month" };
   }
   if (period === "last_3_months") {
     return { start: toIsoDate(addMonths(firstDayOfMonth(now), -2)), end: toIsoDate(now), groupBy: "month" };
@@ -200,11 +215,13 @@ function mapLegacyToSummary({ period, catalogo, mantenciones, range }) {
   return {
     period,
     range: { start: range.start, end: range.end },
-    previous_range: { start: "-", end: "-" },
+    previous_range: { start: null, end: null },
     kpis: {
       total_mantenciones: Number(kpis.total_agendadas_mes || 0),
+      solicitudes_mantencion: Number(mantenciones?.solicitudes_mantencion || 0),
       growth_pct: kpis.crecimiento_mensual_pct,
-      growth_label: kpis.crecimiento_mensual_pct === null ? "nuevo_periodo_activo" : "normal",
+      growth_label: kpis.crecimiento_mensual_pct === null ? "sin_base_previa" : "normal",
+      growth_comparison_label: "periodo anterior equivalente",
       ocupacion_pct: Number(kpis.ocupacion_pct || 0),
       horas_reservadas: Number(kpis.horas_reservadas_mes || 0),
       horas_disponibles: Number(kpis.horas_disponibles_mes || 0),

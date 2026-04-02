@@ -29,7 +29,7 @@ def build_dashboard_summary(period: str) -> dict:
     period_context = resolve_global_period_context(period, today=today, first_data_date=first_data_date)
 
     cache_key = (
-        f"analytics:dashboard-summary:v3:"
+        f"analytics:dashboard-summary:v5:"
         f"{period_context.key}:{period_context.window.start}:{period_context.window.end}:{today.isoformat()}"
     )
     cached = cache.get(cache_key)

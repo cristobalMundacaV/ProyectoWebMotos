@@ -107,9 +107,9 @@ class DashboardAnalyticsContractTests(TestCase):
 
     def test_time_resolution_rules(self):
         context = resolve_global_period_context("today", today=date.today())
-        realtime_window = resolve_time_window(KPI_REGISTRY["ocupacion_taller"], context)
-        self.assertGreaterEqual(realtime_window.days, 1)
-        self.assertEqual(KPI_REGISTRY["ocupacion_taller"].time_mode, KPITimeMode.REALTIME)
+        period_window = resolve_time_window(KPI_REGISTRY["ocupacion_taller"], context)
+        self.assertGreaterEqual(period_window.days, 1)
+        self.assertEqual(KPI_REGISTRY["ocupacion_taller"].time_mode, KPITimeMode.PERIOD)
         self.assertEqual(resolve_granularity(2, KPI_REGISTRY["tendencia_visitas"]), "hour")
         self.assertEqual(resolve_granularity(20, KPI_REGISTRY["tendencia_visitas"]), "day")
         self.assertEqual(resolve_granularity(120, KPI_REGISTRY["tendencia_visitas"]), "week")

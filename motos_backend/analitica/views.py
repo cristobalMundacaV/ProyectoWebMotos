@@ -601,6 +601,7 @@ class MantencionesDashboardAnalyticsAPIView(APIView):
                     "nuevos": nuevos,
                     "total_unicos_mes": recurrentes + nuevos,
                 },
+                "solicitudes_mantencion": Mantencion.objects.filter(estado=Mantencion.ESTADO_SOLICITUD).count(),
             },
             status=status.HTTP_200_OK,
         )
