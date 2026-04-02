@@ -137,7 +137,11 @@ def resolve_granularity(window_days: int, definition: KPIDefinition) -> str:
 def resolve_comparison_window(definition: KPIDefinition, current_window: Window) -> Window | None:
     if definition.comparison_rule == "none":
         return None
-    if definition.comparison_rule in {"previous_equivalent_period", "rolling_baseline"}:
+    if definition.comparison_rule in {
+        "previous_equivalent_period",
+        "previous_equivalent_period_or_new_active_period",
+        "rolling_baseline",
+    }:
         prev_end = current_window.start - timedelta(days=1)
         prev_start = prev_end - timedelta(days=current_window.days - 1)
         return Window(start=prev_start, end=prev_end)

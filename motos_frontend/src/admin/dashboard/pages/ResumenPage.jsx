@@ -402,12 +402,14 @@ export default function ResumenPage() {
           title="Clientes recurrentes"
           value={kpis.clientes_recurrentes ?? 0}
           subtitle={`${kpis.clientes_recurrentes ?? 0} de ${kpis.clientes_total_unicos ?? 0} clientes unicos`}
+          supportText="Con historial previo a este periodo"
           loading={loading}
         />
         <KpiCard
           title="Clientes nuevos"
           value={kpis.clientes_nuevos ?? 0}
           subtitle={`${kpis.clientes_nuevos ?? 0} de ${kpis.clientes_total_unicos ?? 0} clientes unicos`}
+          supportText="Primera reserva en el periodo"
           loading={loading}
         />
       </section>
