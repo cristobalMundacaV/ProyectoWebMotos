@@ -466,6 +466,7 @@
   display: grid;
   place-items: center;
   padding: 22px;
+  box-sizing: border-box;
 }
 
 .equip-edit-modal {
@@ -477,12 +478,15 @@
   border: 1px solid #e5e7eb;
   box-shadow: 0 28px 80px rgba(0, 0, 0, 0.28);
   padding: 24px;
+  box-sizing: border-box;
 }
 
 .equip-edit-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
   margin-bottom: 18px;
 }
 
@@ -515,6 +519,7 @@
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 14px;
+  min-width: 0;
 }
 
 .equip-edit-form label {
@@ -524,11 +529,14 @@
   color: #2d3442;
   font-size: 0.95rem;
   font-weight: 600;
+  min-width: 0;
 }
 
 .equip-edit-form input,
 .equip-edit-form select,
 .equip-edit-form textarea {
+  width: 100%;
+  max-width: 100%;
   border: 1px solid #cfd5df;
   border-radius: 10px;
   height: 42px;
@@ -536,6 +544,7 @@
   padding: 0 12px;
   font-size: 0.95rem;
   color: #181f2b;
+  box-sizing: border-box;
 }
 
 .equip-edit-form select {
@@ -655,6 +664,8 @@
 }
 
 .equip-edit-file-picker {
+  width: 100%;
+  max-width: 100%;
   min-height: 42px;
   border: 1px solid #cfd5df;
   border-radius: 10px;
@@ -666,6 +677,7 @@
   gap: 10px;
   flex-wrap: wrap;
   text-align: center;
+  box-sizing: border-box;
 }
 
 .equip-edit-file-hidden {
@@ -793,7 +805,7 @@
     max-height: none;
     min-height: calc(100dvh - 24px);
     border-radius: 14px;
-    padding: 16px 14px;
+    padding: 16px;
     overflow-x: hidden;
     box-sizing: border-box;
     margin: 0 auto;
