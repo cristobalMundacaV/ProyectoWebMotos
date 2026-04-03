@@ -4675,10 +4675,10 @@
   }
 
   .admin-user-dropdown {
-    right: 0;
+    right: -6px;
     left: auto;
-    width: min(320px, calc(100vw - 14px));
-    max-width: min(320px, calc(100vw - 14px));
+    width: min(300px, calc(100vw - 12px));
+    max-width: min(300px, calc(100vw - 12px));
     transform: none;
   }
 

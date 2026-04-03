@@ -1,6 +1,6 @@
 ﻿import { Link } from "react-router-dom";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { buildFallbackImageDataUrl, buildMediaUrl } from "../../services/apiConfig";
+import { buildMediaUrl } from "../../services/apiConfig";
 import AdminDeleteConfirmModal from "../../admin/shared/components/AdminDeleteConfirmModal";
 import { getErrorText } from "../../admin/shared/utils/errorUtils";
 import {
@@ -80,7 +80,6 @@ export default function EquipamientoCatalog({ variant = "accesorios" }) {
   const [deletingProducto, setDeletingProducto] = useState(false);
   const [feedback, setFeedback] = useState({ type: "", message: "" });
   const editFileInputRef = useRef(null);
-  const fallbackImage = buildFallbackImageDataUrl({ width: 600, height: 600, text: "Sin Imagen" });
 
   // Toast público para feedback
   const { toasts, pushToast, dismissToast } = usePublicToasts();
@@ -693,23 +692,25 @@ export default function EquipamientoCatalog({ variant = "accesorios" }) {
             const cardImageSrc =
               (producto.imagen_principal && buildMediaUrl(producto.imagen_principal)) ||
               (firstGalleryImage && buildMediaUrl(firstGalleryImage)) ||
-              fallbackImage;
+              "";
             const cardContent = (
               <>
                 <figure className="equip-card-image">
-                  <img
-                    src={cardImageSrc}
-                    alt={producto.nombre}
-                    loading="lazy"
-                    decoding="async"
-                    width="800"
-                    height="800"
-                    sizes="(max-width: 560px) 100vw, (max-width: 960px) 50vw, (max-width: 1400px) 33vw, 25vw"
-                    onError={(event) => {
-                      event.currentTarget.onerror = null;
-                      event.currentTarget.src = fallbackImage;
-                    }}
-                  />
+                  {cardImageSrc ? (
+                    <img
+                      src={cardImageSrc}
+                      alt={producto.nombre}
+                      loading="lazy"
+                      decoding="async"
+                      width="800"
+                      height="800"
+                      sizes="(max-width: 560px) 100vw, (max-width: 960px) 50vw, (max-width: 1400px) 33vw, 25vw"
+                      onError={(event) => {
+                        event.currentTarget.onerror = null;
+                        event.currentTarget.style.display = "none";
+                      }}
+                    />
+                  ) : null}
                   {isAdmin && (
                     <div className="equip-admin-actions">
                       <button
