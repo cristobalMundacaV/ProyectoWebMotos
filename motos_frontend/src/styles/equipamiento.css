@@ -782,7 +782,7 @@
 
 @media (max-width: 560px) {
   .equip-edit-modal-overlay {
-    padding: 12px;
+    padding: 12px 18px 12px 12px;
     align-items: start;
     overflow-y: auto;
   }
@@ -793,6 +793,7 @@
     min-height: calc(100dvh - 24px);
     border-radius: 14px;
     padding: 16px 14px;
+    overflow-x: hidden;
   }
 
   .equip-edit-header {
@@ -819,6 +820,7 @@
 
   .equip-edit-form {
     gap: 12px;
+    padding-right: 2px;
   }
 
   .equip-edit-form input,
