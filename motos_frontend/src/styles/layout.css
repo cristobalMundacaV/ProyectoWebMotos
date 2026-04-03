@@ -446,15 +446,16 @@
   }
 
   .admin-user-dropdown {
-    position: fixed;
-    top: 72px;
-    right: 10px;
-    left: 10px;
-    width: auto;
-    max-width: none;
+    position: absolute;
+    top: calc(100% + 10px);
+    right: 0;
+    left: auto;
+    width: min(340px, calc(100vw - 14px));
+    max-width: min(340px, calc(100vw - 14px));
     max-height: calc(100dvh - 84px);
     overflow-y: auto;
     overscroll-behavior: contain;
+    transform: none;
   }
 
   .admin-user-dropdown-content,

@@ -7,9 +7,12 @@ import MotoCard from "../components/motos/MotoCard";
 import AdminYearDropdown from "../admin/shared/components/AdminYearDropdown";
 import AdminDeleteConfirmModal from "../admin/shared/components/AdminDeleteConfirmModal";
 import { MOTO_YEAR_RANGE } from "../admin/motos/constants/motoYearRange";
+import { getErrorText } from "../admin/shared/utils/errorUtils";
 import { buildMediaUrl } from "../services/apiConfig";
 import { deleteMoto, getMotoAdminMeta, updateMoto } from "../services/motosService";
 import { getStoredToken, getStoredUser, hasAdminAccess } from "../services/authService";
+import PublicToastStack from "../components/equipamiento/PublicToastStack";
+import usePublicToasts from "../components/equipamiento/usePublicToasts";
 import "../styles/catalogo-motos.css";
 
 /** Catalogo completo de motos con filtros y edicion para admins */
@@ -42,7 +45,7 @@ export default function CatalogoMotos() {
   const [editImageMaletasPreview, setEditImageMaletasPreview] = useState("");
   const [deleteCandidate, setDeleteCandidate] = useState(null);
   const [deletingMoto, setDeletingMoto] = useState(false);
-  const [feedback, setFeedback] = useState({ type: "", message: "" });
+  const { toasts, pushToast, dismissToast } = usePublicToasts();
   const editFileInputRef = useRef(null);
   const editMaletasFileInputRef = useRef(null);
   const formatTitleCase = (value) =>
@@ -90,12 +93,6 @@ export default function CatalogoMotos() {
       if (editImageMaletasPreview) URL.revokeObjectURL(editImageMaletasPreview);
     };
   }, [editImagePreview, editImageMaletasPreview]);
-
-  useEffect(() => {
-    if (!feedback.message) return undefined;
-    const timeoutId = window.setTimeout(() => setFeedback({ type: "", message: "" }), 3500);
-    return () => window.clearTimeout(timeoutId);
-  }, [feedback.message]);
 
   useEffect(() => {
     if (!editingMoto && !deleteCandidate) return undefined;
@@ -165,20 +162,6 @@ export default function CatalogoMotos() {
 
     const parsed = Number(text.replace(/[^0-9]/g, ""));
     return Number.isFinite(parsed) ? parsed : 0;
-  }
-
-  function getErrorText(error, fallback = "No se pudo guardar la moto.") {
-    const data = error?.response?.data;
-    if (!data) return fallback;
-    if (typeof data === "string") {
-      return data;
-    }
-    if (data.detail) return data.detail;
-
-    const firstArray = Object.values(data).find((value) => Array.isArray(value) && value.length > 0);
-    if (firstArray) return firstArray[0];
-
-    return fallback;
   }
 
   function resolveSelectId(entityId, entityName, list) {
@@ -436,9 +419,9 @@ export default function CatalogoMotos() {
       await deleteMoto(deleteCandidate.id);
       setMotos((prev) => prev.filter((item) => item.id !== deleteCandidate.id));
       setDeleteCandidate(null);
-      setFeedback({ type: "success", message: "Moto eliminada correctamente." });
-    } catch {
-      setFeedback({ type: "error", message: "No se pudo eliminar la moto." });
+      pushToast("Moto eliminada correctamente.", "success");
+    } catch (error) {
+      pushToast(getErrorText(error, "No se pudo eliminar la moto."), "error");
     } finally {
       setDeletingMoto(false);
     }
@@ -518,8 +501,10 @@ export default function CatalogoMotos() {
       const updated = await updateMoto(editingMoto.id, payload);
       setMotos((prev) => prev.map((item) => (item.id === editingMoto.id ? updated : item)));
       closeEditModal();
+      pushToast("Moto actualizada correctamente.", "success");
     } catch (error) {
       setEditError(getErrorText(error, "No se pudo editar la moto."));
+      pushToast(getErrorText(error, "No se pudo editar la moto."), "error");
     } finally {
       setSavingEdit(false);
     }
@@ -642,6 +627,7 @@ export default function CatalogoMotos() {
   return (
     <div className="page-wrapper">
       <Navbar />
+      <PublicToastStack toasts={toasts} onDismiss={dismissToast} />
       <main className="moto-catalog-page">
         <section className="moto-catalog-section">
           <div className="moto-catalog-breadcrumb">
@@ -659,11 +645,6 @@ export default function CatalogoMotos() {
                 <div className="moto-title-block">
                   <h2>Catalogo de Motos</h2>
                   <p className="moto-results-meta">{filteredMotos.length} motos</p>
-                  {feedback.message ? (
-                    <p role="status" aria-live="polite" className="moto-results-meta">
-                      {feedback.message}
-                    </p>
-                  ) : null}
                 </div>
 
                 <div className="moto-catalog-toolbar-actions">

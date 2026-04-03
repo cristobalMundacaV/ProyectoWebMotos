@@ -1,4 +1,4 @@
-﻿from django.db import IntegrityError
+from django.db import IntegrityError, transaction
 from django.db.models.deletion import ProtectedError, RestrictedError
 import logging
 from rest_framework import status
@@ -8,8 +8,10 @@ from rest_framework.response import Response
 from rest_framework_simplejwt.authentication import JWTAuthentication
 
 from catalogo.models import CategoriaMoto, Marca
+from clientes.models import ContactoCliente
 from clientes.permissions import IsCatalogAdmin, IsCatalogAdminOrReadOnly
 from core.audit import build_request_metadata, create_audit_log, serialize_instance_for_audit
+from productos.models import CompatibilidadProductoMoto
 from .ficha_defaults import ensure_moto_ficha_defaults
 from .models import ModeloMoto, Moto, TipoAtributo, ValorAtributoMoto
 from .services import create_or_update_moto_with_gallery, update_modelo_and_sync_motos
@@ -86,20 +88,29 @@ def detalle_moto_admin(request, moto_id):
 
     if request.method == "DELETE":
         try:
-            before = serialize_instance_for_audit(moto)
-            moto.delete()
-            create_audit_log(
-                action="delete",
-                entity="motos.Moto",
-                entity_id=moto_id,
-                before=before,
-                after=None,
-                actor=request.user,
-                metadata=_request_meta(request),
-            )
+            with transaction.atomic():
+                before = serialize_instance_for_audit(moto)
+                CompatibilidadProductoMoto.objects.filter(moto=moto).delete()
+                ContactoCliente.objects.filter(moto=moto).delete()
+                moto.valores_atributos.all().delete()
+                for seccion in moto.secciones_ficha.all():
+                    seccion.items.all().delete()
+                    seccion.delete()
+                moto.especificaciones.all().delete()
+                moto.imagenes.all().delete()
+                moto.delete()
+                create_audit_log(
+                    action="delete",
+                    entity="motos.Moto",
+                    entity_id=moto_id,
+                    before=before,
+                    after=None,
+                    actor=request.user,
+                    metadata=_request_meta(request),
+                )
         except (ProtectedError, RestrictedError):
             return Response(
-                {"detail": "Cannot delete this item because it has related records."},
+                {"detail": "No se pudo eliminar la moto porque tiene registros asociados."},
                 status=status.HTTP_409_CONFLICT,
             )
         return Response(status=status.HTTP_204_NO_CONTENT)

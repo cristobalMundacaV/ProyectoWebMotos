@@ -294,8 +294,8 @@
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
   transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
   display: grid;
-  grid-template-rows: 1fr auto;
-  height: 100%;
+  grid-template-rows: auto auto;
+  height: auto;
   width: 100%;
   min-width: 0;
 }
@@ -368,6 +368,7 @@
   align-items: stretch;
   justify-content: flex-end;
   gap: 10px;
+  margin-top: auto;
 }
 
 .equip-card-price {
@@ -956,7 +957,7 @@
   }
 
   .equip-card-image {
-    aspect-ratio: 1 / 0.86;
+    aspect-ratio: 1 / 1;
   }
 
   .equip-card-price {
@@ -1042,8 +1043,8 @@
 }
 
 .equip-page--accesorios .equip-card {
-  min-height: 398px;
-  grid-template-rows: 250px 1fr;
+  min-height: 0;
+  grid-template-rows: auto auto;
 }
 
 .equip-page--accesorios .equip-card-image {
@@ -1079,8 +1080,8 @@
 
 @media (max-width: 560px) {
   .equip-page--accesorios .equip-card {
-    min-height: 372px;
-    grid-template-rows: 234px 1fr;
+    min-height: 0;
+    grid-template-rows: auto auto;
   }
 
   .equip-page--accesorios .equip-card-image {
@@ -1095,8 +1096,8 @@
 
 @media (min-width: 961px) {
   .equip-page--accesorios .equip-card {
-    min-height: 428px;
-    grid-template-rows: 280px 1fr;
+    min-height: 0;
+    grid-template-rows: auto auto;
   }
 
   .equip-page--accesorios .equip-card-image {
