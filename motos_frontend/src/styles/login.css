@@ -192,9 +192,9 @@
 
   .login-shell {
     border-radius: 0;
-    padding: 24px 16px;
-    place-items: end center;
-    min-height: 100vh;
+    padding: 12px 16px 18px;
+    place-items: center;
+    min-height: calc(100dvh - 64px);
     background-position: 75% center;
   }
 

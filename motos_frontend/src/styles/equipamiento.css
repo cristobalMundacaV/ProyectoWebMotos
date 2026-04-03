@@ -483,11 +483,15 @@
 
 .equip-edit-header {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: space-between;
   gap: 12px;
-  flex-wrap: wrap;
   margin-bottom: 18px;
+}
+
+.equip-edit-header > div {
+  min-width: 0;
+  flex: 1 1 auto;
 }
 
 .equip-edit-kicker {
@@ -513,6 +517,9 @@
   padding: 0 13px;
   font-weight: 700;
   cursor: pointer;
+  margin-left: auto;
+  flex: 0 0 auto;
+  align-self: flex-start;
 }
 
 .equip-edit-form {
