@@ -267,6 +267,7 @@
   justify-content: flex-end;
   gap: 8px;
   margin-top: 2px;
+  flex-wrap: wrap;
 }
 
 .admin-user-btn {
@@ -442,6 +443,33 @@
 
   .nav-user-menu {
     margin-left: 0;
+  }
+
+  .admin-user-dropdown {
+    position: fixed;
+    top: 72px;
+    right: 10px;
+    left: 10px;
+    width: auto;
+    max-width: none;
+    max-height: calc(100dvh - 84px);
+    overflow-y: auto;
+    overscroll-behavior: contain;
+  }
+
+  .admin-user-dropdown-content,
+  .admin-user-dropdown-form {
+    gap: 12px;
+  }
+
+  .admin-user-dropdown-actions {
+    justify-content: stretch;
+    gap: 10px;
+  }
+
+  .admin-user-dropdown-actions .admin-user-btn {
+    flex: 1 1 140px;
+    min-height: 40px;
   }
 
   .nav-actions {

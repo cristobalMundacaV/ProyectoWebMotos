@@ -85,6 +85,21 @@ export default function AdminEntityModals({
                 </label>
               )}
 
+              {isModeloMotoEdit && (
+                <label>
+                  Cilindrada (cc)
+                  <input
+                    type="number"
+                    name="cilindrada"
+                    value={entityEditModal.cilindrada || ""}
+                    onChange={onEntityEditInputChange}
+                    min="1"
+                    inputMode="numeric"
+                    placeholder="Ej: 300"
+                  />
+                </label>
+              )}
+
               {entityModalError && <p className="admin-entity-modal-error">{entityModalError}</p>}
 
               <div className="admin-entity-modal-actions">

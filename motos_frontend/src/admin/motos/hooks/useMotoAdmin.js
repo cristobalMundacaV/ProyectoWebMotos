@@ -473,6 +473,9 @@ export default function useMotoAdmin({
         categoria: modeloMotoForm.categoria,
         nombre: normalizedNombre,
         nombre_modelo: normalizedNombre,
+        ...(String(modeloMotoForm.cilindrada || "").trim()
+          ? { cilindrada: Number(modeloMotoForm.cilindrada) }
+          : {}),
         descripcion: modeloMotoForm.descripcion,
         activo: Boolean(modeloMotoForm.activo),
       };

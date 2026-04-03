@@ -2,6 +2,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { buildFallbackImageDataUrl, buildMediaUrl } from "../../services/apiConfig";
 import AdminDeleteConfirmModal from "../../admin/shared/components/AdminDeleteConfirmModal";
+import { getErrorText } from "../../admin/shared/utils/errorUtils";
 import {
   deleteProductoAdmin,
   getAccesoriosMotosMeta,
@@ -290,17 +291,6 @@ export default function EquipamientoCatalog({ variant = "accesorios" }) {
     const entero = parsePrecioEntero(value);
     if (!entero) return "";
     return `$ ${String(entero).replace(/\B(?=(\d{3})+(?!\d))/g, ".")}`;
-  }
-
-  function getErrorText(err, fallback) {
-    const data = err?.response?.data;
-    if (!data) return fallback;
-    if (typeof data === "string") return data;
-    if (data.detail) return data.detail;
-
-    const firstArray = Object.values(data).find((value) => Array.isArray(value) && value.length > 0);
-    if (firstArray) return firstArray[0];
-    return fallback;
   }
 
   function openEditModal(producto) {

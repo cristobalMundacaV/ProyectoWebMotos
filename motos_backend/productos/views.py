@@ -296,6 +296,9 @@ def admin_producto_detalle(request, producto_id):
 		try:
 			with transaction.atomic():
 				before = serialize_instance_for_audit(producto)
+				producto.compatibilidades.all().delete()
+				producto.especificaciones.all().delete()
+				producto.imagenes.all().delete()
 				producto.delete()
 				create_audit_log(
 					action="delete",
@@ -308,7 +311,7 @@ def admin_producto_detalle(request, producto_id):
 				)
 		except (ProtectedError, RestrictedError):
 			return Response(
-				{"detail": "Cannot delete this item because it has related records."},
+				{"detail": "No se pudo eliminar el producto porque tiene registros asociados."},
 				status=status.HTTP_409_CONFLICT,
 			)
 		return Response(status=status.HTTP_204_NO_CONTENT)

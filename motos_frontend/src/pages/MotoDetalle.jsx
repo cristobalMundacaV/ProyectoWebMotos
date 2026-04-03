@@ -218,6 +218,10 @@ export default function MotoDetalle() {
   }
 
   const modelo = moto.modelo || moto.nombre;
+  const cilindradaLabel =
+    moto.cilindrada && Number(moto.cilindrada) > 0
+      ? `${Number(moto.cilindrada).toLocaleString("es-CL")} cc`
+      : "";
   const descripcionRaw = moto.descripcion?.trim();
   const descripcion =
     descripcionRaw && descripcionRaw !== modelo
@@ -356,6 +360,7 @@ export default function MotoDetalle() {
           <p className="moto-cuotas-label">24 CUOTAS SIN INTERES DE</p>
           <p className="moto-cuotas-value">{formatPrice(cuota24)}</p>
           <p className="moto-precio-desde">PRECIO DESDE {formatPrice(precioDesdeActual)}</p>
+          {cilindradaLabel ? <p className="moto-cuotas-label">CILINDRADA {cilindradaLabel}</p> : null}
         </section>
 
         <section className="moto-floating-content-grid">

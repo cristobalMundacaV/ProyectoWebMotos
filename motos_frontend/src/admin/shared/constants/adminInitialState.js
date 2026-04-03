@@ -24,6 +24,7 @@ export const initialModeloMotoForm = {
   marca: "",
   categoria: "",
   nombre: "",
+  cilindrada: "",
   slug: "",
   descripcion: "",
   activo: true,

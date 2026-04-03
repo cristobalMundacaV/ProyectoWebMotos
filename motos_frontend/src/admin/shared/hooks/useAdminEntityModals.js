@@ -60,6 +60,7 @@ export default function useAdminEntityModals({
         slug: item.slug || "",
         marca: item.marca ?? item.marca_id ?? "",
         categoria: item.categoria ?? item.categoria_id ?? "",
+        cilindrada: item.cilindrada ?? "",
       });
     },
     [normalizeTitleCaseLabel, normalizeUppercaseLabel]
@@ -281,6 +282,11 @@ export default function useAdminEntityModals({
           if (entityEditModal.categoria !== null && entityEditModal.categoria !== undefined && entityEditModal.categoria !== "") {
             modelPayload.categoria = Number(entityEditModal.categoria);
           }
+          if (entityEditModal.cilindrada !== null && entityEditModal.cilindrada !== undefined && entityEditModal.cilindrada !== "") {
+            modelPayload.cilindrada = Number(entityEditModal.cilindrada);
+          } else {
+            modelPayload.cilindrada = null;
+          }
           const updated = await updateModeloMoto(entityEditModal.id, modelPayload);
           setModelosMotosAdmin((prev) => prev.map((item) => (item.id === entityEditModal.id ? updated : item)));
           setMotoMeta((prev) => ({
@@ -298,6 +304,7 @@ export default function useAdminEntityModals({
                     categoria_nombre: updated.categoria_nombre || item.categoria_nombre,
                     marca: updated.marca ?? item.marca,
                     categoria: updated.categoria ?? item.categoria,
+                    cilindrada: updated.cilindrada ?? item.cilindrada,
                   }
                 : item
             ),
