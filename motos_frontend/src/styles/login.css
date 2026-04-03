@@ -209,5 +209,12 @@
 
   .login-meta {
     flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .login-meta label {
+    width: auto;
+    justify-content: flex-start;
+    align-self: flex-start;
   }
 }
